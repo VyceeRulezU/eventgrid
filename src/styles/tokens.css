@@ -1,0 +1,157 @@
+:root {
+  /* ── Brand ── */
+  --color-accent:            #D4A017;
+  --color-accent-hover:      #B8860B;
+  --color-accent-muted:      rgba(212, 160, 23, 0.15);
+  --color-accent-border:     rgba(212, 160, 23, 0.25);
+
+  /* ── Status (Live Board, Badges) ── */
+  --color-status-green:      #22C55E;
+  --color-status-green-bg:   rgba(34, 197, 94, 0.10);
+  --color-status-yellow:     #EAB308;
+  --color-status-yellow-bg:  rgba(234, 179, 8, 0.10);
+  --color-status-red:        #EF4444;
+  --color-status-red-bg:     rgba(239, 68, 68, 0.10);
+  --color-status-grey:       #6B7280;
+  --color-status-grey-bg:    rgba(107, 114, 128, 0.10);
+
+  /* ── Semantic ── */
+  --color-success:           #22C55E;
+  --color-success-bg:        rgba(34, 197, 94, 0.10);
+  --color-warning:           #EAB308;
+  --color-warning-bg:        rgba(234, 179, 8, 0.10);
+  --color-error:             #EF4444;
+  --color-error-bg:          rgba(239, 68, 68, 0.10);
+  --color-info:              #3B82F6;
+  --color-info-bg:           rgba(59, 130, 246, 0.10);
+
+  /* ── Payment Status ── */
+  --color-payment-unpaid:    var(--color-error);
+  --color-payment-unpaid-bg: var(--color-error-bg);
+  --color-payment-advance:   var(--color-warning);
+  --color-payment-advance-bg:var(--color-warning-bg);
+  --color-payment-paid:      var(--color-success);
+  --color-payment-paid-bg:   var(--color-success-bg);
+
+  /* ── Typography ── */
+  --font-base:               'Plus Jakarta Sans', sans-serif;
+
+  --text-display:            2rem;
+  --text-title-lg:           1.5rem;
+  --text-title:              1.25rem;
+  --text-subtitle:           1.125rem;
+  --text-base:               1rem;
+  --text-sm:                 0.875rem;
+  --text-xs:                 0.75rem;
+
+  --weight-regular:          400;
+  --weight-medium:           500;
+  --weight-semibold:         600;
+  --weight-bold:             700;
+  --weight-extrabold:        800;
+
+  --leading-tight:           1.25;
+  --leading-normal:          1.5;
+  --leading-relaxed:         1.75;
+
+  /* ── Spacing ── */
+  --space-1:                 0.25rem;
+  --space-2:                 0.5rem;
+  --space-3:                 0.75rem;
+  --space-4:                 1rem;
+  --space-5:                 1.25rem;
+  --space-6:                 1.5rem;
+  --space-8:                 2rem;
+  --space-10:                2.5rem;
+  --space-12:                3rem;
+  --space-16:                4rem;
+
+  /* ── Border Radius ── */
+  --radius-sm:               0.375rem;
+  --radius-md:               0.5rem;
+  --radius-lg:               0.75rem;
+  --radius-xl:               1rem;
+  --radius-full:             9999px;
+
+  /* ── Shadows ── */
+  --shadow-sm:               0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md:               0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg:               0 8px 24px rgba(0, 0, 0, 0.6);
+  --shadow-gold:             0 0 0 2px var(--color-accent);
+
+  /* ── Transitions ── */
+  --transition-fast:         150ms ease;
+  --transition-base:         200ms ease;
+  --transition-slow:         300ms ease;
+
+  /* ── Z-Index ── */
+  --z-base:                  0;
+  --z-dropdown:              100;
+  --z-sticky:                200;
+  --z-overlay:               300;
+  --z-modal:                 400;
+  --z-toast:                 500;
+
+  /* ── Layout ── */
+  --sidebar-width:           320px;
+  --sidebar-collapsed-width: 72px;
+  --bottom-bar-height:       64px;
+  --top-bar-height:          56px;
+  --page-padding-x:          var(--space-4);
+  --page-padding-x-md:       var(--space-6);
+  --page-padding-x-xl:       var(--space-8);
+  --content-max-width:       1200px;
+}
+
+/* ── DARK THEME (default) ── */
+:root,
+[data-theme="dark"] {
+  --color-bg-base:           #111827;
+  --color-surface-1:         #1F2937;
+  --color-surface-2:         #374151;
+  --color-surface-3:         #4B5563;
+  --color-surface-hover:     #2D3748;
+  --color-text-primary:      #F9FAFB;
+  --color-text-secondary:    #9CA3AF;
+  --color-text-muted:        #6B7280;
+  --color-text-inverse:      #111827;
+  --color-text-accent:       #D4A017;
+  --color-border:            #374151;
+  --color-border-subtle:     #1F2937;
+  --color-border-focus:      #D4A017;
+  --color-overlay:           rgba(0, 0, 0, 0.7);
+  --color-nav-active-bg:     var(--color-accent-muted);
+  --color-nav-active-text:   var(--color-accent);
+  --color-nav-active-border: var(--color-accent);
+}
+
+/* ── LIGHT THEME ── */
+[data-theme="light"] {
+  --color-bg-base:           #f5f2eb;
+  --color-surface-1:         #e8e4db;
+  --color-surface-2:         #ffffff;
+  --color-surface-3:         #f0ece4;
+  --color-surface-hover:     #ddd9d0;
+  --color-text-primary:      #1a1a2e;
+  --color-text-secondary:    #5a5a6e;
+  --color-text-muted:        #8a8a9e;
+  --color-text-inverse:      #ffffff;
+  --color-text-accent:       #B8860B;
+  --color-border:            #d4d0c7;
+  --color-border-subtle:     #e0dcd3;
+  --color-border-focus:      #D4A017;
+  --color-overlay:           rgba(0, 0, 0, 0.4);
+
+  --shadow-sm:               0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md:               0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-lg:               0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-gold:             0 0 0 2px var(--color-accent);
+
+  --color-accent-muted:      rgba(212, 160, 23, 0.12);
+  --color-accent-border:     rgba(212, 160, 23, 0.2);
+
+  /* Light mode: active sidebar tab uses surface-2 with accent text */
+  --color-nav-active-bg:     #ffffff;
+  --color-nav-active-text:   #B8860B;
+  --color-nav-active-border: #D4A017;
+}

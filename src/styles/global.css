@@ -1,0 +1,82 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import './tokens.css';
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-base);
+  font-size: var(--text-base);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-normal);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color var(--transition-base), color var(--transition-base);
+  overflow-y: auto;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+body.shell-active {
+  overflow: hidden;
+}
+
+h1 { font-size: var(--text-display);  font-weight: var(--weight-bold);     line-height: var(--leading-tight); }
+h2 { font-size: var(--text-title-lg); font-weight: var(--weight-bold);     line-height: var(--leading-tight); }
+h3 { font-size: var(--text-title);    font-weight: var(--weight-semibold); line-height: var(--leading-tight); }
+h4 { font-size: var(--text-subtitle); font-weight: var(--weight-semibold); }
+h5 { font-size: var(--text-base);     font-weight: var(--weight-semibold); }
+
+p  { color: var(--color-text-primary); line-height: var(--leading-relaxed); }
+
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+a:hover { color: var(--color-accent-hover); }
+
+button {
+  font-family: var(--font-base);
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+input, textarea, select {
+  font-family: var(--font-base);
+  font-size: var(--text-sm);
+}
+
+img, video {
+  max-width: 100%;
+  display: block;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--color-surface-1); }
+::-webkit-scrollbar-thumb { background: var(--color-surface-3); border-radius: var(--radius-full); }
+::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
+
+::selection {
+  background-color: var(--color-accent-muted);
+  color: var(--color-text-primary);
+}

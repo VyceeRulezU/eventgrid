@@ -1,0 +1,269 @@
+/* ── Header ── */
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-6);
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.headerTitle {
+  margin-bottom: 0;
+}
+
+.activeEventName {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+/* ── Toolbar ── */
+.toolbar {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.searchWrap {
+  position: relative;
+  flex: 1;
+  max-width: 320px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.searchInput {
+  padding-left: var(--space-10);
+  min-height: 36px;
+  font-size: var(--text-sm);
+  width: 100%;
+}
+
+.hiddenFile {
+  display: none;
+}
+
+.toolbarBtn {
+  padding: var(--space-1) var(--space-6);
+  min-height: 36px;
+  min-width: 130px;
+  justify-content: center;
+  overflow: visible;
+}
+
+.dropdownFilterWrap {
+  min-width: 180px;
+}
+
+/* ── Summary Cards ── */
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.summaryCard {
+  padding: var(--space-3);
+}
+
+.summaryLabel {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-1);
+}
+
+.summaryValue {
+  font-size: var(--text-title);
+  font-weight: 700;
+}
+
+/* ── CSV Import Modal ── */
+.csvOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  background: var(--color-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+}
+
+.csvModal {
+  width: 100%;
+  max-width: 680px;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-5);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+}
+
+.csvModalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.csvModalTitle {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: 700;
+}
+
+.csvTitleIcon {
+  margin-right: var(--space-2);
+  vertical-align: middle;
+  color: var(--color-accent);
+}
+
+.importError {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--color-error-bg);
+  color: var(--color-error);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  margin-bottom: var(--space-4);
+}
+
+.dropzoneIcon {
+  color: var(--color-accent);
+  margin-bottom: var(--space-3);
+}
+
+.dropzoneHeading {
+  font-weight: 600;
+  margin-bottom: var(--space-1);
+}
+
+.dropzoneSubtitle {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-4);
+}
+
+.dropzoneColumns {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.importRowsContainer {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: var(--space-4);
+}
+
+.importRowsInfo {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-3);
+}
+
+.importRowsCheck {
+  color: var(--color-success);
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+.importActions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.importConfirmBtn {
+  flex: 1;
+}
+
+/* ── Add Entry Form ── */
+.formCard {
+  margin-bottom: var(--space-4);
+  padding: var(--space-5);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+}
+
+.formTitle {
+  font-size: var(--text-base);
+  margin-bottom: var(--space-4);
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.formFullWidth {
+  grid-column: 1 / -1;
+}
+
+.formActions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+/* ── Edit Entry Modal ── */
+.editGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.editActions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+/* ── Table ── */
+.actionCell {
+  width: 80px;
+  white-space: nowrap;
+}
+
+.actionBtn {
+  width: 32px;
+  height: 32px;
+}
+
+.deleteBtn {
+  width: 32px;
+  height: 32px;
+  color: var(--color-error);
+}
+
+.vendorNameCell {
+  font-weight: 600;
+}
+
+.entryDescCell {
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+}
+
+.subtotalLabel {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.subtotalValue {
+  font-weight: 600;
+}

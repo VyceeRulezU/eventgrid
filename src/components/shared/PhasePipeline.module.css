@@ -1,0 +1,313 @@
+.segmentBar {
+  display: flex;
+  gap: 3px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  background-color: var(--color-surface-3);
+}
+
+.segment {
+  flex: 1;
+  min-width: 4px;
+  border-radius: 2px;
+  transition: opacity var(--transition-fast);
+}
+
+.segmentNotStarted {
+  background-color: var(--color-surface-3);
+  opacity: 0.6;
+}
+
+.segmentInProgress {
+  background-color: var(--color-accent);
+  box-shadow: 0 0 6px var(--color-accent-muted);
+}
+
+.segmentCompleted {
+  background-color: var(--color-accent);
+}
+
+.segmentBlocked {
+  background-color: var(--color-error);
+}
+
+.progressMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.progressPct {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  color: var(--color-accent);
+}
+
+.progressCount {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+/* Linear fill bar (legacy) */
+.linearTrack {
+  flex: 1;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface-3);
+  overflow: hidden;
+}
+
+.linearFill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: linear-gradient(90deg, var(--color-accent-hover) 0%, var(--color-accent) 100%);
+  transition: width var(--transition-slow);
+}
+
+.linearRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* Pipeline compact */
+.pipelineCompact {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.phaseChip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  flex: 1;
+  padding: var(--space-3) var(--space-3);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-subtle);
+  background-color: var(--color-surface-1);
+  font-family: var(--font-base);
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+  text-align: center;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.phaseChip:hover {
+  border-color: var(--color-accent-border);
+}
+
+.phaseChipCurrent {
+  border: 2px solid var(--color-accent);
+  background-color: var(--color-accent-muted);
+}
+
+.phaseChipCompleted {
+  border-color: var(--color-accent-border);
+  background-color: var(--color-accent-muted);
+}
+
+.phaseChipBlocked {
+  border-color: var(--color-error);
+  background-color: var(--color-error-bg);
+}
+
+.phaseChipInProgress {
+  border-color: var(--color-accent);
+  background-color: var(--color-accent-muted);
+}
+
+.phaseNumber {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  flex-shrink: 0;
+}
+
+.phaseNumberNotStarted {
+  background-color: var(--color-status-grey-bg);
+  color: var(--color-status-grey);
+}
+
+.phaseNumberInProgress {
+  background-color: var(--color-accent);
+  color: var(--color-text-inverse);
+}
+
+.phaseNumberCompleted {
+  color: var(--color-accent);
+}
+
+.phaseNumberBlocked {
+  background-color: var(--color-error-bg);
+  color: var(--color-error);
+}
+
+.phaseName {
+  font-weight: var(--weight-medium);
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 120px;
+}
+
+.phaseNameCurrent {
+  font-weight: var(--weight-bold);
+  color: var(--color-accent);
+}
+
+.phaseDate {
+  font-size: 10px;
+  color: var(--color-text-muted);
+}
+
+/* Full pipeline list */
+.pipelineList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.phaseRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-subtle);
+  background-color: var(--color-surface-1);
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  font-family: var(--font-base);
+  color: var(--color-text-primary);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.phaseRow:hover {
+  border-color: var(--color-accent-border);
+  background-color: var(--color-accent-muted);
+}
+
+.phaseRowCurrent {
+  border-color: var(--color-accent);
+  background-color: var(--color-accent-muted);
+}
+
+.phaseRowCompleted {
+  border-left: 3px solid var(--color-accent);
+}
+
+.phaseRowBlocked {
+  border-left: 3px solid var(--color-error);
+}
+
+.phaseRowBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.phaseRowTitle {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+}
+
+.phaseRowTitleCurrent {
+  color: var(--color-accent);
+}
+
+.phaseRowDue {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.emptyPipeline {
+  text-align: center;
+  padding: var(--space-6);
+}
+
+/* Detail page stepper */
+.stepper {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+@media (max-width: 1023px) {
+  .stepper {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: var(--space-2);
+  }
+}
+
+.stepperItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 72px;
+  flex: 1;
+}
+
+.stepperConnector {
+  display: none;
+}
+
+.stepperDot {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  border: 2px solid var(--color-border);
+  background-color: var(--color-surface-1);
+  color: var(--color-text-muted);
+  transition: all var(--transition-fast);
+}
+
+.stepperDotCompleted {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-text-inverse);
+}
+
+.stepperDotActive {
+  background-color: var(--color-accent-muted);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  box-shadow: 0 0 0 4px var(--color-accent-muted);
+}
+
+.stepperDotBlocked {
+  background-color: var(--color-error-bg);
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+.stepperLabel {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  text-align: center;
+  line-height: 1.2;
+  max-width: 72px;
+}
+
+.stepperLabelActive {
+  color: var(--color-accent);
+  font-weight: var(--weight-semibold);
+}
