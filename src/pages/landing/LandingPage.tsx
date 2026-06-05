@@ -1,17 +1,15 @@
 import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import {
-  LayoutDashboard, Star, Play,
+  Star, Play,
   Calendar, Users, Wallet, Radio,
   ClipboardList, FileText, CreditCard
 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
-import { LandingNavbar } from '@/components/layout/LandingNavbar'
+import Navbar from '@/components/layout/Navbar'
+import HeroSection from '@/pages/landing/HeroSection'
 import { LandingFooter } from '@/components/layout/LandingFooter'
 import styles from './LandingPage.module.css'
-
-const HERO_BG =
-  'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=1600&auto=format&fit=crop&q=80'
 
 const ROLE_CARDS = [
   { title: 'Planners', image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=600&auto=format&fit=crop&q=80' },
@@ -68,7 +66,6 @@ const VIDEO_IMAGE =
 
 export function LandingPage() {
   const user = useAuthStore((s) => s.user)
-  const role = useAuthStore((s) => s.role)
   const isLoggedIn = !!user
 
   return (
@@ -81,35 +78,9 @@ export function LandingPage() {
         />
       </Helmet>
 
-      <LandingNavbar />
-
-      {/* Hero */}
-      <section className={styles.hero}>
-        <div
-          className={styles.heroBg}
-          style={{ backgroundImage: `url(${HERO_BG})` }}
-          role="img"
-          aria-label="Event professional working in a bright studio"
-        />
-        <div className={styles.heroOverlay} aria-hidden="true" />
-        <div className={styles.heroContent}>
-          <div className={styles.heroLayout}>
-            <div className={styles.heroCtaWrap}>
-              {isLoggedIn ? (
-                <Link to={`/dashboard/${role || 'planner'}`} className={styles.btnGold}>
-                  <LayoutDashboard size={18} />
-                  Go to Dashboard
-                </Link>
-              ) : (
-                <Link to="/register" className={styles.btnGold}>
-                  Get Started
-                </Link>
-              )}
-            </div>
-            <h1 className={styles.heroTitle}>Software for Event Pros</h1>
-          </div>
-        </div>
-      </section>
+      <Navbar />
+      <main>
+        <HeroSection />
 
       {/* Built for every event professional */}
       <section className={styles.builtFor} id="roles">
@@ -331,6 +302,7 @@ export function LandingPage() {
       </section>
 
       <LandingFooter />
+      </main>
     </div>
   )
 }
