@@ -227,13 +227,16 @@ export function EventDashboardPage() {
   }
 
   const handleEventSaved = (updated: Partial<Event>) => {
-    setActiveEvent({ ...activeEvent, ...updated } as Event)
+    if (activeEvent) {
+      setActiveEvent({ ...activeEvent, ...updated })
+    }
   }
 
   /* ── Payment handler — ref-based success tracking ── */
   const handlePayNow = useCallback(async (provider: 'paystack' | 'flutterwave') => {
-    if (!user || !id) return
+    if (!user || !id || !activeEvent) return
 
+    const currentEvent = activeEvent
     // Reset the success sentinel BEFORE opening the popup
     paySucceededRef.current = false
     setPayStatus('processing')
@@ -266,14 +269,12 @@ export function EventDashboardPage() {
             return
           }
 
-          if (activeEvent) {
-            setActiveEvent({ ...activeEvent, status: 'active', payment_status: 'paid' } as Event)
-          }
+          setActiveEvent({ ...currentEvent, status: 'active', payment_status: 'paid' } as Event)
 
           showNotification({
             variant: 'success',
             title: '🎉 Payment successful!',
-            message: `${activeEvent?.name} is now active.`,
+            message: `${currentEvent.name} is now active.`,
           })
 
           // Show success state, then auto-close after 3 s

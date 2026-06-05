@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Users, X, Mail, UserPlus, Trash2 } from 'lucide-react'
+import { Users, X, Mail, UserPlus } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
-import { sendTeamInvite } from '@/lib/email'
 import type { Profile } from '@/types'
 import styles from './TeamPage.module.css'
 

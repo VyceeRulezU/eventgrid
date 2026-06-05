@@ -3,7 +3,8 @@ import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { CalendarModal } from '@/components/ui/CalendarModal'
-import { Calendar } from 'lucide-react'
+import { TimeModal } from '@/components/ui/TimeModal'
+import { Calendar, Clock } from 'lucide-react'
 import type { Event } from '@/types'
 
 interface EditEventModalProps {
@@ -23,6 +24,19 @@ export function EditEventModal({ event, onClose, onSaved }: EditEventModalProps)
   const [saving, setSaving] = useState(false)
   const [showEventDateCal, setShowEventDateCal] = useState(false)
   const [showEndDateCal, setShowEndDateCal] = useState(false)
+  const [showEventTimeCal, setShowEventTimeCal] = useState(false)
+  const [showEndTimeCal, setShowEndTimeCal] = useState(false)
+
+  const formatTime12h = (time24: string) => {
+    if (!time24) return 'Select Time'
+    const [hStr, mStr] = time24.split(':')
+    const h = parseInt(hStr, 10)
+    const m = parseInt(mStr, 10)
+    const period = h >= 12 ? 'PM' : 'AM'
+    let h12 = h % 12
+    if (h12 === 0) h12 = 12
+    return `${h12}:${String(m).padStart(2, '0')} ${period}`
+  }
   
   const [form, setForm] = useState({
     name: event.name,
@@ -114,17 +128,110 @@ export function EditEventModal({ event, onClose, onSaved }: EditEventModalProps)
             </div>
             <div>
               <label className="label">Size Tier</label>
-              <select className="input" value={form.size_tier} onChange={(e) => handleChange('size_tier', e.target.value)} disabled={saving}>
-                {SIZE_TIERS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-              </select>
+              <DropdownMenu
+                trigger={SIZE_TIERS.find((t) => t.value === form.size_tier)?.label || 'Select Size Tier'}
+                items={SIZE_TIERS}
+                onSelect={(item) => handleChange('size_tier', item.value)}
+                disabled={saving}
+              />
             </div>
             <div>
               <label className="label">Event Date</label>
-              <input className="input" type="datetime-local" value={form.event_date} onChange={(e) => handleChange('event_date', e.target.value)} disabled={saving} />
+              <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                <button
+                  type="button"
+                  className="input"
+                  style={{
+                    flex: 1,
+                    textAlign: 'left',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    minHeight: 40,
+                    background: 'var(--color-surface-2)',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: 'var(--radius-lg)',
+                    padding: 'var(--space-2) var(--space-3)',
+                    color: eventDatePart ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
+                  }}
+                  onClick={() => setShowEventDateCal(true)}
+                  disabled={saving}
+                >
+                  {eventDatePart ? new Date(eventDatePart + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Select Date'}
+                  <Calendar size={14} style={{ color: 'var(--color-text-muted)' }} />
+                </button>
+                <button
+                  type="button"
+                  className="input"
+                  style={{
+                    width: 120,
+                    textAlign: 'left',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    minHeight: 40,
+                    background: 'var(--color-surface-2)',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: 'var(--radius-lg)',
+                    padding: 'var(--space-2) var(--space-3)',
+                    color: eventTimePart ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
+                  }}
+                  onClick={() => setShowEventTimeCal(true)}
+                  disabled={saving}
+                >
+                  {formatTime12h(eventTimePart)}
+                  <Clock size={14} style={{ color: 'var(--color-text-muted)' }} />
+                </button>
+              </div>
             </div>
             <div>
               <label className="label">End Date</label>
-              <input className="input" type="datetime-local" value={form.end_date} onChange={(e) => handleChange('end_date', e.target.value)} disabled={saving} />
+              <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                <button
+                  type="button"
+                  className="input"
+                  style={{
+                    flex: 1,
+                    textAlign: 'left',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    minHeight: 40,
+                    background: 'var(--color-surface-2)',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: 'var(--radius-lg)',
+                    padding: 'var(--space-2) var(--space-3)',
+                    color: endDatePart ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
+                  }}
+                  onClick={() => setShowEndDateCal(true)}
+                  disabled={saving}
+                >
+                  {endDatePart ? new Date(endDatePart + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Select Date'}
+                  <Calendar size={14} style={{ color: 'var(--color-text-muted)' }} />
+                </button>
+                <button
+                  type="button"
+                  className="input"
+                  style={{
+                    width: 120,
+                    textAlign: 'left',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    minHeight: 40,
+                    background: 'var(--color-surface-2)',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: 'var(--radius-lg)',
+                    padding: 'var(--space-2) var(--space-3)',
+                    color: endTimePart ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
+                  }}
+                  onClick={() => setShowEndTimeCal(true)}
+                  disabled={saving}
+                >
+                  {formatTime12h(endTimePart)}
+                  <Clock size={14} style={{ color: 'var(--color-text-muted)' }} />
+                </button>
+              </div>
             </div>
             <div>
               <label className="label">Venue Name</label>
@@ -153,6 +260,30 @@ export function EditEventModal({ event, onClose, onSaved }: EditEventModalProps)
             </button>
             <button className="btn btn-ghost" onClick={onClose} disabled={saving}>Cancel</button>
           </div>
+      <CalendarModal
+        open={showEventDateCal}
+        value={eventDatePart}
+        onChange={(d) => handleDateChange('event_date', d)}
+        onClose={() => setShowEventDateCal(false)}
+      />
+      <CalendarModal
+        open={showEndDateCal}
+        value={endDatePart}
+        onChange={(d) => handleDateChange('end_date', d)}
+        onClose={() => setShowEndDateCal(false)}
+      />
+      <TimeModal
+        open={showEventTimeCal}
+        value={eventTimePart}
+        onChange={(t) => handleTimeChange('event_date', t)}
+        onClose={() => setShowEventTimeCal(false)}
+      />
+      <TimeModal
+        open={showEndTimeCal}
+        value={endTimePart}
+        onChange={(t) => handleTimeChange('end_date', t)}
+        onClose={() => setShowEndTimeCal(false)}
+      />
         </div>
       </div>
     </div>
