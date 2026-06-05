@@ -1,5 +1,7 @@
 # EventGrid — Project Overview
+
 ## Agent Context Document 00
+
 **For:** Antigravity / Cursor AI Agent
 **Version:** 1.0
 **Author:** Victor Ironali / NaliTech Consults
@@ -8,7 +10,7 @@
 
 ## What You Are Building
 
-EventGrid is a multi-role SaaS platform for the Nigerian event industry. It replaces the WhatsApp threads, Excel sheets, and phone-call confirmations that Nigerian event planners currently use to manage their work.
+EventGrid is a multi-role SaaS platform for the event industry in Nigeria. It replaces the WhatsApp threads, Excel sheets, and phone-call confirmations that event planners in Nigeria currently use to manage their work.
 
 It covers the full event lifecycle — from first client inquiry through to post-event analysis — and serves five distinct user roles in one unified platform.
 
@@ -26,31 +28,31 @@ It covers the full event lifecycle — from first client inquiry through to post
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | React 18 + Vite |
-| Styling | Vanilla CSS + CSS Modules (CSS custom properties for all tokens) |
-| State | Zustand |
-| Backend | Supabase (Auth + PostgreSQL + Realtime + Storage) |
-| Payments | Paystack |
-| PDF Export | @react-pdf/renderer |
-| Drag & Drop | @dnd-kit |
-| Charts | Recharts |
-| Forms | React Hook Form + Zod |
-| Deployment | Vercel |
-| Notifications (Phase 2) | Termii (WhatsApp Business API) |
+| Layer                   | Technology                                                       |
+| ----------------------- | ---------------------------------------------------------------- |
+| Frontend                | React 18 + Vite                                                  |
+| Styling                 | Vanilla CSS + CSS Modules (CSS custom properties for all tokens) |
+| State                   | Zustand                                                          |
+| Backend                 | Supabase (Auth + PostgreSQL + Realtime + Storage)                |
+| Payments                | Paystack                                                         |
+| PDF Export              | @react-pdf/renderer                                              |
+| Drag & Drop             | @dnd-kit                                                         |
+| Charts                  | Recharts                                                         |
+| Forms                   | React Hook Form + Zod                                            |
+| Deployment              | Vercel                                                           |
+| Notifications (Phase 2) | Termii (WhatsApp Business API)                                   |
 
 ---
 
 ## User Roles (5 Total)
 
-| Role | Entry | Pays | Access Level |
-|---|---|---|---|
-| Planner | Self-register | Per event (₦5k–15k) | Full suite + financials |
-| Coordinator (Invited) | Invited by planner | Free (planner pays) | Team ops + live board |
-| Coordinator (Standalone) | Self-register | Per project (₦3k–5k) | Team ops + live board, no financials |
-| Vendor | Invited by planner | Free | Own deliverables + arrival only |
-| Client | Invited by planner | Free | Read-only phase visibility + approvals |
+| Role                     | Entry              | Pays                 | Access Level                           |
+| ------------------------ | ------------------ | -------------------- | -------------------------------------- |
+| Planner                  | Self-register      | Per event (₦5k–15k)  | Full suite + financials                |
+| Coordinator (Invited)    | Invited by planner | Free (planner pays)  | Team ops + live board                  |
+| Coordinator (Standalone) | Self-register      | Per project (₦3k–5k) | Team ops + live board, no financials   |
+| Vendor                   | Invited by planner | Free                 | Own deliverables + arrival only        |
+| Client                   | Invited by planner | Free                 | Read-only phase visibility + approvals |
 
 ---
 
@@ -58,11 +60,11 @@ It covers the full event lifecycle — from first client inquiry through to post
 
 Per-event / per-project at launch. No monthly subscription in Phase 1.
 
-| Planner Event Size | Price |
-|---|---|
-| Intimate (under 100 guests) | ₦5,000 |
-| Standard (100–300 guests) | ₦10,000 |
-| Large (300+ / corporate) | ₦15,000 |
+| Planner Event Size          | Price   |
+| --------------------------- | ------- |
+| Intimate (under 100 guests) | ₦5,000  |
+| Standard (100–300 guests)   | ₦10,000 |
+| Large (300+ / corporate)    | ₦15,000 |
 
 Coordinator standalone: ₦3,000–5,000 per project.
 Payment processor: Paystack (naira, card + bank transfer + USSD).
@@ -150,12 +152,12 @@ eventgrid/
 
 ## Reference Documents in This Suite
 
-| File | Contents |
-|---|---|
-| 00_PROJECT_OVERVIEW.md | This file — project context and constraints |
-| 01_ARCHITECTURE.md | System architecture, data flow, auth model |
-| 02_DATABASE_SCHEMA.md | All Supabase tables, columns, RLS policies |
-| 03_FEATURE_SPECS.md | Detailed feature logic per module |
-| 04_API_CONTRACTS.md | Supabase query patterns, edge functions |
-| 05_UI_GUIDELINES.md | Design system, component patterns, mobile rules |
-| 06_BUILD_SEQUENCE.md | Step-by-step implementation order with task checklists |
+| File                   | Contents                                               |
+| ---------------------- | ------------------------------------------------------ |
+| 00_PROJECT_OVERVIEW.md | This file — project context and constraints            |
+| 01_ARCHITECTURE.md     | System architecture, data flow, auth model             |
+| 02_DATABASE_SCHEMA.md  | All Supabase tables, columns, RLS policies             |
+| 03_FEATURE_SPECS.md    | Detailed feature logic per module                      |
+| 04_API_CONTRACTS.md    | Supabase query patterns, edge functions                |
+| 05_UI_GUIDELINES.md    | Design system, component patterns, mobile rules        |
+| 06_BUILD_SEQUENCE.md   | Step-by-step implementation order with task checklists |

@@ -25,6 +25,12 @@
   border-color: var(--color-accent-border);
 }
 
+.trigger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: var(--color-border);
+}
+
 .chevron {
   color: var(--color-text-muted);
   transition: transform var(--transition-fast);

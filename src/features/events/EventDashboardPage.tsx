@@ -12,9 +12,10 @@ import {
   ArrowLeft, Calendar, Users, CircleDollarSign, AlertTriangle,
   ExternalLink, FileText, CheckCircle2, Circle, ChevronDown, ChevronUp,
   CreditCard, ShieldCheck, Radio, ListChecks, MapPin, BarChart3,
-  Clock, ArrowRight, Zap, X, Pencil, Check,
+  Clock, ArrowRight, Zap, X, Pencil,
 } from 'lucide-react'
 import { GeneratePortalModal } from '@/features/client-portal/GeneratePortalModal'
+import { EditEventModal } from '@/features/events/EditEventModal'
 import { processPayment, getEventPrice } from '@/lib/payment'
 import type { Event, EventPhase } from '@/types'
 import styles from './EventDashboardPage.module.css'
@@ -105,10 +106,7 @@ export function EventDashboardPage() {
   const [portalOpen, setPortalOpen] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [payStatus, setPayStatus] = useState<'idle' | 'processing' | 'success' | 'cancelled' | 'failed'>('idle')
-  const [editingTitle, setEditingTitle] = useState(false)
-  const [editName, setEditName] = useState('')
-  const [editType, setEditType] = useState('')
-  const [savingTitle, setSavingTitle] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
   const [autoCloseIn, setAutoCloseIn] = useState<number | null>(null)
   const [pageTab, setPageTab] = useState<'overview' | 'timeline' | 'phases' | 'modules'>('overview')
   const [showPhaseManager, setShowPhaseManager] = useState(false)
@@ -228,27 +226,8 @@ export function EventDashboardPage() {
     setTogglingPhase(null)
   }
 
-  const handleEditTitle = () => {
-    setEditName(activeEvent.name)
-    setEditType(activeEvent.event_type || '')
-    setEditingTitle(true)
-  }
-
-  const handleSaveTitle = async () => {
-    if (!id || !editName.trim()) return
-    setSavingTitle(true)
-    const { error } = await supabase
-      .from('events')
-      .update({ name: editName.trim(), event_type: editType.trim() || null })
-      .eq('id', id)
-    if (error) {
-      showNotification({ variant: 'error', title: 'Failed to save', message: error.message })
-    } else {
-      setActiveEvent({ ...activeEvent, name: editName.trim(), event_type: editType.trim() || null })
-      showNotification({ variant: 'success', title: 'Event updated' })
-    }
-    setSavingTitle(false)
-    setEditingTitle(false)
+  const handleEventSaved = (updated: Partial<Event>) => {
+    setActiveEvent({ ...activeEvent, ...updated } as Event)
   }
 
   /* ── Payment handler — ref-based success tracking ── */
@@ -396,58 +375,23 @@ export function EventDashboardPage() {
           </button>
 
           <div className={styles.heroTitleBlock}>
-            {editingTitle ? (
-              <div className={styles.editTitleRow}>
-                <input
-                  className={`input ${styles.editTitleInput}`}
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  placeholder="Event name"
-                  disabled={savingTitle}
-                />
-                <input
-                  className={`input ${styles.editTitleInput}`}
-                  value={editType}
-                  onChange={(e) => setEditType(e.target.value)}
-                  placeholder="Event type"
-                  disabled={savingTitle}
-                />
-                <button
-                  type="button"
-                  className="btn btn-primary btn-sm"
-                  onClick={handleSaveTitle}
-                  disabled={savingTitle || !editName.trim()}
-                >
-                  <Check size={14} /> {savingTitle ? 'Saving...' : 'Save'}
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-ghost btn-sm"
-                  onClick={() => setEditingTitle(false)}
-                  disabled={savingTitle}
-                >
-                  Cancel
-                </button>
-              </div>
-            ) : (
-              <h1 className={styles.heroTitle}>
-                {activeEvent.name}
-                {activeEvent.event_type && (
-                  <span className={styles.heroTitleSep}> | </span>
-                )}
-                {activeEvent.event_type && (
-                  <span className={styles.heroTitleType}>{activeEvent.event_type}</span>
-                )}
-                <button
-                  type="button"
-                  className={styles.editTitleBtn}
-                  onClick={handleEditTitle}
-                  aria-label="Edit event name"
-                >
-                  <Pencil size={14} />
-                </button>
-              </h1>
-            )}
+            <h1 className={styles.heroTitle}>
+              {activeEvent.name}
+              {activeEvent.event_type && (
+                <span className={styles.heroTitleSep}> | </span>
+              )}
+              {activeEvent.event_type && (
+                <span className={styles.heroTitleType}>{activeEvent.event_type}</span>
+              )}
+              <button
+                type="button"
+                className={styles.editTitleBtn}
+                onClick={() => setShowEditModal(true)}
+                aria-label="Edit event"
+              >
+                <Pencil size={14} />
+              </button>
+            </h1>
             <div className={styles.heroBadges}>
               <span className={`badge badge-${statusBadge}`}>
                 <span className="badge-dot" />
@@ -783,6 +727,14 @@ export function EventDashboardPage() {
       {/* ── Modals ── */}
       {portalOpen && id && (
         <GeneratePortalModal eventId={id} onClose={() => setPortalOpen(false)} />
+      )}
+
+      {showEditModal && (
+        <EditEventModal
+          event={activeEvent}
+          onClose={() => setShowEditModal(false)}
+          onSaved={handleEventSaved}
+        />
       )}
 
       {showPaymentModal && (

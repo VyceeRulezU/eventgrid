@@ -16,9 +16,10 @@ interface DropdownMenuProps {
   onSelect: (item: DropdownItem) => void
   align?: 'start' | 'end'
   className?: string
+  disabled?: boolean
 }
 
-export function DropdownMenu({ trigger, items, onSelect, align = 'start', className }: DropdownMenuProps) {
+export function DropdownMenu({ trigger, items, onSelect, align = 'start', className, disabled }: DropdownMenuProps) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -34,7 +35,7 @@ export function DropdownMenu({ trigger, items, onSelect, align = 'start', classN
 
   return (
     <div className={`${styles.wrapper} ${className || ''}`} ref={ref}>
-      <button className={styles.trigger} onClick={() => setOpen(!open)} type="button">
+      <button className={styles.trigger} onClick={() => !disabled && setOpen(!open)} disabled={disabled} type="button">
         {trigger}
         <ChevronDown size={14} className={`${styles.chevron} ${open ? styles.chevronOpen : ''}`} />
       </button>
