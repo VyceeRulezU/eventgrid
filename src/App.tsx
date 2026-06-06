@@ -17,6 +17,8 @@ import { PlannerOnboarding } from '@/pages/onboarding/PlannerOnboarding'
 import { CoordinatorOnboarding } from '@/pages/onboarding/CoordinatorOnboarding'
 import { PlannerDashboard } from '@/pages/planner/PlannerDashboard'
 import { CoordinatorDashboard } from '@/pages/coordinator/CoordinatorDashboard'
+import { ClientDashboard } from '@/pages/client/ClientDashboard'
+import { NotificationsPage } from '@/pages/notifications/NotificationsPage'
 import { VendorPortal } from '@/pages/vendor/VendorPortal'
 import { EventsListPage } from '@/features/events/EventsListPage'
 import { CreateEventPage } from '@/features/events/CreateEventPage'
@@ -32,6 +34,9 @@ const FinancialsPage = lazy(() => import('@/features/financials/FinancialsPage')
 const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage').then(m => ({ default: m.SettingsPage })))
 const ClientPortalPage = lazy(() => import('@/features/client-portal/ClientPortalPage').then(m => ({ default: m.ClientPortalPage })))
 const SuperAdminDashboard = lazy(() => import('@/pages/admin/SuperAdminDashboard').then(m => ({ default: m.SuperAdminDashboard })))
+const AnalyticsPage = lazy(() => import('@/pages/admin/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })))
+const FeedbackManagementPage = lazy(() => import('@/pages/admin/FeedbackManagementPage').then(m => ({ default: m.FeedbackManagementPage })))
+const SuperAdminTeamPage = lazy(() => import('@/pages/admin/SuperAdminTeamPage').then(m => ({ default: m.SuperAdminTeamPage })))
 
 const AftermathPage = lazy(() => import('@/features/aftermath/AftermathPage').then(m => ({ default: m.AftermathPage })))
 import { PremiumModalContainer } from '@/components/ui/PremiumModal'
@@ -40,6 +45,7 @@ import { AlertTriangle, Terminal, ExternalLink, RefreshCw } from 'lucide-react'
 
 function AuthGate() {
   const user = useAuthStore((s) => s.user)
+  const role = useAuthStore((s) => s.role)
   const isLoading = useAuthStore((s) => s.isLoading)
 
   if (isLoading) {
@@ -52,7 +58,8 @@ function AuthGate() {
   }
 
   if (!user) return <LandingPage />
-  return <LandingPage />
+  const dashboardRole = role || (user?.user_metadata?.role as string) || 'planner'
+  return <Navigate to={`/dashboard/${dashboardRole}`} replace />
 }
 
 function SetupNotice() {
@@ -280,6 +287,12 @@ export function App() {
             <Route path="/dashboard/vendor" element={
               <RoleGuard allowedRole="vendor"><VendorPortal /></RoleGuard>
             } />
+            <Route path="/dashboard/client" element={
+              <RoleGuard allowedRole="client"><ClientDashboard /></RoleGuard>
+            } />
+            <Route path="/dashboard/super_admin" element={
+              <RoleGuard allowedRole="super_admin"><SuperAdminDashboard /></RoleGuard>
+            } />
 
             <Route path="/events" element={<EventsListPage />} />
             <Route path="/events/new" element={<CreateEventPage />} />
@@ -304,6 +317,7 @@ export function App() {
             } />
             <Route path="/vendors" element={<VendorsPage />} />
             <Route path="/vendors/directory" element={<VendorDirectoryPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/settings" element={
             <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
               <SettingsPage />
@@ -311,7 +325,17 @@ export function App() {
           } />
           <Route path="/admin" element={
             <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
-              <RoleGuard allowedRole="super_admin"><SuperAdminDashboard /></RoleGuard>
+              <RoleGuard allowedRole="super_admin"><AnalyticsPage /></RoleGuard>
+            </Suspense>
+          } />
+          <Route path="/admin/feedback" element={
+            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
+              <RoleGuard allowedRole="super_admin"><FeedbackManagementPage /></RoleGuard>
+            </Suspense>
+          } />
+          <Route path="/admin/team" element={
+            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
+              <RoleGuard allowedRole="super_admin"><SuperAdminTeamPage /></RoleGuard>
             </Suspense>
           } />
         </Route>

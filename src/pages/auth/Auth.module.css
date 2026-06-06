@@ -192,10 +192,7 @@
   max-width: 420px;
   display: flex;
   flex-direction: column;
-  padding: 1rem; /* Explicit form padding as requested */
-  background-color: var(--color-surface-1);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  padding: 1rem;
 }
 
 .formHeader {

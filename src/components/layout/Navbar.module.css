@@ -7,7 +7,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 72px;
+  height: 86px;
 }
 
 @media (min-width: 768px) {
@@ -43,33 +43,21 @@
 .logo {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
   text-decoration: none;
   flex-shrink: 0;
 }
 
-.logoMark {
-  flex-shrink: 0;
-  transition: transform var(--transition-base);
-}
-
-.logo:hover .logoMark {
-  transform: rotate(8deg) scale(1.05);
-}
-
-.wordmark {
-  font-family: var(--font-base);
-  font-size: var(--text-subtitle);
-  font-weight: var(--weight-bold);
-  color: var(--color-text-primary);
-  letter-spacing: -0.01em;
+.logoImg {
+  height: 3.5rem;
+  width: auto;
+  display: block;
 }
 
 /* ── Desktop nav links ── */
 .desktopNav {
   display: none;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--space-8);
 }
 
 @media (min-width: 1024px) {
@@ -81,18 +69,34 @@
   border: none;
   cursor: pointer;
   font-family: var(--font-base);
-  font-size: var(--text-sm);
+  font-size: 1rem;
   font-weight: var(--weight-medium);
   color: var(--color-text-secondary);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-md);
-  transition: color var(--transition-fast), background-color var(--transition-fast);
+  padding: var(--space-2) 0;
+  position: relative;
   white-space: nowrap;
+  transition: color var(--transition-fast);
+}
+
+.navLink::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: var(--color-accent);
+  transition: width var(--transition-base), left var(--transition-base);
+  border-radius: 1px;
 }
 
 .navLink:hover {
-  color: var(--color-text-primary);
-  background-color: var(--color-surface-2);
+  color: var(--color-accent);
+}
+
+.navLink:hover::after {
+  width: 100%;
+  left: 0;
 }
 
 /* ── Desktop CTA ── */
@@ -107,9 +111,47 @@
 }
 
 .greeting {
-  font-size: var(--text-sm);
-  color: var(--color-text-secondary);
+  font-size: var(--text-base);
   font-weight: var(--weight-medium);
+}
+
+.userLink {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  text-decoration: none;
+  color: var(--color-accent);
+}
+
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: #fff;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  flex-shrink: 0;
+  overflow: hidden;
+  padding: var(--space-1);
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mobileUserLink {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  text-decoration: none;
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-accent);
 }
 
 /* ── Hamburger ── */

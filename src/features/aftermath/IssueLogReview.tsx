@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { Filter, AlertTriangle, CheckCircle, BookOpen } from 'lucide-react'
 import type { Issue, IssueSeverity } from '@/types'
+import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import styles from './Aftermath.module.css'
 
 const SEVERITY_COLORS: Record<IssueSeverity, string> = {
@@ -94,18 +95,17 @@ export function IssueLogReview({ eventId }: { eventId: string }) {
             </button>
           ))}
         </div>
-        <select
-          className="input"
-          style={{ width: 'auto', minWidth: 120 }}
-          value={severityFilter}
-          onChange={(e) => setSeverityFilter(e.target.value as IssueSeverity | 'all')}
-        >
-          <option value="all">All severities</option>
-          <option value="low">Low</option>
-          <option value="medium">Medium</option>
-          <option value="high">High</option>
-          <option value="critical">Critical</option>
-        </select>
+        <DropdownMenu
+          trigger={<span>{severityFilter === 'all' ? 'All severities' : severityFilter.charAt(0).toUpperCase() + severityFilter.slice(1)}</span>}
+          items={[
+            { label: 'All severities', value: 'all' },
+            { label: 'Low', value: 'low' },
+            { label: 'Medium', value: 'medium' },
+            { label: 'High', value: 'high' },
+            { label: 'Critical', value: 'critical' },
+          ]}
+          onSelect={(item) => setSeverityFilter(item.value as IssueSeverity | 'all')}
+        />
         <span className={styles.issueCount}>{filtered.length} of {issues.length} issues</span>
       </div>
 

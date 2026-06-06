@@ -4,7 +4,7 @@ import { useUIStore } from '@/store/ui.store'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { CalendarModal } from '@/components/ui/CalendarModal'
 import { TimeModal } from '@/components/ui/TimeModal'
-import { Calendar, Clock } from 'lucide-react'
+import { X, Calendar, Clock } from 'lucide-react'
 import type { Event } from '@/types'
 
 interface EditEventModalProps {
@@ -113,7 +113,7 @@ export function EditEventModal({ event, onClose, onSaved }: EditEventModalProps)
         <div className="modal-card-header">
           <div className="modal-card-title">Edit Event</div>
           <button className="modal-card-close" onClick={onClose} disabled={saving}>
-            &times;
+            <X size={20} />
           </button>
         </div>
         <div className="modal-card-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>

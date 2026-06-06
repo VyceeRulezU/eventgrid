@@ -9,18 +9,27 @@ import {
 } from '@/components/shared/PhasePipeline'
 import { PhaseTimelineTracker } from '@/components/shared/PhaseTimelineTracker'
 import {
-  ArrowLeft, Calendar, Users, CircleDollarSign, AlertTriangle,
+  ArrowLeft, Calendar, Users, Wallet, AlertTriangle,
   ExternalLink, FileText, CheckCircle2, Circle, ChevronDown, ChevronUp,
   CreditCard, ShieldCheck, Radio, ListChecks, MapPin, BarChart3,
   Clock, ArrowRight, Zap, X, Pencil,
 } from 'lucide-react'
 import { GeneratePortalModal } from '@/features/client-portal/GeneratePortalModal'
 import { EditEventModal } from '@/features/events/EditEventModal'
+import { NextStepCard } from '@/features/events/NextStepCard'
 import { processPayment, getEventPrice } from '@/lib/payment'
-import type { Event, EventPhase } from '@/types'
+import type { Event, EventPhase, EventActivity } from '@/types'
 import styles from './EventDashboardPage.module.css'
 
 /* ─── helpers ──────────────────────────────────────── */
+interface DeadlineItem {
+  id: string
+  type: 'task' | 'phase' | 'vendor_payment'
+  title: string
+  date: string
+  label: string
+}
+
 function getCountdown(dateStr: string | null | undefined) {
   if (!dateStr) return null
   const target = new Date(dateStr)
@@ -31,6 +40,18 @@ function getCountdown(dateStr: string | null | undefined) {
   const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
   const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
   return { past: false, days, hours, minutes }
+}
+
+function timeAgo(dateStr: string): string {
+  const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000)
+  if (seconds < 60) return 'just now'
+  const mins = Math.floor(seconds / 60)
+  if (mins < 60) return mins + 'm ago'
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return hours + 'h ago'
+  const days = Math.floor(hours / 24)
+  if (days < 30) return days + 'd ago'
+  return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
 }
 
 const MODULES = [
@@ -45,7 +66,7 @@ const MODULES = [
     key: 'financials',
     label: 'Financials',
     desc: 'Budget tracking and expense management',
-    icon: CircleDollarSign,
+    icon: Wallet,
     path: (id: string) => `/financials?event=${id}`,
   },
   {
@@ -97,6 +118,7 @@ export function EventDashboardPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
+  const role = useAuthStore((s) => s.role)
   const { activeEvent, setActiveEvent, phases, setPhases } = useEventStore()
   const showNotification = useUIStore((s) => s.showNotification)
 
@@ -111,6 +133,8 @@ export function EventDashboardPage() {
   const [pageTab, setPageTab] = useState<'overview' | 'timeline' | 'phases' | 'modules'>('overview')
   const [showPhaseManager, setShowPhaseManager] = useState(false)
   const [togglingPhase, setTogglingPhase] = useState<string | null>(null)
+  const [deadlines, setDeadlines] = useState<DeadlineItem[]>([])
+  const [activity, setActivity] = useState<EventActivity[]>([])
 
   /* ── Refs for race-condition-free payment tracking ── */
   // paySucceededRef: set to true the MOMENT onSuccess fires (synchronously),
@@ -189,8 +213,54 @@ export function EventDashboardPage() {
         .from('issues').select('id', { count: 'exact' })
         .eq('event_id', id).is('resolved_at', null)
 
+      /* ── Upcoming deadlines ── */
+      const d: DeadlineItem[] = []
+
+      const { data: upcomingTasks } = await supabase
+        .from('tasks').select('id, title, due_datetime, status')
+        .eq('event_id', id).neq('status', 'done')
+        .gte('due_datetime', new Date().toISOString())
+        .order('due_datetime', { ascending: true }).limit(3)
+      if (upcomingTasks) {
+        for (const t of upcomingTasks) {
+          if (t.due_datetime) d.push({ id: t.id, type: 'task', title: t.title, date: t.due_datetime, label: t.status.replace('_', ' ') })
+        }
+      }
+
+      const { data: phaseDeadlines } = await supabase
+        .from('event_phases').select('id, phase_name, due_date, status')
+        .eq('event_id', id).neq('status', 'completed')
+        .not('due_date', 'is', null)
+        .order('due_date', { ascending: true }).limit(3)
+      if (phaseDeadlines) {
+        for (const p of phaseDeadlines) {
+          if (p.due_date) d.push({ id: p.id, type: 'phase', title: p.phase_name, date: p.due_date, label: p.status.replace('_', ' ') })
+        }
+      }
+
+      const { data: vendorPayments } = await supabase
+        .from('event_vendors').select('id, vendor_name, payment_date, payment_status')
+        .eq('event_id', id).in('payment_status', ['unpaid', 'advance'])
+        .not('payment_date', 'is', null)
+        .order('payment_date', { ascending: true }).limit(3)
+      if (vendorPayments) {
+        for (const v of vendorPayments) {
+          if (v.payment_date) d.push({ id: v.id, type: 'vendor_payment', title: v.vendor_name, date: v.payment_date, label: v.payment_status.replace('_', ' ') })
+        }
+      }
+
+      d.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+
+      /* ── Recent activity ── */
+      const { data: activityData } = await supabase
+        .from('event_activity').select('*')
+        .eq('event_id', id)
+        .order('created_at', { ascending: false }).limit(5)
+
       if (!cancelled) {
         setStats({ vendors: vendorCount || 0, tasksDue: tasksDueCount || 0, openIssues: issueCount || 0 })
+        setDeadlines(d)
+        if (activityData) setActivity(activityData as unknown as EventActivity[])
         setLoading(false)
       }
     }
@@ -375,14 +445,14 @@ export function EventDashboardPage() {
             <ArrowLeft size={18} />
           </button>
 
-          <div className={styles.heroTitleBlock}>
-            <h1 className={styles.heroTitle}>
+          <div className={styles.heroTitleBlock} style={{ flex: 1, minWidth: 0 }}>
+            <h1 className={styles.heroTitle} style={{ fontSize: 'var(--text-title-lg)', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
               {activeEvent.name}
               {activeEvent.event_type && (
-                <span className={styles.heroTitleSep}> | </span>
-              )}
-              {activeEvent.event_type && (
-                <span className={styles.heroTitleType}>{activeEvent.event_type}</span>
+                <>
+                  <span className={styles.heroTitleSep}> | </span>
+                  <span className={styles.heroTitleType}>{activeEvent.event_type}</span>
+                </>
               )}
               <button
                 type="button"
@@ -393,23 +463,10 @@ export function EventDashboardPage() {
                 <Pencil size={14} />
               </button>
             </h1>
-            <div className={styles.heroBadges}>
-              <span className={`badge badge-${statusBadge}`}>
-                <span className="badge-dot" />
-                {activeEvent.status.replace('_', ' ')}
-              </span>
-              <span className={`badge badge-${activeEvent.payment_status === 'paid' ? 'paid' : 'unpaid'}`}>
-                {activeEvent.payment_status === 'paid' ? '✓ Paid' : '⚡ Unpaid'}
-              </span>
-              {activeEvent.size_tier && (
-                <span className="badge badge-grey">{activeEvent.size_tier}</span>
-              )}
-              <span className="badge badge-grey">Phase {activeEvent.current_phase} of 9</span>
-            </div>
           </div>
 
-          <div className={styles.heroRight}>
-            {/* Countdown */}
+          {/* Countdown — right side of row 1 */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', flexShrink: 0 }}>
             {countdown && !countdown.past && (
               <div className={styles.countdown}>
                 <div className={styles.countdownItem}>
@@ -433,29 +490,52 @@ export function EventDashboardPage() {
                 <span className={styles.countdownPast}>Event has passed</span>
               </div>
             )}
-
-            <div className={styles.heroActions}>
-              <button
-                type="button"
-                className="btn btn-primary btn-sm"
-                onClick={() => navigate(`/events/${id}/tasks`)}
-              >
-                <ListChecks size={14} /> Tasks
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
-                onClick={() => setPortalOpen(true)}
-              >
-                <ExternalLink size={14} /> Client Portal
-              </button>
-            </div>
           </div>
         </div>
 
+        {/* Row 2: badges + actions */}
+        <div className={styles.heroBadges} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap', marginTop: 'var(--space-2)' }}>
+          <span className={`badge badge-${statusBadge}`}>
+            <span className="badge-dot" />
+            {activeEvent.status.replace('_', ' ')}
+          </span>
+          {activeEvent.payment_status === 'unpaid' && (
+            <span className="badge badge-unpaid" style={{ border: '1px solid var(--color-warning)', background: 'var(--color-warning-bg)', color: 'var(--color-warning)', fontWeight: 600 }}>
+              ⚡ Unpaid
+            </span>
+          )}
+          {activeEvent.payment_status === 'paid' && (
+            <span className="badge badge-paid" style={{ background: 'var(--color-success-bg)', color: 'var(--color-success)', fontWeight: 600 }}>
+              ✓ Paid
+            </span>
+          )}
+          {activeEvent.size_tier && (
+            <span className="badge badge-medium">{activeEvent.size_tier}</span>
+          )}
+          <span className="badge badge-medium">Phase {activeEvent.current_phase} of 9</span>
+
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 'var(--space-2)' }}>
+            <button
+              type="button"
+              className="btn btn-primary btn-sm"
+              onClick={() => navigate(`/events/${id}/tasks`)}
+            >
+              <ListChecks size={14} /> Tasks
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={() => setPortalOpen(true)}
+            >
+              <ExternalLink size={14} /> Client Portal
+            </button>
+          </div>
+        </div>
+      </div>
+
         {/* Meta row */}
         <div className={styles.metaRow}>
-          <div className={styles.metaItem}>
+          <div className={`${styles.metaItem} ${!activeEvent.event_date ? styles.metaEmpty : ''}`}>
             <div className={styles.metaLabel}>
               <Calendar size={10} style={{ display: 'inline', marginRight: 4 }} />
               Event Date
@@ -463,7 +543,7 @@ export function EventDashboardPage() {
             <div className={styles.metaValue}>
               {activeEvent.event_date
                 ? new Date(activeEvent.event_date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
-                : 'Not set'}
+                : <span style={{ color: 'var(--color-text-muted)' }}>Not set</span>}
             </div>
           </div>
           {activeEvent.end_date && (
@@ -477,31 +557,31 @@ export function EventDashboardPage() {
               </div>
             </div>
           )}
-          <div className={styles.metaItem}>
+          <div className={`${styles.metaItem} ${!activeEvent.venue_name ? styles.metaEmpty : ''}`}>
             <div className={styles.metaLabel}>
               <MapPin size={10} style={{ display: 'inline', marginRight: 4 }} />
               Venue
             </div>
-            <div className={styles.metaValue}>{activeEvent.venue_name || 'Not set'}</div>
+            <div className={styles.metaValue}>{activeEvent.venue_name || <span style={{ color: 'var(--color-text-muted)' }}>Not set</span>}</div>
           </div>
-          <div className={styles.metaItem}>
+          <div className={`${styles.metaItem} ${!activeEvent.guest_count ? styles.metaEmpty : ''}`}>
             <div className={styles.metaLabel}>
               <Users size={10} style={{ display: 'inline', marginRight: 4 }} />
               Guests
             </div>
             <div className={styles.metaValue}>
-              {activeEvent.guest_count ? activeEvent.guest_count.toLocaleString() : 'Not set'}
+              {activeEvent.guest_count ? activeEvent.guest_count.toLocaleString() : <span style={{ color: 'var(--color-text-muted)' }}>Not set</span>}
             </div>
           </div>
-          <div className={styles.metaItem}>
+          <div className={`${styles.metaItem} ${!activeEvent.budget_total ? styles.metaEmptyAccent : ''}`}>
             <div className={styles.metaLabel}>
-              <CircleDollarSign size={10} style={{ display: 'inline', marginRight: 4 }} />
+              <Wallet size={10} style={{ display: 'inline', marginRight: 4 }} />
               Budget
             </div>
             <div className={styles.metaValue}>
               {activeEvent.budget_total
                 ? `₦${(activeEvent.budget_total / 100).toLocaleString('en-NG')}`
-                : 'Not set'}
+                : <span style={{ color: 'var(--color-accent)', cursor: 'pointer', fontWeight: 600 }} onClick={() => setShowEditModal(true)}>Set →</span>}
             </div>
           </div>
           <div className={styles.metaItem}>
@@ -509,63 +589,72 @@ export function EventDashboardPage() {
               <BarChart3 size={10} style={{ display: 'inline', marginRight: 4 }} />
               Progress
             </div>
-            <div className={`${styles.metaValue} ${styles.metaValueAccent}`}>
-              {progressPct}% complete
+            <div className={styles.metaValue}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                <div style={{ flex: 1, height: 4, background: 'var(--color-surface-3)', borderRadius: 'var(--radius-full)', maxWidth: 80 }}>
+                  <div style={{ height: '100%', width: `${progressPct}%`, background: 'var(--color-accent)', borderRadius: 'var(--radius-full)' }} />
+                </div>
+                <span className={styles.metaValueAccent}>{progressPct}%</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
       {/* ── Stats cards ── */}
       <div className={styles.statsGrid}>
-        <div className={`${styles.statCard} ${styles.statCardAccent}`}>
+        <div className={styles.statCard + ' ' + styles.statCardAccent + ' ' + styles.statCardClickable} onClick={() => navigate('/events/' + id + '/vendors')} role="button" tabIndex={0} onKeyDown={e => e.key === 'Enter' && navigate('/events/' + id + '/vendors')}>
           <div className={styles.statIcon}><Users size={20} /></div>
           <div>
             <div className={styles.statLabel}>Vendors</div>
             <div className={styles.statValue}>{stats.vendors}</div>
           </div>
+          <ArrowRight size={14} className={styles.statCardArrow} />
         </div>
 
-        <div className={`${styles.statCard} ${stats.tasksDue > 0 ? styles.statCardWarn : styles.statCardAccent}`}>
-          <div className={`${styles.statIcon} ${stats.tasksDue > 0 ? styles.statIconWarn : styles.statIconOk}`}>
+        <div className={styles.statCard + ' ' + (stats.tasksDue > 0 ? styles.statCardWarn : styles.statCardAccent) + ' ' + styles.statCardClickable} onClick={() => navigate('/events/' + id + '/tasks')} role="button" tabIndex={0} onKeyDown={e => e.key === 'Enter' && navigate('/events/' + id + '/tasks')}>
+          <div className={styles.statIcon + ' ' + (stats.tasksDue > 0 ? styles.statIconWarn : styles.statIconOk)}>
             <ListChecks size={20} />
           </div>
           <div>
             <div className={styles.statLabel}>Tasks Overdue</div>
-            <div className={`${styles.statValue} ${stats.tasksDue > 0 ? styles.statValueWarn : ''}`}>
+            <div className={styles.statValue + ' ' + (stats.tasksDue > 0 ? styles.statValueWarn : '')}>
               {stats.tasksDue}
             </div>
           </div>
+          <ArrowRight size={14} className={styles.statCardArrow} />
         </div>
 
-        <div className={`${styles.statCard} ${stats.openIssues > 0 ? styles.statCardWarn : styles.statCardAccent}`}>
-          <div className={`${styles.statIcon} ${stats.openIssues > 0 ? styles.statIconWarn : styles.statIconOk}`}>
+        <div className={styles.statCard + ' ' + (stats.openIssues > 0 ? styles.statCardWarn : styles.statCardAccent) + ' ' + styles.statCardClickable} onClick={() => navigate('/events/' + id + '/live-board')} role="button" tabIndex={0} onKeyDown={e => e.key === 'Enter' && navigate('/events/' + id + '/live-board')}>
+          <div className={styles.statIcon + ' ' + (stats.openIssues > 0 ? styles.statIconWarn : styles.statIconOk)}>
             <AlertTriangle size={20} />
           </div>
           <div>
             <div className={styles.statLabel}>Open Issues</div>
-            <div className={`${styles.statValue} ${stats.openIssues > 0 ? styles.statValueWarn : ''}`}>
+            <div className={styles.statValue + ' ' + (stats.openIssues > 0 ? styles.statValueWarn : '')}>
               {stats.openIssues}
             </div>
           </div>
+          <ArrowRight size={14} className={styles.statCardArrow} />
         </div>
 
-        <div className={`${styles.statCard} ${styles.statCardSuccess}`}>
-          <div className={`${styles.statIcon} ${styles.statIconSuccess}`}>
+        <div className={styles.statCard + ' ' + styles.statCardSuccess + ' ' + styles.statCardClickable} onClick={() => setPageTab('phases')} role="button" tabIndex={0} onKeyDown={e => e.key === 'Enter' && setPageTab('phases')}>
+          <div className={styles.statIcon + ' ' + styles.statIconSuccess}>
             <CheckCircle2 size={20} />
           </div>
           <div>
             <div className={styles.statLabel}>Phases Done</div>
             <div className={styles.statValue}>{completedCount} / {phases.length}</div>
           </div>
+          <ArrowRight size={14} className={styles.statCardArrow} />
         </div>
 
-        <div className={`${styles.statCard} ${styles.statCardAccent}`}>
-          <div className={`${styles.statIcon}`}><Radio size={20} /></div>
+        <div className={styles.statCard + ' ' + styles.statCardAccent + ' ' + styles.statCardClickable} onClick={() => navigate('/events/' + id + '/live-board')} role="button" tabIndex={0} onKeyDown={e => e.key === 'Enter' && navigate('/events/' + id + '/live-board')}>
+          <div className={styles.statIcon}><Radio size={20} /></div>
           <div>
             <div className={styles.statLabel}>Live Board</div>
-            <Link to={`/events/${id}/live-board`} className={styles.statLink}>Open →</Link>
+            <div className={styles.statValue} style={{ fontSize: 'var(--text-xs)', color: 'var(--color-accent)' }}>Open →</div>
           </div>
+          <ArrowRight size={14} className={styles.statCardArrow} />
         </div>
       </div>
 
@@ -590,44 +679,116 @@ export function EventDashboardPage() {
 
       {/* ── Overview tab ── */}
       {pageTab === 'overview' && (
-        <div className={styles.sectionCard}>
-          <div className={styles.sectionHeader}>
-            <div>
-              <h2 className={styles.sectionTitle}>Event Pipeline</h2>
-              <div className={styles.sectionSubtitle}>{completedCount} of {phases.length} phases completed · {progressPct}% overall progress</div>
+        <>
+          <NextStepCard
+            eventId={id || ''}
+            paymentStatus={activeEvent.payment_status}
+            daysUntilEvent={countdown ? (countdown.past ? -1 : countdown.days) : -1}
+            preEventChecklistIncomplete={stats.tasksDue > 0}
+            overdueTaskCount={stats.tasksDue}
+            currentPhaseStatus={phases.find(p => p.phase_number === activeEvent.current_phase)?.status || null}
+            currentPhaseNumber={activeEvent.current_phase}
+          />
+
+          {/* Financial snapshot — planner only */}
+          {role === 'planner' && (
+            <div className="card" style={{ padding: 'var(--space-4) var(--space-5)', marginBottom: 'var(--space-4)' }}>
+              <h3 style={{ margin: '0 0 var(--space-3) 0', fontSize: 'var(--text-sm)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                <Wallet size={14} style={{ color: 'var(--color-accent)' }} />
+                Financial Snapshot
+              </h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-3)', fontSize: 'var(--text-sm)' }}>
+                <div>
+                  <div style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)' }}>Total Budget</div>
+                  <div style={{ fontWeight: 700, fontSize: 'var(--text-base)' }}>
+                    {activeEvent.budget_total ? `₦${(activeEvent.budget_total / 100).toLocaleString('en-NG')}` : '—'}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)' }}>Total Paid</div>
+                  <div style={{ fontWeight: 700, fontSize: 'var(--text-base)', color: 'var(--color-success)' }}>—</div>
+                </div>
+                <div>
+                  <div style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)' }}>Outstanding</div>
+                  <div style={{ fontWeight: 700, fontSize: 'var(--text-base)', color: 'var(--color-error)' }}>—</div>
+                </div>
+              </div>
             </div>
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              onClick={() => setShowPhaseManager(!showPhaseManager)}
-            >
-              {showPhaseManager ? 'Hide Manager' : 'Manage Phases'}
-              {showPhaseManager ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            </button>
+          )}
+
+          {/* Upcoming deadlines */}
+          <div className="card" style={{ padding: 'var(--space-4) var(--space-5)', marginBottom: 'var(--space-4)' }}>
+            <h3 style={{ margin: '0 0 var(--space-3) 0', fontSize: 'var(--text-sm)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+              <Clock size={14} style={{ color: 'var(--color-info)' }} />
+              Upcoming Deadlines
+            </h3>
+            {deadlines.length === 0 ? (
+              <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', padding: 'var(--space-4) 0', textAlign: 'center' }}>
+                No upcoming deadlines
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+                {deadlines.map((dl) => {
+                  const dlIcon = dl.type === 'task' ? ListChecks : dl.type === 'phase' ? CheckCircle2 : Wallet
+                  const isOverdue = new Date(dl.date) < new Date()
+                  return (
+                    <div key={dl.id} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', fontSize: 'var(--text-sm)' }}>
+                      <div style={{ width: 28, height: 28, borderRadius: 'var(--radius-md)', background: isOverdue ? 'rgba(239,68,68,0.12)' : 'var(--color-surface-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: isOverdue ? 'var(--color-error)' : 'var(--color-text-secondary)' }}>
+                        {dlIcon === ListChecks ? <ListChecks size={14} /> : dlIcon === CheckCircle2 ? <CheckCircle2 size={14} /> : <Wallet size={14} />}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 600, color: isOverdue ? 'var(--color-error)' : undefined }}>{dl.title}</div>
+                        <div style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)' }}>
+                          {new Date(dl.date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}
+                          {isOverdue ? ' (overdue)' : ''}
+                        </div>
+                      </div>
+                      <span className="badge badge-grey" style={{ fontSize: 'var(--text-2xs)', textTransform: 'capitalize' }}>{dl.label}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
 
-          <div className={styles.sectionBody}>
-            <PhaseStepper phases={phases} currentPhase={activeEvent.current_phase} />
-            <PhaseSegmentBar phases={phases} />
-            <PhasePipeline phases={phases} currentPhase={activeEvent.current_phase} eventId={activeEvent.id} compact />
-
-            <div className={styles.progressLegend}>
-              {[
-                ['legendCompleted', 'Completed'],
-                ['legendActive', 'In Progress'],
-                ['legendPending', 'Not Started'],
-                ['legendBlocked', 'Blocked'],
-              ].map(([cls, label]) => (
-                <span key={cls} className={styles.legendItem}>
-                  <span className={`${styles.legendDot} ${styles[cls as keyof typeof styles]}`} />
-                  {label}
-                </span>
-              ))}
-            </div>
+          {/* Recent activity */}
+          <div className="card" style={{ padding: 'var(--space-4) var(--space-5)' }}>
+            <h3 style={{ margin: '0 0 var(--space-3) 0', fontSize: 'var(--text-sm)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+              <Zap size={14} style={{ color: 'var(--color-accent)' }} />
+              Recent Activity
+            </h3>
+            {activity.length === 0 ? (
+              <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', padding: 'var(--space-4) 0', textAlign: 'center' }}>
+                No activity yet
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+                {activity.map((a) => {
+                  const actIcon = a.action_type.startsWith('vendor') ? Users
+                    : a.action_type.startsWith('task') ? ListChecks
+                    : a.action_type.startsWith('phase') ? CheckCircle2
+                    : a.action_type.startsWith('payment') ? Wallet
+                    : a.action_type.startsWith('issue') ? AlertTriangle
+                    : Zap
+                  return (
+                    <div key={a.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-3)', fontSize: 'var(--text-sm)' }}>
+                      <div style={{ width: 28, height: 28, borderRadius: 'var(--radius-md)', background: 'var(--color-surface-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--color-accent)' }}>
+                        {actIcon === Users ? <Users size={14} /> : actIcon === ListChecks ? <ListChecks size={14} /> : actIcon === CheckCircle2 ? <CheckCircle2 size={14} /> : actIcon === Wallet ? <Wallet size={14} /> : actIcon === AlertTriangle ? <AlertTriangle size={14} /> : <Zap size={14} />}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 500 }}>{a.description}</div>
+                        <div style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)', marginTop: 2 }}>
+                          {a.actor_name && <span>{a.actor_name} · </span>}
+                          {timeAgo(a.created_at)}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
-
-          {showPhaseManager && <PhaseManagerPanel phases={phases} togglingPhase={togglingPhase} onToggle={togglePhaseStatus} styles={styles} />}
-        </div>
+        </>
       )}
 
       {/* ── Timeline tab ── */}
@@ -641,7 +802,7 @@ export function EventDashboardPage() {
           <div className={styles.sectionHeader}>
             <div>
               <h2 className={styles.sectionTitle}>Phase Manager</h2>
-              <div className={styles.sectionSubtitle}>{completedCount} of {phases.length} phases completed</div>
+              <div className={styles.sectionSubtitle}>{completedCount} of {phases.length} phases completed · {progressPct}% overall progress</div>
             </div>
             <button
               type="button"
@@ -653,7 +814,6 @@ export function EventDashboardPage() {
             </button>
           </div>
           <div className={styles.sectionBody}>
-            <PhaseSegmentBar phases={phases} />
             <PhasePipeline phases={phases} currentPhase={activeEvent.current_phase} eventId={activeEvent.id} />
           </div>
           <PhaseManagerPanel phases={phases} togglingPhase={togglingPhase} onToggle={togglePhaseStatus} styles={styles} />

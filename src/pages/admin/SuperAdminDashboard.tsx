@@ -1,14 +1,50 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
+import { Checkbox } from '@/components/ui/Checkbox'
 import {
-  Users, Calendar, CircleDollarSign, Building, Activity,
-  ArrowLeft, Shield, ExternalLink, TrendingUp, CheckCircle2
+  Users, Calendar, Building, Activity, TrendingUp, Shield,
+  ArrowLeft, ExternalLink, UserPlus, CalendarPlus, Building2,
+  Store, MessageSquare
 } from 'lucide-react'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+import styles from './SuperAdminDashboard.module.css'
 
-interface OrgRow { id: string; name: string; city: string; state: string; created_at: string }
-interface ProfileRow { id: string; email: string; display_name: string | null; role: string; created_at: string }
+interface Activity {
+  id: string
+  type: 'signup' | 'event_created' | 'org_created' | 'vendor_added' | 'feedback_submitted'
+  typeLabel: string
+  description: string
+  detail: string
+  actorName: string
+  actorEmail: string
+  timestamp: string
+  createdAt: string
+}
+
+const ACTIVITY_CONFIG: Record<string, { icon: React.ComponentType<{ size?: number }>; label: string; color: string; bg: string }> = {
+  signup: { icon: UserPlus, label: 'Signup', color: 'var(--color-accent)', bg: 'var(--color-accent-muted)' },
+  event_created: { icon: CalendarPlus, label: 'Event', color: 'var(--color-info)', bg: 'var(--color-info-bg)' },
+  org_created: { icon: Building2, label: 'Org', color: 'var(--color-success)', bg: 'var(--color-success-bg)' },
+  vendor_added: { icon: Store, label: 'Vendor', color: 'var(--color-warning)', bg: 'var(--color-warning-bg)' },
+  feedback_submitted: { icon: MessageSquare, label: 'Feedback', color: 'var(--color-error)', bg: 'var(--color-error-bg)' },
+}
+
+function formatDate(dateStr: string): string {
+  const d = new Date(dateStr)
+  const now = new Date()
+  const diff = now.getTime() - d.getTime()
+  const mins = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+  const days = Math.floor(diff / 86400000)
+
+  if (mins < 1) return 'Just now'
+  if (mins < 60) return `${mins}m ago`
+  if (hours < 24) return `${hours}h ago`
+  if (days < 7) return `${days}d ago`
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+}
 
 export function SuperAdminDashboard() {
   const navigate = useNavigate()
@@ -16,8 +52,10 @@ export function SuperAdminDashboard() {
   const user = useAuthStore((s) => s.user)
 
   const [stats, setStats] = useState({ planners: 0, coordinators: 0, vendors: 0, events: 0, orgs: 0, guests: 0 })
-  const [recentOrgs, setRecentOrgs] = useState<OrgRow[]>([])
-  const [recentUsers, setRecentUsers] = useState<ProfileRow[]>([])
+  const [activities, setActivities] = useState<Activity[]>([])
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [signupData, setSignupData] = useState<{ month: string; count: number }[]>([])
+  const [eventData, setEventData] = useState<{ month: string; count: number }[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -31,8 +69,11 @@ export function SuperAdminDashboard() {
         { count: eventCount },
         { count: orgCount },
         { count: guestCount },
-        { data: orgs },
-        { data: profiles },
+        signupsRes,
+        eventsRes,
+        orgsRes,
+        vendorsRes,
+        feedbackRes,
       ] = await Promise.all([
         supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'planner'),
         supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'coordinator'),
@@ -40,8 +81,11 @@ export function SuperAdminDashboard() {
         supabase.from('events').select('id', { count: 'exact', head: true }).is('deleted_at', null),
         supabase.from('organizations').select('id', { count: 'exact', head: true }),
         supabase.from('guests').select('id', { count: 'exact', head: true }),
-        supabase.from('organizations').select('id, name, city, state, created_at').order('created_at', { ascending: false }).limit(8),
-        supabase.from('profiles').select('id, email, display_name, role, created_at').order('created_at', { ascending: false }).limit(10),
+        supabase.from('profiles').select('id, email, display_name, role, created_at').order('created_at', { ascending: false }).limit(30),
+        supabase.from('events').select('id, name, status, created_at, created_by, profiles!inner(email, display_name)').order('created_at', { ascending: false }).limit(30),
+        supabase.from('organizations').select('id, name, city, state, created_at').order('created_at', { ascending: false }).limit(30),
+        supabase.from('vendors').select('id, name, category, created_at').order('created_at', { ascending: false }).limit(30),
+        supabase.from('feedback').select('id, subject, type, status, user_email, created_at').order('created_at', { ascending: false }).limit(30),
       ])
 
       setStats({
@@ -52,13 +96,136 @@ export function SuperAdminDashboard() {
         orgs: orgCount || 0,
         guests: guestCount || 0,
       })
-      if (orgs) setRecentOrgs(orgs as OrgRow[])
-      if (profiles) setRecentUsers(profiles as ProfileRow[])
+
+      const allActivities: Activity[] = []
+
+      if (signupsRes.data) {
+        for (const p of signupsRes.data) {
+          allActivities.push({
+            id: `signup-${p.id}`,
+            type: 'signup',
+            typeLabel: ACTIVITY_CONFIG.signup.label,
+            description: `${p.display_name || p.email} joined`,
+            detail: `Role: ${p.role}`,
+            actorName: p.display_name || 'Unknown',
+            actorEmail: p.email,
+            timestamp: formatDate(p.created_at),
+            createdAt: p.created_at,
+          })
+        }
+      }
+
+      if (eventsRes.data) {
+        for (const e of eventsRes.data) {
+          const profile = e.profiles as unknown as { email: string; display_name: string | null }
+          allActivities.push({
+            id: `event-${e.id}`,
+            type: 'event_created',
+            typeLabel: ACTIVITY_CONFIG.event_created.label,
+            description: e.name,
+            detail: `Status: ${e.status}`,
+            actorName: profile.display_name || profile.email,
+            actorEmail: profile.email,
+            timestamp: formatDate(e.created_at),
+            createdAt: e.created_at,
+          })
+        }
+      }
+
+      if (orgsRes.data) {
+        for (const o of orgsRes.data) {
+          allActivities.push({
+            id: `org-${o.id}`,
+            type: 'org_created',
+            typeLabel: ACTIVITY_CONFIG.org_created.label,
+            description: o.name,
+            detail: `${o.city}${o.city && o.state ? ', ' : ''}${o.state}`,
+            actorName: 'System',
+            actorEmail: '',
+            timestamp: formatDate(o.created_at),
+            createdAt: o.created_at,
+          })
+        }
+      }
+
+      if (vendorsRes.data) {
+        for (const v of vendorsRes.data) {
+          allActivities.push({
+            id: `vendor-${v.id}`,
+            type: 'vendor_added',
+            typeLabel: ACTIVITY_CONFIG.vendor_added.label,
+            description: v.name,
+            detail: `Category: ${v.category}`,
+            actorName: 'System',
+            actorEmail: '',
+            timestamp: formatDate(v.created_at),
+            createdAt: v.created_at,
+          })
+        }
+      }
+
+      if (feedbackRes.data) {
+        for (const f of feedbackRes.data) {
+          allActivities.push({
+            id: `feedback-${f.id}`,
+            type: 'feedback_submitted',
+            typeLabel: ACTIVITY_CONFIG.feedback_submitted.label,
+            description: f.subject,
+            detail: `Type: ${f.type}`,
+            actorName: f.user_email,
+            actorEmail: f.user_email,
+            timestamp: formatDate(f.created_at),
+            createdAt: f.created_at,
+          })
+        }
+      }
+
+      allActivities.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      setActivities(allActivities.slice(0, 25))
+
+      const sixMonthsAgo = new Date()
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5)
+      sixMonthsAgo.setDate(1)
+
+      const [{ data: allProfiles }, { data: allEvents }] = await Promise.all([
+        supabase.from('profiles').select('created_at').gte('created_at', sixMonthsAgo.toISOString()).order('created_at'),
+        supabase.from('events').select('created_at').gte('created_at', sixMonthsAgo.toISOString()).order('created_at'),
+      ])
+
+      setSignupData(aggregateMonthly(allProfiles || []))
+      setEventData(aggregateMonthly(allEvents || []))
       setLoading(false)
     }
 
     load()
   }, [role, navigate])
+
+  function aggregateMonthly(rows: { created_at: string }[]): { month: string; count: number }[] {
+    const map = new Map<string, number>()
+    for (const r of rows) {
+      const key = r.created_at.substring(0, 7)
+      map.set(key, (map.get(key) || 0) + 1)
+    }
+    return Array.from(map.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, count]) => ({
+        month: new Date(month + '-01').toLocaleDateString('en-GB', { month: 'short' }),
+        count
+      }))
+  }
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }, [])
+
+  const toggleSelectAll = useCallback(() => {
+    setSelectedIds(prev => prev.size === activities.length ? new Set() : new Set(activities.map(a => a.id)))
+  }, [activities])
 
   if (role !== 'super_admin') return null
   if (loading) return (
@@ -75,21 +242,24 @@ export function SuperAdminDashboard() {
     { label: 'Coordinators', value: stats.coordinators, icon: Users, color: 'var(--color-info)', bg: 'var(--color-info-bg)' },
     { label: 'Organisations', value: stats.orgs, icon: Building, color: 'var(--color-success)', bg: 'var(--color-success-bg)' },
     { label: 'Events', value: stats.events, icon: Calendar, color: 'var(--color-accent)', bg: 'var(--color-accent-muted)' },
-    { label: 'Vendors', value: stats.vendors, icon: CircleDollarSign, color: 'var(--color-warning)', bg: 'var(--color-warning-bg)' },
-    { label: 'Guests', value: stats.guests, icon: Activity, color: 'var(--color-info)', bg: 'var(--color-info-bg)' },
+    { label: 'Vendors', value: stats.vendors, icon: Activity, color: 'var(--color-warning)', bg: 'var(--color-warning-bg)' },
+    { label: 'Guests', value: stats.guests, icon: Users, color: 'var(--color-info)', bg: 'var(--color-info-bg)' },
   ]
 
-  const roleColors: Record<string, string> = {
-    planner: 'var(--color-accent)',
-    coordinator: 'var(--color-info)',
-    vendor: 'var(--color-warning)',
-    client: 'var(--color-success)',
-    super_admin: 'var(--color-error)',
+  const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: { value: number }[]; label?: string }) => {
+    if (active && payload?.length) {
+      return (
+        <div style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: 'var(--space-2) var(--space-3)', fontSize: 'var(--text-xs)' }}>
+          <div style={{ color: 'var(--color-text-muted)', marginBottom: 2 }}>{label}</div>
+          <div style={{ fontWeight: 600 }}>{payload[0].value}</div>
+        </div>
+      )
+    }
+    return null
   }
 
   return (
     <div>
-      {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-6)', flexWrap: 'wrap', gap: 'var(--space-3)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
           <button className="btn btn-ghost btn-icon" onClick={() => navigate('/')} aria-label="Back">
@@ -116,7 +286,6 @@ export function SuperAdminDashboard() {
         </a>
       </div>
 
-      {/* Stats Grid */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
@@ -140,142 +309,126 @@ export function SuperAdminDashboard() {
         ))}
       </div>
 
-      {/* Two columns */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 'var(--space-4)', alignItems: 'start' }}>
-
-        {/* Recent Organisations */}
-        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: 'var(--space-4) var(--space-5)',
-            borderBottom: '1px solid var(--color-border-subtle)',
-          }}>
-            <h3 style={{ margin: 0, fontSize: 'var(--text-base)', fontWeight: 700 }}>
-              <Building size={16} style={{ marginRight: 'var(--space-2)', verticalAlign: 'middle', color: 'var(--color-success)' }} />
-              Organisations
-            </h3>
-            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
-              {stats.orgs} total
-            </span>
-          </div>
-          {recentOrgs.length === 0 ? (
-            <div className="empty-state" style={{ padding: 'var(--space-8)' }}>
-              <div className="empty-state__title">No organisations yet</div>
-            </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 'var(--space-4)', marginBottom: 'var(--space-6)', alignItems: 'stretch' }}>
+        <div className="card" style={{ padding: 'var(--space-4) var(--space-5)' }}>
+          <h3 style={{ margin: '0 0 var(--space-3) 0', fontSize: 'var(--text-base)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            <TrendingUp size={16} style={{ color: 'var(--color-accent)' }} />
+            Monthly Signups
+          </h3>
+          {signupData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={signupData} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-subtle)" />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }} axisLine={false} tickLine={false} />
+                <Tooltip content={<CustomTooltip />} />
+                <Bar dataKey="count" fill="var(--color-accent)" radius={[4, 4, 0, 0]} maxBarSize={36} />
+              </BarChart>
+            </ResponsiveContainer>
           ) : (
-            recentOrgs.map((org, i) => (
-              <div
-                key={org.id}
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: 'var(--space-3) var(--space-5)',
-                  borderBottom: i < recentOrgs.length - 1 ? '1px solid var(--color-border-subtle)' : 'none',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-                  <div style={{
-                    width: 36, height: 36, borderRadius: 'var(--radius-md)',
-                    background: 'var(--color-success-bg)', color: 'var(--color-success)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontWeight: 700, fontSize: 'var(--text-sm)', flexShrink: 0,
-                  }}>
-                    {org.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>{org.name}</div>
-                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
-                      {org.city}, {org.state}
-                    </div>
-                  </div>
-                </div>
-                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
-                  {new Date(org.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-                </div>
-              </div>
-            ))
+            <div className="empty-state" style={{ height: 200 }}><div className="empty-state__title">No data yet</div></div>
           )}
         </div>
-
-        {/* Recent Users */}
-        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: 'var(--space-4) var(--space-5)',
-            borderBottom: '1px solid var(--color-border-subtle)',
-          }}>
-            <h3 style={{ margin: 0, fontSize: 'var(--text-base)', fontWeight: 700 }}>
-              <TrendingUp size={16} style={{ marginRight: 'var(--space-2)', verticalAlign: 'middle', color: 'var(--color-info)' }} />
-              Recent Sign-ups
-            </h3>
-            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
-              {stats.planners + stats.coordinators} users
-            </span>
-          </div>
-          {recentUsers.length === 0 ? (
-            <div className="empty-state" style={{ padding: 'var(--space-8)' }}>
-              <div className="empty-state__title">No users yet</div>
-            </div>
+        <div className="card" style={{ padding: 'var(--space-4) var(--space-5)' }}>
+          <h3 style={{ margin: '0 0 var(--space-3) 0', fontSize: 'var(--text-base)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            <Calendar size={16} style={{ color: 'var(--color-info)' }} />
+            Monthly Events
+          </h3>
+          {eventData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={eventData} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-subtle)" />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }} axisLine={false} tickLine={false} />
+                <Tooltip content={<CustomTooltip />} />
+                <Bar dataKey="count" fill="var(--color-info)" radius={[4, 4, 0, 0]} maxBarSize={36} />
+              </BarChart>
+            </ResponsiveContainer>
           ) : (
-            recentUsers.map((profile, i) => (
-              <div
-                key={profile.id}
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  gap: 'var(--space-3)',
-                  padding: 'var(--space-3) var(--space-5)',
-                  borderBottom: i < recentUsers.length - 1 ? '1px solid var(--color-border-subtle)' : 'none',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', minWidth: 0 }}>
-                  <div style={{
-                    width: 32, height: 32, borderRadius: 'var(--radius-full)',
-                    background: `${roleColors[profile.role] || 'var(--color-accent)'}20`,
-                    color: roleColors[profile.role] || 'var(--color-accent)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontWeight: 700, fontSize: 'var(--text-xs)', flexShrink: 0,
-                  }}>
-                    {(profile.display_name || profile.email).charAt(0).toUpperCase()}
-                  </div>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {profile.display_name || profile.email}
-                    </div>
-                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {profile.email}
-                    </div>
-                  </div>
-                </div>
-                <span style={{
-                  fontSize: 'var(--text-xs)', fontWeight: 600, padding: '2px 8px',
-                  borderRadius: 'var(--radius-full)',
-                  background: `${roleColors[profile.role] || 'var(--color-accent)'}20`,
-                  color: roleColors[profile.role] || 'var(--color-accent)',
-                  flexShrink: 0, textTransform: 'capitalize',
-                }}>
-                  {profile.role}
-                </span>
-              </div>
-            ))
+            <div className="empty-state" style={{ height: 200 }}><div className="empty-state__title">No data yet</div></div>
           )}
         </div>
       </div>
 
-      {/* Super Admin Access Guide */}
-      <div className="card" style={{ marginTop: 'var(--space-4)', background: 'var(--color-accent-muted)', border: '1px solid var(--color-accent-border)' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-3)' }}>
-          <CheckCircle2 size={20} style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: 2 }} />
-          <div>
-            <div style={{ fontWeight: 700, marginBottom: 'var(--space-2)', color: 'var(--color-accent)' }}>
-              Super Admin Access Guide
-            </div>
-            <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>
-              <strong>To grant super admin access:</strong> Add the email address(es) to <code>VITE_SUPER_ADMIN_EMAILS</code> in <code>.env.local</code>, separated by commas.
-              The user must then log in with that exact email address. No database changes needed.<br /><br />
-              <strong>Client portal link:</strong> Generate per event from the Event Dashboard → "Client Portal" button. URL format: <code>/portal/&#123;token&#125;</code><br /><br />
-              <strong>Coordinator access:</strong> Log in with an account that has <code>role: coordinator</code> in Supabase Auth user_metadata.
-              Coordinators go to <code>/dashboard/coordinator</code>.
-            </div>
+      <div className={styles.tableCard}>
+        {selectedIds.size > 0 && (
+          <div className={styles.bulkBar}>
+            <span className={styles.bulkInfo}>{selectedIds.size} selected</span>
           </div>
+        )}
+        <div className={styles.tableScroll}>
+          <table className={styles.table}>
+            <thead className={styles.thead}>
+              <tr>
+                <th className={`${styles.th} ${styles.thCheck}`}>
+                  <Checkbox
+                    checked={selectedIds.size === activities.length && activities.length > 0}
+                    onChange={toggleSelectAll}
+                  />
+                </th>
+                <th className={styles.th}>Activity</th>
+                <th className={styles.th}>Description</th>
+                <th className={styles.th}>Actor</th>
+                <th className={styles.th}>When</th>
+              </tr>
+            </thead>
+            <tbody>
+              {activities.length === 0 ? (
+                <tr>
+                  <td className={styles.td} colSpan={5} style={{ textAlign: 'center', padding: 'var(--space-8)' }}>
+                    <div className="empty-state">
+                      <div className="empty-state__title">No activity yet</div>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                activities.map((a) => {
+                  const cfg = ACTIVITY_CONFIG[a.type]
+                  const Icon = cfg.icon
+                  const selected = selectedIds.has(a.id)
+                  return (
+                    <tr
+                      key={a.id}
+                      className={`${styles.tr} ${selected ? styles.trSelected : ''}`}
+                    >
+                      <td className={`${styles.td} ${styles.tdCheck}`}>
+                        <Checkbox
+                          checked={selected}
+                          onChange={() => toggleSelect(a.id)}
+                        />
+                      </td>
+                      <td className={styles.td}>
+                        <div className={styles.activityType}>
+                          <div className={styles.activityIcon} style={{ background: cfg.bg, color: cfg.color }}>
+                            <Icon size={16} />
+                          </div>
+                          <span className={styles.activityLabel} style={{ color: cfg.color }}>
+                            {a.typeLabel}
+                          </span>
+                        </div>
+                      </td>
+                      <td className={styles.td}>
+                        <div className={styles.description}>{a.description}</div>
+                        <div className={styles.detail}>{a.detail}</div>
+                      </td>
+                      <td className={styles.td}>
+                        <div className={styles.actorName}>{a.actorName}</div>
+                        {a.actorEmail && <div className={styles.actorEmail}>{a.actorEmail}</div>}
+                      </td>
+                      <td className={styles.td}>
+                        <span style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)', whiteSpace: 'nowrap' }}>
+                          {a.timestamp}
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+        <div className={styles.tableFooter}>
+          <span>Showing {activities.length} recent activities</span>
         </div>
       </div>
     </div>

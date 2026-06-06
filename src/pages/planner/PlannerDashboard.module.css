@@ -325,8 +325,9 @@
   display: inline-block;
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
-  color: var(--color-text-secondary);
   text-transform: capitalize;
+  background-color: var(--color-accent-muted);
+  color: var(--color-accent);
 }
 
 .cellTruncate {

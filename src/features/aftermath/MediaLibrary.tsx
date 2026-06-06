@@ -3,6 +3,7 @@ import { X, Share2, Search, ChevronLeft, ChevronRight, Image } from 'lucide-reac
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
+import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import type { Media } from '@/types'
 import styles from './Aftermath.module.css'
 
@@ -89,17 +90,14 @@ export function MediaLibrary({ eventId }: { eventId: string }) {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <select
-          className="input"
-          style={{ width: 'auto', minWidth: 140 }}
-          value={tagFilter}
-          onChange={(e) => setTagFilter(e.target.value)}
-        >
-          <option value="">All tags</option>
-          {tags.map((t) => (
-            <option key={t} value={t}>{t}</option>
-          ))}
-        </select>
+        <DropdownMenu
+          trigger={<span>{tagFilter || 'All tags'}</span>}
+          items={[
+            { label: 'All tags', value: '' },
+            ...tags.map((t) => ({ label: t, value: t })),
+          ]}
+          onSelect={(item) => setTagFilter(item.value)}
+        />
       </div>
 
       <div className={styles.mediaGrid}>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Menu, X, LayoutDashboard } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import styles from './Navbar.module.css'
 
@@ -22,6 +22,8 @@ export default function Navbar() {
 
   const isLoggedIn  = !!user
   const displayName = profile?.display_name || user?.user_metadata?.display_name || ''
+  const avatarLetter = displayName ? displayName.charAt(0).toUpperCase() : 'U'
+  const dashboardUrl = role === 'super_admin' ? '/admin' : `/dashboard/${role || user?.user_metadata?.role || 'planner'}`
 
   /* ── Scroll detection ── */
   useEffect(() => {
@@ -57,20 +59,7 @@ export default function Navbar() {
       <div className={styles.container}>
         {/* Logo */}
         <Link to="/" className={styles.logo} aria-label="EventGrid home">
-          <svg
-            className={styles.logoMark}
-            width="32"
-            height="32"
-            viewBox="0 0 32 32"
-            fill="none"
-            aria-hidden="true"
-          >
-            <rect x="2" y="2" width="12" height="12" rx="3" fill="var(--color-accent)" opacity="0.9" />
-            <rect x="18" y="2" width="12" height="12" rx="3" fill="var(--color-accent)" opacity="0.6" />
-            <rect x="2" y="18" width="12" height="12" rx="3" fill="var(--color-accent)" opacity="0.6" />
-            <rect x="18" y="18" width="12" height="12" rx="3" fill="var(--color-accent)" opacity="0.9" />
-          </svg>
-          <span className={styles.wordmark}>EventGrid</span>
+          <img src="/EventGrid-logo-white.svg" alt="EventGrid" className={styles.logoImg} />
         </Link>
 
         {/* Desktop nav links */}
@@ -89,18 +78,18 @@ export default function Navbar() {
         {/* Desktop CTA buttons */}
         <div className={styles.desktopCta}>
           {isLoggedIn ? (
-            <>
+            <Link to={dashboardUrl} className={styles.userLink}>
               <span className={styles.greeting}>
                 {displayName ? `Hi, ${displayName.split(' ')[0]}` : ''}
               </span>
-              <Link
-                to={`/dashboard/${role || 'planner'}`}
-                className="btn btn-primary"
-              >
-                <LayoutDashboard size={16} />
-                Dashboard
-              </Link>
-            </>
+              <span className={styles.avatar}>
+                {profile?.avatar_url ? (
+                  <img src={profile.avatar_url} alt="" className={styles.avatarImg} />
+                ) : (
+                  avatarLetter
+                )}
+              </span>
+            </Link>
           ) : (
             <>
               <Link to="/login" className="btn btn-ghost" id="navbar-login-btn">
@@ -142,13 +131,20 @@ export default function Navbar() {
           <div className={styles.mobileCta}>
             {isLoggedIn ? (
               <Link
-                to={`/dashboard/${role || 'planner'}`}
-                className="btn btn-primary"
+                to={dashboardUrl}
+                className={styles.mobileUserLink}
                 onClick={() => setMenuOpen(false)}
-                style={{ width: '100%' }}
               >
-                <LayoutDashboard size={16} />
-                Go to Dashboard
+                <span className={styles.avatar}>
+                  {profile?.avatar_url ? (
+                    <img src={profile.avatar_url} alt="" className={styles.avatarImg} />
+                  ) : (
+                    avatarLetter
+                  )}
+                </span>
+                <span className={styles.greeting}>
+                  {displayName ? `Hi, ${displayName}` : ''}
+                </span>
               </Link>
             ) : (
               <>

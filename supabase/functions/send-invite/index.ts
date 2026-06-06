@@ -284,6 +284,8 @@ Deno.serve(async (req) => {
       email,
       event_id,
       invited_by_name,
+      // admin_monitor specific
+      role,
       // vendor-specific
       vendor_name,
       service_name,
@@ -293,31 +295,84 @@ Deno.serve(async (req) => {
       event_date,
     } = await req.json()
 
-    if (!type || !email || !event_id) {
+    if (!type || !email) {
       return new Response(
-        JSON.stringify({ error: 'Missing required fields: type, email, event_id' }),
+        JSON.stringify({ error: 'Missing required fields: type, email' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Fetch event name
-    const { data: event, error: eventError } = await supabaseAdmin
-      .from('events')
-      .select('name, event_date')
-      .eq('id', event_id)
-      .single()
-
-    if (eventError || !event) {
+    if (type !== 'admin_monitor' && !event_id) {
       return new Response(
-        JSON.stringify({ error: 'Event not found' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'event_id is required for this invite type' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
+    }
+
+    let event: { name: string; event_date: string | null } | null = null
+    if (event_id) {
+      const { data, error: eventError } = await supabaseAdmin
+        .from('events')
+        .select('name, event_date')
+        .eq('id', event_id)
+        .single()
+      if (eventError || !data) {
+        return new Response(
+          JSON.stringify({ error: 'Event not found' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+      event = data
     }
 
     let subject: string
     let html: string
 
-    if (type === 'team_member') {
+    if (type === 'admin_monitor') {
+      const adminRole = role || 'super_admin'
+      const roleLabel = adminRole === 'super_admin' ? 'Super Admin'
+        : adminRole === 'monitor' ? 'Monitor'
+        : adminRole === 'admin_support' ? 'Support'
+        : 'Admin'
+      const inviteLink = `${APP_URL}/register?role=${adminRole}&invited_by=${encodeURIComponent(email)}`
+      subject = `You've been invited as ${roleLabel} on EventGrid`
+      html = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /></head>
+<body style="margin:0;padding:0;background:#111827;font-family:'Plus Jakarta Sans',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#111827;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#1F2937;border:1px solid #374151;border-radius:16px;overflow:hidden;max-width:560px;width:100%;">
+        <tr><td style="background:#D4A017;padding:24px 32px;">
+          <span style="font-size:20px;font-weight:700;color:#111827;">EventGrid</span>
+        </td></tr>
+        <tr><td style="padding:32px;">
+          <h1 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#F9FAFB;">${roleLabel} Invitation</h1>
+          <p style="margin:0 0 20px;font-size:15px;color:#9CA3AF;line-height:1.6;">
+            You've been invited to join EventGrid as a <strong style="color:#F9FAFB;">${roleLabel}</strong>. ${adminRole === 'super_admin' ? 'You will have full platform-wide access.' : adminRole === 'monitor' ? 'You will have read-only access to analytics and platform data.' : 'You will be able to manage feedback and platform users.'}
+          </p>
+          <table cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+            <tr><td style="background:#D4A017;border-radius:10px;">
+              <a href="${inviteLink}" style="display:inline-block;padding:14px 28px;font-size:15px;font-weight:600;color:#111827;text-decoration:none;border-radius:10px;">
+                Accept Invitation →
+              </a>
+            </td></tr>
+          </table>
+          <p style="margin:0;font-size:12px;color:#6B7280;">
+            Link: <a href="${inviteLink}" style="color:#D4A017;">${inviteLink}</a>
+          </p>
+        </td></tr>
+        <tr><td style="padding:20px 32px;border-top:1px solid #374151;">
+          <p style="margin:0;font-size:12px;color:#4B5563;text-align:center;">EventGrid · <a href="${APP_URL}" style="color:#6B7280;">eventgrid.ng</a></p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`
+
+    } else if (type === 'team_member') {
       // Generate magic link invite
       const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
         type: 'invite',

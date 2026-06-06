@@ -290,6 +290,12 @@
 .metaValueAccent {
   color: var(--color-accent);
 }
+.metaEmpty {
+  border-color: var(--color-border-subtle);
+}
+.metaEmptyAccent {
+  border-color: var(--color-accent-border);
+}
 
 /* ── Stats Grid ── */
 .statsGrid {
@@ -365,6 +371,24 @@
   color: var(--color-accent);
   text-decoration: none;
   font-weight: var(--weight-semibold);
+}
+.statCardClickable {
+  cursor: pointer;
+}
+.statCardClickable .statCardArrow {
+  position: absolute;
+  right: var(--space-3);
+  bottom: var(--space-3);
+  color: var(--color-text-muted);
+  opacity: 0;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+.statCardClickable:hover .statCardArrow {
+  opacity: 1;
+  transform: translateX(2px);
+}
+.statCardClickable .statCardArrow {
+  opacity: 0;
 }
 .statLink:hover { text-decoration: underline; }
 

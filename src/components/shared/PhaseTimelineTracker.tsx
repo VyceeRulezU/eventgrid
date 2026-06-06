@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Search, Check, Play, Pause, Circle, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { Event, EventPhase, PhaseStatus } from '@/types'
+import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import styles from './PhaseTimelineTracker.module.css'
 
 type FilterTab = 'all' | 'active' | 'done' | 'blocked'
@@ -187,15 +188,14 @@ export function PhaseTimelineTracker({ phases, event, readOnly: _readOnly }: Pha
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <select
-            className={styles.viewSelect}
-            value={viewMode}
-            onChange={(e) => setViewMode(e.target.value as ViewMode)}
-            aria-label="Timeline view"
-          >
-            <option value="week">Week</option>
-            <option value="phase">By Phase</option>
-          </select>
+          <DropdownMenu
+            trigger={<span>{viewMode === 'week' ? 'Week' : 'By Phase'}</span>}
+            items={[
+              { label: 'Week', value: 'week' },
+              { label: 'By Phase', value: 'phase' },
+            ]}
+            onSelect={(item) => setViewMode(item.value as ViewMode)}
+          />
           {viewMode === 'week' && (
             <>
               <button type="button" className={styles.navBtn} onClick={() => setWeekOffset((w) => w - 1)} aria-label="Previous week">

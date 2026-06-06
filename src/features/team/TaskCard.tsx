@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ChevronDown, ChevronUp, Calendar, User } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
+import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import type { Task } from '@/types'
 
 interface TaskWithAssignee extends Task {
@@ -132,18 +133,14 @@ export function TaskCard({ task, onUpdate }: TaskCardProps) {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
             <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', fontWeight: 600 }}>Status:</span>
-            <select
-              className="input"
-              style={{ minHeight: 32, fontSize: 'var(--text-xs)', padding: 'var(--space-1) var(--space-2)', width: 'auto' }}
-              value={task.status}
-              disabled={updating}
-              onClick={(e) => e.stopPropagation()}
-              onChange={(e) => handleStatusChange(e.target.value)}
-            >
-              {STATUS_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
+            <div onClick={(e) => e.stopPropagation()} style={{ minWidth: 140 }}>
+              <DropdownMenu
+                trigger={<span>{STATUS_OPTIONS.find((s) => s.value === task.status)?.label || task.status}</span>}
+                items={STATUS_OPTIONS.map((s) => ({ label: s.label, value: s.value }))}
+                onSelect={(item) => handleStatusChange(item.value)}
+                disabled={updating}
+              />
+            </div>
           </div>
         </div>
       )}

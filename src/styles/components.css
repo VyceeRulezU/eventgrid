@@ -259,7 +259,7 @@
 .badge-paid    { background-color: var(--color-payment-paid-bg);    color: var(--color-payment-paid);    }
 
 .badge-low     { background-color: var(--color-status-grey-bg);   color: var(--color-status-grey);   }
-.badge-medium  { background-color: var(--color-info-bg);           color: var(--color-info);           }
+.badge-medium  { background-color: var(--color-surface-3);          color: var(--color-text-secondary);  }
 .badge-high    { background-color: var(--color-status-yellow-bg);  color: var(--color-status-yellow);  }
 .badge-urgent  { background-color: var(--color-status-red-bg);     color: var(--color-status-red);     }
 
@@ -466,21 +466,23 @@
 }
 
 .modal-card-close {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius-full);
   border: none;
   background: var(--color-surface-3);
-  color: var(--color-text-muted);
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  font-size: 1.5rem;
+  transition: background var(--transition-fast), opacity var(--transition-fast);
 }
 
 .modal-card-close:hover {
-  background: var(--color-surface-2);
-  color: var(--color-text-primary);
+  background: var(--color-accent);
+  color: #fff;
 }
 
 .modal-card-body {

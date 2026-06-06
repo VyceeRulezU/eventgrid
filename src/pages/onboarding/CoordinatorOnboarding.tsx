@@ -1,15 +1,16 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Info, Sparkles, ChevronRight, LogOut } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Info, Sparkles, ChevronRight, LogOut, ArrowLeft, Star } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import styles from './Onboarding.module.css'
 
+const STEP_LABELS = ['Your Profile', 'Specialization']
+
 export function CoordinatorOnboarding() {
   const [step, setStep] = useState(1)
 
-  // Form States
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [specialization, setSpecialization] = useState('logistics')
@@ -18,6 +19,8 @@ export function CoordinatorOnboarding() {
   const user = useAuthStore((s) => s.user)
   const showToast = useUIStore((s) => s.showToast)
   const navigate = useNavigate()
+
+  const TOTAL_STEPS = 2
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -57,7 +60,7 @@ export function CoordinatorOnboarding() {
       showToast({ type: 'error', title: 'Display Name Required', body: 'Please enter your display name.' })
       return
     }
-    if (step < 2) {
+    if (step < TOTAL_STEPS) {
       setStep((prev) => prev + 1)
     } else {
       handleSubmit()
@@ -65,68 +68,89 @@ export function CoordinatorOnboarding() {
   }
 
   const handleBack = () => {
-    if (step > 1) {
-      setStep((prev) => prev - 1)
-    }
+    if (step > 1) setStep((prev) => prev - 1)
   }
 
   return (
     <div className={styles.container}>
-      {/* Left branding welcome panel */}
+      {/* ── Left panel ── */}
       <div className={styles.leftPanel}>
-        <div className={styles.branding}>
-          <div className={styles.brandLogo}>EG</div>
-          <span className={styles.brandName}>EventGrid</span>
+        <div className={styles.topBar}>
+          <div className={styles.branding}>
+            <Link to="/">
+              <img src="/EventGrid-logo-white.svg" alt="EventGrid Logo" className={styles.brandLogoImage} />
+            </Link>
+          </div>
+          <div className={styles.topRightActions}>
+            <Link to="/" className={styles.backToSite}>
+              <ArrowLeft size={14} />
+              Back to website
+            </Link>
+          </div>
         </div>
 
         <div className={styles.leftContent}>
           <div className={styles.welcomeTag}>Coordinator Setup</div>
           <h1 className={styles.welcomeTitle}>Complete your profile</h1>
           <p className={styles.welcomeDesc}>
-            Let event planners know your availability and skillsets. Set up your display details to start receiving task assignments and schedules.
+            Let event planners know your availability and skillsets. Start receiving task assignments and schedules in minutes.
           </p>
         </div>
 
         <div className={styles.leftTestimonial}>
-          <p className={styles.testimonialQuote}>
-            "EventGrid keeps my event day tasks completely organized. I can view the timeline on my phone and update checklists in real-time."
-          </p>
-          <div className={styles.testimonialUser}>
-            <div className={styles.testimonialAvatar}>TA</div>
-            <div className={styles.testimonialDetails}>
-              <span className={styles.testimonialName}>Tobi Adeleke</span>
-              <span className={styles.testimonialRole}>Lead Day-of Coordinator</span>
+          <div className={styles.testimonialCard}>
+            <div className={styles.testimonialStars}>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star key={i} size={12} fill="currentColor" />
+              ))}
+            </div>
+            <p className={styles.testimonialQuote}>
+              "EventGrid keeps my event day tasks completely organized. I can view the timeline on my phone and update checklists in real-time."
+            </p>
+            <div className={styles.testimonialUser}>
+              <div className={styles.testimonialAvatar}>TA</div>
+              <div className={styles.testimonialDetails}>
+                <span className={styles.testimonialName}>Tobi Adeleke</span>
+                <span className={styles.testimonialRole}>Lead Day-of Coordinator</span>
+              </div>
             </div>
           </div>
         </div>
 
         <div className={styles.leftFooter}>
-          <a href="#" className={styles.footerLink}>Terms</a>
-          <a href="#" className={styles.footerLink}>Privacy Policy</a>
-          <button onClick={handleLogout} className={styles.footerLink} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <div className={styles.footerLinks}>
+            <a href="#" className={styles.footerLink}>Terms</a>
+            <a href="#" className={styles.footerLink}>Privacy Policy</a>
+          </div>
+          <button onClick={handleLogout} className={styles.logoutBtn}>
             <LogOut size={12} /> Log Out
           </button>
         </div>
       </div>
 
-      {/* Right panel: Wizard stepper */}
+      {/* ── Right panel ── */}
       <div className={styles.rightPanel}>
-        <div className={styles.cardPanel}>
-          {/* Progress Indicators */}
-          <div className={styles.stepper}>
-            {[1, 2].map((s) => (
-              <div
-                key={s}
-                className={`${styles.stepDot} ${s === step ? styles.stepDotActive : styles.stepDotInactive}`}
-              />
-            ))}
+        <div className={styles.stepHeader}>
+          <div className={styles.stepMeta}>
+            <span className={styles.stepLabel}>Step {step} of {TOTAL_STEPS} — {STEP_LABELS[step - 1]}</span>
+            <div className={styles.stepper}>
+              {Array.from({ length: TOTAL_STEPS }, (_, i) => (
+                <div
+                  key={i}
+                  className={`${styles.stepDot} ${i + 1 === step ? styles.stepDotActive : styles.stepDotInactive}`}
+                />
+              ))}
+            </div>
           </div>
+        </div>
+
+        <div className={styles.stepContent} key={step}>
 
           {step === 1 && (
             <div>
               <div className={styles.infoBox}>
-                <Info size={18} className={styles.infoIcon} />
-                <p>
+                <Info size={16} className={styles.infoIcon} />
+                <p style={{ margin: 0 }}>
                   Your display name and phone number will be shared with the event planners and team members you coordinate with.
                 </p>
               </div>
@@ -134,7 +158,7 @@ export function CoordinatorOnboarding() {
               <h2 className={styles.question}>Introduce yourself</h2>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-                <div className="input-wrapper">
+                <div>
                   <label className={styles.formLabel} htmlFor="name">
                     Display Name / Full Name <span style={{ color: 'var(--color-error)' }}>*</span>
                   </label>
@@ -149,8 +173,10 @@ export function CoordinatorOnboarding() {
                   />
                 </div>
 
-                <div className="input-wrapper">
-                  <label className={styles.formLabel} htmlFor="phone">Phone Number (+234)</label>
+                <div>
+                  <label className={styles.formLabel} htmlFor="phone">
+                    Phone Number <span style={{ color: 'var(--color-text-muted)', fontWeight: 400 }}>(optional)</span>
+                  </label>
                   <input
                     id="phone"
                     type="tel"
@@ -167,9 +193,9 @@ export function CoordinatorOnboarding() {
           {step === 2 && (
             <div>
               <div className={styles.infoBox}>
-                <Sparkles size={18} className={styles.infoIcon} style={{ color: 'var(--color-accent)' }} />
-                <p>
-                  planners search for coordinators based on specialty. Choosing a focus helps match you to the right role.
+                <Sparkles size={16} className={styles.infoIcon} />
+                <p style={{ margin: 0 }}>
+                  Planners search for coordinators based on specialty. Choosing a focus helps match you to the right events and roles.
                 </p>
               </div>
 
@@ -200,31 +226,27 @@ export function CoordinatorOnboarding() {
             </div>
           )}
 
-          {/* Stepper Navigation */}
-          <div className={styles.navRow}>
-            {step > 1 && (
-              <button onClick={handleBack} className={styles.backBtn} disabled={loading}>
-                Back
-              </button>
-            )}
-            <button
-              onClick={handleNext}
-              className={styles.continueBtn}
-              disabled={loading || (step === 1 && !name.trim())}
-            >
-              {loading ? (
-                'Saving Details...'
-              ) : step === 2 ? (
-                'Complete Profile'
-              ) : (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  Continue <ChevronRight size={16} />
-                </span>
-              )}
-            </button>
-          </div>
-
         </div>
+
+        <div className={styles.navRow}>
+          {step > 1 && (
+            <button onClick={handleBack} className={styles.stepBackBtn} disabled={loading}>
+              Back
+            </button>
+          )}
+          <button
+            onClick={handleNext}
+            className={styles.continueBtn}
+            disabled={loading || (step === 1 && !name.trim())}
+          >
+            {loading ? 'Saving Details…' : step === TOTAL_STEPS ? 'Complete Profile' : (
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                Continue <ChevronRight size={16} />
+              </span>
+            )}
+          </button>
+        </div>
+
       </div>
     </div>
   )

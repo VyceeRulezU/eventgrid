@@ -10,9 +10,10 @@ interface GeneratePortalModalProps {
   onClose: () => void
 }
 
-function generateToken(): string {
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
-  return Array.from({ length: 32 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
+function generateToken(name: string): string {
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40)
+  const suffix = Math.random().toString(36).substring(2, 6)
+  return `${slug}-${suffix}`
 }
 
 export function GeneratePortalModal({ eventId, onClose }: GeneratePortalModalProps) {
@@ -39,7 +40,7 @@ export function GeneratePortalModal({ eventId, onClose }: GeneratePortalModalPro
     }
 
     setSaving(true)
-    const newToken = generateToken()
+    const newToken = generateToken(name)
 
     const { data, error } = await supabase
       .from('client_portals')

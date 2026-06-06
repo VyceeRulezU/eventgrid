@@ -1,12 +1,17 @@
 import { useEffect, useState, useRef } from 'react'
 import React from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Plus, Search, CircleDollarSign, Upload, FileSpreadsheet, X, AlertTriangle, Check, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Search, Wallet, Upload, FileSpreadsheet, X, AlertTriangle, Check, Pencil, Trash2, TrendingUp, DollarSign, Receipt } from 'lucide-react'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import styles from './FinancialsPage.module.css'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
+import { PnLSummary } from './PnLSummary'
+import { PaymentAlerts } from './PaymentAlerts'
+import { IncomeTab } from './IncomeTab'
+import { BudgetAllocations } from './BudgetAllocations'
+import { PettyCashLog } from './PettyCashLog'
 
 type PaymentStatus = 'unpaid' | 'advance' | 'paid'
 
@@ -79,6 +84,10 @@ export function FinancialsPage() {
     advance: 0,
   })
   const [editSaving, setEditSaving] = useState(false)
+  const [activeTab, setActiveTab] = useState<'vendors' | 'income'>('vendors')
+  const [clientPayments, setClientPayments] = useState<{ amount: number; status: string; due_date: string | null; description: string }[]>([])
+  const [pettyCashTotal, setPettyCashTotal] = useState(0)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   // CSV Parser — no external deps, handles comma-delimited files
   function parseCsv(text: string): Record<string, string>[] {
@@ -200,6 +209,19 @@ export function FinancialsPage() {
     }),
     { budget: 0, paid: 0, outstanding: 0 }
   )
+
+  const sevenDaysFromNow = new Date()
+  sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7)
+  const dueVendors = entries.filter(e => e.balance > 0 && e.payment_status !== 'paid')
+  const totalVendorDue = dueVendors.reduce((s, e) => s + e.balance, 0)
+
+  const fourteenDaysFromNow = new Date()
+  fourteenDaysFromNow.setDate(fourteenDaysFromNow.getDate() + 14)
+  const dueClients = clientPayments.filter(p => p.status !== 'received' && p.due_date && new Date(p.due_date) <= fourteenDaysFromNow)
+  const totalClientDue = dueClients.reduce((s, p) => s + p.amount, 0)
+
+  const totalRevenue = clientPayments.filter(p => p.status === 'received').reduce((s, p) => s + p.amount, 0)
+  const totalVendorCost = entries.reduce((s, e) => s + e.total_amount, 0)
 
   const handleAdd = async () => {
     if (!form.vendorName || !form.eventId) {
@@ -412,6 +434,40 @@ export function FinancialsPage() {
         ))}
       </div>
 
+      <PnLSummary totalRevenue={totalRevenue} totalVendorCost={totalVendorCost} pettyCashTotal={pettyCashTotal} />
+
+      <PaymentAlerts dueVendors={dueVendors.map(e => ({ vendor_name: e.vendor_name, balance: e.balance }))} dueClients={dueClients.map(p => ({ description: p.description, amount: p.amount, due_date: p.due_date || '' }))} totalVendorDue={totalVendorDue} totalClientDue={totalClientDue} />
+
+      <div style={{ display: 'flex', gap: 'var(--space-1)', marginBottom: 'var(--space-5)', borderBottom: '1px solid var(--color-border-subtle)' }}>
+        <button
+          className={`btn btn-ghost btn-sm`}
+          style={{
+            padding: 'var(--space-2) var(--space-4)', borderRadius: 0, borderBottom: activeTab === 'vendors' ? '2px solid var(--color-accent)' : '2px solid transparent',
+            fontWeight: activeTab === 'vendors' ? 600 : 400, color: activeTab === 'vendors' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+            transition: 'all var(--transition-fast)',
+          }}
+          onClick={() => setActiveTab('vendors')}
+        >
+          <Wallet size={16} style={{ marginRight: 6 }} />
+          Vendor Payments
+        </button>
+        <button
+          className={`btn btn-ghost btn-sm`}
+          style={{
+            padding: 'var(--space-2) var(--space-4)', borderRadius: 0, borderBottom: activeTab === 'income' ? '2px solid var(--color-accent)' : '2px solid transparent',
+            fontWeight: activeTab === 'income' ? 600 : 400, color: activeTab === 'income' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+            transition: 'all var(--transition-fast)',
+          }}
+          onClick={() => setActiveTab('income')}
+        >
+          <TrendingUp size={16} style={{ marginRight: 6 }} />
+          Income & Budget
+        </button>
+      </div>
+
+      {activeTab === 'vendors' ? (
+        <>
+
       {/* ── CSV Import Modal ── */}
       {showImport && (
         <div className={styles.csvOverlay}>
@@ -532,12 +588,11 @@ export function FinancialsPage() {
             {!eventId && (
               <div className={`input-wrapper ${styles.formFullWidth}`}>
                 <label className="input-label">Event</label>
-                <select className="input" value={form.eventId} onChange={(e) => setForm({ ...form, eventId: e.target.value })}>
-                  <option value="">Select event...</option>
-                  {events.map((evt) => (
-                    <option key={evt.id} value={evt.id}>{evt.name}</option>
-                  ))}
-                </select>
+                <DropdownMenu
+                  trigger={<span>{events.find((e) => e.id === form.eventId)?.name || 'Select event...'}</span>}
+                  items={events.map((e) => ({ label: e.name, value: e.id }))}
+                  onSelect={(item) => setForm({ ...form, eventId: item.value })}
+                />
               </div>
             )}
             <div className={`input-wrapper ${styles.formFullWidth}`}>
@@ -550,9 +605,11 @@ export function FinancialsPage() {
             </div>
             <div className="input-wrapper">
               <label className="input-label">Category</label>
-              <select className="input" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
-                {categories.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
+              <DropdownMenu
+                trigger={<span>{form.category}</span>}
+                items={categories.map((c) => ({ label: c, value: c }))}
+                onSelect={(item) => setForm({ ...form, category: item.value })}
+              />
             </div>
             <div className="input-wrapper">
               <label className="input-label">QTY</label>
@@ -598,9 +655,11 @@ export function FinancialsPage() {
               <div className={styles.editGrid}>
                 <div className="input-wrapper">
                   <label className="input-label">Category</label>
-                  <select className="input" value={editForm.category} onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}>
-                    {categories.map((c) => <option key={c} value={c}>{c}</option>)}
-                  </select>
+                  <DropdownMenu
+                    trigger={<span>{editForm.category}</span>}
+                    items={categories.map((c) => ({ label: c, value: c }))}
+                    onSelect={(item) => setEditForm({ ...editForm, category: item.value })}
+                  />
                 </div>
                 <div className="input-wrapper">
                   <label className="input-label">QTY</label>
@@ -629,7 +688,7 @@ export function FinancialsPage() {
       {entries.length === 0 && !showForm ? (
         <div className="empty-state">
           <div className="empty-state__icon">
-            <CircleDollarSign size={24} />
+            <Wallet size={24} />
           </div>
           <div className="empty-state__title">No entries yet</div>
           <div className="empty-state__description">
@@ -732,6 +791,22 @@ export function FinancialsPage() {
               </tfoot>
             )}
           </table>
+        </div>
+      )}
+      </>
+
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+          <IncomeTab
+            eventId={eventId || events[0]?.id || ''}
+            refreshKey={refreshKey}
+            onUpdate={(payments) => {
+              setClientPayments(payments)
+              setRefreshKey(k => k + 1)
+            }}
+          />
+          <BudgetAllocations eventId={eventId || events[0]?.id || ''} />
+          <PettyCashLog eventId={eventId || events[0]?.id || ''} onTotalChange={setPettyCashTotal} />
         </div>
       )}
     </div>

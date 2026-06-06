@@ -40,22 +40,23 @@
 }
 
 .closeBtn {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius-full);
   border: none;
   background: var(--color-surface-3);
-  color: var(--color-text-muted);
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  font-size: 1.5rem;
+  transition: background var(--transition-fast), opacity var(--transition-fast);
 }
 
 .closeBtn:hover {
-  background: var(--color-surface-2);
-  color: var(--color-text-primary);
+  background: var(--color-accent);
+  color: #fff;
 }
 
 .body {

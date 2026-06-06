@@ -232,6 +232,17 @@ export interface ClientPortal {
   created_at: string
 }
 
+export interface EventActivity {
+  id: string
+  event_id: string
+  actor_id: string | null
+  actor_name: string | null
+  action_type: string
+  description: string
+  metadata: Record<string, unknown> | null
+  created_at: string
+}
+
 export interface Notification {
   id: string
   user_id: string

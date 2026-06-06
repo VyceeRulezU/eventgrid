@@ -29,6 +29,20 @@
   margin-bottom: var(--space-1);
 }
 
+.eventFilterWrap {
+  max-width: 18rem;
+  min-width: 12rem;
+}
+
+.eventFilterTrigger {
+  color: var(--color-text-primary);
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
 .searchWrap {
   margin-bottom: 0;
 }
@@ -150,6 +164,8 @@
   font-size: var(--text-xs);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  background-color: var(--color-accent-muted) !important;
+  color: var(--color-accent) !important;
 }
 
 .vendorNameWrap {

@@ -1,12 +1,14 @@
+import { useState } from 'react'
 import { NavLink, useNavigate, Link, useParams } from 'react-router-dom'
 import {
-  LayoutDashboard, Calendar, CircleDollarSign, Users, BookOpen,
-  Settings, LogOut, X, ArrowLeft, Shield, ListChecks, Radio,
-  FileText,
+  LayoutDashboard, Calendar, Wallet, Users, BookOpen,
+  Settings, LogOut, X, ArrowLeft, ListChecks, Radio,
+  FileText, TrendingUp, Send, MessageSquare, Shield, Bell,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { supabase } from '@/lib/supabase'
+import { FeedbackFormModal } from '@/features/feedback/FeedbackFormModal'
 import styles from './Sidebar.module.css'
 
 type NavItem = {
@@ -24,12 +26,15 @@ export function Sidebar() {
   const role = useAuthStore((s) => s.role)
   const org = useAuthStore((s) => s.org)
   const clearAuth = useAuthStore((s) => s.clearAuth)
+  const showNotification = useUIStore((s) => s.showNotification)
   const { sidebarOpen, setSidebarOpen } = useUIStore()
   const navigate = useNavigate()
   const { id: eventId } = useParams<{ id: string }>()
 
+  const [showFeedbackForm, setShowFeedbackForm] = useState(false)
+
   const mainItems: NavItem[] = [
-    { to: role === 'super_admin' ? '/admin' : `/dashboard/${role}`, label: 'Dashboard', icon: LayoutDashboard },
+    { to: `/dashboard/${role}`, label: 'Dashboard', icon: LayoutDashboard },
   ]
 
   const managementItems: NavItem[] = [
@@ -37,7 +42,7 @@ export function Sidebar() {
   ]
 
   if (role === 'planner') {
-    managementItems.push({ to: '/financials', label: 'Financials', icon: CircleDollarSign })
+    managementItems.push({ to: '/financials', label: 'Financials', icon: Wallet })
   }
 
   managementItems.push({ to: '/vendors', label: 'Vendors', icon: Users })
@@ -116,15 +121,76 @@ export function Sidebar() {
                 }
                 onClick={() => setSidebarOpen(false)}
               >
-                <Shield size={20} />
-                <span>Admin</span>
+                <TrendingUp size={20} />
+                <span>Analytics</span>
+              </NavLink>
+              <NavLink
+                to="/admin/feedback"
+                className={({ isActive }) =>
+                  `${styles.navItem} ${isActive ? styles.active : ''}`
+                }
+                onClick={() => setSidebarOpen(false)}
+              >
+                <MessageSquare size={20} />
+                <span>Feedback</span>
+              </NavLink>
+              <NavLink
+                to="/admin/team"
+                className={({ isActive }) =>
+                  `${styles.navItem} ${isActive ? styles.active : ''}`
+                }
+                onClick={() => setSidebarOpen(false)}
+              >
+                <Users size={20} />
+                <span>Admin Team</span>
+              </NavLink>
+              <span className={styles.categoryLabel} style={{ marginTop: 'var(--space-2)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>View as</span>
+              <NavLink
+                to="/dashboard/planner"
+                className={({ isActive }) =>
+                  `${styles.navItem} ${isActive ? styles.active : ''}`
+                }
+                onClick={() => setSidebarOpen(false)}
+              >
+                <LayoutDashboard size={20} />
+                <span>Planner</span>
+              </NavLink>
+              <NavLink
+                to="/dashboard/coordinator"
+                className={({ isActive }) =>
+                  `${styles.navItem} ${isActive ? styles.active : ''}`
+                }
+                onClick={() => setSidebarOpen(false)}
+              >
+                <Calendar size={20} />
+                <span>Coordinator</span>
+              </NavLink>
+              <NavLink
+                to="/dashboard/vendor"
+                className={({ isActive }) =>
+                  `${styles.navItem} ${isActive ? styles.active : ''}`
+                }
+                onClick={() => setSidebarOpen(false)}
+              >
+                <Users size={20} />
+                <span>Vendor</span>
+              </NavLink>
+              <NavLink
+                to="/dashboard/client"
+                className={({ isActive }) =>
+                  `${styles.navItem} ${isActive ? styles.active : ''}`
+                }
+                onClick={() => setSidebarOpen(false)}
+              >
+                <Users size={20} />
+                <span>Client</span>
               </NavLink>
             </div>
           )}
         </nav>
 
         <div className={styles.footer}>
-          {!org && (
+          {role !== 'super_admin' && !org && (
             <div className={styles.onboardingBanner}>
               <div className={styles.onboardingBannerTitle}>Finish setting up</div>
               <div className={styles.onboardingBannerText}>Complete onboarding to unlock all features</div>
@@ -139,6 +205,20 @@ export function Sidebar() {
           <button className={styles.navItem} onClick={() => navigate('/')}>
             <ArrowLeft size={20} />
             <span>Back to site</span>
+          </button>
+          <NavLink
+            to="/notifications"
+            className={({ isActive }) =>
+              `${styles.navItem} ${isActive ? styles.active : ''}`
+            }
+            onClick={() => setSidebarOpen(false)}
+          >
+            <Bell size={20} />
+            <span>Notifications</span>
+          </NavLink>
+          <button className={styles.navItem} onClick={() => { setSidebarOpen(false); setShowFeedbackForm(true) }}>
+            <Send size={20} style={{ color: 'var(--color-accent)' }} />
+            <span style={{ color: 'var(--color-accent)' }}>Send Feedback</span>
           </button>
           <NavLink
             to="/settings"
@@ -156,6 +236,8 @@ export function Sidebar() {
           </button>
         </div>
       </aside>
+
+      <FeedbackFormModal open={showFeedbackForm} onClose={() => setShowFeedbackForm(false)} />
     </>
   )
 }

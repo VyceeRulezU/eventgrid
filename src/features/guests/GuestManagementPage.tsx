@@ -6,6 +6,8 @@ import {
   Users, Search, Plus, X, Upload, Check, UserCheck,
   LayoutGrid, Star, List,
 } from 'lucide-react'
+import { DropdownMenu } from '@/components/ui/DropdownMenu'
+import { sendGuestNotification } from '@/lib/email'
 import type { Guest, SeatingTable } from '@/types'
 import { Checkbox } from '@/components/ui/Checkbox'
 import styles from './GuestManagementPage.module.css'
@@ -21,6 +23,7 @@ export function GuestManagementPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [rsvpFilter, setRsvpFilter] = useState<RSVP | 'all'>('all')
+  const [eventName, setEventName] = useState('')
   const [tab, setTab] = useState<'list' | 'checkin' | 'seating'>('list')
   const [showAdd, setShowAdd] = useState(false)
   const [showCSV, setShowCSV] = useState(false)
@@ -35,9 +38,11 @@ export function GuestManagementPage() {
     Promise.all([
       supabase.from('guests').select('*').eq('event_id', eventId).order('created_at'),
       supabase.from('seating_tables').select('*').eq('event_id', eventId).order('table_name'),
-    ]).then(([gRes, tRes]) => {
+      supabase.from('events').select('name').eq('id', eventId).single(),
+    ]).then(([gRes, tRes, eRes]) => {
       setGuests((gRes.data || []) as unknown as Guest[])
       setTables((tRes.data || []) as unknown as SeatingTable[])
+      if (eRes.data) setEventName((eRes.data as { name: string }).name)
       setLoading(false)
     })
   }, [eventId])
@@ -55,6 +60,9 @@ export function GuestManagementPage() {
     if (!newGuest.first_name.trim() || !eventId) { showToast({ type: 'warning', title: 'First name is required' }); return }
     const { error } = await supabase.from('guests').insert({ event_id: eventId, ...newGuest, rsvp_status: 'pending' })
     if (error) { showToast({ type: 'error', title: 'Failed to add guest', body: error.message }); return }
+    if (newGuest.email && eventName) {
+      sendGuestNotification(newGuest.email, eventName, `Hi ${newGuest.first_name}, you've been added as a guest.`).catch(() => {})
+    }
     showToast({ type: 'success', title: 'Guest added' })
     setShowAdd(false)
     setNewGuest({ first_name: '', last_name: '', phone: '', email: '', group_name: '', is_vip: false, plus_one: false })
@@ -101,6 +109,13 @@ export function GuestManagementPage() {
     if (rows.length === 0) { showToast({ type: 'warning', title: 'No valid rows found' }); return }
     const { error } = await supabase.from('guests').insert(rows as any)
     if (error) { showToast({ type: 'error', title: 'Import failed', body: error.message }); return }
+    if (eventName) {
+      for (const row of rows) {
+        if (row.email) {
+          sendGuestNotification(row.email, eventName, `Hi ${row.first_name}, you've been added as a guest.`).catch(() => {})
+        }
+      }
+    }
     showToast({ type: 'success', title: `${rows.length} guests imported` })
     setShowCSV(false)
     setCsvPreview([])
@@ -152,13 +167,19 @@ export function GuestManagementPage() {
             <Search size={16} className={styles.searchIcon} />
             <input className={styles.searchInput} placeholder="Search name or phone..." value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
-          <select className={styles.filterSelect} value={rsvpFilter} onChange={(e) => setRsvpFilter(e.target.value as any)}>
-            <option value="all">All RSVP</option>
-            <option value="confirmed">Confirmed</option>
-            <option value="pending">Pending</option>
-            <option value="declined">Declined</option>
-            <option value="maybe">Maybe</option>
-          </select>
+          <div className={styles.filterSelect}>
+            <DropdownMenu
+              trigger={rsvpFilter === 'all' ? 'All RSVP' : rsvpFilter.charAt(0).toUpperCase() + rsvpFilter.slice(1)}
+              items={[
+                { label: 'All RSVP', value: 'all' },
+                { label: 'Confirmed', value: 'confirmed' },
+                { label: 'Pending', value: 'pending' },
+                { label: 'Declined', value: 'declined' },
+                { label: 'Maybe', value: 'maybe' },
+              ]}
+              onSelect={(item) => setRsvpFilter(item.value as RSVP | 'all')}
+            />
+          </div>
           <button className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => setShowAdd(true)}><Plus size={14} /> Add</button>
           <button className="btn btn-secondary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => setShowCSV(true)}><Upload size={14} /> CSV</button>
         </div>

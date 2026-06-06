@@ -19,6 +19,9 @@
   cursor: pointer;
   transition: border-color var(--transition-fast);
   min-height: 40px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .trigger:hover {
@@ -52,7 +55,8 @@
   box-shadow: var(--shadow-lg);
   padding: var(--space-1);
   animation: menuIn 150ms ease;
-  overflow: hidden;
+  overflow-y: auto;
+  max-height: 15rem;
 }
 
 .menuEnd {

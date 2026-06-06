@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Users, Plus, Search, Pencil, Check, X, Tag, Star, Trash2 } from 'lucide-react'
+import { Users, Plus, Search, Pencil, Tag, Star, Trash2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { Checkbox } from '@/components/ui/Checkbox'
+import { EditVendorModal } from './EditVendorModal'
+import { AddVendorModal } from './AddVendorModal'
+import { AddTypeModal } from './AddTypeModal'
 import type { Vendor } from '@/types'
 import styles from './VendorsPage.module.css'
 
@@ -33,20 +36,10 @@ export function VendorsPage() {
   const [saving, setSaving] = useState(false)
   const [search, setSearch] = useState('')
   const [events, setEvents] = useState<{ id: string; name: string }[]>([])
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [editName, setEditName] = useState('')
+  const [editingVendor, setEditingVendor] = useState<Vendor | null>(null)
   const [selectedVendors, setSelectedVendors] = useState<Set<string>>(new Set())
   const [showAddType, setShowAddType] = useState(false)
   const [showAddVendor, setShowAddVendor] = useState(false)
-  const [newType, setNewType] = useState('')
-  const [newVendor, setNewVendor] = useState({
-    category: DEFAULT_TYPES[0],
-    name: '',
-    contact_name: '',
-    phone: '',
-    email: '',
-    rating: 0,
-  })
 
   const availableTypes = [...new Set([...DEFAULT_TYPES, ...vendors.map((v) => v.category)])]
 
@@ -87,86 +80,15 @@ export function VendorsPage() {
   )
 
   const handleEdit = (vendor: Vendor) => {
-    setEditingId(vendor.id)
-    setEditName(vendor.name)
+    setEditingVendor(vendor)
   }
 
-  const handleSaveEdit = async (id: string) => {
-    const { error } = await supabase
-      .from('vendors')
-      .update({ name: editName })
-      .eq('id', id)
-
-    if (error) {
-      showNotification({ variant: 'error', title: 'Failed to update', message: error.message })
-      return
-    }
-
-    setVendors(vendors.map((v) => (v.id === id ? { ...v, name: editName } : v)))
-    setEditingId(null)
-    showNotification({ variant: 'success', title: 'Vendor updated' })
+  const handleEditSaved = (updated: Vendor) => {
+    setVendors(vendors.map((v) => (v.id === updated.id ? updated : v)))
   }
 
-  const handleCancelEdit = () => {
-    setEditingId(null)
-  }
-
-  const handleAddType = async () => {
-    if (!newType.trim()) return
-    setSaving(true)
-
-    const { data, error } = await supabase
-      .from('vendors')
-      .insert({
-        org_id: org!.id,
-        name: '',
-        category: newType.trim(),
-      })
-      .select()
-      .single()
-
-    setSaving(false)
-
-    if (error) {
-      showNotification({ variant: 'error', title: 'Failed to add type', message: error.message })
-      return
-    }
-
-    setVendors([...(data ? [data as unknown as Vendor] : []), ...vendors])
-    setNewType('')
-    setShowAddType(false)
-    showNotification({ variant: 'success', title: `Vendor type "${newType.trim()}" added` })
-  }
-
-  const handleAddVendor = async () => {
-    if (!newVendor.name.trim()) return
-    setSaving(true)
-
-    const { data, error } = await supabase
-      .from('vendors')
-      .insert({
-        org_id: org!.id,
-        name: newVendor.name.trim(),
-        category: newVendor.category,
-        contact_name: newVendor.contact_name || null,
-        phone: newVendor.phone || null,
-        email: newVendor.email || null,
-        rating: newVendor.rating || null,
-      })
-      .select()
-      .single()
-
-    setSaving(false)
-
-    if (error) {
-      showNotification({ variant: 'error', title: 'Failed to add vendor', message: error.message })
-      return
-    }
-
-    setVendors([...(data ? [data as unknown as Vendor] : []), ...vendors])
-    setNewVendor({ category: DEFAULT_TYPES[0], name: '', contact_name: '', phone: '', email: '', rating: 0 })
-    setShowAddVendor(false)
-    showNotification({ variant: 'success', title: `"${newVendor.name.trim()}" added` })
+  const handleAdd = (vendor: Vendor) => {
+    setVendors([vendor, ...vendors])
   }
 
   const handleDelete = async (id: string) => {
@@ -255,10 +177,10 @@ export function VendorsPage() {
         <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
             <div className={styles.eventFilterLabel}>Event filter</div>
-            <div style={{ width: '10rem' }}>
+            <div className={styles.eventFilterWrap}>
               <DropdownMenu
               trigger={
-                <span style={{ color: 'var(--color-text-primary)' }}>
+                <span className={styles.eventFilterTrigger}>
                   {events.find((e) => e.id === (eventId || events[0]?.id))?.name || 'Select event'}
                 </span>
               }
@@ -278,85 +200,22 @@ export function VendorsPage() {
         </div>
       </div>
 
-      {showAddType && (
-        <div style={{ maxWidth: 480 }}>
-          <div className="card">
-            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-3)' }}>Add New Vendor Type</h3>
-            <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
-              <input
-                className="input"
-                placeholder="e.g. DJ, Caterer, Decor..."
-                value={newType}
-                onChange={(e) => setNewType(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleAddType()}
-                autoFocus
-                style={{ flex: 1, minHeight: 40 }}
-              />
-              <button className="btn btn-primary" onClick={handleAddType} disabled={saving} style={{ minHeight: 40, padding: '0 var(--space-4)' }}>
-                <Plus size={16} />
-                Add
-              </button>
-              <button className="btn btn-ghost" onClick={() => { setShowAddType(false); setNewType('') }} style={{ minHeight: 40 }}>
-                <X size={16} />
-              </button>
-            </div>
-          </div>
-        </div>
+      {showAddType && org && (
+        <AddTypeModal
+          orgId={org.id}
+          onClose={() => setShowAddType(false)}
+          onSaved={handleAdd}
+        />
       )}
 
-      {showAddVendor && (
-        <div style={{ maxWidth: 480 }}>
-          <div className="card">
-            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-3)' }}>Add Vendor</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-              <div className="input-wrapper">
-                <label className="input-label">Category</label>
-                <DropdownMenu
-                  trigger={
-                    <span style={{ color: 'var(--color-text-primary)' }}>
-                      {newVendor.category}
-                    </span>
-                  }
-                  items={availableTypes.map((t) => ({ label: t, value: t }))}
-                  onSelect={(item) => setNewVendor({ ...newVendor, category: item.value })}
-                />
-              </div>
-              <div className="input-wrapper">
-                <label className="input-label">Vendor Name</label>
-                <input className="input" placeholder="Vendor name" value={newVendor.name} onChange={(e) => setNewVendor({ ...newVendor, name: e.target.value })} />
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
-                <div className="input-wrapper">
-                  <label className="input-label">Contact Name</label>
-                  <input className="input" placeholder="Contact person" value={newVendor.contact_name} onChange={(e) => setNewVendor({ ...newVendor, contact_name: e.target.value })} />
-                </div>
-                <div className="input-wrapper">
-                  <label className="input-label">Phone</label>
-                  <input className="input" placeholder="Phone number" value={newVendor.phone} onChange={(e) => setNewVendor({ ...newVendor, phone: e.target.value })} />
-                </div>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
-                <div className="input-wrapper">
-                  <label className="input-label">Email</label>
-                  <input className="input" placeholder="Email address" value={newVendor.email} onChange={(e) => setNewVendor({ ...newVendor, email: e.target.value })} />
-                </div>
-                <div className="input-wrapper">
-                  <label className="input-label">Rating (1-5)</label>
-                  <input className="input" type="number" min={0} max={5} placeholder="0" value={newVendor.rating} onChange={(e) => setNewVendor({ ...newVendor, rating: Number(e.target.value) })} />
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-                <button className="btn btn-primary" onClick={handleAddVendor} disabled={saving}>
-                  <Plus size={16} />
-                  Save Vendor
-                </button>
-                <button className="btn btn-ghost" onClick={() => { setShowAddVendor(false); setNewVendor({ category: DEFAULT_TYPES[0], name: '', contact_name: '', phone: '', email: '', rating: 0 }) }}>
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+      {showAddVendor && org && (
+        <AddVendorModal
+          orgId={org.id}
+          availableTypes={availableTypes}
+          defaultCategory={DEFAULT_TYPES[0]}
+          onClose={() => setShowAddVendor(false)}
+          onSaved={handleAdd}
+        />
       )}
 
       {!(showAddVendor || showAddType) && filtered.length === 0 ? (
@@ -457,27 +316,9 @@ export function VendorsPage() {
                         </span>
                       </td>
                       <td className={`${styles.td} ${styles.vendorNameWrap}`}>
-                        {editingId === vendor.id ? (
-                          <div className={styles.inlineEdit}>
-                            <input
-                              className={`input ${styles.inlineEditInput}`}
-                              value={editName}
-                              onChange={(e) => setEditName(e.target.value)}
-                              onKeyDown={(e) => e.key === 'Enter' && handleSaveEdit(vendor.id)}
-                              autoFocus
-                            />
-                            <button type="button" className={styles.iconBtn} onClick={() => handleSaveEdit(vendor.id)} aria-label="Save">
-                              <Check size={14} />
-                            </button>
-                            <button type="button" className={styles.iconBtn} onClick={handleCancelEdit} aria-label="Cancel">
-                              <X size={14} />
-                            </button>
-                          </div>
-                        ) : (
-                          <span className={vendor.name ? styles.vendorName : styles.vendorNameMuted}>
-                            {vendor.name || 'Not assigned'}
-                          </span>
-                        )}
+                        <span className={vendor.name ? styles.vendorName : styles.vendorNameMuted}>
+                          {vendor.name || 'Not assigned'}
+                        </span>
                       </td>
                       <td className={styles.td}>
                         <span className={styles.cellMuted}>
@@ -531,6 +372,15 @@ export function VendorsPage() {
           </div>
         </div>
       ) : null}
+
+      {editingVendor && (
+        <EditVendorModal
+          vendor={editingVendor}
+          availableTypes={availableTypes}
+          onClose={() => setEditingVendor(null)}
+          onSaved={handleEditSaved}
+        />
+      )}
     </div>
   )
 }

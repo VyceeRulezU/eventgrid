@@ -4,6 +4,8 @@ import { Users, X, Mail, UserPlus } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
+import { sendInvite } from '@/lib/edgeFunctions'
+import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import type { Profile } from '@/types'
 import styles from './TeamPage.module.css'
 
@@ -22,6 +24,7 @@ const ROLES = ['team', 'coordinator', 'planner', 'vendor']
 export function TeamPage() {
   const { id: eventId } = useParams<{ id: string }>()
   const user = useAuthStore((s) => s.user)
+  const profile = useAuthStore((s) => s.profile)
   const showNotification = useUIStore((s) => s.showModal)
 
   const [members, setMembers] = useState<TeamMemberRow[]>([])
@@ -71,41 +74,26 @@ export function TeamPage() {
 
     setInviting(true)
 
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('email', inviteEmail.trim())
-      .maybeSingle()
+    const displayName = profile?.display_name || user?.user_metadata?.display_name || 'A team member'
 
-    if (!profileData) {
-      showNotification({ variant: 'error', title: 'User not found', message: 'No account with that email address exists.' })
+    const { success, error } = await sendInvite({
+      type: 'team_member',
+      event_id: eventId,
+      email: inviteEmail.trim(),
+      invited_by_name: displayName,
+    })
+
+    if (!success) {
+      showNotification({ variant: 'error', title: 'Invite failed', message: error || 'Could not send invite. Try again.' })
       setInviting(false)
       return
     }
 
-    const { error } = await supabase
-      .from('event_access')
-      .insert({
-        event_id: eventId,
-        user_id: profileData.id,
-        role: inviteRole,
-        invited_by: user.id,
-      })
-      .select()
-      .single()
-
-    if (error) {
-      showNotification({ variant: 'error', title: 'Invite failed', message: error.message })
-      setInviting(false)
-      return
-    }
-
-    showNotification({ variant: 'success', title: 'Member invited' })
+    showNotification({ variant: 'success', title: 'Invite sent', message: `An invitation has been sent to ${inviteEmail.trim()}` })
     setInviteEmail('')
     setInviteRole('team')
     setShowInvite(false)
     setInviting(false)
-    loadData()
   }
 
   if (loading) {
@@ -211,9 +199,11 @@ export function TeamPage() {
               </div>
               <div className="input-wrapper">
                 <label className="input-label">Role</label>
-                <select className="input" value={inviteRole} onChange={(e) => setInviteRole(e.target.value)}>
-                  {ROLES.map((r) => <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>)}
-                </select>
+                <DropdownMenu
+                  trigger={inviteRole.charAt(0).toUpperCase() + inviteRole.slice(1)}
+                  items={ROLES.map((r) => ({ label: r.charAt(0).toUpperCase() + r.slice(1), value: r }))}
+                  onSelect={(item) => setInviteRole(item.value)}
+                />
               </div>
               <div className={styles.modalActions}>
                 <button className="btn btn-primary btn-sm" onClick={handleInvite} disabled={inviting}>

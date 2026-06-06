@@ -10,6 +10,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { Pagination } from '@/components/ui/Pagination'
+import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import type { Event, EventPhase, Task } from '@/types'
 import styles from './PlannerDashboard.module.css'
 
@@ -160,16 +161,11 @@ function InviteClientModal({ events, onClose }: {
           <>
             <div className="input-wrapper" style={{ marginBottom: 'var(--space-4)' }}>
               <label className="input-label" htmlFor="invite-event">Select Event</label>
-              <select
-                id="invite-event"
-                className="input"
-                value={selectedEvent}
-                onChange={(e) => setSelectedEvent(e.target.value)}
-              >
-                {events.map((ev) => (
-                  <option key={ev.id} value={ev.id}>{ev.name}</option>
-                ))}
-              </select>
+              <DropdownMenu
+                trigger={<span>{events.find((e) => e.id === selectedEvent)?.name || 'Select event...'}</span>}
+                items={events.map((e) => ({ label: e.name, value: e.id }))}
+                onSelect={(item) => setSelectedEvent(item.value)}
+              />
             </div>
             <div className={styles.modalActions}>
               <button

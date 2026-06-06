@@ -1,28 +1,33 @@
 import { useState, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Upload, X, Info, Sparkles, ChevronRight, LogOut } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Upload, X, Info, Sparkles, ChevronRight, LogOut, ArrowLeft, Star } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import styles from './Onboarding.module.css'
 
+const STEP_LABELS = ['Your Focus', 'Organization', 'Event Volume', 'Team']
+
 export function PlannerOnboarding() {
   const [step, setStep] = useState(1)
-  
-  // Form States
+
   const [experience, setExperience] = useState('boutique_weddings')
   const [orgName, setOrgName] = useState('')
   const [city, setCity] = useState('Lagos')
+  const [state, setState] = useState('Lagos')
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
   const [volume, setVolume] = useState('1-10')
-  
+  const [teamSize, setTeamSize] = useState('2-5')
+
   const [loading, setLoading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const user = useAuthStore((s) => s.user)
   const setOrg = useAuthStore((s) => s.setOrg)
   const showToast = useUIStore((s) => s.showToast)
   const navigate = useNavigate()
+
+  const TOTAL_STEPS = 4
 
   const handleLogo = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -65,7 +70,7 @@ export function PlannerOnboarding() {
       .rpc('create_org', {
         p_name: orgName,
         p_owner_id: user.id,
-        p_city: city,
+        p_city: `${city}, ${state}`,
         p_logo_url: logoUrl,
       })
 
@@ -76,8 +81,7 @@ export function PlannerOnboarding() {
     }
 
     const orgData = org as { id: string; name: string; logo_url: string | null }
-    
-    // Save metadata locally to profiles if needed or log it
+
     await supabase
       .from('profiles')
       .update({
@@ -86,6 +90,7 @@ export function PlannerOnboarding() {
           onboarding_completed: true,
           planner_experience: experience,
           expected_volume: volume,
+          team_size: teamSize,
         }
       })
       .eq('id', user.id)
@@ -101,7 +106,7 @@ export function PlannerOnboarding() {
       showToast({ type: 'error', title: 'Organization Name Required', body: 'Please enter a name for your business.' })
       return
     }
-    if (step < 3) {
+    if (step < TOTAL_STEPS) {
       setStep((prev) => prev + 1)
     } else {
       handleSubmit()
@@ -109,68 +114,89 @@ export function PlannerOnboarding() {
   }
 
   const handleBack = () => {
-    if (step > 1) {
-      setStep((prev) => prev - 1)
-    }
+    if (step > 1) setStep((prev) => prev - 1)
   }
 
   return (
     <div className={styles.container}>
-      {/* Left branding welcome panel */}
+      {/* ── Left panel ── */}
       <div className={styles.leftPanel}>
-        <div className={styles.branding}>
-          <div className={styles.brandLogo}>EG</div>
-          <span className={styles.brandName}>EventGrid</span>
+        <div className={styles.topBar}>
+          <div className={styles.branding}>
+            <Link to="/">
+              <img src="/EventGrid-logo-white.svg" alt="EventGrid Logo" className={styles.brandLogoImage} />
+            </Link>
+          </div>
+          <div className={styles.topRightActions}>
+            <Link to="/" className={styles.backToSite}>
+              <ArrowLeft size={14} />
+              Back to website
+            </Link>
+          </div>
         </div>
 
         <div className={styles.leftContent}>
           <div className={styles.welcomeTag}>Get Started</div>
           <h1 className={styles.welcomeTitle}>Let's set up your workspace</h1>
           <p className={styles.welcomeDesc}>
-            Join over 1,500 event planning agencies across Nigeria. Configure your workspace details to start inviting clients and managing payments.
+            Join over 1,500 event planning agencies across Nigeria. Configure your workspace to start managing events and payments.
           </p>
         </div>
 
         <div className={styles.leftTestimonial}>
-          <p className={styles.testimonialQuote}>
-            "EventGrid scaled our wedding coordination efficiency. We managed 25 premium weddings in Lagos last year alone!"
-          </p>
-          <div className={styles.testimonialUser}>
-            <div className={styles.testimonialAvatar}>FO</div>
-            <div className={styles.testimonialDetails}>
-              <span className={styles.testimonialName}>Funmi Oladipupo</span>
-              <span className={styles.testimonialRole}>Creative Director, Elegance Events</span>
+          <div className={styles.testimonialCard}>
+            <div className={styles.testimonialStars}>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star key={i} size={12} fill="currentColor" />
+              ))}
+            </div>
+            <p className={styles.testimonialQuote}>
+              "EventGrid scaled our wedding coordination efficiency. We managed 25 premium weddings in Lagos last year alone!"
+            </p>
+            <div className={styles.testimonialUser}>
+              <div className={styles.testimonialAvatar}>FO</div>
+              <div className={styles.testimonialDetails}>
+                <span className={styles.testimonialName}>Funmi Oladipupo</span>
+                <span className={styles.testimonialRole}>Creative Director, Elegance Events</span>
+              </div>
             </div>
           </div>
         </div>
 
         <div className={styles.leftFooter}>
-          <a href="#" className={styles.footerLink}>Terms</a>
-          <a href="#" className={styles.footerLink}>Privacy Policy</a>
-          <button onClick={handleLogout} className={styles.footerLink} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <div className={styles.footerLinks}>
+            <a href="#" className={styles.footerLink}>Terms</a>
+            <a href="#" className={styles.footerLink}>Privacy Policy</a>
+          </div>
+          <button onClick={handleLogout} className={styles.logoutBtn}>
             <LogOut size={12} /> Log Out
           </button>
         </div>
       </div>
 
-      {/* Right panel: Wizard stepper */}
+      {/* ── Right panel ── */}
       <div className={styles.rightPanel}>
-        <div className={styles.cardPanel}>
-          {/* Progress Indicators */}
-          <div className={styles.stepper}>
-            {[1, 2, 3].map((s) => (
-              <div
-                key={s}
-                className={`${styles.stepDot} ${s === step ? styles.stepDotActive : styles.stepDotInactive}`}
-              />
-            ))}
+        <div className={styles.stepHeader}>
+          <div className={styles.stepMeta}>
+            <span className={styles.stepLabel}>Step {step} of {TOTAL_STEPS} — {STEP_LABELS[step - 1]}</span>
+            <div className={styles.stepper}>
+              {Array.from({ length: TOTAL_STEPS }, (_, i) => (
+                <div
+                  key={i}
+                  className={`${styles.stepDot} ${i + 1 === step ? styles.stepDotActive : styles.stepDotInactive}`}
+                />
+              ))}
+            </div>
           </div>
+        </div>
+
+        <div className={styles.stepContent} key={step}>
 
           {step === 1 && (
             <div>
               <div className={styles.infoBox}>
-                <Info size={18} className={styles.infoIcon} />
-                <p>
+                <Info size={16} className={styles.infoIcon} />
+                <p style={{ margin: 0 }}>
                   Setting up your profile allows us to customize budget templates, local checklists, and contracts specifically for your agency.
                 </p>
               </div>
@@ -205,8 +231,8 @@ export function PlannerOnboarding() {
           {step === 2 && (
             <div>
               <div className={styles.infoBox}>
-                <Sparkles size={18} className={styles.infoIcon} style={{ color: 'var(--color-accent)' }} />
-                <p>
+                <Sparkles size={16} className={styles.infoIcon} />
+                <p style={{ margin: 0 }}>
                   This information will be displayed on client collaboration portals, automated invoices, and vendor briefs.
                 </p>
               </div>
@@ -214,9 +240,9 @@ export function PlannerOnboarding() {
               <h2 className={styles.question}>Tell us about your organization</h2>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-                <div className="input-wrapper">
+                <div>
                   <label className={styles.formLabel} htmlFor="orgName">
-                    Organization/Business Name <span style={{ color: 'var(--color-error)' }}>*</span>
+                    Organization / Business Name <span style={{ color: 'var(--color-error)' }}>*</span>
                   </label>
                   <input
                     id="orgName"
@@ -229,20 +255,33 @@ export function PlannerOnboarding() {
                   />
                 </div>
 
-                <div className="input-wrapper">
-                  <label className={styles.formLabel} htmlFor="city">City of Operations</label>
-                  <input
-                    id="city"
-                    type="text"
-                    className={styles.inputField}
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    placeholder="e.g. Lagos, Abuja, Port Harcourt"
-                  />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
+                  <div>
+                    <label className={styles.formLabel} htmlFor="city">City</label>
+                    <input
+                      id="city"
+                      type="text"
+                      className={styles.inputField}
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      placeholder="e.g. Lagos"
+                    />
+                  </div>
+                  <div>
+                    <label className={styles.formLabel} htmlFor="state">State</label>
+                    <input
+                      id="state"
+                      type="text"
+                      className={styles.inputField}
+                      value={state}
+                      onChange={(e) => setState(e.target.value)}
+                      placeholder="e.g. Lagos"
+                    />
+                  </div>
                 </div>
 
-                <div className="input-wrapper">
-                  <label className={styles.formLabel}>Business Logo</label>
+                <div>
+                  <label className={styles.formLabel}>Business Logo <span style={{ color: 'var(--color-text-muted)', fontWeight: 400 }}>(optional)</span></label>
                   <div
                     className={styles.uploadContainer}
                     onClick={() => fileRef.current?.click()}
@@ -254,7 +293,7 @@ export function PlannerOnboarding() {
                           <span>Logo selected</span>
                           <button
                             type="button"
-                            className="btn btn-ghost btn-icon"
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: 'var(--color-text-muted)', display: 'flex' }}
                             onClick={(e) => {
                               e.stopPropagation()
                               setLogoFile(null)
@@ -292,9 +331,9 @@ export function PlannerOnboarding() {
           {step === 3 && (
             <div>
               <div className={styles.infoBox}>
-                <Info size={18} className={styles.infoIcon} />
-                <p>
-                  Help us estimate database usage and plan resource allocations to ensure zero lag on your dashboard during peak periods.
+                <Info size={16} className={styles.infoIcon} />
+                <p style={{ margin: 0 }}>
+                  Help us estimate database usage and allocate resources to ensure zero lag on your dashboard during peak periods.
                 </p>
               </div>
 
@@ -302,9 +341,9 @@ export function PlannerOnboarding() {
 
               <div className={styles.optionList}>
                 {[
-                  { id: '1-10', title: '1 - 10 events', desc: 'For independent planners and boutique event firms' },
-                  { id: '11-30', title: '11 - 30 events', desc: 'For established agencies running concurrent setups' },
-                  { id: '31-50', title: '31 - 50 events', desc: 'For multi-team agencies running weekly productions' },
+                  { id: '1-10', title: '1 – 10 events', desc: 'For independent planners and boutique event firms' },
+                  { id: '11-30', title: '11 – 30 events', desc: 'For established agencies running concurrent setups' },
+                  { id: '31-50', title: '31 – 50 events', desc: 'For multi-team agencies running weekly productions' },
                   { id: '50+', title: '50+ events', desc: 'For large event management firms and concert venues' },
                 ].map((opt) => (
                   <button
@@ -325,31 +364,69 @@ export function PlannerOnboarding() {
             </div>
           )}
 
-          {/* Stepper Navigation */}
-          <div className={styles.navRow}>
-            {step > 1 && (
-              <button onClick={handleBack} className={styles.backBtn} disabled={loading}>
-                Back
-              </button>
-            )}
-            <button
-              onClick={handleNext}
-              className={styles.continueBtn}
-              disabled={loading || (step === 2 && !orgName.trim())}
-            >
-              {loading ? (
-                'Finalizing Setup...'
-              ) : step === 3 ? (
-                'Finish Setup'
-              ) : (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  Continue <ChevronRight size={16} />
-                </span>
-              )}
-            </button>
-          </div>
+          {step === 4 && (
+            <div>
+              <div className={styles.infoBox}>
+                <Sparkles size={16} className={styles.infoIcon} />
+                <p style={{ margin: 0 }}>
+                  Tell us about your team composition so we can tailor collaboration tools and permissions from the start.
+                </p>
+              </div>
+
+              <h2 className={styles.question}>How large is your team?</h2>
+
+              <div className={styles.optionList}>
+                {[
+                  { id: 'solo', title: 'Solo — Just me', desc: 'Independent planner handling everything personally' },
+                  { id: '2-5', title: 'Small Team — 2 to 5 members', desc: 'A core team with occasional freelancers' },
+                  { id: '6-15', title: 'Growing Agency — 6 to 15 members', desc: 'Dedicated teams for sales, operations, and delivery' },
+                  { id: '16+', title: 'Large Firm — 16+ members', desc: 'Multi-department agency with specialized roles' },
+                ].map((opt) => (
+                  <button
+                    key={opt.id}
+                    className={`${styles.optionCard} ${teamSize === opt.id ? styles.optionCardActive : ''}`}
+                    onClick={() => setTeamSize(opt.id)}
+                  >
+                    <div className={styles.optionDetails}>
+                      <span className={styles.optionTitle}>{opt.title}</span>
+                      <span className={styles.optionDesc}>{opt.desc}</span>
+                    </div>
+                    <div className={styles.radioIndicator}>
+                      <div className={styles.radioIndicatorInner} />
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              <div style={{ marginTop: 'var(--space-4)', padding: 'var(--space-3) var(--space-4)', background: 'var(--color-surface-1)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
+                <p style={{ margin: 0, fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
+                  You'll be able to invite team members and assign roles from the Team page in your dashboard at any time.
+                </p>
+              </div>
+            </div>
+          )}
 
         </div>
+
+        <div className={styles.navRow}>
+          {step > 1 && (
+            <button onClick={handleBack} className={styles.stepBackBtn} disabled={loading}>
+              Back
+            </button>
+          )}
+          <button
+            onClick={handleNext}
+            className={styles.continueBtn}
+            disabled={loading || (step === 2 && !orgName.trim())}
+          >
+            {loading ? 'Finalizing Setup…' : step === TOTAL_STEPS ? 'Finish Setup' : (
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                Continue <ChevronRight size={16} />
+              </span>
+            )}
+          </button>
+        </div>
+
       </div>
     </div>
   )

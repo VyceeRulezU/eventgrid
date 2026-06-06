@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Users, Plus, Search, Pencil, Star, Trash2, Phone, Mail, Save } from 'lucide-react'
+import { Users, Plus, Search, Pencil, Star, Trash2, Phone, Mail, Building, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
+import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import type { Vendor } from '@/types'
 
 const DEFAULT_TYPES = [
@@ -18,10 +19,9 @@ const DEFAULT_TYPES = [
 
 export function VendorDirectoryPage() {
   const user = useAuthStore((s) => s.user)
-  const org = useAuthStore((s) => s.org)
   const showNotification = useUIStore((s) => s.showNotification)
 
-  const [vendors, setVendors] = useState<Vendor[]>([])
+  const [vendors, setVendors] = useState<(Vendor & { org_name?: string })[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [search, setSearch] = useState('')
@@ -39,24 +39,27 @@ export function VendorDirectoryPage() {
   })
 
   useEffect(() => {
-    if (!user || !org) { setLoading(false); return }
-
-    const orgId = org.id
+    if (!user) { setLoading(false); return }
 
     async function load() {
       const { data } = await supabase
         .from('vendors')
-        .select('*')
-        .eq('org_id', orgId)
+        .select('*, organizations!inner(name)')
         .is('deleted_at', null)
         .order('name', { ascending: true })
 
-      if (data) setVendors(data as unknown as Vendor[])
+      if (data) {
+        const mapped = (data as unknown as Array<Record<string, unknown>>).map((v: Record<string, unknown>) => {
+          const orgEntry = (v.organizations as { name: string } | null)
+          return { ...v, org_name: orgEntry?.name || 'Unknown' } as Vendor & { org_name?: string }
+        })
+        setVendors(mapped)
+      }
       setLoading(false)
     }
 
     load()
-  }, [user, org])
+  }, [user])
 
   const availableTypes = [...new Set([...DEFAULT_TYPES, ...vendors.map((v) => v.category)])]
 
@@ -64,17 +67,26 @@ export function VendorDirectoryPage() {
     const matchSearch =
       v.name.toLowerCase().includes(search.toLowerCase()) ||
       (v.category || '').toLowerCase().includes(search.toLowerCase()) ||
-      (v.contact_name || '').toLowerCase().includes(search.toLowerCase())
+      (v.contact_name || '').toLowerCase().includes(search.toLowerCase()) ||
+      (v.org_name || '').toLowerCase().includes(search.toLowerCase())
     const matchCategory = !categoryFilter || v.category === categoryFilter
     return matchSearch && matchCategory
   })
 
+  /* ══════════════════════════════════════════════
+     Vendor form / CRUD — scoped to user's org
+     ══════════════════════════════════════════════ */
+  const org = useAuthStore((s) => s.org)
   const resetForm = () => {
     setForm({ category: DEFAULT_TYPES[0], name: '', contact_name: '', phone: '', email: '', rating: 0, notes: '' })
     setEditingVendor(null)
   }
 
   const openEdit = (vendor: Vendor) => {
+    if (vendor.org_id !== org?.id) {
+      showNotification({ variant: 'warning', title: 'Read-only', message: 'You can only edit vendors from your own organization.' })
+      return
+    }
     setEditingVendor(vendor)
     setForm({
       category: vendor.category,
@@ -93,6 +105,18 @@ export function VendorDirectoryPage() {
       showNotification({ variant: 'warning', title: 'Missing fields', message: 'Vendor name is required' })
       return
     }
+
+    const duplicate = vendors.find(
+      (v) =>
+        v.name.toLowerCase() === form.name.trim().toLowerCase() &&
+        v.category === form.category &&
+        v.id !== editingVendor?.id
+    )
+    if (duplicate) {
+      showNotification({ variant: 'warning', title: 'Duplicate vendor', message: `"${form.name.trim()}" already exists under "${form.category}".` })
+      return
+    }
+
     setSaving(true)
 
     if (editingVendor) {
@@ -141,7 +165,10 @@ export function VendorDirectoryPage() {
         return
       }
 
-      setVendors([...(data ? [data as unknown as Vendor] : []), ...vendors])
+      if (data) {
+        const newVendor = { ...data as unknown as Vendor, org_name: org?.name || 'My Organization' }
+        setVendors([newVendor, ...vendors])
+      }
       showNotification({ variant: 'success', title: 'Vendor added' })
     }
 
@@ -150,6 +177,12 @@ export function VendorDirectoryPage() {
   }
 
   const handleDelete = async (id: string) => {
+    const vendor = vendors.find(v => v.id === id)
+    if (vendor && vendor.org_id !== org?.id) {
+      showNotification({ variant: 'warning', title: 'Permission denied', message: 'You can only delete vendors from your own organization.' })
+      return
+    }
+
     const { error } = await supabase
       .from('vendors')
       .update({ deleted_at: new Date().toISOString() })
@@ -217,62 +250,64 @@ export function VendorDirectoryPage() {
             />
           </div>
         </div>
-        <select
-          className="input"
-          style={{ minHeight: 44, fontSize: 'var(--text-sm)', maxWidth: 200 }}
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-        >
-          <option value="">All Categories</option>
-          {availableTypes.map((t) => <option key={t} value={t}>{t}</option>)}
-        </select>
+        <div style={{ minWidth: 180, maxWidth: 220 }}>
+          <DropdownMenu
+            trigger={categoryFilter || 'All Categories'}
+            items={[{ label: 'All Categories', value: '' }, ...availableTypes.map((t) => ({ label: t, value: t }))]}
+            onSelect={(item) => setCategoryFilter(item.value)}
+          />
+        </div>
       </div>
 
       {showForm && (
-        <div className="card" style={{ marginBottom: 'var(--space-6)', maxWidth: 560 }}>
-          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-4)' }}>
-            {editingVendor ? 'Edit Vendor' : 'Add Vendor'}
-          </h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
-            <div className="input-wrapper" style={{ gridColumn: '1 / -1' }}>
-              <label className="input-label">Vendor Name</label>
-              <input className="input" placeholder="Vendor name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+        <div className="overlay" onClick={() => { if (!saving) { resetForm(); setShowForm(false) } }}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 520 }}>
+            <div className="modal-card-header">
+              <div className="modal-card-title">{editingVendor ? 'Edit Vendor' : 'Add Vendor'}</div>
+              <button className="modal-card-close" onClick={() => { resetForm(); setShowForm(false) }} disabled={saving}><X size={20} /></button>
             </div>
-            <div className="input-wrapper">
-              <label className="input-label">Category</label>
-              <select className="input" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
-                {availableTypes.map((t) => <option key={t} value={t}>{t}</option>)}
-              </select>
+            <div className="modal-card-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
+                <div className="input-wrapper" style={{ gridColumn: '1 / -1' }}>
+                  <label className="input-label">Vendor Name</label>
+                  <input className="input" placeholder="Vendor name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                </div>
+                <div className="input-wrapper">
+                  <label className="input-label">Category</label>
+                  <DropdownMenu
+                    trigger={form.category}
+                    items={availableTypes.map((t) => ({ label: t, value: t }))}
+                    onSelect={(item) => setForm({ ...form, category: item.value })}
+                  />
+                </div>
+                <div className="input-wrapper">
+                  <label className="input-label">Rating (1-5)</label>
+                  <input className="input" type="number" min={0} max={5} placeholder="0" value={form.rating} onChange={(e) => setForm({ ...form, rating: Number(e.target.value) })} />
+                </div>
+                <div className="input-wrapper">
+                  <label className="input-label">Contact Name</label>
+                  <input className="input" placeholder="Contact person" value={form.contact_name} onChange={(e) => setForm({ ...form, contact_name: e.target.value })} />
+                </div>
+                <div className="input-wrapper">
+                  <label className="input-label">Phone</label>
+                  <input className="input" placeholder="Phone number" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+                </div>
+                <div className="input-wrapper">
+                  <label className="input-label">Email</label>
+                  <input className="input" placeholder="Email address" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                </div>
+                <div className="input-wrapper" style={{ gridColumn: '1 / -1' }}>
+                  <label className="input-label">Notes</label>
+                  <textarea className="input" style={{ minHeight: 80, resize: 'vertical' }} placeholder="Additional notes..." value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-4)' }}>
+                <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleSave} disabled={saving}>
+                  {saving ? 'Saving...' : editingVendor ? 'Update' : 'Save'}
+                </button>
+                <button className="btn btn-ghost" onClick={() => { resetForm(); setShowForm(false) }} disabled={saving}>Cancel</button>
+              </div>
             </div>
-            <div className="input-wrapper">
-              <label className="input-label">Rating (1-5)</label>
-              <input className="input" type="number" min={0} max={5} placeholder="0" value={form.rating} onChange={(e) => setForm({ ...form, rating: Number(e.target.value) })} />
-            </div>
-            <div className="input-wrapper">
-              <label className="input-label">Contact Name</label>
-              <input className="input" placeholder="Contact person" value={form.contact_name} onChange={(e) => setForm({ ...form, contact_name: e.target.value })} />
-            </div>
-            <div className="input-wrapper">
-              <label className="input-label">Phone</label>
-              <input className="input" placeholder="Phone number" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-            </div>
-            <div className="input-wrapper">
-              <label className="input-label">Email</label>
-              <input className="input" placeholder="Email address" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-            </div>
-            <div className="input-wrapper" style={{ gridColumn: '1 / -1' }}>
-              <label className="input-label">Notes</label>
-              <textarea className="input" style={{ minHeight: 80, resize: 'vertical' }} placeholder="Additional notes..." value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-4)' }}>
-            <button className="btn btn-primary btn-sm" onClick={handleSave} disabled={saving}>
-              <Save size={16} />
-              {saving ? 'Saving...' : editingVendor ? 'Update' : 'Save'}
-            </button>
-            <button className="btn btn-ghost btn-sm" onClick={() => { resetForm(); setShowForm(false) }}>
-              Cancel
-            </button>
           </div>
         </div>
       )}
@@ -299,6 +334,13 @@ export function VendorDirectoryPage() {
                   </button>
                 </div>
               </div>
+
+              {vendor.org_name && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                  <Building size={11} />
+                  {vendor.org_name}
+                </div>
+              )}
 
               {vendor.rating ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
