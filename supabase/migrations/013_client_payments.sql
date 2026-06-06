@@ -18,14 +18,24 @@ CREATE TABLE IF NOT EXISTS client_payments (
 ALTER TABLE client_payments ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "client_payments_planner_only" ON client_payments;
-CREATE POLICY "client_payments_planner_only"
+DROP POLICY IF EXISTS "client_payments_access" ON client_payments;
+CREATE POLICY "client_payments_access"
   ON client_payments FOR ALL
   USING (
     event_id IN (
-      SELECT id FROM events WHERE org_id IN (
-        SELECT id FROM organizations WHERE owner_id = auth.uid()
-      )
+      SELECT id FROM events WHERE
+        org_id IN (SELECT id FROM organizations WHERE owner_id = auth.uid())
+        OR coordinator_id = auth.uid()
+    )
+  )
+  WITH CHECK (
+    event_id IN (
+      SELECT id FROM events WHERE
+        org_id IN (SELECT id FROM organizations WHERE owner_id = auth.uid())
+        OR coordinator_id = auth.uid()
     )
   );
 
 CREATE INDEX IF NOT EXISTS idx_client_payments_event ON client_payments(event_id);
+
+GRANT ALL ON client_payments TO authenticated;

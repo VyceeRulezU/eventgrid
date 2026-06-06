@@ -12,14 +12,24 @@ CREATE TABLE IF NOT EXISTS petty_cash (
 ALTER TABLE petty_cash ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "petty_cash_planner_only" ON petty_cash;
-CREATE POLICY "petty_cash_planner_only"
+DROP POLICY IF EXISTS "petty_cash_access" ON petty_cash;
+CREATE POLICY "petty_cash_access"
   ON petty_cash FOR ALL
   USING (
     event_id IN (
-      SELECT id FROM events WHERE org_id IN (
-        SELECT id FROM organizations WHERE owner_id = auth.uid()
-      )
+      SELECT id FROM events WHERE
+        org_id IN (SELECT id FROM organizations WHERE owner_id = auth.uid())
+        OR coordinator_id = auth.uid()
+    )
+  )
+  WITH CHECK (
+    event_id IN (
+      SELECT id FROM events WHERE
+        org_id IN (SELECT id FROM organizations WHERE owner_id = auth.uid())
+        OR coordinator_id = auth.uid()
     )
   );
 
 CREATE INDEX IF NOT EXISTS idx_petty_cash_event ON petty_cash(event_id);
+
+GRANT ALL ON petty_cash TO authenticated;

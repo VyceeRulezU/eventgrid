@@ -478,12 +478,21 @@ CREATE POLICY "event_vendors_vendor_own" ON event_vendors FOR SELECT
 
 -- 8. financial_entries
 ALTER TABLE financial_entries ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "financial_entries_planner_only" ON financial_entries FOR ALL
+DROP POLICY IF EXISTS "financial_entries_planner_only" ON financial_entries;
+DROP POLICY IF EXISTS "financial_entries_access" ON financial_entries;
+CREATE POLICY "financial_entries_access" ON financial_entries FOR ALL
   USING (
     event_id IN (
-      SELECT id FROM events WHERE org_id IN (
-        SELECT id FROM organizations WHERE owner_id = auth.uid()
-      )
+      SELECT id FROM events WHERE
+        org_id IN (SELECT id FROM organizations WHERE owner_id = auth.uid())
+        OR coordinator_id = auth.uid()
+    )
+  )
+  WITH CHECK (
+    event_id IN (
+      SELECT id FROM events WHERE
+        org_id IN (SELECT id FROM organizations WHERE owner_id = auth.uid())
+        OR coordinator_id = auth.uid()
     )
   );
 

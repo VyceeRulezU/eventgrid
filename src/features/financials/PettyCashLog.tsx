@@ -43,12 +43,16 @@ export function PettyCashLog({ eventId, onTotalChange }: PettyCashLogProps) {
   }, [entries])
 
   async function loadEntries() {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('petty_cash')
       .select('*')
       .eq('event_id', eventId)
       .order('logged_at', { ascending: false })
-    if (data) setEntries(data as PettyCashEntry[])
+    if (error) {
+      console.error('petty_cash load error:', error.message)
+    } else if (data) {
+      setEntries(data as PettyCashEntry[])
+    }
     setLoading(false)
   }
 
