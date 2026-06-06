@@ -33,7 +33,6 @@ export function VendorsPage() {
 
   const [vendors, setVendors] = useState<Vendor[]>([])
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
   const [search, setSearch] = useState('')
   const [events, setEvents] = useState<{ id: string; name: string }[]>([])
   const [editingVendor, setEditingVendor] = useState<Vendor | null>(null)

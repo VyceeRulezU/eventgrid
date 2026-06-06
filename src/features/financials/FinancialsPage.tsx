@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import React from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Plus, Search, Wallet, Upload, FileSpreadsheet, X, AlertTriangle, Check, Pencil, Trash2, TrendingUp, DollarSign, Receipt } from 'lucide-react'
+import { Plus, Search, Wallet, Upload, FileSpreadsheet, X, AlertTriangle, Check, Pencil, Trash2, TrendingUp } from 'lucide-react'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import styles from './FinancialsPage.module.css'
 import { supabase } from '@/lib/supabase'

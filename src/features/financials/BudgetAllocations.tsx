@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Pencil, X, Plus } from 'lucide-react'
+import { Pencil, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
-import { DropdownMenu } from '@/components/ui/DropdownMenu'
 
 function formatNaira(kobo: number) {
   return `₦${(kobo / 100).toLocaleString('en-NG')}`

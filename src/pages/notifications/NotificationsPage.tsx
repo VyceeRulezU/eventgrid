@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Bell, CheckCheck, X, MessageSquare, Calendar, Users, AlertCircle, Info, ArrowLeft } from 'lucide-react'
+import { Bell, CheckCheck, MessageSquare, Calendar, Users, AlertCircle, Info, ArrowLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { getNotifications, markAsRead, markAllAsRead } from '@/lib/notifications'
 import type { Notification } from '@/types'

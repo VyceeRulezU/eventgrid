@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { Calendar, Users, MapPin, Building, ExternalLink } from 'lucide-react'
@@ -15,19 +15,19 @@ interface GuestEvent {
 
 export function ClientDashboard() {
   const user = useAuthStore((s) => s.user)
-  const navigate = useNavigate()
 
   const [events, setEvents] = useState<GuestEvent[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!user?.email) { setLoading(false); return }
+    const userEmail = user?.email
+    if (!userEmail) { setLoading(false); return }
 
     async function load() {
       const { data: guestEntries } = await supabase
         .from('guests')
         .select('event_id, status, events!inner(id, name, date, location, org_id, organizations!inner(name))')
-        .eq('email', user.email)
+        .eq('email', userEmail)
         .is('deleted_at', null)
 
       if (guestEntries) {

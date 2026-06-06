@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { createNotification } from '@/lib/notifications'
-import { MessageSquare, AlertCircle, Lightbulb, Bug, Sparkles, Send, CheckCircle, X, ArrowLeft, RefreshCw, Clock } from 'lucide-react'
+import { MessageSquare, AlertCircle, Lightbulb, Bug, Sparkles, Send, CheckCircle, RefreshCw, Clock } from 'lucide-react'
 
 interface Feedback {
   id: string

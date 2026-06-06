@@ -1,4 +1,4 @@
-import { AlertTriangle, Calendar, ListChecks, ArrowRight, Zap } from 'lucide-react'
+import { AlertTriangle, Calendar, ListChecks, Zap } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 interface NextStepCardProps {

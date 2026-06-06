@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Pencil, Trash2, X, Check, Clock, AlertTriangle } from 'lucide-react'
+import { Plus, Pencil, Trash2, Check, Clock, AlertTriangle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'

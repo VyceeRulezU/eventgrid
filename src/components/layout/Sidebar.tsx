@@ -3,7 +3,7 @@ import { NavLink, useNavigate, Link, useParams } from 'react-router-dom'
 import {
   LayoutDashboard, Calendar, Wallet, Users, BookOpen,
   Settings, LogOut, X, ArrowLeft, ListChecks, Radio,
-  FileText, TrendingUp, Send, MessageSquare, Shield, Bell,
+  FileText, TrendingUp, Send, MessageSquare, Bell,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -26,7 +26,6 @@ export function Sidebar() {
   const role = useAuthStore((s) => s.role)
   const org = useAuthStore((s) => s.org)
   const clearAuth = useAuthStore((s) => s.clearAuth)
-  const showNotification = useUIStore((s) => s.showNotification)
   const { sidebarOpen, setSidebarOpen } = useUIStore()
   const navigate = useNavigate()
   const { id: eventId } = useParams<{ id: string }>()
