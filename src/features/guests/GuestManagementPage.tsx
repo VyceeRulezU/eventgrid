@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useResolvedEventId } from '@/hooks/useResolvedEventId'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
 import {
@@ -15,7 +15,7 @@ import styles from './GuestManagementPage.module.css'
 type RSVP = 'pending' | 'confirmed' | 'declined' | 'maybe'
 
 export function GuestManagementPage() {
-  const { id: eventId } = useParams<{ id: string }>()
+  const { eventId } = useResolvedEventId()
   const showToast = useUIStore((s) => s.showToast)
 
   const [guests, setGuests] = useState<(Guest & { table_name?: string })[]>([])

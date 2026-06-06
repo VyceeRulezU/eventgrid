@@ -47,6 +47,7 @@ export interface Event {
   client_id: string | null
   coordinator_id: string | null
   notes: string | null
+  slug: string | null
   deleted_at: string | null
   created_at: string
   updated_at: string

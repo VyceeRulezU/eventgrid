@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useResolvedEventId } from '@/hooks/useResolvedEventId'
 import { Columns, List, Plus } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
@@ -26,7 +26,7 @@ const COLUMNS = [
 ] as const
 
 export function TaskBoard() {
-  const { id: eventId } = useParams<{ id: string }>()
+  const { eventId } = useResolvedEventId()
   const showNotification = useUIStore((s) => s.showNotification)
   const [tasks, setTasks] = useState<TaskWithAssignee[]>([])
   const [loading, setLoading] = useState(true)

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useResolvedEventId } from '@/hooks/useResolvedEventId'
 import { Users, X, Mail, UserPlus, FileText, CheckCircle2, AlertTriangle, Clock, Send, Download } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
@@ -62,7 +62,7 @@ function reportStatusColor(status?: string) {
 }
 
 export function TeamPage() {
-  const { id: eventId } = useParams<{ id: string }>()
+  const { eventId } = useResolvedEventId()
   const user = useAuthStore((s) => s.user)
   const profile = useAuthStore((s) => s.profile)
   const role = useAuthStore((s) => s.role)

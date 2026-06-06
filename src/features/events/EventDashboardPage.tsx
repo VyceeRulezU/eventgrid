@@ -1,12 +1,9 @@
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback, useRef, Fragment } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useEventStore } from '@/store/event.store'
 import { useUIStore } from '@/store/ui.store'
-import {
-  PhasePipeline, PhaseSegmentBar, PhaseStepper,
-} from '@/components/shared/PhasePipeline'
 import { PhaseTimelineTracker } from '@/components/shared/PhaseTimelineTracker'
 import {
   ArrowLeft, Calendar, Users, Wallet, AlertTriangle,
@@ -16,12 +13,12 @@ import {
 } from 'lucide-react'
 import { GeneratePortalModal } from '@/features/client-portal/GeneratePortalModal'
 import { EditEventModal } from '@/features/events/EditEventModal'
-import { NextStepCard } from '@/features/events/NextStepCard'
 import { processPayment, getEventPrice } from '@/lib/payment'
+import { UUID_RE } from '@/lib/slug'
 import type { Event, EventPhase, EventActivity } from '@/types'
 import styles from './EventDashboardPage.module.css'
 
-/* ─── helpers ──────────────────────────────────────── */
+/* ─── types ─────────────────────────────────────────── */
 interface DeadlineItem {
   id: string
   type: 'task' | 'phase' | 'vendor_payment'
@@ -30,6 +27,18 @@ interface DeadlineItem {
   label: string
 }
 
+interface ActionItem {
+  id: string
+  priority: 'critical' | 'warning' | 'info'
+  Icon: React.ComponentType<{ size?: number }>
+  title: string
+  subtitle: string
+  cta: string
+  route?: string
+  onClick?: () => void
+}
+
+/* ─── helpers ────────────────────────────────────────── */
 function getCountdown(dateStr: string | null | undefined) {
   if (!dateStr) return null
   const target = new Date(dateStr)
@@ -54,63 +63,50 @@ function timeAgo(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
 }
 
+function fmtNaira(kobo: number): string {
+  return '₦' + (kobo / 100).toLocaleString('en-NG')
+}
+
+function phaseNodeClass(status: string): string {
+  if (status === 'completed') return styles.phaseNodeDone
+  if (status === 'in_progress') return styles.phaseNodeCurrent
+  if (status === 'blocked') return styles.phaseNodeBlocked
+  return styles.phaseNodePending
+}
+
+function getPhaseRoute(phaseNum: number, eventId: string): string {
+  const map: Record<number, string> = {
+    1: `/events/${eventId}/vendors`,
+    2: `/events/${eventId}/tasks`,
+    3: `/events/${eventId}/vendors`,
+    4: `/events/${eventId}/team`,
+    5: `/events/${eventId}/guests`,
+    6: `/events/${eventId}/tasks`,
+    7: `/events/${eventId}/live-board`,
+    8: `/events/${eventId}/aftermath`,
+    9: `/events/${eventId}/aftermath`,
+  }
+  return map[phaseNum] ?? `/events/${eventId}/tasks`
+}
+
+function activityIcon(actionType: string) {
+  if (actionType.startsWith('vendor')) return Users
+  if (actionType.startsWith('task')) return ListChecks
+  if (actionType.startsWith('phase')) return CheckCircle2
+  if (actionType.startsWith('payment')) return Wallet
+  if (actionType.startsWith('issue')) return AlertTriangle
+  return Zap
+}
+
 const MODULES = [
-  {
-    key: 'vendors',
-    label: 'Vendors',
-    desc: 'Manage service providers and contracts',
-    icon: Users,
-    path: (id: string) => `/events/${id}/vendors`,
-  },
-  {
-    key: 'financials',
-    label: 'Financials',
-    desc: 'Budget tracking and expense management',
-    icon: Wallet,
-    path: (id: string) => `/financials?event=${id}`,
-  },
-  {
-    key: 'team',
-    label: 'Team',
-    desc: 'Coordinators and staff assignments',
-    icon: Users,
-    path: (id: string) => `/events/${id}/team`,
-  },
-  {
-    key: 'guests',
-    label: 'Guests',
-    desc: 'Guest list, RSVPs and seating',
-    icon: Calendar,
-    path: (id: string) => `/events/${id}/guests`,
-  },
-  {
-    key: 'tasks',
-    label: 'Tasks',
-    desc: 'To-dos, deadlines and assignments',
-    icon: ListChecks,
-    path: (id: string) => `/events/${id}/tasks`,
-  },
-  {
-    key: 'live-board',
-    label: 'Live Board',
-    desc: 'Real-time event day operations',
-    icon: Radio,
-    path: (id: string) => `/events/${id}/live-board`,
-  },
-  {
-    key: 'aftermath',
-    label: 'Aftermath',
-    desc: 'Post-event reports and lessons learned',
-    icon: FileText,
-    path: (id: string) => `/events/${id}/aftermath`,
-  },
-  {
-    key: 'analytics',
-    label: 'Analytics',
-    desc: 'Event performance and KPIs',
-    icon: BarChart3,
-    path: (id: string) => `/events/${id}/analytics`,
-  },
+  { key: 'vendors',    label: 'Vendors',    Icon: Users,      path: (id: string) => `/events/${id}/vendors` },
+  { key: 'financials', label: 'Financials', Icon: Wallet,     path: (id: string) => `/financials?event=${id}` },
+  { key: 'team',       label: 'Team',       Icon: Users,      path: (id: string) => `/events/${id}/team` },
+  { key: 'guests',     label: 'Guests',     Icon: Calendar,   path: (id: string) => `/events/${id}/guests` },
+  { key: 'tasks',      label: 'Tasks',      Icon: ListChecks, path: (id: string) => `/events/${id}/tasks` },
+  { key: 'live-board', label: 'Live Board', Icon: Radio,      path: (id: string) => `/events/${id}/live-board` },
+  { key: 'aftermath',  label: 'Aftermath',  Icon: FileText,   path: (id: string) => `/events/${id}/aftermath` },
+  { key: 'analytics',  label: 'Analytics',  Icon: BarChart3,  path: (id: string) => `/events/${id}/analytics` },
 ]
 
 /* ─── component ─────────────────────────────────────── */
@@ -130,29 +126,22 @@ export function EventDashboardPage() {
   const [payStatus, setPayStatus] = useState<'idle' | 'processing' | 'success' | 'cancelled' | 'failed'>('idle')
   const [showEditModal, setShowEditModal] = useState(false)
   const [autoCloseIn, setAutoCloseIn] = useState<number | null>(null)
-  const [pageTab, setPageTab] = useState<'overview' | 'timeline' | 'phases' | 'modules'>('overview')
   const [showPhaseManager, setShowPhaseManager] = useState(false)
+  const [showTimeline, setShowTimeline] = useState(false)
   const [togglingPhase, setTogglingPhase] = useState<string | null>(null)
   const [deadlines, setDeadlines] = useState<DeadlineItem[]>([])
   const [activity, setActivity] = useState<EventActivity[]>([])
   const [financialSummary, setFinancialSummary] = useState({ paid: 0, outstanding: 0 })
 
-  /* ── Refs for race-condition-free payment tracking ── */
-  // paySucceededRef: set to true the MOMENT onSuccess fires (synchronously),
-  // so that Paystack's onCancel/onClose (which fires concurrently) can never
-  // reset the state to 'cancelled' after a successful payment.
   const paySucceededRef = useRef(false)
-  // closeTimerRef: holds the auto-close timeout so we can clear it on unmount
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Cleanup close timer on unmount
   useEffect(() => {
     return () => {
       if (closeTimerRef.current) clearTimeout(closeTimerRef.current)
     }
   }, [])
 
-  // Auto-close countdown after successful payment
   useEffect(() => {
     if (payStatus !== 'success') return
     setAutoCloseIn(3)
@@ -178,12 +167,11 @@ export function EventDashboardPage() {
       setLoading(true)
       setError(null)
 
-      const { data: event, error: eventErr } = await supabase
-        .from('events')
-        .select('*')
-        .eq('id', id)
-        .is('deleted_at', null)
-        .single()
+      const isUUID = UUID_RE.test(id!)
+      const evtQuery = supabase.from('events').select('*').is('deleted_at', null)
+      const { data: event, error: eventErr } = await (
+        isUUID ? evtQuery.eq('id', id!) : evtQuery.eq('slug', id!)
+      ).single()
 
       if (cancelled) return
       if (eventErr || !event) {
@@ -214,7 +202,7 @@ export function EventDashboardPage() {
         .from('issues').select('id', { count: 'exact' })
         .eq('event_id', id).is('resolved_at', null)
 
-      /* ── Upcoming deadlines ── */
+      /* upcoming deadlines */
       const d: DeadlineItem[] = []
 
       const { data: upcomingTasks } = await supabase
@@ -252,13 +240,11 @@ export function EventDashboardPage() {
 
       d.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
-      /* ── Recent activity ── */
       const { data: activityData } = await supabase
         .from('event_activity').select('*')
         .eq('event_id', id)
         .order('created_at', { ascending: false }).limit(5)
 
-      /* ── Financial summary (planner view) ── */
       const { data: finData } = await supabase
         .from('financial_entries')
         .select('advance_paid, balance')
@@ -310,17 +296,12 @@ export function EventDashboardPage() {
   }
 
   const handleEventSaved = (updated: Partial<Event>) => {
-    if (activeEvent) {
-      setActiveEvent({ ...activeEvent, ...updated })
-    }
+    if (activeEvent) setActiveEvent({ ...activeEvent, ...updated })
   }
 
-  /* ── Payment handler — ref-based success tracking ── */
   const handlePayNow = useCallback(async (provider: 'paystack' | 'flutterwave') => {
     if (!user || !id || !activeEvent) return
-
     const currentEvent = activeEvent
-    // Reset the success sentinel BEFORE opening the popup
     paySucceededRef.current = false
     setPayStatus('processing')
 
@@ -332,9 +313,6 @@ export function EventDashboardPage() {
         metadata: { event_id: id },
 
         onSuccess: async () => {
-          // ✅ Mark success synchronously FIRST — before any async work.
-          // onClose/onCancel may fire at any point after this; the ref
-          // ensures it cannot revert us to 'cancelled'.
           paySucceededRef.current = true
 
           const { error: updateErr } = await supabase
@@ -343,51 +321,32 @@ export function EventDashboardPage() {
             .eq('id', id)
 
           if (updateErr) {
-            showNotification({
-              variant: 'error',
-              title: 'Payment received but activation failed',
-              message: updateErr.message,
-            })
+            showNotification({ variant: 'error', title: 'Payment received but activation failed', message: updateErr.message })
             setPayStatus('failed')
             return
           }
 
           setActiveEvent({ ...currentEvent, status: 'active', payment_status: 'paid' } as Event)
-
-          showNotification({
-            variant: 'success',
-            title: '🎉 Payment successful!',
-            message: `${currentEvent.name} is now active.`,
-          })
-
-          // Show success state, then auto-close after 3 s
+          showNotification({ variant: 'success', title: '🎉 Payment successful!', message: `${currentEvent.name} is now active.` })
           setPayStatus('success')
         },
 
         onClose: () => {
-          // Only treat as cancellation when the payment did NOT succeed.
-          // The ref is synchronously set inside onSuccess, so even if
-          // Paystack fires onClose concurrently with the async DB update,
-          // we will never reset a successful payment to 'cancelled'.
-          if (!paySucceededRef.current) {
-            setPayStatus('cancelled')
-          }
+          if (!paySucceededRef.current) setPayStatus('cancelled')
         },
       })
     } catch {
-      if (!paySucceededRef.current) {
-        setPayStatus('failed')
-      }
+      if (!paySucceededRef.current) setPayStatus('failed')
     }
   }, [user, id, activeEvent, setActiveEvent, showNotification])
 
   const openPayment = () => {
     setPayStatus('idle')
     setShowPaymentModal(true)
-    // Pre-load payment scripts eagerly so the popup opens instantly on click
     import('@/lib/paystack').then(({ loadPaystackScript }) => loadPaystackScript().catch(() => {}))
     import('@/lib/flutterwave').then(({ loadFlutterwaveScript }) => loadFlutterwaveScript().catch(() => {}))
   }
+
   const closePayment = () => {
     if (payStatus === 'processing') return
     setShowPaymentModal(false)
@@ -395,13 +354,13 @@ export function EventDashboardPage() {
     setAutoCloseIn(null)
   }
 
-  /* ── Derived values ── */
+  /* ── derived ── */
   const completedCount = phases.filter((p) => p.status === 'completed').length
   const progressPct = phases.length ? Math.round((completedCount / phases.length) * 100) : 0
   const countdown = activeEvent ? getCountdown(activeEvent.event_date) : null
-  const isDraftUnpaid = activeEvent?.status === 'draft' && activeEvent?.payment_status !== 'paid'
+  const isPaid = activeEvent?.payment_status === 'paid'
 
-  /* ── Loading / Error ── */
+  /* ── loading / error ── */
   if (loading) {
     return (
       <div className={styles.page}>
@@ -424,494 +383,518 @@ export function EventDashboardPage() {
     )
   }
 
+  /* ── status badge colour ── */
   const statusBadge =
     activeEvent.status === 'active' ? 'green'
     : activeEvent.status === 'draft' ? 'grey'
     : activeEvent.status === 'in_progress' ? 'yellow'
     : activeEvent.status === 'completed' ? 'green' : 'red'
 
+  /* ── next actions computation ── */
+  const nextActions: ActionItem[] = []
+
+  if (!isPaid) {
+    nextActions.push({
+      id: 'activate',
+      priority: 'critical',
+      Icon: CreditCard,
+      title: 'Activate this event',
+      subtitle: 'Complete payment to unlock all planning features and start coordinating.',
+      cta: 'Pay ₦20,000',
+      onClick: openPayment,
+    })
+  } else {
+    if (countdown && !countdown.past && countdown.days <= 7) {
+      const daysLabel = countdown.days === 0 ? 'Today' : `${countdown.days} day${countdown.days !== 1 ? 's' : ''}`
+      nextActions.push({
+        id: 'pre-event',
+        priority: 'warning',
+        Icon: Calendar,
+        title: `${daysLabel} until event`,
+        subtitle: 'Confirm all vendors, brief your team, and run through the final checklist.',
+        cta: 'Review Tasks',
+        route: `/events/${id}/tasks`,
+      })
+    }
+
+    if (stats.tasksDue > 0) {
+      nextActions.push({
+        id: 'tasks',
+        priority: 'warning',
+        Icon: AlertTriangle,
+        title: `${stats.tasksDue} overdue task${stats.tasksDue !== 1 ? 's' : ''}`,
+        subtitle: 'Tasks past their due date need attention to keep the event on track.',
+        cta: 'Review Tasks',
+        route: `/events/${id}/tasks`,
+      })
+    }
+
+    if (stats.openIssues > 0) {
+      nextActions.push({
+        id: 'issues',
+        priority: 'warning',
+        Icon: AlertTriangle,
+        title: `${stats.openIssues} open issue${stats.openIssues !== 1 ? 's' : ''}`,
+        subtitle: 'Unresolved issues flagged on the live board require follow-up.',
+        cta: 'Open Live Board',
+        route: `/events/${id}/live-board`,
+      })
+    }
+
+    if (stats.vendors === 0) {
+      nextActions.push({
+        id: 'vendors',
+        priority: 'info',
+        Icon: Users,
+        title: 'No vendors added yet',
+        subtitle: 'Add your service providers and track contracts in one place.',
+        cta: 'Add Vendors',
+        route: `/events/${id}/vendors`,
+      })
+    }
+
+    if (!activeEvent.budget_total && role === 'planner') {
+      nextActions.push({
+        id: 'budget',
+        priority: 'info',
+        Icon: Wallet,
+        title: 'Budget not configured',
+        subtitle: 'Set a total budget to enable financial tracking and P&L reporting.',
+        cta: 'Set Budget',
+        onClick: () => setShowEditModal(true),
+      })
+    }
+
+    const currentPhase = phases.find(p => p.phase_number === activeEvent.current_phase)
+    if (currentPhase?.status === 'in_progress') {
+      nextActions.push({
+        id: 'phase',
+        priority: 'info',
+        Icon: ArrowRight,
+        title: `Phase ${currentPhase.phase_number}: ${currentPhase.phase_name}`,
+        subtitle: 'Currently in progress — pick up where you left off.',
+        cta: 'Continue',
+        route: getPhaseRoute(currentPhase.phase_number, id!),
+      })
+    }
+  }
+
+  const visibleActions = nextActions.slice(0, 4)
+
+  /* ── event date formatted ── */
+  const eventDateLabel = activeEvent.event_date
+    ? new Date(activeEvent.event_date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+    : null
+
   return (
     <div className={styles.page}>
 
-      {/* ── Unpaid banner ── */}
-      {isDraftUnpaid && (
-        <div className={styles.unpaidBanner}>
-          <div className={styles.unpaidBannerIcon}>
-            <AlertTriangle size={18} />
-          </div>
-          <div className={styles.unpaidBannerText}>
-            <div className={styles.unpaidBannerTitle}>This event is not yet active</div>
-            <div className={styles.unpaidBannerSub}>Complete payment to unlock all planning features and start coordinating your event.</div>
-          </div>
-          <button type="button" className={styles.btnPayGreen} onClick={openPayment}>
-            <CreditCard size={14} /> Pay ₦20,000
-          </button>
-        </div>
-      )}
-
-      {/* ── Hero ── */}
-      <div className={styles.hero}>
-        <div className={styles.heroGlow} aria-hidden="true" />
-        <div className={styles.heroGlow2} aria-hidden="true" />
-
-        <div className={styles.heroTop}>
-          <button
-            type="button"
-            className={styles.heroBack}
-            onClick={() => navigate('/events')}
-            aria-label="Back to events"
-          >
+      {/* ── 1. Command Header ── */}
+      <div className={styles.commandHeader}>
+        {/* Row 1: back · title · countdown */}
+        <div className={styles.headerRow1}>
+          <button type="button" className={styles.headerBack} onClick={() => navigate('/events')} aria-label="Back to events">
             <ArrowLeft size={18} />
           </button>
 
-          <div className={styles.heroTitleBlock} style={{ flex: 1, minWidth: 0 }}>
-            <h1 className={styles.heroTitle} style={{ fontSize: 'var(--text-title-lg)', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-              {activeEvent.name}
-              {activeEvent.event_type && (
-                <>
-                  <span className={styles.heroTitleSep}> | </span>
-                  <span className={styles.heroTitleType}>{activeEvent.event_type}</span>
-                </>
-              )}
-              <button
-                type="button"
-                className={styles.editTitleBtn}
-                onClick={() => setShowEditModal(true)}
-                aria-label="Edit event"
-              >
-                <Pencil size={14} />
-              </button>
-            </h1>
+          <div className={styles.headerTitle}>
+            <h1 className={styles.headerName}>{activeEvent.name}</h1>
+            {activeEvent.event_type && (
+              <span className={styles.headerType}>· {activeEvent.event_type}</span>
+            )}
+            <button type="button" className={styles.headerEditBtn} onClick={() => setShowEditModal(true)} aria-label="Edit event">
+              <Pencil size={14} />
+            </button>
           </div>
 
-          {/* Countdown — right side of row 1 */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', flexShrink: 0 }}>
-            {countdown && !countdown.past && (
-              <div className={styles.countdown}>
-                <div className={styles.countdownItem}>
-                  <span className={styles.countdownNum}>{countdown.days}</span>
-                  <span className={styles.countdownLabel}>days</span>
-                </div>
-                <span className={styles.countdownSep}>:</span>
-                <div className={styles.countdownItem}>
-                  <span className={styles.countdownNum}>{String(countdown.hours).padStart(2, '0')}</span>
-                  <span className={styles.countdownLabel}>hrs</span>
-                </div>
-                <span className={styles.countdownSep}>:</span>
-                <div className={styles.countdownItem}>
-                  <span className={styles.countdownNum}>{String(countdown.minutes).padStart(2, '0')}</span>
-                  <span className={styles.countdownLabel}>min</span>
-                </div>
+          {countdown && !countdown.past && (
+            <div className={styles.countdown}>
+              <div className={styles.countdownItem}>
+                <span className={styles.countdownNum}>{countdown.days}</span>
+                <span className={styles.countdownLabel}>days</span>
               </div>
-            )}
-            {countdown?.past && (
-              <div className={styles.countdown}>
-                <span className={styles.countdownPast}>Event has passed</span>
+              <span className={styles.countdownSep}>:</span>
+              <div className={styles.countdownItem}>
+                <span className={styles.countdownNum}>{String(countdown.hours).padStart(2, '0')}</span>
+                <span className={styles.countdownLabel}>hrs</span>
               </div>
-            )}
-          </div>
+              <span className={styles.countdownSep}>:</span>
+              <div className={styles.countdownItem}>
+                <span className={styles.countdownNum}>{String(countdown.minutes).padStart(2, '0')}</span>
+                <span className={styles.countdownLabel}>min</span>
+              </div>
+            </div>
+          )}
+          {countdown?.past && (
+            <div className={styles.countdown}>
+              <span className={styles.countdownPast}>Event has passed</span>
+            </div>
+          )}
         </div>
 
-        {/* Row 2: badges + actions */}
-        <div className={styles.heroBadges} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap', marginTop: 'var(--space-2)' }}>
-          <span className={`badge badge-${statusBadge}`}>
-            <span className="badge-dot" />
-            {activeEvent.status.replace('_', ' ')}
-          </span>
-          {activeEvent.payment_status === 'unpaid' && (
-            <span className="badge badge-unpaid" style={{ border: '1px solid var(--color-warning)', background: 'var(--color-warning-bg)', color: 'var(--color-warning)', fontWeight: 600 }}>
-              ⚡ Unpaid
-            </span>
-          )}
-          {activeEvent.payment_status === 'paid' && (
-            <span className="badge badge-paid" style={{ background: 'var(--color-success-bg)', color: 'var(--color-success)', fontWeight: 600 }}>
-              ✓ Paid
-            </span>
-          )}
-          {activeEvent.size_tier && (
-            <span className="badge badge-medium">{activeEvent.size_tier}</span>
-          )}
-          <span className="badge badge-medium">Phase {activeEvent.current_phase} of 9</span>
+        {/* Row 2: meta · badges · actions */}
+        <div className={styles.headerRow2}>
+          <div className={styles.headerMeta}>
+            {eventDateLabel && (
+              <span className={styles.headerMetaItem}>
+                <Calendar size={11} /> {eventDateLabel}
+              </span>
+            )}
+            {activeEvent.venue_name && (
+              <span className={styles.headerMetaItem}>
+                <MapPin size={11} /> {activeEvent.venue_name}
+              </span>
+            )}
+            {activeEvent.guest_count ? (
+              <span className={styles.headerMetaItem}>
+                <Users size={11} /> {activeEvent.guest_count.toLocaleString()} guests
+              </span>
+            ) : null}
+          </div>
 
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: 'var(--space-2)' }}>
-            <button
-              type="button"
-              className="btn btn-primary btn-sm"
-              onClick={() => navigate(`/events/${id}/tasks`)}
-            >
+          <div className={styles.headerBadges}>
+            <span className={`badge badge-${statusBadge}`}>
+              <span className="badge-dot" />
+              {activeEvent.status.replace('_', ' ')}
+            </span>
+            {activeEvent.payment_status === 'unpaid' && (
+              <span className="badge" style={{ border: '1px solid var(--color-warning)', background: 'var(--color-warning-bg)', color: 'var(--color-warning)', fontWeight: 600 }}>
+                ⚡ Unpaid
+              </span>
+            )}
+            {activeEvent.payment_status === 'paid' && (
+              <span className="badge" style={{ background: 'var(--color-success-bg)', color: 'var(--color-success)', fontWeight: 600 }}>
+                ✓ Paid
+              </span>
+            )}
+            <span className="badge badge-medium">Phase {activeEvent.current_phase} / 9</span>
+          </div>
+
+          <div className={styles.headerActions}>
+            {!isPaid && (
+              <button type="button" className={styles.btnPayGreen} onClick={openPayment}>
+                <CreditCard size={14} /> Pay ₦20,000
+              </button>
+            )}
+            <button type="button" className="btn btn-primary btn-sm" onClick={() => navigate(`/events/${id}/tasks`)}>
               <ListChecks size={14} /> Tasks
             </button>
-            <button
-              type="button"
-              className="btn btn-secondary btn-sm"
-              onClick={() => setPortalOpen(true)}
-            >
+            <button type="button" className="btn btn-secondary btn-sm" onClick={() => setPortalOpen(true)}>
               <ExternalLink size={14} /> Client Portal
             </button>
           </div>
         </div>
       </div>
 
-        {/* Meta row */}
-        <div className={styles.metaRow}>
-          <div className={`${styles.metaItem} ${!activeEvent.event_date ? styles.metaEmpty : ''}`}>
-            <div className={styles.metaLabel}>
-              <Calendar size={10} style={{ display: 'inline', marginRight: 4 }} />
-              Event Date
-            </div>
-            <div className={styles.metaValue}>
-              {activeEvent.event_date
-                ? new Date(activeEvent.event_date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
-                : <span style={{ color: 'var(--color-text-muted)' }}>Not set</span>}
-            </div>
+      {/* ── 2. Critical Alert — unpaid only ── */}
+      {!isPaid && (
+        <div className={`${styles.alertBanner} ${styles.alertBannerCritical}`}>
+          <div className={styles.alertBannerIcon}><AlertTriangle size={16} /></div>
+          <div className={styles.alertBannerBody}>
+            <div className={styles.alertBannerTitle}>This event is not yet active</div>
+            <div className={styles.alertBannerSub}>Complete payment to unlock all planning features and start coordinating your event.</div>
           </div>
-          {activeEvent.end_date && (
-            <div className={styles.metaItem}>
-              <div className={styles.metaLabel}>
-                <Clock size={10} style={{ display: 'inline', marginRight: 4 }} />
-                End Date
-              </div>
-              <div className={styles.metaValue}>
-                {new Date(activeEvent.end_date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}
-              </div>
-            </div>
-          )}
-          <div className={`${styles.metaItem} ${!activeEvent.venue_name ? styles.metaEmpty : ''}`}>
-            <div className={styles.metaLabel}>
-              <MapPin size={10} style={{ display: 'inline', marginRight: 4 }} />
-              Venue
-            </div>
-            <div className={styles.metaValue}>{activeEvent.venue_name || <span style={{ color: 'var(--color-text-muted)' }}>Not set</span>}</div>
-          </div>
-          <div className={`${styles.metaItem} ${!activeEvent.guest_count ? styles.metaEmpty : ''}`}>
-            <div className={styles.metaLabel}>
-              <Users size={10} style={{ display: 'inline', marginRight: 4 }} />
-              Guests
-            </div>
-            <div className={styles.metaValue}>
-              {activeEvent.guest_count ? activeEvent.guest_count.toLocaleString() : <span style={{ color: 'var(--color-text-muted)' }}>Not set</span>}
-            </div>
-          </div>
-          <div className={`${styles.metaItem} ${!activeEvent.budget_total ? styles.metaEmptyAccent : ''}`}>
-            <div className={styles.metaLabel}>
-              <Wallet size={10} style={{ display: 'inline', marginRight: 4 }} />
-              Budget
-            </div>
-            <div className={styles.metaValue}>
-              {activeEvent.budget_total
-                ? `₦${(activeEvent.budget_total / 100).toLocaleString('en-NG')}`
-                : <span style={{ color: 'var(--color-accent)', cursor: 'pointer', fontWeight: 600 }} onClick={() => setShowEditModal(true)}>Set →</span>}
-            </div>
-          </div>
-          <div className={styles.metaItem}>
-            <div className={styles.metaLabel}>
-              <BarChart3 size={10} style={{ display: 'inline', marginRight: 4 }} />
-              Progress
-            </div>
-            <div className={styles.metaValue}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-                <div style={{ flex: 1, height: 4, background: 'var(--color-surface-3)', borderRadius: 'var(--radius-full)', maxWidth: 80 }}>
-                  <div style={{ height: '100%', width: `${progressPct}%`, background: 'var(--color-accent)', borderRadius: 'var(--radius-full)' }} />
-                </div>
-                <span className={styles.metaValueAccent}>{progressPct}%</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      {/* ── Stats cards ── */}
-      <div className={styles.statsGrid}>
-        <div className={styles.statCard + ' ' + styles.statCardAccent + ' ' + styles.statCardClickable} onClick={() => navigate('/events/' + id + '/vendors')} role="button" tabIndex={0} onKeyDown={e => e.key === 'Enter' && navigate('/events/' + id + '/vendors')}>
-          <div className={styles.statIcon}><Users size={20} /></div>
-          <div>
-            <div className={styles.statLabel}>Vendors</div>
-            <div className={styles.statValue}>{stats.vendors}</div>
-          </div>
-          <ArrowRight size={14} className={styles.statCardArrow} />
-        </div>
-
-        <div className={styles.statCard + ' ' + (stats.tasksDue > 0 ? styles.statCardWarn : styles.statCardAccent) + ' ' + styles.statCardClickable} onClick={() => navigate('/events/' + id + '/tasks')} role="button" tabIndex={0} onKeyDown={e => e.key === 'Enter' && navigate('/events/' + id + '/tasks')}>
-          <div className={styles.statIcon + ' ' + (stats.tasksDue > 0 ? styles.statIconWarn : styles.statIconOk)}>
-            <ListChecks size={20} />
-          </div>
-          <div>
-            <div className={styles.statLabel}>Tasks Overdue</div>
-            <div className={styles.statValue + ' ' + (stats.tasksDue > 0 ? styles.statValueWarn : '')}>
-              {stats.tasksDue}
-            </div>
-          </div>
-          <ArrowRight size={14} className={styles.statCardArrow} />
-        </div>
-
-        <div className={styles.statCard + ' ' + (stats.openIssues > 0 ? styles.statCardWarn : styles.statCardAccent) + ' ' + styles.statCardClickable} onClick={() => navigate('/events/' + id + '/live-board')} role="button" tabIndex={0} onKeyDown={e => e.key === 'Enter' && navigate('/events/' + id + '/live-board')}>
-          <div className={styles.statIcon + ' ' + (stats.openIssues > 0 ? styles.statIconWarn : styles.statIconOk)}>
-            <AlertTriangle size={20} />
-          </div>
-          <div>
-            <div className={styles.statLabel}>Open Issues</div>
-            <div className={styles.statValue + ' ' + (stats.openIssues > 0 ? styles.statValueWarn : '')}>
-              {stats.openIssues}
-            </div>
-          </div>
-          <ArrowRight size={14} className={styles.statCardArrow} />
-        </div>
-
-        <div className={styles.statCard + ' ' + styles.statCardSuccess + ' ' + styles.statCardClickable} onClick={() => setPageTab('phases')} role="button" tabIndex={0} onKeyDown={e => e.key === 'Enter' && setPageTab('phases')}>
-          <div className={styles.statIcon + ' ' + styles.statIconSuccess}>
-            <CheckCircle2 size={20} />
-          </div>
-          <div>
-            <div className={styles.statLabel}>Phases Done</div>
-            <div className={styles.statValue}>{completedCount} / {phases.length}</div>
-          </div>
-          <ArrowRight size={14} className={styles.statCardArrow} />
-        </div>
-
-        <div className={styles.statCard + ' ' + styles.statCardAccent + ' ' + styles.statCardClickable} onClick={() => navigate('/events/' + id + '/live-board')} role="button" tabIndex={0} onKeyDown={e => e.key === 'Enter' && navigate('/events/' + id + '/live-board')}>
-          <div className={styles.statIcon}><Radio size={20} /></div>
-          <div>
-            <div className={styles.statLabel}>Live Board</div>
-            <div className={styles.statValue} style={{ fontSize: 'var(--text-xs)', color: 'var(--color-accent)' }}>Open →</div>
-          </div>
-          <ArrowRight size={14} className={styles.statCardArrow} />
-        </div>
-      </div>
-
-      {/* ── Tab Bar ── */}
-      <div className={styles.pageTabs}>
-        {([
-          ['overview', 'Overview', <BarChart3 key="o" size={14} />],
-          ['timeline', 'Timeline', <Clock key="t" size={14} />],
-          ['phases', 'Phases', <CheckCircle2 key="p" size={14} />],
-          ['modules', 'Modules', <Zap key="m" size={14} />],
-        ] as const).map(([key, label, icon]) => (
-          <button
-            key={key}
-            type="button"
-            className={`${styles.pageTab} ${pageTab === key ? styles.pageTabActive : ''}`}
-            onClick={() => setPageTab(key as typeof pageTab)}
-          >
-            {icon} {label}
-          </button>
-        ))}
-      </div>
-
-      {/* ── Overview tab ── */}
-      {pageTab === 'overview' && (
-        <>
-          <NextStepCard
-            eventId={id || ''}
-            paymentStatus={activeEvent.payment_status}
-            daysUntilEvent={countdown ? (countdown.past ? -1 : countdown.days) : -1}
-            preEventChecklistIncomplete={stats.tasksDue > 0}
-            overdueTaskCount={stats.tasksDue}
-            currentPhaseStatus={phases.find(p => p.phase_number === activeEvent.current_phase)?.status || null}
-            currentPhaseNumber={activeEvent.current_phase}
-          />
-
-          {/* Financial snapshot — planner only */}
-          {role === 'planner' && (
-            <div className="card" style={{ padding: 'var(--space-4) var(--space-5)', marginBottom: 'var(--space-4)' }}>
-              <h3 style={{ margin: '0 0 var(--space-3) 0', fontSize: 'var(--text-sm)', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-2)' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-                  <Wallet size={14} style={{ color: 'var(--color-accent)' }} />
-                  Financial Snapshot
-                </span>
-                <Link to={`/financials?event=${id}`} style={{ fontSize: 'var(--text-xs)', color: 'var(--color-accent)', fontWeight: 500 }}>
-                  View Financials →
-                </Link>
-              </h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-3)', fontSize: 'var(--text-sm)' }}>
-                <div>
-                  <div style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)' }}>Total Budget</div>
-                  <div style={{ fontWeight: 700, fontSize: 'var(--text-base)' }}>
-                    {activeEvent.budget_total ? `₦${(activeEvent.budget_total / 100).toLocaleString('en-NG')}` : '—'}
-                  </div>
-                </div>
-                <div>
-                  <div style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)' }}>Total Paid</div>
-                  <div style={{ fontWeight: 700, fontSize: 'var(--text-base)', color: 'var(--color-success)' }}>
-                    ₦{(financialSummary.paid / 100).toLocaleString('en-NG')}
-                  </div>
-                </div>
-                <div>
-                  <div style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)' }}>Outstanding</div>
-                  <div style={{ fontWeight: 700, fontSize: 'var(--text-base)', color: financialSummary.outstanding > 0 ? 'var(--color-error)' : 'var(--color-success)' }}>
-                    ₦{(financialSummary.outstanding / 100).toLocaleString('en-NG')}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Upcoming deadlines */}
-          <div className="card" style={{ padding: 'var(--space-4) var(--space-5)', marginBottom: 'var(--space-4)' }}>
-            <h3 style={{ margin: '0 0 var(--space-3) 0', fontSize: 'var(--text-sm)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-              <Clock size={14} style={{ color: 'var(--color-info)' }} />
-              Upcoming Deadlines
-            </h3>
-            {deadlines.length === 0 ? (
-              <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', padding: 'var(--space-4) 0', textAlign: 'center' }}>
-                No upcoming deadlines
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-                {deadlines.map((dl) => {
-                  const dlIcon = dl.type === 'task' ? ListChecks : dl.type === 'phase' ? CheckCircle2 : Wallet
-                  const isOverdue = new Date(dl.date) < new Date()
-                  return (
-                    <div key={dl.id} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', fontSize: 'var(--text-sm)' }}>
-                      <div style={{ width: 28, height: 28, borderRadius: 'var(--radius-md)', background: isOverdue ? 'rgba(239,68,68,0.12)' : 'var(--color-surface-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: isOverdue ? 'var(--color-error)' : 'var(--color-text-secondary)' }}>
-                        {dlIcon === ListChecks ? <ListChecks size={14} /> : dlIcon === CheckCircle2 ? <CheckCircle2 size={14} /> : <Wallet size={14} />}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontWeight: 600, color: isOverdue ? 'var(--color-error)' : undefined }}>{dl.title}</div>
-                        <div style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)' }}>
-                          {new Date(dl.date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}
-                          {isOverdue ? ' (overdue)' : ''}
-                        </div>
-                      </div>
-                      <span className="badge badge-grey" style={{ fontSize: 'var(--text-2xs)', textTransform: 'capitalize' }}>{dl.label}</span>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Recent activity */}
-          <div className="card" style={{ padding: 'var(--space-4) var(--space-5)' }}>
-            <h3 style={{ margin: '0 0 var(--space-3) 0', fontSize: 'var(--text-sm)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-              <Zap size={14} style={{ color: 'var(--color-accent)' }} />
-              Recent Activity
-            </h3>
-            {activity.length === 0 ? (
-              <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', padding: 'var(--space-4) 0', textAlign: 'center' }}>
-                No activity yet
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-                {activity.map((a) => {
-                  const actIcon = a.action_type.startsWith('vendor') ? Users
-                    : a.action_type.startsWith('task') ? ListChecks
-                    : a.action_type.startsWith('phase') ? CheckCircle2
-                    : a.action_type.startsWith('payment') ? Wallet
-                    : a.action_type.startsWith('issue') ? AlertTriangle
-                    : Zap
-                  return (
-                    <div key={a.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-3)', fontSize: 'var(--text-sm)' }}>
-                      <div style={{ width: 28, height: 28, borderRadius: 'var(--radius-md)', background: 'var(--color-surface-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--color-accent)' }}>
-                        {actIcon === Users ? <Users size={14} /> : actIcon === ListChecks ? <ListChecks size={14} /> : actIcon === CheckCircle2 ? <CheckCircle2 size={14} /> : actIcon === Wallet ? <Wallet size={14} /> : actIcon === AlertTriangle ? <AlertTriangle size={14} /> : <Zap size={14} />}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontWeight: 500 }}>{a.description}</div>
-                        <div style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)', marginTop: 2 }}>
-                          {a.actor_name && <span>{a.actor_name} · </span>}
-                          {timeAgo(a.created_at)}
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-        </>
-      )}
-
-      {/* ── Timeline tab ── */}
-      {pageTab === 'timeline' && (
-        <PhaseTimelineTracker phases={phases} event={activeEvent} />
-      )}
-
-      {/* ── Phases tab ── */}
-      {pageTab === 'phases' && (
-        <div className={styles.sectionCard}>
-          <div className={styles.sectionHeader}>
-            <div>
-              <h2 className={styles.sectionTitle}>Phase Manager</h2>
-              <div className={styles.sectionSubtitle}>{completedCount} of {phases.length} phases completed · {progressPct}% overall progress</div>
-            </div>
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              onClick={() => setShowPhaseManager(!showPhaseManager)}
-            >
-              {showPhaseManager ? 'Hide' : 'Toggle Status'}
-              {showPhaseManager ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            </button>
-          </div>
-          <div className={styles.sectionBody}>
-            <PhasePipeline phases={phases} currentPhase={activeEvent.current_phase} eventId={activeEvent.id} />
-          </div>
-          <PhaseManagerPanel phases={phases} togglingPhase={togglingPhase} onToggle={togglePhaseStatus} styles={styles} />
         </div>
       )}
 
-      {/* ── Modules tab ── */}
-      {pageTab === 'modules' && (
-        <div className={styles.sectionCard}>
-          <div className={styles.sectionHeader}>
-            <div>
-              <h2 className={styles.sectionTitle}>Event Modules</h2>
-              <div className={styles.sectionSubtitle}>All tools and features for this event</div>
-            </div>
-          </div>
-          <div className={styles.moduleGrid}>
-            {MODULES.map((mod) => {
-              const Icon = mod.icon
-              const badge =
-                mod.key === 'vendors' && stats.vendors > 0 ? String(stats.vendors)
-                : mod.key === 'tasks' && stats.tasksDue > 0 ? `${stats.tasksDue} due`
-                : null
-              const badgeWarn = mod.key === 'tasks' && stats.tasksDue > 0
+      {/* ── 3. Next Actions Panel ── */}
+      {visibleActions.length > 0 && (
+        <div className={styles.actionsSection}>
+          <div className={styles.sectionLabel}>What needs attention</div>
+          <div className={styles.actionsGrid}>
+            {visibleActions.map((action) => {
+              const cardClass = `${styles.actionCard} ${
+                action.priority === 'critical' ? styles.actionCardCritical
+                : action.priority === 'warning' ? styles.actionCardWarning
+                : styles.actionCardInfo
+              }`
+              const inner = (
+                <>
+                  <div className={styles.actionCardIcon}><action.Icon size={18} /></div>
+                  <div className={styles.actionCardContent}>
+                    <div className={styles.actionCardTitle}>{action.title}</div>
+                    <div className={styles.actionCardSubtitle}>{action.subtitle}</div>
+                    <div className={styles.actionCardCta}>{action.cta} <ArrowRight size={12} /></div>
+                  </div>
+                </>
+              )
 
+              if (action.route) {
+                return (
+                  <Link key={action.id} to={action.route} className={cardClass}>
+                    {inner}
+                  </Link>
+                )
+              }
               return (
-                <Link
-                  key={mod.key}
-                  to={id ? mod.path(id) : '#'}
-                  className={styles.moduleCard}
-                >
-                  <div className={styles.moduleCardIcon}>
-                    <Icon size={20} />
-                  </div>
-                  <div className={styles.moduleCardBody}>
-                    <div className={styles.moduleCardName}>{mod.label}</div>
-                    <div className={styles.moduleCardDesc}>{mod.desc}</div>
-                  </div>
-                  <div className={styles.moduleCardFooter}>
-                    {badge ? (
-                      <span className={`${styles.moduleBadge} ${badgeWarn ? styles.moduleBadgeWarn : ''}`}>
-                        {badge}
-                      </span>
-                    ) : <span />}
-                    <ArrowRight size={14} className={styles.moduleArrow} />
-                  </div>
-                </Link>
+                <button key={action.id} type="button" className={cardClass} onClick={action.onClick}>
+                  {inner}
+                </button>
               )
             })}
-
-            {/* Client portal (button, not a link) */}
-            <button
-              type="button"
-              className={styles.moduleCard}
-              onClick={() => setPortalOpen(true)}
-            >
-              <div className={styles.moduleCardIcon} style={{ background: 'rgba(59,130,246,0.12)', color: '#3B82F6' }}>
-                <ExternalLink size={20} />
-              </div>
-              <div className={styles.moduleCardBody}>
-                <div className={styles.moduleCardName}>Client Portal</div>
-                <div className={styles.moduleCardDesc}>Generate a shareable link for your client</div>
-              </div>
-              <div className={styles.moduleCardFooter}>
-                <span />
-                <ArrowRight size={14} className={styles.moduleArrow} />
-              </div>
-            </button>
           </div>
         </div>
       )}
+
+      {/* ── 4. Phase Journey ── */}
+      {phases.length > 0 && (
+        <div className={styles.phaseSection}>
+          <div className={styles.phaseSectionHeader}>
+            <div className={styles.phaseSectionMeta}>
+              <div className={styles.sectionLabel} style={{ marginBottom: 0 }}>Event Phase Journey</div>
+              <div className={styles.phaseCount}>{completedCount} of {phases.length} phases complete</div>
+            </div>
+            <div className={styles.phaseProgressWrap}>
+              <div className={styles.phaseProgressBar}>
+                <div className={styles.phaseProgressFill} style={{ width: `${progressPct}%` }} />
+              </div>
+              <span className={styles.phaseProgressPct}>{progressPct}%</span>
+            </div>
+            <button
+              type="button"
+              className={styles.phaseManagerToggleBtn}
+              onClick={() => setShowPhaseManager(!showPhaseManager)}
+            >
+              {showPhaseManager ? 'Hide' : 'Manage'}
+              {showPhaseManager ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+            </button>
+          </div>
+
+          {/* Scrollable phase strip */}
+          <div className={styles.phaseStrip}>
+            {phases.map((phase, i) => (
+              <Fragment key={phase.id}>
+                <button
+                  type="button"
+                  className={`${styles.phaseNode} ${phaseNodeClass(phase.status)}`}
+                  onClick={() => navigate(getPhaseRoute(phase.phase_number, id!))}
+                  title={`Go to ${phase.phase_name}`}
+                >
+                  <div className={styles.phaseNodeBullet}>
+                    {phase.status === 'completed' ? <CheckCircle2 size={12} /> : phase.phase_number}
+                  </div>
+                  <span className={styles.phaseNodeName}>{phase.phase_name}</span>
+                  {phase.due_date && (
+                    <span className={styles.phaseNodeDate}>
+                      {new Date(phase.due_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                    </span>
+                  )}
+                </button>
+                {i < phases.length - 1 && (
+                  <div className={`${styles.phaseConnector} ${phase.status === 'completed' ? styles.phaseConnectorDone : ''}`} />
+                )}
+              </Fragment>
+            ))}
+          </div>
+
+          {showPhaseManager && (
+            <PhaseManagerPanel
+              phases={phases}
+              togglingPhase={togglingPhase}
+              onToggle={togglePhaseStatus}
+              styles={styles}
+            />
+          )}
+        </div>
+      )}
+
+      {/* ── 5. Metrics Row ── */}
+      <div className={styles.metricsRow}>
+        <button
+          type="button"
+          className={styles.metricChip}
+          onClick={() => navigate(`/events/${id}/vendors`)}
+        >
+          <div className={styles.metricChipIcon}><Users size={14} /></div>
+          <div>
+            <div className={styles.metricChipValue}>{stats.vendors}</div>
+            <div className={styles.metricChipLabel}>Vendors</div>
+          </div>
+        </button>
+
+        {stats.tasksDue > 0 && (
+          <button
+            type="button"
+            className={`${styles.metricChip} ${styles.metricChipWarn}`}
+            onClick={() => navigate(`/events/${id}/tasks`)}
+          >
+            <div className={styles.metricChipIcon}><AlertTriangle size={14} /></div>
+            <div>
+              <div className={styles.metricChipValue}>{stats.tasksDue}</div>
+              <div className={styles.metricChipLabel}>Overdue</div>
+            </div>
+          </button>
+        )}
+
+        {stats.openIssues > 0 && (
+          <button
+            type="button"
+            className={`${styles.metricChip} ${styles.metricChipWarn}`}
+            onClick={() => navigate(`/events/${id}/live-board`)}
+          >
+            <div className={styles.metricChipIcon}><AlertTriangle size={14} /></div>
+            <div>
+              <div className={styles.metricChipValue}>{stats.openIssues}</div>
+              <div className={styles.metricChipLabel}>Open Issues</div>
+            </div>
+          </button>
+        )}
+
+        {role === 'planner' && activeEvent.budget_total ? (
+          <Link to={`/financials?event=${id}`} className={styles.metricChip}>
+            <div className={styles.metricChipIcon}><Wallet size={14} /></div>
+            <div>
+              <div className={styles.metricChipValue}>{fmtNaira(activeEvent.budget_total)}</div>
+              <div className={styles.metricChipLabel}>Budget</div>
+            </div>
+          </Link>
+        ) : null}
+      </div>
+
+      {/* ── 6. Deadlines + Activity ── */}
+      <div className={styles.contentGrid}>
+        {/* Upcoming Deadlines */}
+        <div className={styles.feedCard}>
+          <div className={styles.feedCardTitle}>
+            <Clock size={14} style={{ color: 'var(--color-info)' }} />
+            Upcoming Deadlines
+          </div>
+          {deadlines.length === 0 ? (
+            <div className={styles.feedEmpty}>No upcoming deadlines</div>
+          ) : (
+            <div className={styles.feedBody}>
+              {deadlines.map((dl) => {
+                const isOverdue = new Date(dl.date) < new Date()
+                const DlIcon = dl.type === 'task' ? ListChecks : dl.type === 'phase' ? CheckCircle2 : Wallet
+                return (
+                  <div key={dl.id} className={styles.feedItem}>
+                    <div className={`${styles.feedItemIcon} ${isOverdue ? styles.feedItemIconWarn : ''}`}>
+                      <DlIcon size={14} />
+                    </div>
+                    <div className={styles.feedItemBody}>
+                      <div className={`${styles.feedItemTitle} ${isOverdue ? styles.feedItemTitleWarn : ''}`}>{dl.title}</div>
+                      <div className={styles.feedItemMeta}>
+                        {new Date(dl.date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}
+                        {isOverdue ? ' · overdue' : ''}
+                      </div>
+                    </div>
+                    <span className={styles.feedItemBadge}>{dl.label}</span>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Recent Activity */}
+        <div className={styles.feedCard}>
+          <div className={styles.feedCardTitle}>
+            <Zap size={14} style={{ color: 'var(--color-accent)' }} />
+            Recent Activity
+          </div>
+          {activity.length === 0 ? (
+            <div className={styles.feedEmpty}>No activity yet</div>
+          ) : (
+            <div className={styles.feedBody}>
+              {activity.map((a) => {
+                const ActIcon = activityIcon(a.action_type)
+                return (
+                  <div key={a.id} className={styles.feedItem}>
+                    <div className={`${styles.feedItemIcon} ${styles.feedItemIconAccent}`}>
+                      <ActIcon size={14} />
+                    </div>
+                    <div className={styles.feedItemBody}>
+                      <div className={styles.feedItemTitle}>{a.description}</div>
+                      <div className={styles.feedItemMeta}>
+                        {a.actor_name && <>{a.actor_name} · </>}
+                        {timeAgo(a.created_at)}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── 7. Financial Strip — planner only ── */}
+      {role === 'planner' && (
+        <div className={styles.financialStrip}>
+          <div className={styles.financialStripLabel}>
+            <Wallet size={12} /> Financials
+          </div>
+          <div className={styles.financialItems}>
+            <div className={styles.financialItem}>
+              <div className={styles.financialItemLabel}>Budget</div>
+              <div className={styles.financialItemValue}>
+                {activeEvent.budget_total ? fmtNaira(activeEvent.budget_total) : '—'}
+              </div>
+            </div>
+            <div className={styles.financialItem}>
+              <div className={styles.financialItemLabel}>Total Paid</div>
+              <div className={`${styles.financialItemValue} ${styles.financialItemValueSuccess}`}>
+                {fmtNaira(financialSummary.paid)}
+              </div>
+            </div>
+            <div className={styles.financialItem}>
+              <div className={styles.financialItemLabel}>Outstanding</div>
+              <div className={`${styles.financialItemValue} ${financialSummary.outstanding > 0 ? styles.financialItemValueError : styles.financialItemValueSuccess}`}>
+                {fmtNaira(financialSummary.outstanding)}
+              </div>
+            </div>
+          </div>
+          <Link to={`/financials?event=${id}`} className={styles.financialStripLink}>
+            View Financials <ArrowRight size={12} />
+          </Link>
+        </div>
+      )}
+
+      {/* ── 8. Quick Tools ── */}
+      <div className={styles.quickToolsSection}>
+        <div className={styles.sectionLabel}>Quick Access</div>
+        <div className={styles.quickToolsGrid}>
+          {MODULES.map((mod) => {
+            const badge =
+              mod.key === 'vendors' && stats.vendors > 0 ? String(stats.vendors)
+              : mod.key === 'tasks' && stats.tasksDue > 0 ? `${stats.tasksDue} due`
+              : null
+            const badgeWarn = mod.key === 'tasks' && stats.tasksDue > 0
+
+            return (
+              <Link key={mod.key} to={id ? mod.path(id) : '#'} className={styles.quickToolCard}>
+                <div className={styles.quickToolCardIcon}><mod.Icon size={14} /></div>
+                <span className={styles.quickToolCardName}>{mod.label}</span>
+                {badge && (
+                  <span className={`${styles.quickToolCardBadge} ${badgeWarn ? styles.quickToolCardBadgeWarn : ''}`}>
+                    {badge}
+                  </span>
+                )}
+              </Link>
+            )
+          })}
+
+          {/* Client portal */}
+          <button type="button" className={styles.quickToolCard} onClick={() => setPortalOpen(true)}>
+            <div className={styles.quickToolCardIcon} style={{ background: 'rgba(59,130,246,0.12)', color: '#3B82F6' }}>
+              <ExternalLink size={14} />
+            </div>
+            <span className={styles.quickToolCardName}>Client Portal</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ── 9. Phase Timeline (expandable) ── */}
+      <div className={styles.timelineSection}>
+        <button type="button" className={styles.timelineToggle} onClick={() => setShowTimeline(!showTimeline)}>
+          <Clock size={14} />
+          Phase Timeline
+          {showTimeline ? <ChevronUp size={14} style={{ marginLeft: 'auto' }} /> : <ChevronDown size={14} style={{ marginLeft: 'auto' }} />}
+        </button>
+        {showTimeline && (
+          <PhaseTimelineTracker phases={phases} event={activeEvent} />
+        )}
+      </div>
 
       {/* ── Modals ── */}
       {portalOpen && id && (
@@ -933,39 +916,26 @@ export function EventDashboardPage() {
               <div className="modal-card-title">
                 {payStatus === 'success' ? '🎉 Payment Successful' : 'Activate Event'}
               </div>
-              <button
-                className="modal-card-close"
-                onClick={closePayment}
-                disabled={payStatus === 'processing'}
-                aria-label="Close"
-              >
+              <button className="modal-card-close" onClick={closePayment} disabled={payStatus === 'processing'} aria-label="Close">
                 <X size={18} />
               </button>
             </div>
 
             <div className={styles.payModal}>
-              {/* ── Success state ── */}
               {payStatus === 'success' && (
                 <>
-                  <div className={styles.paySuccessIcon}>
-                    <CheckCircle2 size={36} />
-                  </div>
+                  <div className={styles.paySuccessIcon}><CheckCircle2 size={36} /></div>
                   <h3 style={{ marginBottom: 'var(--space-2)', fontSize: 'var(--text-title)' }}>Payment Confirmed!</h3>
                   <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-5)' }}>
                     <strong>{activeEvent.name}</strong> is now active. You can start planning your event.
                   </p>
-                  <div className={styles.payAutoClose}>
-                    Closing automatically in {autoCloseIn}s...
-                  </div>
+                  <div className={styles.payAutoClose}>Closing automatically in {autoCloseIn}s...</div>
                   <div className={styles.payButtons} style={{ marginTop: 'var(--space-4)' }}>
-                    <button className="btn btn-primary btn-lg" onClick={closePayment}>
-                      Start Planning →
-                    </button>
+                    <button className="btn btn-primary btn-lg" onClick={closePayment}>Start Planning →</button>
                   </div>
                 </>
               )}
 
-              {/* ── Processing state ── */}
               {payStatus === 'processing' && (
                 <div className={styles.payProcessing}>
                   <span className="spinner-loader" style={{ width: 36, height: 36 }} />
@@ -974,7 +944,6 @@ export function EventDashboardPage() {
                 </div>
               )}
 
-              {/* ── Idle / Cancelled / Failed state ── */}
               {(payStatus === 'idle' || payStatus === 'cancelled' || payStatus === 'failed') && (
                 <>
                   <div className={styles.payEventName}>Activate · {activeEvent.name}</div>
@@ -995,16 +964,10 @@ export function EventDashboardPage() {
                   )}
 
                   <div className={styles.payButtons}>
-                    <button
-                      className="btn btn-primary btn-lg"
-                      onClick={() => handlePayNow('paystack')}
-                    >
+                    <button className="btn btn-primary btn-lg" onClick={() => handlePayNow('paystack')}>
                       <CreditCard size={18} /> Pay with Paystack
                     </button>
-                    <button
-                      className="btn btn-secondary btn-lg"
-                      onClick={() => handlePayNow('flutterwave')}
-                    >
+                    <button className="btn btn-secondary btn-lg" onClick={() => handlePayNow('flutterwave')}>
                       Pay with Flutterwave
                     </button>
                   </div>

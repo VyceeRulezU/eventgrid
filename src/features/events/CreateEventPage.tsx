@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { processPayment, getEventPrice } from '@/lib/payment'
+import { generateSlug } from '@/lib/slug'
 import { CalendarModal } from '@/components/ui/CalendarModal'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 
@@ -42,6 +43,7 @@ export function CreateEventPage() {
     budgetTotal: 0,
   })
   const [createdEventId, setCreatedEventId] = useState<string | null>(null)
+  const [createdEventSlug, setCreatedEventSlug] = useState<string | null>(null)
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'success' | 'cancelled' | 'failed'>('idle')
   const [paying, setPaying] = useState(false)
 
@@ -89,6 +91,7 @@ export function CreateEventPage() {
         budget_total: form.budgetTotal * 100 || null,
         status: 'draft',
         payment_status: 'unpaid',
+        slug: generateSlug(form.name),
       })
       .select()
       .single()
@@ -101,7 +104,7 @@ export function CreateEventPage() {
 
     showToast({ type: 'success', title: 'Draft saved', body: 'Your event draft has been saved.' })
     setSaving(false)
-    navigate(`/events/${data.id}`)
+    navigate(`/events/${data.slug || data.id}`)
   }
 
   const handleActivate = async () => {
@@ -130,6 +133,7 @@ export function CreateEventPage() {
         budget_total: form.budgetTotal * 100 || null,
         status: 'draft',
         payment_status: 'unpaid',
+        slug: generateSlug(form.name),
       })
       .select()
       .single()
@@ -141,6 +145,7 @@ export function CreateEventPage() {
     }
 
     setCreatedEventId(data.id)
+    setCreatedEventSlug(data.slug ?? null)
     setSaving(false)
     setStep('payment')
   }
@@ -207,8 +212,8 @@ export function CreateEventPage() {
   }
 
   const handleGoToEvent = () => {
-    if (createdEventId) {
-      navigate(`/events/${createdEventId}`)
+    if (createdEventSlug || createdEventId) {
+      navigate(`/events/${createdEventSlug || createdEventId}`)
     } else {
       navigate('/events')
     }

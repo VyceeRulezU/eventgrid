@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
+import { useResolvedEventId } from '@/hooks/useResolvedEventId'
 import { supabase } from '@/lib/supabase'
 import { useLiveBoardStore } from '@/store/liveBoard.store'
 import { useUIStore } from '@/store/ui.store'
@@ -11,7 +12,7 @@ import type { RealtimeChannel } from '@supabase/supabase-js'
 import styles from './LiveBoardPage.module.css'
 
 export function LiveBoardPage() {
-  const { id: eventId } = useParams<{ id: string }>()
+  const { eventId, paramId } = useResolvedEventId()
   const navigate = useNavigate()
   const { items, setItems, updateItem, setIssues, addIssue } = useLiveBoardStore()
   const showNotification = useUIStore((s) => s.showNotification)
@@ -142,7 +143,7 @@ export function LiveBoardPage() {
         </div>
         <div className="empty-state__title">Failed to load board</div>
         <div className="empty-state__description">{error}</div>
-        <button className="btn btn-primary" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => navigate(`/events/${eventId}`)}>
+        <button className="btn btn-primary" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => navigate(`/events/${paramId}`)}>
           <ArrowLeft size={16} />
           Back to Event
         </button>
@@ -154,7 +155,7 @@ export function LiveBoardPage() {
     <div className={styles.page}>
       <div className={styles.header}>
         <div className={styles.headerLeft}>
-          <button className="btn btn-ghost btn-icon" onClick={() => navigate(`/events/${eventId}`)} aria-label="Back">
+          <button className="btn btn-ghost btn-icon" onClick={() => navigate(`/events/${paramId}`)} aria-label="Back">
             <ArrowLeft size={20} />
           </button>
           <div>

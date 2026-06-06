@@ -289,7 +289,7 @@ export function EventsListPage() {
                       <button
                         type="button"
                         className={styles.clickableName}
-                        onClick={() => navigate(`/events/${event.id}`)}
+                        onClick={() => navigate(`/events/${event.slug || event.id}`)}
                       >
                         <div className={styles.eventName}>{event.name}</div>
                         <div className={styles.eventMeta}>
@@ -332,7 +332,7 @@ export function EventsListPage() {
                         <button
                           type="button"
                           className={styles.iconBtn}
-                          onClick={() => navigate(`/events/${event.id}`)}
+                          onClick={() => navigate(`/events/${event.slug || event.id}`)}
                           aria-label={`Open ${event.name}`}
                         >
                           <ExternalLink size={14} />
@@ -340,7 +340,7 @@ export function EventsListPage() {
                         <button
                           type="button"
                           className={styles.iconBtn}
-                          onClick={() => navigate(`/events/${event.id}`)}
+                          onClick={() => navigate(`/events/${event.slug || event.id}`)}
                           aria-label={`Edit ${event.name}`}
                         >
                           <Pencil size={14} />

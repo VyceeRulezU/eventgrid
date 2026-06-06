@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { X, Copy, Check, AlertCircle, ExternalLink } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { X, Copy, Check, AlertCircle, ExternalLink, RefreshCw } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -21,6 +21,7 @@ export function GeneratePortalModal({ eventId, onClose }: GeneratePortalModalPro
   const showToast = useUIStore((s) => s.showToast)
   const showNotification = useUIStore((s) => s.showNotification)
 
+  const [checking, setChecking] = useState(true)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
@@ -33,6 +34,26 @@ export function GeneratePortalModal({ eventId, onClose }: GeneratePortalModalPro
 
   const portalLink = token ? `${window.location.origin}/portal/${token}` : ''
 
+  // Load any existing active portal on mount
+  useEffect(() => {
+    supabase
+      .from('client_portals')
+      .select('*')
+      .eq('event_id', eventId)
+      .eq('is_active', true)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          setPortalId(data.id)
+          setToken(data.access_token)
+          setName(data.client_name ?? '')
+          setEmail(data.client_email ?? '')
+          setPhone(data.client_phone ?? '')
+        }
+        setChecking(false)
+      })
+  }, [eventId])
+
   const handleSave = async () => {
     if (!name.trim() || !user) {
       showToast({ type: 'warning', title: 'Client name is required' })
@@ -42,17 +63,21 @@ export function GeneratePortalModal({ eventId, onClose }: GeneratePortalModalPro
     setSaving(true)
     const newToken = generateToken(name)
 
+    // upsert on event_id — works for both first-time create and regenerate
     const { data, error } = await supabase
       .from('client_portals')
-      .insert({
-        event_id: eventId,
-        client_name: name,
-        client_email: email || null,
-        client_phone: phone || null,
-        access_token: newToken,
-        is_active: true,
-        expires_at: hasExpiry && expiry ? new Date(expiry).toISOString() : null,
-      })
+      .upsert(
+        {
+          event_id: eventId,
+          client_name: name,
+          client_email: email || null,
+          client_phone: phone || null,
+          access_token: newToken,
+          is_active: true,
+          expires_at: hasExpiry && expiry ? new Date(expiry).toISOString() : null,
+        },
+        { onConflict: 'event_id' }
+      )
       .select()
       .single()
 
@@ -66,6 +91,27 @@ export function GeneratePortalModal({ eventId, onClose }: GeneratePortalModalPro
     setPortalId(data.id)
     setSaving(false)
     showNotification({ variant: 'success', title: 'Portal link created', duration: 2000 })
+  }
+
+  const handleRegenerate = async () => {
+    if (!portalId || !name.trim()) return
+    setSaving(true)
+    const newToken = generateToken(name)
+
+    const { error } = await supabase
+      .from('client_portals')
+      .update({ access_token: newToken, is_active: true })
+      .eq('id', portalId)
+
+    if (error) {
+      showToast({ type: 'error', title: 'Failed to regenerate link', body: error.message })
+      setSaving(false)
+      return
+    }
+
+    setToken(newToken)
+    setSaving(false)
+    showNotification({ variant: 'success', title: 'New portal link generated', duration: 2000 })
   }
 
   const handleCopy = () => {
@@ -91,7 +137,12 @@ export function GeneratePortalModal({ eventId, onClose }: GeneratePortalModalPro
           <button className={styles.closeBtn} onClick={onClose}><X size={18} /></button>
         </div>
 
-        {!token ? (
+        {checking ? (
+          <div className={styles.body} style={{ textAlign: 'center', padding: 'var(--space-8) 0' }}>
+            <span className="spinner-loader" />
+          </div>
+        ) : !token ? (
+          /* ── Create form ── */
           <div className={styles.body}>
             <div className="input-wrapper" style={{ marginBottom: 'var(--space-3)' }}>
               <label className="input-label">Client Name *</label>
@@ -124,7 +175,14 @@ export function GeneratePortalModal({ eventId, onClose }: GeneratePortalModalPro
             </button>
           </div>
         ) : (
+          /* ── Existing / just-created portal ── */
           <div className={styles.body}>
+            {name && (
+              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-3)' }}>
+                Active portal for <strong style={{ color: 'var(--color-text-primary)' }}>{name}</strong>
+              </div>
+            )}
+
             <div className={styles.linkCard}>
               <div className={styles.linkLabel}>Portal Link</div>
               <div className={styles.linkValue}>{portalLink}</div>
@@ -138,7 +196,16 @@ export function GeneratePortalModal({ eventId, onClose }: GeneratePortalModalPro
               </div>
             </div>
 
-            <button className="btn btn-destructive" style={{ width: '100%', marginTop: 'var(--space-3)' }} onClick={handleRevoke}>
+            <button
+              className="btn btn-secondary"
+              style={{ width: '100%', marginTop: 'var(--space-3)' }}
+              onClick={handleRegenerate}
+              disabled={saving}
+            >
+              <RefreshCw size={14} /> {saving ? 'Generating...' : 'Generate New Link'}
+            </button>
+
+            <button className="btn btn-destructive" style={{ width: '100%', marginTop: 'var(--space-2)' }} onClick={handleRevoke}>
               <AlertCircle size={14} /> Revoke Portal Access
             </button>
           </div>
