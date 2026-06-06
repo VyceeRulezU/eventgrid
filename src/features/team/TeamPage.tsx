@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Users, X, Mail, UserPlus } from 'lucide-react'
+import { Users, X, Mail, UserPlus, FileText, CheckCircle2, AlertTriangle, Clock, Send, Download } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -19,12 +19,53 @@ interface TeamMemberRow {
   profile: Pick<Profile, 'id' | 'email' | 'display_name' | 'phone' | 'avatar_url'> | null
 }
 
+interface TeamReport {
+  id: string
+  actor_name: string | null
+  description: string
+  action_type: string
+  created_at: string
+  metadata: { status?: string; message?: string } | null
+}
+
 const ROLES = ['team', 'coordinator', 'planner', 'vendor']
+
+const REPORT_STATUS_OPTS = [
+  { value: 'all_good', label: '✅ All Good' },
+  { value: 'need_help', label: '⚠️ Need Help' },
+  { value: 'blocked', label: '🔴 Blocked' },
+  { value: 'update', label: '📝 General Update' },
+]
+
+function timeAgo(dateStr: string) {
+  const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000)
+  if (seconds < 60) return 'just now'
+  const mins = Math.floor(seconds / 60)
+  if (mins < 60) return `${mins}m ago`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours}h ago`
+  return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+}
+
+function reportStatusIcon(status?: string) {
+  if (status === 'all_good') return <CheckCircle2 size={14} style={{ color: 'var(--color-success)' }} />
+  if (status === 'need_help') return <AlertTriangle size={14} style={{ color: 'var(--color-warning)' }} />
+  if (status === 'blocked') return <AlertTriangle size={14} style={{ color: 'var(--color-error)' }} />
+  return <FileText size={14} style={{ color: 'var(--color-text-muted)' }} />
+}
+
+function reportStatusColor(status?: string) {
+  if (status === 'all_good') return 'var(--color-success-bg)'
+  if (status === 'need_help') return 'var(--color-warning-bg)'
+  if (status === 'blocked') return 'var(--color-error-bg)'
+  return 'var(--color-surface-3)'
+}
 
 export function TeamPage() {
   const { id: eventId } = useParams<{ id: string }>()
   const user = useAuthStore((s) => s.user)
   const profile = useAuthStore((s) => s.profile)
+  const role = useAuthStore((s) => s.role)
   const showNotification = useUIStore((s) => s.showModal)
 
   const [members, setMembers] = useState<TeamMemberRow[]>([])
@@ -35,6 +76,14 @@ export function TeamPage() {
   const [inviting, setInviting] = useState(false)
   const [taskCounts, setTaskCounts] = useState<Record<string, number>>({})
 
+  /* ── Reports ── */
+  const [reports, setReports] = useState<TeamReport[]>([])
+  const [showReportForm, setShowReportForm] = useState(false)
+  const [reportStatus, setReportStatus] = useState('update')
+  const [reportMessage, setReportMessage] = useState('')
+  const [submittingReport, setSubmittingReport] = useState(false)
+  const [activeTab, setActiveTab] = useState<'members' | 'reports'>('members')
+
   useEffect(() => {
     if (!eventId) return
     loadData()
@@ -43,7 +92,7 @@ export function TeamPage() {
   async function loadData() {
     setLoading(true)
 
-    const [{ data: membersData }, { data: tasksData }] = await Promise.all([
+    const [{ data: membersData }, { data: tasksData }, { data: reportsData }] = await Promise.all([
       supabase
         .from('event_access')
         .select('*, profile:profiles!event_access_user_id_fkey(id, email, display_name, phone, avatar_url)')
@@ -53,9 +102,17 @@ export function TeamPage() {
         .from('tasks')
         .select('id, assignee_id')
         .eq('event_id', eventId),
+      supabase
+        .from('event_activity')
+        .select('id, actor_name, description, action_type, created_at, metadata')
+        .eq('event_id', eventId)
+        .eq('action_type', 'team_report')
+        .order('created_at', { ascending: false })
+        .limit(50),
     ])
 
     if (membersData) setMembers(membersData as unknown as TeamMemberRow[])
+    if (reportsData) setReports(reportsData as unknown as TeamReport[])
 
     const counts: Record<string, number> = {}
     if (tasksData) {
@@ -67,6 +124,60 @@ export function TeamPage() {
     }
     setTaskCounts(counts)
     setLoading(false)
+  }
+
+  function exportReportsCsv() {
+    if (reports.length === 0) return
+    const header = 'Date,Member,Status,Message'
+    const rows = reports.map(r => {
+      const date = new Date(r.created_at).toLocaleString('en-GB')
+      const member = (r.actor_name || 'Unknown').replace(/,/g, ' ')
+      const status = REPORT_STATUS_OPTS.find(o => o.value === r.metadata?.status)?.label.replace(/[^\w\s]/g, '').trim() || 'Update'
+      const message = (r.description || '').replace(/"/g, '""')
+      return `"${date}","${member}","${status}","${message}"`
+    })
+    const csv = [header, ...rows].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `team-reports-${eventId}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  async function handleSubmitReport() {
+    if (!reportMessage.trim() || !eventId || !user) return
+
+    setSubmittingReport(true)
+    const actorName = profile?.display_name || user?.user_metadata?.display_name || user.email || 'Team member'
+    const statusLabel = REPORT_STATUS_OPTS.find(o => o.value === reportStatus)?.label || 'Update'
+
+    const { data, error } = await supabase
+      .from('event_activity')
+      .insert({
+        event_id: eventId,
+        actor_id: user.id,
+        actor_name: actorName,
+        action_type: 'team_report',
+        description: reportMessage.trim(),
+        metadata: { status: reportStatus, message: reportMessage.trim(), status_label: statusLabel },
+      })
+      .select()
+      .single()
+
+    if (error) {
+      showNotification({ variant: 'error', title: 'Failed to submit report', message: error.message })
+      setSubmittingReport(false)
+      return
+    }
+
+    if (data) setReports([data as unknown as TeamReport, ...reports])
+    showNotification({ variant: 'success', title: 'Report submitted', message: 'Your update has been sent to the planner.' })
+    setReportMessage('')
+    setReportStatus('update')
+    setShowReportForm(false)
+    setSubmittingReport(false)
   }
 
   async function handleInvite() {
@@ -108,73 +219,251 @@ export function TeamPage() {
     )
   }
 
+  const needsAttentionCount = reports.filter(r => r.metadata?.status === 'need_help' || r.metadata?.status === 'blocked').length
+
   return (
     <div className={styles.page}>
       <div className={styles.header}>
         <div>
           <h2 className={styles.headerTitle}>Team</h2>
-          <p className={styles.headerDesc}>{members.length} member{members.length !== 1 ? 's' : ''} on this event</p>
+          <p className={styles.headerDesc}>{members.length} member{members.length !== 1 ? 's' : ''} · {reports.length} report{reports.length !== 1 ? 's' : ''}</p>
         </div>
-        <button className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => setShowInvite(true)}>
-          <UserPlus size={14} />
-          Invite Member
-        </button>
+        <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+          {role !== 'planner' && (
+            <button className="btn btn-secondary btn-sm" onClick={() => { setShowReportForm(true); setActiveTab('reports') }}>
+              <Send size={14} />
+              Submit Report
+            </button>
+          )}
+          {(role === 'planner' || role === 'coordinator') && (
+            <button className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => setShowInvite(true)}>
+              <UserPlus size={14} />
+              Invite Member
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className={styles.tableCard}>
-        <div className={styles.tableScroll}>
-          <table className={styles.table}>
-            <thead className={styles.thead}>
-              <tr>
-                <th className={styles.th}>Member</th>
-                <th className={styles.th}>Role</th>
-                <th className={`${styles.th} ${styles.thTasks}`}>Tasks</th>
-              </tr>
-            </thead>
-            <tbody>
-              {members.length === 0 ? (
+      {/* ── Attention strip ── */}
+      {needsAttentionCount > 0 && (role === 'planner' || role === 'coordinator') && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', padding: 'var(--space-3) var(--space-4)', background: 'var(--color-warning-bg)', border: '1px solid rgba(234,179,8,0.3)', borderRadius: 'var(--radius-lg)', fontSize: 'var(--text-sm)', cursor: 'pointer' }} onClick={() => setActiveTab('reports')}>
+          <AlertTriangle size={16} style={{ color: 'var(--color-warning)', flexShrink: 0 }} />
+          <span style={{ color: 'var(--color-warning)', fontWeight: 600 }}>{needsAttentionCount} report{needsAttentionCount !== 1 ? 's' : ''} need attention</span>
+          <span style={{ color: 'var(--color-text-secondary)', marginLeft: 'auto', fontSize: 'var(--text-xs)' }}>View Reports →</span>
+        </div>
+      )}
+
+      {/* ── Tabs ── */}
+      <div style={{ display: 'flex', gap: 'var(--space-1)', borderBottom: '1px solid var(--color-border-subtle)', paddingBottom: 0 }}>
+        {([
+          ['members', 'Members', <Users key="u" size={14} />],
+          ['reports', 'Reports', <FileText key="r" size={14} />],
+        ] as const).map(([key, label, icon]) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setActiveTab(key)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
+              padding: 'var(--space-2) var(--space-4)',
+              background: 'none', border: 'none', cursor: 'pointer',
+              fontFamily: 'var(--font-base)', fontSize: 'var(--text-sm)',
+              fontWeight: activeTab === key ? 600 : 400,
+              color: activeTab === key ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+              borderBottom: activeTab === key ? '2px solid var(--color-accent)' : '2px solid transparent',
+              marginBottom: -1,
+              transition: 'all var(--transition-fast)',
+            }}
+          >
+            {icon} {label}
+            {key === 'reports' && reports.length > 0 && (
+              <span style={{ background: needsAttentionCount > 0 ? 'var(--color-warning-bg)' : 'var(--color-accent-muted)', color: needsAttentionCount > 0 ? 'var(--color-warning)' : 'var(--color-accent)', fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 'var(--radius-full)' }}>
+                {reports.length}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Members tab ── */}
+      {activeTab === 'members' && (
+        <div className={styles.tableCard}>
+          <div className={styles.tableScroll}>
+            <table className={styles.table}>
+              <thead className={styles.thead}>
                 <tr>
-                  <td className={styles.td} colSpan={3}>
-                    <div style={{ textAlign: 'center', padding: 'var(--space-8) var(--space-4)', color: 'var(--color-text-muted)' }}>
-                      <Users size={24} style={{ marginBottom: 'var(--space-2)', opacity: 0.4 }} />
-                      <div style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>No team members yet</div>
-                      <div style={{ fontSize: 'var(--text-xs)', marginTop: 4 }}>Invite members to collaborate</div>
-                    </div>
-                  </td>
+                  <th className={styles.th}>Member</th>
+                  <th className={styles.th}>Role</th>
+                  <th className={`${styles.th} ${styles.thTasks}`}>Tasks</th>
                 </tr>
-              ) : members.map((member) => (
-                <tr key={member.id} className={styles.tr}>
-                  <td className={`${styles.td} ${styles.memberCell}`}>
-                    <div className={styles.memberInfo}>
-                      <div className={styles.avatar}>
-                        {member.profile?.display_name?.charAt(0)?.toUpperCase() || member.profile?.email?.charAt(0)?.toUpperCase() || '?'}
+              </thead>
+              <tbody>
+                {members.length === 0 ? (
+                  <tr>
+                    <td className={styles.td} colSpan={3}>
+                      <div style={{ textAlign: 'center', padding: 'var(--space-8) var(--space-4)', color: 'var(--color-text-muted)' }}>
+                        <Users size={24} style={{ marginBottom: 'var(--space-2)', opacity: 0.4 }} />
+                        <div style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>No team members yet</div>
+                        <div style={{ fontSize: 'var(--text-xs)', marginTop: 4 }}>Invite members to collaborate</div>
                       </div>
-                      <div>
-                        <div className={styles.memberName}>{member.profile?.display_name || 'Unnamed'}</div>
-                        <div className={styles.memberEmail}>{member.profile?.email}</div>
+                    </td>
+                  </tr>
+                ) : members.map((member) => (
+                  <tr key={member.id} className={styles.tr}>
+                    <td className={`${styles.td} ${styles.memberCell}`}>
+                      <div className={styles.memberInfo}>
+                        <div className={styles.avatar}>
+                          {member.profile?.display_name?.charAt(0)?.toUpperCase() || member.profile?.email?.charAt(0)?.toUpperCase() || '?'}
+                        </div>
+                        <div>
+                          <div className={styles.memberName}>{member.profile?.display_name || 'Unnamed'}</div>
+                          <div className={styles.memberEmail}>{member.profile?.email}</div>
+                        </div>
                       </div>
+                    </td>
+                    <td className={styles.td}>
+                      <span className={`badge badge-${member.role === 'coordinator' ? 'yellow' : member.role === 'planner' ? 'green' : 'grey'}`}>
+                        <span className="badge-dot" />
+                        {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
+                      </span>
+                    </td>
+                    <td className={`${styles.td} ${styles.cellCenter}`}>
+                      <span className={styles.tasksCount}>{taskCounts[member.user_id] || 0} tasks</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className={styles.tableFooter}>
+            <span>Showing {members.length} member{members.length !== 1 ? 's' : ''}</span>
+          </div>
+        </div>
+      )}
+
+      {/* ── Reports tab ── */}
+      {activeTab === 'reports' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+          {/* Planner view: export only */}
+          {role === 'planner' && reports.length > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button className="btn btn-secondary btn-sm" onClick={exportReportsCsv}>
+                <Download size={14} />
+                Export CSV
+              </button>
+            </div>
+          )}
+
+          {/* Submit report form — non-planners only */}
+          {role !== 'planner' && showReportForm && (
+            <div className="card" style={{ borderLeft: '3px solid var(--color-accent)', padding: 'var(--space-5)' }}>
+              <h3 style={{ margin: '0 0 var(--space-4)', fontSize: 'var(--text-sm)', fontWeight: 700 }}>
+                <Send size={14} style={{ display: 'inline', marginRight: 8, color: 'var(--color-accent)' }} />
+                Submit a Report
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+                <div className="input-wrapper">
+                  <label className="input-label">Status</label>
+                  <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+                    {REPORT_STATUS_OPTS.map(opt => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setReportStatus(opt.value)}
+                        style={{
+                          padding: 'var(--space-2) var(--space-3)',
+                          borderRadius: 'var(--radius-lg)',
+                          border: `1px solid ${reportStatus === opt.value ? 'var(--color-accent)' : 'var(--color-border)'}`,
+                          background: reportStatus === opt.value ? 'var(--color-accent-muted)' : 'transparent',
+                          color: reportStatus === opt.value ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+                          fontFamily: 'var(--font-base)',
+                          fontSize: 'var(--text-xs)',
+                          fontWeight: reportStatus === opt.value ? 600 : 400,
+                          cursor: 'pointer',
+                          transition: 'all var(--transition-fast)',
+                        }}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="input-wrapper">
+                  <label className="input-label">Message</label>
+                  <textarea
+                    className="input"
+                    style={{ minHeight: 80, resize: 'vertical' }}
+                    placeholder="What's your update? e.g. 'Catering confirmed, arriving at 3pm' or 'AV setup delayed by 30 mins, need backup'"
+                    value={reportMessage}
+                    onChange={(e) => setReportMessage(e.target.value)}
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                  <button className="btn btn-primary btn-sm" onClick={handleSubmitReport} disabled={submittingReport || !reportMessage.trim()}>
+                    <Send size={14} />
+                    {submittingReport ? 'Submitting...' : 'Submit Report'}
+                  </button>
+                  <button className="btn btn-ghost btn-sm" onClick={() => setShowReportForm(false)}>Cancel</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {role !== 'planner' && !showReportForm && (
+            <button className="btn btn-secondary btn-sm" style={{ alignSelf: 'flex-start' }} onClick={() => setShowReportForm(true)}>
+              <Send size={14} />
+              Submit a Report
+            </button>
+          )}
+
+          {/* Reports feed */}
+          {reports.length === 0 ? (
+            <div className="empty-state" style={{ padding: 'var(--space-12) var(--space-8)' }}>
+              <div className="empty-state__icon"><FileText size={22} /></div>
+              <div className="empty-state__title">No reports yet</div>
+              <div className="empty-state__description">Team members can submit status updates here. Planners see everything in real time.</div>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+              {reports.map(report => (
+                <div
+                  key={report.id}
+                  className="card"
+                  style={{
+                    padding: 'var(--space-4)',
+                    borderLeft: `3px solid ${report.metadata?.status === 'all_good' ? 'var(--color-success)' : report.metadata?.status === 'need_help' ? 'var(--color-warning)' : report.metadata?.status === 'blocked' ? 'var(--color-error)' : 'var(--color-border)'}`,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-3)' }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 'var(--radius-md)', background: reportStatusColor(report.metadata?.status), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      {reportStatusIcon(report.metadata?.status)}
                     </div>
-                  </td>
-                  <td className={styles.td}>
-                    <span className={`badge badge-${member.role === 'coordinator' ? 'yellow' : member.role === 'planner' ? 'green' : 'grey'}`}>
-                      <span className="badge-dot" />
-                      {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
-                    </span>
-                  </td>
-                  <td className={`${styles.td} ${styles.cellCenter}`}>
-                    <span className={styles.tasksCount}>{taskCounts[member.user_id] || 0} tasks</span>
-                  </td>
-                </tr>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-1)', flexWrap: 'wrap' }}>
+                        <span style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>{report.actor_name || 'Team member'}</span>
+                        {report.metadata?.status && (
+                          <span style={{ fontSize: 10, fontWeight: 600, padding: '1px 8px', borderRadius: 'var(--radius-full)', background: reportStatusColor(report.metadata.status), color: report.metadata.status === 'all_good' ? 'var(--color-success)' : report.metadata.status === 'need_help' ? 'var(--color-warning)' : report.metadata.status === 'blocked' ? 'var(--color-error)' : 'var(--color-text-muted)' }}>
+                            {REPORT_STATUS_OPTS.find(o => o.value === report.metadata?.status)?.label || report.metadata.status}
+                          </span>
+                        )}
+                        <span style={{ marginLeft: 'auto', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <Clock size={11} />
+                          {timeAgo(report.created_at)}
+                        </span>
+                      </div>
+                      <p style={{ margin: 0, fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>
+                        {report.description}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          )}
         </div>
+      )}
 
-        <div className={styles.tableFooter}>
-          <span>Showing {members.length} member{members.length !== 1 ? 's' : ''}</span>
-        </div>
-      </div>
-
+      {/* ── Invite modal ── */}
       {showInvite && (
         <div className={styles.overlay} onClick={() => setShowInvite(false)}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>

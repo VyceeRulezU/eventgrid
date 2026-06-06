@@ -135,6 +135,7 @@ export function EventDashboardPage() {
   const [togglingPhase, setTogglingPhase] = useState<string | null>(null)
   const [deadlines, setDeadlines] = useState<DeadlineItem[]>([])
   const [activity, setActivity] = useState<EventActivity[]>([])
+  const [financialSummary, setFinancialSummary] = useState({ paid: 0, outstanding: 0 })
 
   /* ── Refs for race-condition-free payment tracking ── */
   // paySucceededRef: set to true the MOMENT onSuccess fires (synchronously),
@@ -257,10 +258,22 @@ export function EventDashboardPage() {
         .eq('event_id', id)
         .order('created_at', { ascending: false }).limit(5)
 
+      /* ── Financial summary (planner view) ── */
+      const { data: finData } = await supabase
+        .from('financial_entries')
+        .select('advance_paid, balance')
+        .eq('event_id', id)
+
       if (!cancelled) {
         setStats({ vendors: vendorCount || 0, tasksDue: tasksDueCount || 0, openIssues: issueCount || 0 })
         setDeadlines(d)
         if (activityData) setActivity(activityData as unknown as EventActivity[])
+        if (finData) {
+          setFinancialSummary({
+            paid: finData.reduce((s, e) => s + (e.advance_paid || 0), 0),
+            outstanding: finData.reduce((s, e) => s + (e.balance || 0), 0),
+          })
+        }
         setLoading(false)
       }
     }
@@ -368,7 +381,13 @@ export function EventDashboardPage() {
     }
   }, [user, id, activeEvent, setActiveEvent, showNotification])
 
-  const openPayment = () => { setPayStatus('idle'); setShowPaymentModal(true) }
+  const openPayment = () => {
+    setPayStatus('idle')
+    setShowPaymentModal(true)
+    // Pre-load payment scripts eagerly so the popup opens instantly on click
+    import('@/lib/paystack').then(({ loadPaystackScript }) => loadPaystackScript().catch(() => {}))
+    import('@/lib/flutterwave').then(({ loadFlutterwaveScript }) => loadFlutterwaveScript().catch(() => {}))
+  }
   const closePayment = () => {
     if (payStatus === 'processing') return
     setShowPaymentModal(false)
@@ -693,9 +712,14 @@ export function EventDashboardPage() {
           {/* Financial snapshot — planner only */}
           {role === 'planner' && (
             <div className="card" style={{ padding: 'var(--space-4) var(--space-5)', marginBottom: 'var(--space-4)' }}>
-              <h3 style={{ margin: '0 0 var(--space-3) 0', fontSize: 'var(--text-sm)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-                <Wallet size={14} style={{ color: 'var(--color-accent)' }} />
-                Financial Snapshot
+              <h3 style={{ margin: '0 0 var(--space-3) 0', fontSize: 'var(--text-sm)', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-2)' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                  <Wallet size={14} style={{ color: 'var(--color-accent)' }} />
+                  Financial Snapshot
+                </span>
+                <Link to={`/financials?event=${id}`} style={{ fontSize: 'var(--text-xs)', color: 'var(--color-accent)', fontWeight: 500 }}>
+                  View Financials →
+                </Link>
               </h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-3)', fontSize: 'var(--text-sm)' }}>
                 <div>
@@ -706,11 +730,15 @@ export function EventDashboardPage() {
                 </div>
                 <div>
                   <div style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)' }}>Total Paid</div>
-                  <div style={{ fontWeight: 700, fontSize: 'var(--text-base)', color: 'var(--color-success)' }}>—</div>
+                  <div style={{ fontWeight: 700, fontSize: 'var(--text-base)', color: 'var(--color-success)' }}>
+                    ₦{(financialSummary.paid / 100).toLocaleString('en-NG')}
+                  </div>
                 </div>
                 <div>
                   <div style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)' }}>Outstanding</div>
-                  <div style={{ fontWeight: 700, fontSize: 'var(--text-base)', color: 'var(--color-error)' }}>—</div>
+                  <div style={{ fontWeight: 700, fontSize: 'var(--text-base)', color: financialSummary.outstanding > 0 ? 'var(--color-error)' : 'var(--color-success)' }}>
+                    ₦{(financialSummary.outstanding / 100).toLocaleString('en-NG')}
+                  </div>
                 </div>
               </div>
             </div>
@@ -941,8 +969,8 @@ export function EventDashboardPage() {
               {payStatus === 'processing' && (
                 <div className={styles.payProcessing}>
                   <span className="spinner-loader" style={{ width: 36, height: 36 }} />
-                  <div className={styles.payStatusMsg}>Opening payment provider...</div>
-                  <div className={styles.payAutoClose}>Complete your payment in the Paystack/Flutterwave window</div>
+                  <div className={styles.payStatusMsg}>Opening secure payment window…</div>
+                  <div className={styles.payAutoClose}>A Paystack / Flutterwave popup will appear. Complete payment there.</div>
                 </div>
               )}
 

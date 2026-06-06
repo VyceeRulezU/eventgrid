@@ -175,19 +175,27 @@ export function FinancialsPage() {
 
       if (eventId || evts?.[0]) {
         const eid = eventId || evts![0].id
-        const { data } = await supabase
-          .from('financial_entries')
-          .select('*')
-          .eq('event_id', eid)
-          .order('category', { ascending: true })
-          .order('sort_order', { ascending: true })
+        const [{ data }, { data: cpData }] = await Promise.all([
+          supabase
+            .from('financial_entries')
+            .select('*')
+            .eq('event_id', eid)
+            .order('category', { ascending: true })
+            .order('sort_order', { ascending: true }),
+          supabase
+            .from('client_payments')
+            .select('amount, status, due_date, description')
+            .eq('event_id', eid),
+        ])
 
         if (data) setEntries(data as unknown as FinancialEntry[])
+        if (cpData) setClientPayments(cpData as typeof clientPayments)
       }
       setLoading(false)
     }
 
     load()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, org, eventId])
 
   const filtered = entries.filter((e) =>

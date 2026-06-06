@@ -42,16 +42,18 @@ export function VendorDirectoryPage() {
     if (!user) { setLoading(false); return }
 
     async function load() {
+      // Left join (no !inner) so vendors without an org row still appear.
+      // RLS on the vendors table must allow SELECT for all authenticated roles.
       const { data } = await supabase
         .from('vendors')
-        .select('*, organizations!inner(name)')
+        .select('*, organizations(name)')
         .is('deleted_at', null)
         .order('name', { ascending: true })
 
       if (data) {
         const mapped = (data as unknown as Array<Record<string, unknown>>).map((v: Record<string, unknown>) => {
           const orgEntry = (v.organizations as { name: string } | null)
-          return { ...v, org_name: orgEntry?.name || 'Unknown' } as Vendor & { org_name?: string }
+          return { ...v, org_name: orgEntry?.name || '' } as Vendor & { org_name?: string }
         })
         setVendors(mapped)
       }
@@ -325,20 +327,27 @@ export function VendorDirectoryPage() {
                     {vendor.category}
                   </span>
                 </div>
-                <div style={{ display: 'flex', gap: 'var(--space-1)' }}>
-                  <button className="btn btn-ghost btn-sm btn-icon" onClick={() => openEdit(vendor)} aria-label="Edit" style={{ width: 32, minHeight: 32 }}>
-                    <Pencil size={12} />
-                  </button>
-                  <button className="btn btn-ghost btn-sm btn-icon" onClick={() => handleDelete(vendor.id)} aria-label="Delete" style={{ width: 32, minHeight: 32, color: 'var(--color-error)' }}>
-                    <Trash2 size={12} />
-                  </button>
-                </div>
+                {vendor.org_id === org?.id && (
+                  <div style={{ display: 'flex', gap: 'var(--space-1)' }}>
+                    <button className="btn btn-ghost btn-sm btn-icon" onClick={() => openEdit(vendor)} aria-label="Edit" style={{ width: 32, minHeight: 32 }}>
+                      <Pencil size={12} />
+                    </button>
+                    <button className="btn btn-ghost btn-sm btn-icon" onClick={() => handleDelete(vendor.id)} aria-label="Delete" style={{ width: 32, minHeight: 32, color: 'var(--color-error)' }}>
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                )}
               </div>
 
               {vendor.org_name && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', fontSize: 'var(--text-xs)', color: vendor.org_id === org?.id ? 'var(--color-accent)' : 'var(--color-text-muted)' }}>
                   <Building size={11} />
                   {vendor.org_name}
+                  {vendor.org_id === org?.id && (
+                    <span style={{ marginLeft: 4, padding: '1px 6px', borderRadius: 'var(--radius-full)', background: 'var(--color-accent-muted)', color: 'var(--color-accent)', fontSize: 10, fontWeight: 600 }}>
+                      yours
+                    </span>
+                  )}
                 </div>
               )}
 
