@@ -19,8 +19,8 @@ declare global {
         email: string
         amount: number
         metadata?: Record<string, unknown>
-        onSuccess: (response: { reference: string }) => void
-        onCancel: () => void
+        callback: (response: { reference: string }) => void
+        onClose: () => void
       }) => PaystackInstance
     }
   }
@@ -47,8 +47,8 @@ export function initPaystackPayment(config: PaystackConfig): void {
     email: config.email,
     amount: config.amount,
     metadata: config.metadata as Record<string, unknown>,
-    onSuccess: (response) => config.onSuccess(response.reference),
-    onCancel: () => config.onClose(),
+    callback: (response) => config.onSuccess(response.reference),
+    onClose: () => config.onClose(),
   })
   handler.openIframe()
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Calendar, ArrowLeft, Check, CreditCard, ShieldCheck } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -46,6 +46,7 @@ export function CreateEventPage() {
   const [createdEventSlug, setCreatedEventSlug] = useState<string | null>(null)
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'success' | 'cancelled' | 'failed'>('idle')
   const [paying, setPaying] = useState(false)
+  const paySucceededRef = useRef(false)
 
   const suggestedTier = form.guestCount <= 0 ? '' :
     form.guestCount <= 100 ? 'intimate' :
@@ -151,6 +152,8 @@ export function CreateEventPage() {
   }
 
   const handlePaymentSuccess = async () => {
+    paySucceededRef.current = true
+    setPaying(false)
     if (createdEventId) {
       const { error: updateErr } = await supabase
         .from('events')
@@ -166,6 +169,7 @@ export function CreateEventPage() {
   }
 
   const handlePaymentCancel = () => {
+    if (paySucceededRef.current) return
     setPaymentStatus('cancelled')
     setPaying(false)
     showToast({ type: 'info', title: 'Payment cancelled', body: 'You can complete payment later from the event page.' })
@@ -175,6 +179,7 @@ export function CreateEventPage() {
     if (!user || !createdEventId) return
     setPaying(true)
     setPaymentStatus('idle')
+    paySucceededRef.current = false
     try {
       await processPayment({
         provider: 'paystack',
@@ -185,9 +190,11 @@ export function CreateEventPage() {
         onClose: handlePaymentCancel,
       })
     } catch {
-      setPaymentStatus('failed')
-      showToast({ type: 'error', title: 'Payment failed', body: 'Could not load payment provider' })
-      setPaying(false)
+      if (!paySucceededRef.current) {
+        setPaymentStatus('failed')
+        showToast({ type: 'error', title: 'Payment failed', body: 'Could not load payment provider' })
+        setPaying(false)
+      }
     }
   }
 
@@ -195,6 +202,7 @@ export function CreateEventPage() {
     if (!user || !createdEventId) return
     setPaying(true)
     setPaymentStatus('idle')
+    paySucceededRef.current = false
     try {
       await processPayment({
         provider: 'flutterwave',
@@ -205,9 +213,11 @@ export function CreateEventPage() {
         onClose: handlePaymentCancel,
       })
     } catch {
-      setPaymentStatus('failed')
-      showToast({ type: 'error', title: 'Payment failed', body: 'Could not load payment provider' })
-      setPaying(false)
+      if (!paySucceededRef.current) {
+        setPaymentStatus('failed')
+        showToast({ type: 'error', title: 'Payment failed', body: 'Could not load payment provider' })
+        setPaying(false)
+      }
     }
   }
 

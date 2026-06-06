@@ -185,29 +185,29 @@ export function EventDashboardPage() {
       const { data: phaseData } = await supabase
         .from('event_phases')
         .select('*')
-        .eq('event_id', id)
+        .eq('event_id', event.id)
         .order('phase_number', { ascending: true })
 
       if (!cancelled && phaseData) setPhases(phaseData as unknown as EventPhase[])
 
       const { count: vendorCount } = await supabase
-        .from('event_vendors').select('id', { count: 'exact' }).eq('event_id', id)
+        .from('event_vendors').select('id', { count: 'exact' }).eq('event_id', event.id)
 
       const { count: tasksDueCount } = await supabase
         .from('tasks').select('id', { count: 'exact' })
-        .eq('event_id', id).not('status', 'eq', 'done')
+        .eq('event_id', event.id).not('status', 'eq', 'done')
         .lte('due_datetime', new Date().toISOString())
 
       const { count: issueCount } = await supabase
         .from('issues').select('id', { count: 'exact' })
-        .eq('event_id', id).is('resolved_at', null)
+        .eq('event_id', event.id).is('resolved_at', null)
 
       /* upcoming deadlines */
       const d: DeadlineItem[] = []
 
       const { data: upcomingTasks } = await supabase
         .from('tasks').select('id, title, due_datetime, status')
-        .eq('event_id', id).neq('status', 'done')
+        .eq('event_id', event.id).neq('status', 'done')
         .gte('due_datetime', new Date().toISOString())
         .order('due_datetime', { ascending: true }).limit(3)
       if (upcomingTasks) {
@@ -218,7 +218,7 @@ export function EventDashboardPage() {
 
       const { data: phaseDeadlines } = await supabase
         .from('event_phases').select('id, phase_name, due_date, status')
-        .eq('event_id', id).neq('status', 'completed')
+        .eq('event_id', event.id).neq('status', 'completed')
         .not('due_date', 'is', null)
         .order('due_date', { ascending: true }).limit(3)
       if (phaseDeadlines) {
@@ -229,7 +229,7 @@ export function EventDashboardPage() {
 
       const { data: vendorPayments } = await supabase
         .from('event_vendors').select('id, vendor_name, payment_date, payment_status')
-        .eq('event_id', id).in('payment_status', ['unpaid', 'advance'])
+        .eq('event_id', event.id).in('payment_status', ['unpaid', 'advance'])
         .not('payment_date', 'is', null)
         .order('payment_date', { ascending: true }).limit(3)
       if (vendorPayments) {
@@ -242,13 +242,13 @@ export function EventDashboardPage() {
 
       const { data: activityData } = await supabase
         .from('event_activity').select('*')
-        .eq('event_id', id)
+        .eq('event_id', event.id)
         .order('created_at', { ascending: false }).limit(5)
 
       const { data: finData } = await supabase
         .from('financial_entries')
         .select('advance_paid, balance')
-        .eq('event_id', id)
+        .eq('event_id', event.id)
 
       if (!cancelled) {
         setStats({ vendors: vendorCount || 0, tasksDue: tasksDueCount || 0, openIssues: issueCount || 0 })
@@ -310,7 +310,7 @@ export function EventDashboardPage() {
         provider,
         email: user.email || '',
         amount: getEventPrice('standard'),
-        metadata: { event_id: id },
+        metadata: { event_id: activeEvent.id },
 
         onSuccess: async () => {
           paySucceededRef.current = true
@@ -318,7 +318,7 @@ export function EventDashboardPage() {
           const { error: updateErr } = await supabase
             .from('events')
             .update({ status: 'active', payment_status: 'paid' })
-            .eq('id', id)
+            .eq('id', activeEvent.id)
 
           if (updateErr) {
             showNotification({ variant: 'error', title: 'Payment received but activation failed', message: updateErr.message })
@@ -897,8 +897,8 @@ export function EventDashboardPage() {
       </div>
 
       {/* ── Modals ── */}
-      {portalOpen && id && (
-        <GeneratePortalModal eventId={id} onClose={() => setPortalOpen(false)} />
+      {portalOpen && activeEvent && (
+        <GeneratePortalModal eventId={activeEvent.id} onClose={() => setPortalOpen(false)} />
       )}
 
       {showEditModal && (

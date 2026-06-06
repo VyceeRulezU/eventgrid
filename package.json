@@ -17,6 +17,7 @@
     "@hookform/resolvers": "^5.0.1",
     "@react-pdf/renderer": "^4.3.0",
     "@supabase/supabase-js": "^2.49.4",
+    "@vercel/analytics": "^2.0.1",
     "browser-image-compression": "^2.0.2",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.510.0",
