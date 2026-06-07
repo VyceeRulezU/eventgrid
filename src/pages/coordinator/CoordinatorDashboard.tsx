@@ -150,7 +150,7 @@ export function CoordinatorDashboard() {
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,2fr) minmax(0,1fr)', gap: 'var(--space-4)', alignItems: 'start' }}>
 
         {/* Projects List */}
-        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div className="card" style={{ padding: 0, overflow: 'hidden' }} id="tour-my-projects">
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             padding: 'var(--space-4) var(--space-5)',
@@ -232,7 +232,7 @@ export function CoordinatorDashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }} id="tour-quick-actions">
           <div className="card">
             <h3 style={{
               fontSize: 'var(--text-sm)', fontWeight: 700, marginBottom: 'var(--space-3)',

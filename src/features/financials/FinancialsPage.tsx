@@ -1,8 +1,9 @@
 import { useEffect, useState, useRef } from 'react'
 import React from 'react'
-import { useSearchParams } from 'react-router-dom'
-import { Plus, Search, Wallet, Upload, FileSpreadsheet, X, AlertTriangle, Check, Pencil, Trash2, TrendingUp } from 'lucide-react'
+import { useSearchParams, useNavigate, useParams } from 'react-router-dom'
+import { Plus, Search, Wallet, Upload, FileSpreadsheet, X, AlertTriangle, Check, Pencil, Trash2, TrendingUp, ArrowLeft } from 'lucide-react'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
+import { Tabs } from '@/components/ui/Tabs'
 import styles from './FinancialsPage.module.css'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
@@ -48,7 +49,9 @@ function formatNaira(kobo: number) {
 
 export function FinancialsPage() {
   const [searchParams] = useSearchParams()
-  const eventId = searchParams.get('event')
+  const { id: routeId } = useParams<{ id: string }>()
+  const eventId = routeId || searchParams.get('event')
+  const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const org = useAuthStore((s) => s.org)
   const showNotification = useUIStore((s) => s.showNotification)
@@ -173,19 +176,35 @@ export function FinancialsPage() {
 
       if (evts) setEvents(evts as unknown as { id: string; name: string }[])
 
-      if (eventId || evts?.[0]) {
-        const eid = eventId || evts![0].id
+      const defaultEid = eventId || evts?.[0]?.id
+      if (defaultEid) {
+        let resolvedId = defaultEid
+        // Check if the id is a slug (does not match uuid format)
+        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(defaultEid)) {
+          const { data: evt } = await supabase
+            .from('events')
+            .select('id')
+            .eq('slug', defaultEid)
+            .is('deleted_at', null)
+            .single()
+          if (evt) {
+            resolvedId = evt.id
+          }
+        }
+
+        setForm(f => ({ ...f, eventId: resolvedId }))
+
         const [{ data }, { data: cpData }] = await Promise.all([
           supabase
             .from('financial_entries')
             .select('*')
-            .eq('event_id', eid)
+            .eq('event_id', resolvedId)
             .order('category', { ascending: true })
             .order('sort_order', { ascending: true }),
           supabase
             .from('client_payments')
             .select('amount, status, due_date, description')
-            .eq('event_id', eid),
+            .eq('event_id', resolvedId),
         ])
 
         if (data) setEntries(data as unknown as FinancialEntry[])
@@ -375,11 +394,16 @@ export function FinancialsPage() {
   return (
     <div>
       <div className={styles.headerRow}>
-        <div>
-          <h2 className={styles.headerTitle}>Financials</h2>
-          {activeEventName && (
-            <div className={styles.activeEventName}>{activeEventName}</div>
-          )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+          <button type="button" className={styles.headerBack} onClick={() => navigate(-1)} aria-label="Back">
+            <ArrowLeft size={18} />
+          </button>
+          <div>
+            <h2 className={styles.headerTitle}>Financials</h2>
+            {activeEventName && (
+              <div className={styles.activeEventName}>{activeEventName}</div>
+            )}
+          </div>
         </div>
         <div className={styles.toolbar}>
           <div className={styles.searchWrap}>
@@ -399,7 +423,7 @@ export function FinancialsPage() {
                 </span>
               }
               items={events.map((e) => ({ label: e.name, value: e.id }))}
-              onSelect={(item) => { window.location.href = `/financials?event=${item.value}` }}
+              onSelect={(item) => { navigate(`/events/${item.value}/financials`) }}
             />
           </div>
           <input
@@ -446,32 +470,14 @@ export function FinancialsPage() {
 
       <PaymentAlerts dueVendors={dueVendors.map(e => ({ vendor_name: e.vendor_name, balance: e.balance }))} dueClients={dueClients.map(p => ({ description: p.description, amount: p.amount, due_date: p.due_date || '' }))} totalVendorDue={totalVendorDue} totalClientDue={totalClientDue} />
 
-      <div style={{ display: 'flex', gap: 'var(--space-1)', marginBottom: 'var(--space-5)', borderBottom: '1px solid var(--color-border-subtle)' }}>
-        <button
-          className={`btn btn-ghost btn-sm`}
-          style={{
-            padding: 'var(--space-2) var(--space-4)', borderRadius: 0, borderBottom: activeTab === 'vendors' ? '2px solid var(--color-accent)' : '2px solid transparent',
-            fontWeight: activeTab === 'vendors' ? 600 : 400, color: activeTab === 'vendors' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
-            transition: 'all var(--transition-fast)',
-          }}
-          onClick={() => setActiveTab('vendors')}
-        >
-          <Wallet size={16} style={{ marginRight: 6 }} />
-          Vendor Payments
-        </button>
-        <button
-          className={`btn btn-ghost btn-sm`}
-          style={{
-            padding: 'var(--space-2) var(--space-4)', borderRadius: 0, borderBottom: activeTab === 'income' ? '2px solid var(--color-accent)' : '2px solid transparent',
-            fontWeight: activeTab === 'income' ? 600 : 400, color: activeTab === 'income' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
-            transition: 'all var(--transition-fast)',
-          }}
-          onClick={() => setActiveTab('income')}
-        >
-          <TrendingUp size={16} style={{ marginRight: 6 }} />
-          Income & Budget
-        </button>
-      </div>
+      <Tabs
+        tabs={[
+          { key: 'vendors', label: 'Vendor Payments', icon: <Wallet size={16} /> },
+          { key: 'income', label: 'Income & Budget', icon: <TrendingUp size={16} /> },
+        ]}
+        activeTab={activeTab}
+        onChange={setActiveTab}
+      />
 
       {activeTab === 'vendors' ? (
         <>

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Plus, Pencil, Trash2, Check, Clock, AlertTriangle } from 'lucide-react'
+import { Plus, Pencil, Trash2, Check, Clock, AlertTriangle, CalendarDays } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
+import { CalendarModal } from '@/components/ui/CalendarModal'
 
 function formatNaira(kobo: number) {
   return `₦${(kobo / 100).toLocaleString('en-NG')}`
@@ -43,6 +44,7 @@ export function IncomeTab({ eventId, refreshKey, onUpdate }: IncomeTabProps) {
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({ description: '', amount: 0, dueDate: '', paymentMethod: '', reference: '', notes: '' })
   const [editing, setEditing] = useState<ClientPayment | null>(null)
+  const [showDatePicker, setShowDatePicker] = useState(false)
 
   useEffect(() => {
     loadPayments()
@@ -156,7 +158,25 @@ export function IncomeTab({ eventId, refreshKey, onUpdate }: IncomeTabProps) {
             </div>
             <div className="input-wrapper">
               <label className="input-label">Due Date</label>
-              <input className="input" type="date" value={form.dueDate} onChange={e => setForm({ ...form, dueDate: e.target.value })} />
+              <button
+                type="button"
+                className="input"
+                style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer', textAlign: 'left', justifyContent: 'flex-start' }}
+                onClick={() => setShowDatePicker(true)}
+              >
+                <CalendarDays size={14} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
+                <span style={{ color: form.dueDate ? 'var(--color-text-primary)' : 'var(--color-text-muted)' }}>
+                  {form.dueDate
+                    ? new Date(form.dueDate + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                    : 'Select due date'}
+                </span>
+              </button>
+              <CalendarModal
+                open={showDatePicker}
+                value={form.dueDate}
+                onChange={(d) => { setForm({ ...form, dueDate: d }); setShowDatePicker(false) }}
+                onClose={() => setShowDatePicker(false)}
+              />
             </div>
             <div className="input-wrapper">
               <label className="input-label">Payment Method</label>

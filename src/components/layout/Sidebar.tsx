@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
+import { useEventStore } from '@/store/event.store'
 import { supabase } from '@/lib/supabase'
 import { FeedbackFormModal } from '@/features/feedback/FeedbackFormModal'
 import styles from './Sidebar.module.css'
@@ -27,6 +28,7 @@ export function Sidebar() {
   const org = useAuthStore((s) => s.org)
   const clearAuth = useAuthStore((s) => s.clearAuth)
   const { sidebarOpen, setSidebarOpen } = useUIStore()
+  const activeEvent = useEventStore((s) => s.activeEvent)
   const navigate = useNavigate()
   const { id: eventId } = useParams<{ id: string }>()
 
@@ -41,7 +43,10 @@ export function Sidebar() {
   ]
 
   if (role === 'planner') {
-    managementItems.push({ to: '/financials', label: 'Financials', icon: Wallet })
+    const financialsUrl = activeEvent?.id
+      ? `/events/${activeEvent.id}/financials`
+      : '/financials'
+    managementItems.push({ to: financialsUrl, label: 'Financials', icon: Wallet })
   }
 
   managementItems.push({ to: '/vendors', label: 'Vendors', icon: Users })
@@ -77,7 +82,7 @@ export function Sidebar() {
       {sidebarOpen && <div className={styles.overlay} onClick={() => setSidebarOpen(false)} />}
       <aside className={`${styles.sidebar} ${sidebarOpen ? styles.open : ''}`}>
         <div className={styles.header}>
-          <Link to="/" className={styles.logo} onClick={() => setSidebarOpen(false)}>
+          <Link to="/home" className={styles.logo} onClick={() => setSidebarOpen(false)}>
             <img src="/EventGrid-logo-white.svg" alt="EventGrid" className={styles.logoImg} />
           </Link>
           <button
@@ -89,7 +94,7 @@ export function Sidebar() {
           </button>
         </div>
 
-        <nav className={styles.nav}>
+        <nav className={styles.nav} id="sidebar-nav">
           {categories.map((cat) => (
             <div key={cat.label} className={styles.category}>
               <span className={styles.categoryLabel}>{cat.label}</span>
@@ -201,7 +206,7 @@ export function Sidebar() {
               </button>
             </div>
           )}
-          <button className={styles.navItem} onClick={() => navigate('/')}>
+          <button className={styles.navItem} id="sidebar-back-to-site" onClick={() => navigate('/home')}>
             <ArrowLeft size={20} />
             <span>Back to site</span>
           </button>
@@ -216,8 +221,8 @@ export function Sidebar() {
             <span>Notifications</span>
           </NavLink>
           <button className={styles.navItem} onClick={() => { setSidebarOpen(false); setShowFeedbackForm(true) }}>
-            <Send size={20} style={{ color: 'var(--color-accent)' }} />
-            <span style={{ color: 'var(--color-accent)' }}>Send Feedback</span>
+            <Send size={20} />
+            <span>Send Feedback</span>
           </button>
           <NavLink
             to="/settings"

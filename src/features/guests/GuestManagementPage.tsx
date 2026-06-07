@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useResolvedEventId } from '@/hooks/useResolvedEventId'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
 import {
   Users, Search, Plus, X, Upload, Check, UserCheck,
-  LayoutGrid, Star, List,
+  LayoutGrid, Star, List, ArrowLeft,
 } from 'lucide-react'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { sendGuestNotification } from '@/lib/email'
@@ -16,6 +17,7 @@ type RSVP = 'pending' | 'confirmed' | 'declined' | 'maybe'
 
 export function GuestManagementPage() {
   const { eventId } = useResolvedEventId()
+  const navigate = useNavigate()
   const showToast = useUIStore((s) => s.showToast)
 
   const [guests, setGuests] = useState<(Guest & { table_name?: string })[]>([])
@@ -158,9 +160,14 @@ export function GuestManagementPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <div>
-          <h2 className={styles.headerTitle}>Guests</h2>
-          <p className={styles.headerDesc}>{guests.length} guest{guests.length !== 1 ? 's' : ''} on this event</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+          <button type="button" className={styles.headerBack} onClick={() => navigate(-1)} aria-label="Back">
+            <ArrowLeft size={18} />
+          </button>
+          <div>
+            <h2 className={styles.headerTitle}>Guests</h2>
+            <p className={styles.headerDesc}>{guests.length} guest{guests.length !== 1 ? 's' : ''} on this event</p>
+          </div>
         </div>
         <div className={styles.toolbar}>
           <div className={styles.searchWrap}>

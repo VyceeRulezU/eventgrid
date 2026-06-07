@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import { Users, Plus, Search, Pencil, Tag, Star, Trash2 } from 'lucide-react'
+import { useSearchParams, useNavigate } from 'react-router-dom'
+import { Users, Plus, Search, Pencil, Tag, Star, Trash2, ArrowLeft } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -26,6 +26,7 @@ const DEFAULT_TYPES = [
 export function VendorsPage() {
   const [searchParams] = useSearchParams()
   const eventId = searchParams.get('event')
+  const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const org = useAuthStore((s) => s.org)
   const showNotification = useUIStore((s) => s.showNotification)
@@ -169,9 +170,14 @@ export function VendorsPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <div>
-          <h2 className={styles.headerTitle}>Vendors</h2>
-          <p className={styles.headerDesc}>{vendors.length} vendor{vendors.length !== 1 ? 's' : ''} in your organisation</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+          <button type="button" className={styles.headerBack} onClick={() => navigate(-1)} aria-label="Back">
+            <ArrowLeft size={18} />
+          </button>
+          <div>
+            <h2 className={styles.headerTitle}>Vendors</h2>
+            <p className={styles.headerDesc}>{vendors.length} vendor{vendors.length !== 1 ? 's' : ''} in your organisation</p>
+          </div>
         </div>
         <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>

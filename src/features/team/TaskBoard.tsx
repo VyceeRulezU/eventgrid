@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useResolvedEventId } from '@/hooks/useResolvedEventId'
-import { Columns, List, Plus } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Columns, List, Plus, ArrowLeft } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
 import { TaskCard } from './TaskCard'
@@ -27,6 +28,7 @@ const COLUMNS = [
 
 export function TaskBoard() {
   const { eventId } = useResolvedEventId()
+  const navigate = useNavigate()
   const showNotification = useUIStore((s) => s.showNotification)
   const [tasks, setTasks] = useState<TaskWithAssignee[]>([])
   const [loading, setLoading] = useState(true)
@@ -141,9 +143,14 @@ export function TaskBoard() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <div>
-          <h2 className={styles.headerTitle}>Task Board</h2>
-          <p className={styles.headerDesc}>{tasks.length} task{tasks.length !== 1 ? 's' : ''}</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+          <button type="button" className={styles.headerBack} onClick={() => navigate(-1)} aria-label="Back">
+            <ArrowLeft size={18} />
+          </button>
+          <div>
+            <h2 className={styles.headerTitle}>Task Board</h2>
+            <p className={styles.headerDesc}>{tasks.length} task{tasks.length !== 1 ? 's' : ''}</p>
+          </div>
         </div>
         <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
           <div className={styles.viewToggle}>

@@ -525,14 +525,14 @@ export function PlannerDashboard() {
           <button type="button" className={styles.actionOutline} onClick={() => setShowInviteClient(true)}>
             <ExternalLink size={16} /> Invite Client
           </button>
-          <Link to="/events/new" className="btn btn-primary">
+          <Link to="/events/new" className="btn btn-primary" id="tour-create-event">
             <Plus size={16} /> Create Event
           </Link>
         </div>
       </div>
 
       {/* Overview bento cards */}
-      <div className={styles.statsGrid}>
+      <div className={styles.statsGrid} id="tour-stats-grid">
         {statCards.map((s) => {
           const trend = calcTrend(s.data)
           const badgeClass =
@@ -645,7 +645,7 @@ export function PlannerDashboard() {
           )}
         </div>
 
-        <div className={styles.sectionCard}>
+        <div className={styles.sectionCard} id="tour-shortcuts">
           <div className={styles.sectionHeader}>
             <h3 className={styles.sectionTitle}>Shortcuts</h3>
           </div>

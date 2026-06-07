@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { X, Copy, Check, AlertCircle, ExternalLink, RefreshCw } from 'lucide-react'
+import { X, Copy, Check, AlertCircle, ExternalLink, RefreshCw, CalendarDays } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
+import { CalendarModal } from '@/components/ui/CalendarModal'
 import styles from './GeneratePortalModal.module.css'
 
 interface GeneratePortalModalProps {
@@ -31,6 +32,7 @@ export function GeneratePortalModal({ eventId, onClose }: GeneratePortalModalPro
   const [portalId, setPortalId] = useState<string | null>(null)
   const [token, setToken] = useState('')
   const [copied, setCopied] = useState(false)
+  const [showExpiryPicker, setShowExpiryPicker] = useState(false)
 
   const portalLink = token ? `${window.location.origin}/portal/${token}` : ''
 
@@ -166,7 +168,27 @@ export function GeneratePortalModal({ eventId, onClose }: GeneratePortalModalPro
                 Set expiry date
               </label>
               {hasExpiry && (
-                <input className="input" type="date" value={expiry} onChange={(e) => setExpiry(e.target.value)} style={{ marginTop: 'var(--space-2)' }} />
+                <>
+                  <button
+                    type="button"
+                    className="input"
+                    style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginTop: 'var(--space-2)', cursor: 'pointer', justifyContent: 'flex-start' }}
+                    onClick={() => setShowExpiryPicker(true)}
+                  >
+                    <CalendarDays size={14} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
+                    <span style={{ color: expiry ? 'var(--color-text-primary)' : 'var(--color-text-muted)' }}>
+                      {expiry
+                        ? new Date(expiry + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                        : 'Select expiry date'}
+                    </span>
+                  </button>
+                  <CalendarModal
+                    open={showExpiryPicker}
+                    value={expiry}
+                    onChange={(d) => { setExpiry(d); setShowExpiryPicker(false) }}
+                    onClose={() => setShowExpiryPicker(false)}
+                  />
+                </>
               )}
             </div>
 

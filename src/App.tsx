@@ -36,6 +36,7 @@ const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage').then(m =
 const ClientPortalPage = lazy(() => import('@/features/client-portal/ClientPortalPage').then(m => ({ default: m.ClientPortalPage })))
 const SuperAdminDashboard = lazy(() => import('@/pages/admin/SuperAdminDashboard').then(m => ({ default: m.SuperAdminDashboard })))
 const AnalyticsPage = lazy(() => import('@/pages/admin/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })))
+const HelpPage = lazy(() => import('@/pages/settings/HelpPage').then(m => ({ default: m.HelpPage })))
 const FeedbackManagementPage = lazy(() => import('@/pages/admin/FeedbackManagementPage').then(m => ({ default: m.FeedbackManagementPage })))
 const SuperAdminTeamPage = lazy(() => import('@/pages/admin/SuperAdminTeamPage').then(m => ({ default: m.SuperAdminTeamPage })))
 
@@ -263,6 +264,7 @@ export function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<AuthGate />} />
+          <Route path="/home" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
@@ -317,12 +319,22 @@ export function App() {
                 <RoleGuard allowedRole="planner"><FinancialsPage /></RoleGuard>
               </Suspense>
             } />
+          <Route path="/events/:id/financials" element={
+              <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
+                <RoleGuard allowedRole="planner"><FinancialsPage /></RoleGuard>
+              </Suspense>
+            } />
             <Route path="/vendors" element={<VendorsPage />} />
             <Route path="/vendors/directory" element={<VendorDirectoryPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/settings" element={
             <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
               <SettingsPage />
+            </Suspense>
+          } />
+          <Route path="/settings/help" element={
+            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
+              <HelpPage />
             </Suspense>
           } />
           <Route path="/admin" element={

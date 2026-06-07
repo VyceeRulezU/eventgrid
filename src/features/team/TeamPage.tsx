@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useResolvedEventId } from '@/hooks/useResolvedEventId'
-import { Users, X, Mail, UserPlus, FileText, CheckCircle2, AlertTriangle, Clock, Send, Download } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Users, X, Mail, UserPlus, FileText, CheckCircle2, AlertTriangle, Clock, Send, Download, ArrowLeft } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { sendInvite } from '@/lib/edgeFunctions'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
+import { Tabs } from '@/components/ui/Tabs'
 import type { Profile } from '@/types'
 import styles from './TeamPage.module.css'
 
@@ -66,6 +68,7 @@ export function TeamPage() {
   const user = useAuthStore((s) => s.user)
   const profile = useAuthStore((s) => s.profile)
   const role = useAuthStore((s) => s.role)
+  const navigate = useNavigate()
   const showNotification = useUIStore((s) => s.showModal)
 
   const [members, setMembers] = useState<TeamMemberRow[]>([])
@@ -224,9 +227,14 @@ export function TeamPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <div>
-          <h2 className={styles.headerTitle}>Team</h2>
-          <p className={styles.headerDesc}>{members.length} member{members.length !== 1 ? 's' : ''} · {reports.length} report{reports.length !== 1 ? 's' : ''}</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+          <button type="button" className={styles.headerBack} onClick={() => navigate(-1)} aria-label="Back">
+            <ArrowLeft size={18} />
+          </button>
+          <div>
+            <h2 className={styles.headerTitle}>Team</h2>
+            <p className={styles.headerDesc}>{members.length} member{members.length !== 1 ? 's' : ''} · {reports.length} report{reports.length !== 1 ? 's' : ''}</p>
+          </div>
         </div>
         <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
           {role !== 'planner' && (
@@ -254,36 +262,23 @@ export function TeamPage() {
       )}
 
       {/* ── Tabs ── */}
-      <div style={{ display: 'flex', gap: 'var(--space-1)', borderBottom: '1px solid var(--color-border-subtle)', paddingBottom: 0 }}>
-        {([
-          ['members', 'Members', <Users key="u" size={14} />],
-          ['reports', 'Reports', <FileText key="r" size={14} />],
-        ] as const).map(([key, label, icon]) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setActiveTab(key)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-              padding: 'var(--space-2) var(--space-4)',
-              background: 'none', border: 'none', cursor: 'pointer',
-              fontFamily: 'var(--font-base)', fontSize: 'var(--text-sm)',
-              fontWeight: activeTab === key ? 600 : 400,
-              color: activeTab === key ? 'var(--color-accent)' : 'var(--color-text-secondary)',
-              borderBottom: activeTab === key ? '2px solid var(--color-accent)' : '2px solid transparent',
-              marginBottom: -1,
-              transition: 'all var(--transition-fast)',
-            }}
-          >
-            {icon} {label}
-            {key === 'reports' && reports.length > 0 && (
-              <span style={{ background: needsAttentionCount > 0 ? 'var(--color-warning-bg)' : 'var(--color-accent-muted)', color: needsAttentionCount > 0 ? 'var(--color-warning)' : 'var(--color-accent)', fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 'var(--radius-full)' }}>
+      <Tabs
+        tabs={[
+          { key: 'members', label: 'Members', icon: <Users size={14} /> },
+          {
+            key: 'reports',
+            label: 'Reports',
+            icon: <FileText size={14} />,
+            badge: reports.length > 0 ? (
+              <span style={{ color: needsAttentionCount > 0 ? 'var(--color-warning)' : undefined }}>
                 {reports.length}
               </span>
-            )}
-          </button>
-        ))}
-      </div>
+            ) : undefined,
+          },
+        ]}
+        activeTab={activeTab}
+        onChange={setActiveTab}
+      />
 
       {/* ── Members tab ── */}
       {activeTab === 'members' && (

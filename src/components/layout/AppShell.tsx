@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { BottomTabBar } from './BottomTabBar'
 import { TopBar } from './TopBar'
+import { AppTour } from '@/components/shared/AppTour'
 import styles from './AppShell.module.css'
 
 export function AppShell() {
@@ -21,6 +22,7 @@ export function AppShell() {
         </div>
       </main>
       <BottomTabBar />
+      <AppTour />
     </div>
   )
 }

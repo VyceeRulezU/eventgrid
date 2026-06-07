@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
-import { Camera, Upload, ArrowLeft, ExternalLink, LogOut, Building2 } from 'lucide-react'
+import { Camera, Upload, ArrowLeft, ExternalLink, LogOut, Building2, LifeBuoy, Book } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { compressImage } from '@/lib/image'
+import { clearTourForRole } from '@/components/shared/AppTour'
 import type { Profile } from '@/types'
 import styles from './SettingsPage.module.css'
 
@@ -187,7 +188,7 @@ export function SettingsPage() {
       <h2 style={{ marginBottom: 'var(--space-6)' }}>Settings</h2>
 
       <div className={styles.grid}>
-        <div className={`card ${styles.identityCard}`}>
+        <div className={`card ${styles.identityCard}`} id="tour-settings-profile">
           <div className={styles.avatarWrap}>
             <div
               className={styles.avatar}
@@ -343,12 +344,41 @@ export function SettingsPage() {
           </div>
         </div>
 
+        {/* Help & Onboarding */}
+        <div className="card">
+          <h3 className={`${styles.cardTitle} ${styles.cardTitleRow}`}>
+            <LifeBuoy size={18} style={{ color: 'var(--color-accent)' }} />
+            Help & Onboarding
+          </h3>
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-3)', lineHeight: 1.55 }}>
+            Take a guided tour of EventGrid — walks you through all key features for your role.
+          </p>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            style={{ gap: 'var(--space-2)' }}
+            onClick={() => {
+              if (role) {
+                clearTourForRole(role)
+                showToast({ type: 'info', title: 'Tour restarted', body: 'Navigate to your dashboard to begin.' })
+              }
+            }}
+          >
+            <LifeBuoy size={16} />
+            Restart App Tour
+          </button>
+          <Link to="/settings/help" className={styles.helpLink}>
+            <Book size={16} />
+            User Manual
+          </Link>
+        </div>
+
         <div className={`card ${styles.dangerCard}`}>
           <button type="button" className="btn btn-destructive" onClick={handleLogout}>
             <LogOut size={16} />
             Log out
           </button>
-          <Link to="/" className={styles.backLink}>
+          <Link to="/home" className={styles.backLink}>
             <ArrowLeft size={14} />
             Back to site
           </Link>

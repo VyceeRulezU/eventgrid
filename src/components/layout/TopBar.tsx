@@ -30,6 +30,7 @@ export function TopBar() {
   const showBack = isEventDetail
 
   function getDynamicMeta(path: string): { title: string; subtitle: string } {
+    if (/^\/events\/[^/]+\/financials$/.test(path)) return { title: 'Financials', subtitle: 'Track payments and budgets' }
     if (/^\/events\/[^/]+$/.test(path)) return { title: 'Event Dashboard', subtitle: '' }
     return { title: 'EventGrid', subtitle: '' }
   }
