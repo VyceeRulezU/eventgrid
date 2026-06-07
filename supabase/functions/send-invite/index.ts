@@ -40,26 +40,11 @@ function emailShell(title: string, bodyHtml: string): string {
         <table class="container" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background-color:#1a2432;border:1px solid #2a3a4e;border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
           <tr>
             <td style="background-color:#1a1a2e;background-image:url('${HERO_IMAGE}');background-size:cover;background-position:center;background-repeat:no-repeat;padding:0;">
-              <div style="background:linear-gradient(135deg, rgba(11,17,32,0.92) 0%, rgba(11,17,32,0.55) 50%, rgba(11,17,32,0.3) 100%);padding:52px 32px 44px;text-align:center;">
+              <div style="background:linear-gradient(135deg, rgba(11,17,32,0.95) 0%, rgba(11,17,32,0.75) 50%, rgba(11,17,32,0.6) 100%);padding:52px 32px 44px;text-align:center;">
                 <table cellpadding="0" cellspacing="0" style="margin:0 auto 18px;">
                   <tr><td style="width:44px;height:3px;background-color:#D4A017;border-radius:2px;"></td></tr>
                 </table>
-                <table cellpadding="0" cellspacing="0" style="margin:0 auto;">
-                  <tr>
-                    <td style="vertical-align:middle;padding-right:12px;">
-                      <svg width="34" height="34" viewBox="0 0 32 32" fill="none">
-                        <rect x="2" y="2" width="12" height="12" rx="3" fill="#D4A017" opacity="0.9"/>
-                        <rect x="18" y="2" width="12" height="12" rx="3" fill="#D4A017" opacity="0.6"/>
-                        <rect x="2" y="18" width="12" height="12" rx="3" fill="#D4A017" opacity="0.6"/>
-                        <rect x="18" y="18" width="12" height="12" rx="3" fill="#D4A017" opacity="0.9"/>
-                      </svg>
-                    </td>
-                    <td style="vertical-align:middle;">
-                      <span style="font-size:26px;font-weight:800;color:#FFFFFF;letter-spacing:-0.02em;">EventGrid</span>
-                    </td>
-                  </tr>
-                </table>
-                <p style="margin:10px 0 0;font-size:12px;color:rgba(255,255,255,0.45);letter-spacing:0.06em;text-transform:uppercase;font-weight:600;">Software for Event Pros</p>
+                <img src="${APP_URL}/EventGrid-logo-white.svg" alt="EventGrid" style="max-width:180px;height:auto;display:block;margin:0 auto;" />
               </div>
             </td>
           </tr>
@@ -69,10 +54,11 @@ function emailShell(title: string, bodyHtml: string): string {
             </td>
           </tr>
           <tr>
-            <td style="padding:24px 32px;border-top:1px solid #2a3a4e;background-color:#141e2a;">
-              <p style="margin:0 0 4px;font-size:12px;color:#6B7280;text-align:center;line-height:1.6;">EventGrid &mdash; Software for Event Pros</p>
-              <p style="margin:0;font-size:11px;color:#4B5563;text-align:center;line-height:1.6;">This email was sent to you because you have an account on <a href="${APP_URL}" style="color:#D4A017;text-decoration:none;font-weight:600;">eventgrid.ng</a>.</p>
-              <p style="margin:8px 0 0;font-size:11px;color:#4B5563;text-align:center;">&copy; 2026 EventGrid. All rights reserved.</p>
+            <td style="padding:24px 32px;border-top:1px solid #2a3a4e;background-color:#141e2a;text-align:center;">
+              <img src="${APP_URL}/EventGrid-logo-white.svg" alt="EventGrid" style="max-width:120px;height:auto;display:block;margin:0 auto 16px;" />
+              <p style="margin:0 0 4px;font-size:12px;color:#6B7280;line-height:1.6;">EventGrid &mdash; Software for Event Pros</p>
+              <p style="margin:0;font-size:11px;color:#4B5563;line-height:1.6;">This email was sent to you because you have an account on <a href="${APP_URL}" style="color:#D4A017;text-decoration:none;font-weight:600;">eventgrid.ng</a>.</p>
+              <p style="margin:8px 0 0;font-size:11px;color:#4B5563;">&copy; 2026 EventGrid. All rights reserved.</p>
             </td>
           </tr>
         </table>

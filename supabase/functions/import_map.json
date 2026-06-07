@@ -1,13 +1,9 @@
 {
-  "lock": false,
   "imports": {
     "react": "npm:react@19.2.6",
-    "react/": "npm:react@19.2.6/",
+    "react/jsx-runtime": "npm:react@19.2.6/jsx-runtime",
+    "react/jsx-dev-runtime": "npm:react@19.2.6/jsx-dev-runtime",
     "react-dom/server": "npm:react-dom@19.2.6/server",
     "jsr:@supabase/supabase-js@2": "https://esm.sh/@supabase/supabase-js@2"
-  },
-  "compilerOptions": {
-    "jsx": "react-jsx",
-    "jsxImportSource": "react"
   }
 }

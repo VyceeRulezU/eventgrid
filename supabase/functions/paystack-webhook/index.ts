@@ -30,7 +30,8 @@ Deno.serve(async (req) => {
       return new Response('Missing event_id', { status: 400 })
     }
 
-    const { error } = await supabaseAdmin
+    // Update event if not already paid, and return metadata
+    const { data: updatedEvent, error } = await supabaseAdmin
       .from('events')
       .update({
         status: 'active',
@@ -39,13 +40,61 @@ Deno.serve(async (req) => {
         activated_at: new Date().toISOString(),
       })
       .eq('id', metadata.event_id)
+      .neq('payment_status', 'paid')
+      .select('id, name, created_by')
+      .maybeSingle()
 
     if (error) {
       console.error('DB update error:', error)
       return new Response('DB error', { status: 500 })
     }
 
-    console.log(`Event ${metadata.event_id} activated — ref: ${reference}, amount: ₦${amount / 100}`)
+    if (updatedEvent) {
+      console.log(`Event ${updatedEvent.id} ("${updatedEvent.name}") activated — ref: ${reference}, amount: ₦${amount / 100}`)
+
+      // Retrieve the planner/creator's profile
+      const { data: profileData } = await supabaseAdmin
+        .from('profiles')
+        .select('email, display_name')
+        .eq('id', updatedEvent.created_by)
+        .maybeSingle()
+
+      if (profileData && profileData.email) {
+        const functionUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/onboarding-emails`
+        const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+
+        try {
+          const emailRes = await fetch(functionUrl, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${serviceKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              type: 'payment',
+              email: profileData.email,
+              first_name: profileData.display_name || 'there',
+              meta: {
+                amount: `₦${(amount / 100).toLocaleString()}`,
+                event_name: updatedEvent.name,
+                payment_method: 'Paystack'
+              }
+            })
+          })
+
+          if (!emailRes.ok) {
+            const errText = await emailRes.text()
+            console.error('Failed to trigger payment email from webhook:', emailRes.status, errText)
+          } else {
+            console.log('Payment email triggered from webhook successfully')
+          }
+        } catch (emailErr) {
+          console.error('Error calling onboarding-emails from webhook:', emailErr)
+        }
+      }
+    } else {
+      console.log(`Event ${metadata.event_id} already marked paid, skipping notification`)
+    }
   }
 
   return new Response('OK', { status: 200 })

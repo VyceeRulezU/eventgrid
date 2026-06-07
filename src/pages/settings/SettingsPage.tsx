@@ -27,6 +27,67 @@ export function SettingsPage() {
   const [phone, setPhone] = useState(profile?.phone || user?.user_metadata?.phone || '')
   const [avatarPreview, setAvatarPreview] = useState<string | null>(profile?.avatar_url || null)
   const [saving, setSaving] = useState(false)
+  const [testingEmail, setTestingEmail] = useState(false)
+
+  const handleTestEmail = async () => {
+    if (!user) return
+    setTestingEmail(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
+      const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/onboarding-emails`
+
+      const res = await fetch(functionUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          type: 'payment',
+          email: user.email,
+          first_name: profile?.display_name || user.user_metadata?.display_name || 'Test User',
+          meta: {
+            amount: '₦20,000',
+            event_name: 'Diagnostic Test Event',
+            payment_method: 'Paystack Test'
+          }
+        })
+      })
+
+      const text = await res.text()
+      console.log('Diagnostic response:', res.status, text)
+
+      if (!res.ok) {
+        showToast({
+          type: 'error',
+          title: `Test email failed (Status ${res.status})`,
+          body: text || 'No response body'
+        })
+        return
+      }
+
+      let data
+      try {
+        data = JSON.parse(text)
+      } catch {
+        // Not JSON
+      }
+
+      if (data?.error) {
+        showToast({ type: 'error', title: 'Test email failed', body: `Resend error: ${data.error}` })
+      } else {
+        showToast({ type: 'success', title: 'Test email sent!', body: `Check inbox for receipt email.` })
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unknown network error'
+      showToast({ type: 'error', title: 'Test email failed', body: `Fetch exception: ${msg}` })
+      console.error('Diagnostic fetch exception:', err)
+    } finally {
+      setTestingEmail(false)
+    }
+  }
 
   const [orgName, setOrgName] = useState(org?.name || '')
   const [orgCity, setOrgCity] = useState('')
@@ -337,6 +398,18 @@ export function SettingsPage() {
             <span>Flutterwave: <span className={styles.providerOk}>Configured</span></span>
           </div>
         </div>
+
+        {role === 'super_admin' && (
+          <div className="card">
+            <h3 className={styles.cardTitle}>Diagnostics (Super Admin Only)</h3>
+            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-3)', lineHeight: 1.5 }}>
+              Send a test transaction email receipt to <strong>{user?.email}</strong> using the remote Supabase Edge Function to diagnose delivery issues.
+            </p>
+            <button type="button" className="btn btn-secondary" onClick={handleTestEmail} disabled={testingEmail || !user?.email}>
+              {testingEmail ? 'Sending...' : 'Send Test Payment Email'}
+            </button>
+          </div>
+        )}
 
         <div className="card">
           <h3 className={styles.cardTitle}>Quick Links</h3>

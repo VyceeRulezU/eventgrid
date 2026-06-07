@@ -1,4 +1,4 @@
-import { EmailWrapper } from './EmailWrapper'
+import { EmailWrapper } from './EmailWrapper.tsx'
 
 export interface TrialReminderEmailProps {
   first_name: string

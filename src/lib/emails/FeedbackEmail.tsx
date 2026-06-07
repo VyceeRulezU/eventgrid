@@ -1,4 +1,4 @@
-import { EmailWrapper } from './EmailWrapper'
+import { EmailWrapper } from './EmailWrapper.tsx'
 
 export interface FeedbackEmailProps {
   first_name: string
