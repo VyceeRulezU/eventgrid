@@ -25,8 +25,10 @@
   left: 0;
   right: 0;
   z-index: var(--z-sticky);
-  background: transparent;
+  background: rgba(253, 245, 239, 0.88);
   border-bottom: 1px solid transparent;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   transition:
     background-color var(--transition-slow),
     border-color var(--transition-slow),
@@ -34,9 +36,9 @@
 }
 
 .header.scrolled {
-  background-color: var(--color-surface-1);
-  border-bottom-color: var(--color-border);
-  box-shadow: var(--shadow-md);
+  background-color: rgba(253, 245, 239, 0.97);
+  border-bottom-color: rgba(0, 0, 0, 0.07);
+  box-shadow: 0 1px 10px rgba(0, 0, 0, 0.06);
 }
 
 /* ── Logo ── */
@@ -71,7 +73,7 @@
   font-family: var(--font-base);
   font-size: 1rem;
   font-weight: var(--weight-medium);
-  color: var(--color-text-secondary);
+  color: #374151;
   padding: var(--space-2) 0;
   position: relative;
   white-space: nowrap;
@@ -161,17 +163,17 @@
   justify-content: center;
   width: 40px;
   height: 40px;
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
   border-radius: var(--radius-md);
-  color: var(--color-text-primary);
+  color: #111827;
   cursor: pointer;
   transition: background-color var(--transition-fast), border-color var(--transition-fast);
 }
 
 .hamburger:hover {
-  background: var(--color-surface-3);
-  border-color: var(--color-accent-border);
+  background: #e5e7eb;
+  border-color: #d1d5db;
 }
 
 @media (min-width: 1024px) {
@@ -180,8 +182,8 @@
 
 /* ── Mobile menu ── */
 .mobileMenu {
-  background-color: var(--color-surface-1);
-  border-bottom: 1px solid var(--color-border);
+  background-color: #ffffff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   padding: var(--space-4) var(--space-6);
   display: flex;
   flex-direction: column;
@@ -206,7 +208,7 @@
   font-family: var(--font-base);
   font-size: var(--text-base);
   font-weight: var(--weight-medium);
-  color: var(--color-text-secondary);
+  color: #374151;
   text-align: left;
   min-height: 52px;
   padding: 0 var(--space-3);
@@ -217,8 +219,29 @@
 }
 
 .mobileNavLink:hover {
-  color: var(--color-text-primary);
-  background-color: var(--color-surface-2);
+  color: #111827;
+  background-color: #f9fafb;
+}
+
+/* Override global btn-ghost for light navbar */
+.header :global(.btn-ghost) {
+  color: #374151;
+}
+
+.header :global(.btn-ghost):hover {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+/* Override btn-primary for light navbar — keep gold */
+.header :global(.btn-primary) {
+  background: #111827;
+  border-color: #111827;
+  color: #ffffff;
+}
+
+.header :global(.btn-primary):hover {
+  background: #1f2937;
 }
 
 .mobileCta {
@@ -226,5 +249,5 @@
   flex-direction: column;
   gap: var(--space-3);
   padding-top: var(--space-2);
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid #e5e7eb;
 }

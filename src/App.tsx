@@ -61,7 +61,7 @@ function AuthGate() {
     )
   }
 
-  if (!user) return <LandingPage />
+  if (!user) return <Navigate to="/home" replace />
   const dashboardRole = role || (user?.user_metadata?.role as string) || 'planner'
   return <Navigate to={`/dashboard/${dashboardRole}`} replace />
 }
