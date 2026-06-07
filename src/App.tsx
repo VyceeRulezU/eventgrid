@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { lazy, Suspense } from 'react'
 import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
@@ -261,6 +262,7 @@ export function App() {
   return (
     <>
       <Analytics />
+      <SpeedInsights />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<AuthGate />} />
