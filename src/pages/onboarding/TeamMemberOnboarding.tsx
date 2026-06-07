@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { Info, Sparkles, ChevronRight, LogOut, ArrowLeft, Star, CheckCircle } from 'lucide-react'
+import { Sparkles, ChevronRight, Star } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -8,7 +8,6 @@ import { SEO } from '@/components/shared/SEO'
 import styles from './Onboarding.module.css'
 
 export function TeamMemberOnboarding() {
-  const [step, setStep] = useState(1)
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState(false)
@@ -107,7 +106,7 @@ export function TeamMemberOnboarding() {
       setProfile({
         ...profile,
         display_name: name,
-        phone: phone || undefined,
+        phone: phone || null,
         role: 'coordinator'
       })
     }

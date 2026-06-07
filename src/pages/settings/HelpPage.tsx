@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronDown, ChevronRight, Search, Book, LayoutDashboard, DollarSign, Users, Calendar, Radio, ExternalLink, FileText, MessageSquare, Shield, ArrowLeft, ListChecks } from 'lucide-react'
+import { ChevronRight, Search, Book, LayoutDashboard, DollarSign, Users, Calendar, Radio, ExternalLink, FileText, MessageSquare, Shield, ArrowLeft, ListChecks } from 'lucide-react'
 import corporateImg from '@/assets/images/corporate_event_hall.png'
 import styles from './HelpPage.module.css'
 

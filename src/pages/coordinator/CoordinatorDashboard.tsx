@@ -144,17 +144,19 @@ export function CoordinatorDashboard() {
     if (!user) { setLoading(false); return }
 
     async function load() {
+      if (!user) return
+      const userId = user.id
       const today = new Date().toISOString()
 
       // Fetch event access records for this user
       const { data: accessData } = await supabase
         .from('event_access')
         .select('event_id')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
 
       const eventIds = (accessData || []).map(a => a.event_id)
 
-      const orConditions = [`coordinator_id.eq.${user.id}`]
+      const orConditions = [`coordinator_id.eq.${userId}`]
       if (org?.id) {
         orConditions.push(`org_id.eq.${org.id}`)
       }
@@ -188,7 +190,7 @@ export function CoordinatorDashboard() {
       const { data: taskData } = await supabase
         .from('tasks')
         .select('*, event:events(name)')
-        .eq('assignee_id', user!.id)
+        .eq('assignee_id', userId)
         .neq('status', 'done')
         .order('due_datetime', { ascending: true })
         .limit(20)
@@ -198,13 +200,13 @@ export function CoordinatorDashboard() {
       const { count: openTasksCount } = await supabase
         .from('tasks')
         .select('id', { count: 'exact' })
-        .eq('assignee_id', user!.id)
+        .eq('assignee_id', userId)
         .neq('status', 'done')
 
       const { count: overdueCount } = await supabase
         .from('tasks')
         .select('id', { count: 'exact' })
-        .eq('assignee_id', user!.id)
+        .eq('assignee_id', userId)
         .neq('status', 'done')
         .lte('due_datetime', today)
 
@@ -229,7 +231,7 @@ export function CoordinatorDashboard() {
 
       const [evDates, tDates] = await Promise.all([
         supabase.from('events').select('created_at').eq('org_id', org!.id).is('deleted_at', null).gte('created_at', since),
-        supabase.from('tasks').select('created_at').eq('assignee_id', user!.id).gte('created_at', since),
+        supabase.from('tasks').select('created_at').eq('assignee_id', userId).gte('created_at', since),
       ])
 
       function binToMonths(dates: { created_at: string }[]): { value: number }[] {
