@@ -13,6 +13,7 @@ import RoleSection from '@/pages/landing/RoleSection'
 import TestimonialsSection from '@/pages/landing/TestimonialsSection'
 import CTASection from '@/pages/landing/CTASection'
 import Footer from '@/pages/landing/Footer'
+import BackToTop from '@/components/shared/BackToTop'
 import styles from './LandingPage.module.css'
 
 export function LandingPage() {
@@ -59,6 +60,8 @@ export function LandingPage() {
           <Footer />
         </div>
       </main>
+
+      <BackToTop />
     </div>
   )
 }

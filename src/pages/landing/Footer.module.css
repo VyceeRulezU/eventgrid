@@ -112,7 +112,7 @@
   padding: 14px 28px;
   background-color: var(--color-accent);
   color: #080808;
-  border-radius: var(--radius-full);
+  border-radius: 0;
   font-size: var(--text-sm);
   font-weight: var(--weight-extrabold);
   text-decoration: none;
@@ -297,7 +297,7 @@
 .wordmarkBlock {
   position: relative;
   z-index: 1;
-  padding: 220px 220px 0 220px;
+  padding: 120px 120px 0 120px;
   overflow: hidden;
   line-height: 1;
 }
@@ -311,7 +311,7 @@
 .wordmark {
   display: block;
   font-family: var(--font-base);
-  font-size: clamp(5rem, 16vw, 14rem);
+  font-size: clamp(3rem, 12vw, 9rem);
   font-weight: var(--weight-extrabold);
   line-height: 0.88;
   letter-spacing: -0.04em;

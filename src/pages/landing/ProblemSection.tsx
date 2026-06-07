@@ -1,3 +1,4 @@
+import AnimatedStatValue from '../../components/shared/AnimatedStatValue'
 import styles from './ProblemSection.module.css'
 
 const STEPS = [
@@ -76,7 +77,7 @@ export default function ProblemSection() {
             <div className={styles.statsRow}>
               {STATS.map((stat, idx) => (
                 <div key={idx} className={styles.statItem}>
-                  <span className={styles.statValue}>{stat.value}</span>
+                  <AnimatedStatValue value={stat.value} className={styles.statValue} />
                   <p className={styles.statLabel}>{stat.label}</p>
                 </div>
               ))}

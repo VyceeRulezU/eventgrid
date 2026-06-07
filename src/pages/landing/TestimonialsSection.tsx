@@ -1,3 +1,4 @@
+import AnimatedStatValue from '../../components/shared/AnimatedStatValue'
 import styles from './TestimonialsSection.module.css'
 
 const TESTIMONIALS = [
@@ -7,7 +8,7 @@ const TESTIMONIALS = [
     name: 'Tunde Adeola',
     role: 'Wedding Planner',
     location: 'Lagos',
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&q=80&auto=format&fit=crop&crop=faces',
+    image: 'https://images.unsplash.com/photo-1774804819277-09f24510f23e?w=120&q=80&auto=format&fit=crop&crop=faces',
   },
   {
     quote:
@@ -15,7 +16,7 @@ const TESTIMONIALS = [
     name: 'Chisom Okafor',
     role: 'Event Planner',
     location: 'Abuja',
-    image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=120&q=80&auto=format&fit=crop&crop=faces',
+    image: 'https://images.unsplash.com/photo-1720010943528-d709a0857650?w=120&q=80&auto=format&fit=crop&crop=faces',
   },
   {
     quote:
@@ -23,7 +24,7 @@ const TESTIMONIALS = [
     name: 'Blessing Nwosu',
     role: 'Event Coordinator',
     location: 'Port Harcourt',
-    image: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=120&q=80&auto=format&fit=crop&crop=faces',
+    image: 'https://images.unsplash.com/photo-1661332186404-cfddad48db04?w=120&q=80&auto=format&fit=crop&crop=faces',
   },
   {
     quote:
@@ -31,7 +32,7 @@ const TESTIMONIALS = [
     name: 'Adunola Falade',
     role: 'Corporate Event Planner',
     location: 'Lagos',
-    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=120&q=80&auto=format&fit=crop&crop=faces',
+    image: 'https://images.unsplash.com/photo-1703544022909-6968d29d505e?w=120&q=80&auto=format&fit=crop&crop=faces',
   },
 ]
 
@@ -64,7 +65,7 @@ export default function TestimonialsSection() {
           <div className={styles.statsRow}>
             {STATS.map((stat) => (
               <div key={stat.label} className={styles.statItem}>
-                <span className={styles.statValue}>{stat.value}</span>
+                <AnimatedStatValue value={stat.value} className={styles.statValue} />
                 <span className={styles.statLabel}>{stat.label}</span>
               </div>
             ))}

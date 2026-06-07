@@ -67,12 +67,13 @@
   grid-template-columns: 1fr;
   gap: var(--space-10);
   align-items: center;
+  position: relative;
 }
 
 @media (min-width: 900px) {
   .module {
-    grid-template-columns: 1fr 1fr;
-    gap: 72px;
+    grid-template-columns: 1fr 3px 1fr;
+    gap: 36px;
   }
 
   /* Reverse: text left, image right */
@@ -111,6 +112,56 @@
 
 .imageCluster:hover .imagePrimary img {
   transform: scale(1.04);
+}
+
+/* ── Scroll Progress Bar ── */
+.progressTrack {
+  position: relative;
+  width: 100%;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progressFillDesktop {
+  display: none;
+}
+
+.progressFillMobile {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: var(--color-accent);
+  border-radius: 2px;
+  transform-origin: left;
+}
+
+@media (min-width: 900px) {
+  .progressTrack {
+    width: 3px;
+    height: 100%;
+    justify-self: center;
+    align-self: stretch;
+  }
+
+  .progressFillDesktop {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--color-accent);
+    border-radius: 2px;
+    transform-origin: top;
+  }
+
+  .progressFillMobile {
+    display: none;
+  }
 }
 
 /* Floating phase chip overlaid on image */

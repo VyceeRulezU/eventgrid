@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import styles from './HeroSection.module.css'
 
 const SLIDES = [
@@ -21,15 +22,22 @@ export default function HeroSection() {
 
   return (
     <section className={styles.hero} id="hero" aria-label="Hero">
-      {/* Slideshow background */}
+      {/* Slideshow background with Ken Burns zoom */}
       <div className={styles.slideshow}>
-        {SLIDES.map((url, index) => (
-          <div
-            key={url}
-            className={`${styles.slide} ${index === currentSlide ? styles.active : ''}`}
-            style={{ backgroundImage: `url(${url})` }}
+        <AnimatePresence>
+          <motion.div
+            key={currentSlide}
+            className={styles.slide}
+            initial={{ opacity: 0, scale: 1 }}
+            animate={{ opacity: 1, scale: 1.15 }}
+            exit={{ opacity: 0 }}
+            transition={{
+              opacity: { duration: 1.5, ease: 'easeInOut' },
+              scale: { duration: 6, ease: 'easeOut' },
+            }}
+            style={{ backgroundImage: `url(${SLIDES[currentSlide]})` }}
           />
-        ))}
+        </AnimatePresence>
       </div>
 
       {/* Dark overlay for text contrast */}
@@ -38,31 +46,51 @@ export default function HeroSection() {
       {/* Grid container */}
       <div className={styles.container}>
         <div className={styles.heroLayout}>
-          {/* Left Column: Headline and CTA under it */}
-          <div className={styles.leftCol}>
+          {/* Left Column: Headline and CTA */}
+          <motion.div
+            className={styles.leftCol}
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+          >
             <h1 className={styles.title}>
               Software for<br />
               Event Pros
             </h1>
-            <div className={styles.ctaWrap}>
+            <motion.div
+              className={styles.ctaWrap}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.3, ease: 'easeOut' }}
+            >
               <Link to="/register" className={styles.btnGold}>
                 Try It Free
               </Link>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
-          {/* Right Column: Tagline summary aligned right */}
-          <div className={styles.rightCol}>
+          {/* Right Column: Tagline */}
+          <motion.div
+            className={styles.rightCol}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6, ease: 'easeOut' }}
+          >
             <p className={styles.summary}>
               TRUSTED BY TOP PLANNERS TO<br />
               ORGANIZE, SIMPLIFY, AND GROW
             </p>
-          </div>
+          </motion.div>
         </div>
       </div>
 
       {/* Animated scroll down indicator */}
-      <div className={styles.scrollIndicator}>
+      <motion.div
+        className={styles.scrollIndicator}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1, delay: 1.2, ease: 'easeOut' }}
+      >
         <span className={styles.scrollText}>Scroll to explore</span>
         <svg
           className={styles.bounceChevron}
@@ -77,7 +105,7 @@ export default function HeroSection() {
         >
           <polyline points="6 9 12 15 18 9" />
         </svg>
-      </div>
+      </motion.div>
     </section>
   )
 }
