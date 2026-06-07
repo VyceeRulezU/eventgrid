@@ -1,0 +1,214 @@
+/* ══════════════════════════════════════════
+   ProblemSection — Two-column editorial
+   Bold headline left · Steps + stats right
+═══════════════════════════════════════════ */
+
+.section {
+  background-color: var(--color-bg-base);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.container {
+  max-width: 1800px;
+  margin: 0 auto;
+  padding: 0 var(--space-6);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding: 0 var(--space-8);
+  }
+}
+
+@media (min-width: 1280px) {
+  .container {
+    padding: 0 var(--space-12);
+  }
+}
+
+/* ── Two-column layout ── */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-12);
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .layout {
+    grid-template-columns: 0.85fr 1.15fr;
+    gap: 80px;
+    align-items: start;
+  }
+}
+
+/* ══════════════════════════════════════════
+   Left Column — bold sticky headline
+═══════════════════════════════════════════ */
+.leftCol {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 900px) {
+  .leftCol {
+    position: sticky;
+    top: 100px;
+  }
+}
+
+.headline {
+  font-family: var(--font-base);
+  font-size: clamp(2.25rem, 4vw, 3.5rem);
+  font-weight: 300;
+  line-height: 1.2;
+  color: var(--color-text-primary);
+  margin: 0;
+  letter-spacing: -0.03em;
+}
+
+/* ══════════════════════════════════════════
+   Right Column — steps + stats
+═══════════════════════════════════════════ */
+.rightCol {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+/* ── Steps List ── */
+.stepsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.stepRow {
+  display: flex;
+  gap: var(--space-5);
+  padding: var(--space-6) 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.stepRow:last-child {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Step number column */
+.stepLeft {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  flex-shrink: 0;
+  width: auto;
+}
+
+.stepNumber {
+  font-size: 6rem;
+  font-weight: 100;
+  color: var(--color-accent);
+  letter-spacing: 0.05em;
+  line-height: 1;
+}
+
+.stepConnector {
+  flex: 1;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  margin-top: var(--space-2);
+  min-height: 20px;
+}
+
+/* Step content */
+.stepContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: var(--space-2);
+}
+
+.stepTitle {
+  font-family: var(--font-base);
+  font-size: 2rem;
+  font-weight: 100;
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-2) 0;
+  line-height: var(--leading-normal);
+}
+
+.stepDesc {
+  font-size: 1.5rem;
+  color: var(--color-text-muted);
+  line-height: var(--leading-relaxed);
+  margin: 0;
+}
+
+/* ── Stats Row ── */
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-6);
+  padding-top: var(--space-8);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 6rem;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.statValue {
+  font-family: var(--font-base);
+  font-size: clamp(1.75rem, 3.5vw, 7.75rem);
+  font-weight: 100;
+  color: var(--color-text-primary);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.statLabel {
+  font-size: 1rem;
+  color: var(--color-text-muted);
+  line-height: var(--leading-normal);
+  margin: 0;
+}
+
+/* ── Light mode ── */
+[data-theme="light"] .stepRow {
+  border-top-color: var(--color-border);
+}
+
+[data-theme="light"] .stepRow:last-child {
+  border-bottom-color: var(--color-border);
+}
+
+[data-theme="light"] .statsRow {
+  border-top-color: var(--color-border);
+}
+
+[data-theme="light"] .stepConnector {
+  background: var(--color-border);
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .statsRow {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .headline {
+    font-size: clamp(2rem, 8vw, 2.75rem);
+  }
+}

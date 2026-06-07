@@ -1,0 +1,229 @@
+/* ══════════════════════════════════════════
+   FeatureSpotlightB — 60/40 Split Layout
+   Image LEFT (60%) · Feature Cards RIGHT (40%)
+═══════════════════════════════════════════ */
+
+.section {
+  background-color: var(--color-bg-base);
+  width: 100%;
+  overflow: hidden;
+}
+
+/* ── Full-bleed two-pane split ── */
+.layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 600px;
+}
+
+@media (min-width: 900px) {
+  .layout {
+    flex-direction: row;
+    min-height: 680px;
+  }
+}
+
+/* ══════════════════════════════════════════
+   Image Pane — 60%
+═══════════════════════════════════════════ */
+.imagePane {
+  position: relative;
+  width: 100%;
+  min-height: 320px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+@media (min-width: 900px) {
+  .imagePane {
+    width: 60%;
+    min-height: unset;
+  }
+}
+
+.eventImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 700ms ease;
+}
+
+.imagePane:hover .eventImage {
+  transform: scale(1.03);
+}
+
+.imageOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.45) 0%,
+    transparent 60%
+  );
+  display: flex;
+  align-items: flex-end;
+  padding: var(--space-8);
+}
+
+.overlayLabel {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+}
+
+/* ══════════════════════════════════════════
+   Content Pane — 40%
+═══════════════════════════════════════════ */
+.contentPane {
+  flex: 1;
+  background-color: var(--color-surface-1);
+  border-left: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+}
+
+.contentInner {
+  padding: var(--space-10) var(--space-8);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  width: 100%;
+}
+
+@media (min-width: 1200px) {
+  .contentInner {
+    padding: var(--space-12) var(--space-10);
+  }
+}
+
+/* ── Typography ── */
+.eyebrow {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: var(--space-4);
+  display: block;
+}
+
+.headline {
+  font-family: var(--font-base);
+  font-size: clamp(1.75rem, 2.5vw, 2.5rem);
+  font-weight: 100;
+  line-height: 1.2;
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-4) 0;
+  letter-spacing: -0.025em;
+}
+
+.subtext {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-relaxed);
+  margin: 0 0 var(--space-8) 0;
+}
+
+/* ── Feature Cards Stack ── */
+.cardStack {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  margin-bottom: var(--space-8);
+}
+
+.featureCard {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  padding: var(--space-5) 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  transition: background-color var(--transition-base);
+}
+
+.featureCard:first-child {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cardIcon {
+  font-size: 18px;
+  color: var(--color-accent);
+  line-height: 1.4;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.cardTitle {
+  font-family: var(--font-base);
+  font-size: var(--text-sm);
+  font-weight: 100;
+  color: var(--color-text-primary);
+  margin: 0;
+  line-height: var(--leading-normal);
+}
+
+.cardText {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  line-height: var(--leading-relaxed);
+  margin: 0;
+}
+
+/* ── CTA ── */
+.ctaLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--color-accent);
+  text-decoration: none;
+  transition: gap var(--transition-fast), color var(--transition-fast);
+}
+
+.ctaLink:hover {
+  color: var(--color-accent-hover);
+  gap: var(--space-3);
+}
+
+/* ── Light mode ── */
+[data-theme="light"] .contentPane {
+  background-color: var(--color-surface-1);
+  border-left-color: var(--color-border);
+}
+
+[data-theme="light"] .featureCard {
+  border-bottom-color: var(--color-border);
+}
+
+[data-theme="light"] .featureCard:first-child {
+  border-top-color: var(--color-border);
+}
+
+/* ── Mobile ── */
+@media (max-width: 899px) {
+  .contentInner {
+    padding: var(--space-8) var(--space-6);
+  }
+
+  .imagePane {
+    min-height: 280px;
+  }
+}

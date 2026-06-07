@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Menu, X, LayoutDashboard } from 'lucide-react'
-import { useAuthStore } from '@/store/auth.store'
+import { Menu, X } from 'lucide-react'
 import styles from './Navbar.module.css'
 
 const NAV_LINKS = [
@@ -15,13 +14,6 @@ export default function Navbar() {
   const [scrolled, setScrolled]     = useState(false)
   const [menuOpen, setMenuOpen]     = useState(false)
   const menuRef                      = useRef<HTMLDivElement>(null)
-
-  const user    = useAuthStore((s) => s.user)
-  const role    = useAuthStore((s) => s.role)
-  const profile = useAuthStore((s) => s.profile)
-
-  const isLoggedIn  = !!user
-  const displayName = profile?.display_name || user?.user_metadata?.display_name || ''
 
   /* ── Scroll detection ── */
   useEffect(() => {
@@ -41,6 +33,18 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', handleClick)
   }, [menuOpen])
 
+  /* ── Prevent body scrolling when mobile menu is active ── */
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [menuOpen])
+
   const handleNavClick = (href: string) => {
     setMenuOpen(false)
     const target = document.querySelector(href)
@@ -55,22 +59,8 @@ export default function Navbar() {
       ref={menuRef}
     >
       <div className={styles.container}>
-        {/* Logo */}
-        <Link to={isLoggedIn ? `/dashboard/${role || 'planner'}` : '/home'} className={styles.logo} aria-label="EventGrid home">
-          <svg
-            className={styles.logoMark}
-            width="32"
-            height="32"
-            viewBox="0 0 32 32"
-            fill="none"
-            aria-hidden="true"
-          >
-            <rect x="2" y="2" width="12" height="12" rx="3" fill="var(--color-accent)" opacity="0.9" />
-            <rect x="18" y="2" width="12" height="12" rx="3" fill="var(--color-accent)" opacity="0.6" />
-            <rect x="2" y="18" width="12" height="12" rx="3" fill="var(--color-accent)" opacity="0.6" />
-            <rect x="18" y="18" width="12" height="12" rx="3" fill="var(--color-accent)" opacity="0.9" />
-          </svg>
-          <span className={styles.wordmark}>EventGrid</span>
+        <Link to="/home" className={styles.logo} aria-label="EventGrid home">
+          <img src="/EventGrid-logo-white.svg" alt="EventGrid Logo" className={styles.logoImg} />
         </Link>
 
         {/* Desktop nav links */}
@@ -88,29 +78,12 @@ export default function Navbar() {
 
         {/* Desktop CTA buttons */}
         <div className={styles.desktopCta}>
-          {isLoggedIn ? (
-            <>
-              <span className={styles.greeting}>
-                {displayName ? `Hi, ${displayName.split(' ')[0]}` : ''}
-              </span>
-              <Link
-                to={`/dashboard/${role || 'planner'}`}
-                className="btn btn-primary"
-              >
-                <LayoutDashboard size={16} />
-                Dashboard
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link to="/login" className="btn btn-ghost" id="navbar-login-btn">
-                Log In
-              </Link>
-              <Link to="/register" className="btn btn-primary" id="navbar-get-started-btn">
-                Get Started
-              </Link>
-            </>
-          )}
+          <Link to="/login" className="btn btn-ghost" id="navbar-login-btn">
+            Log In
+          </Link>
+          <Link to="/register" className="btn btn-primary" id="navbar-get-started-btn">
+            Try It Free
+          </Link>
         </div>
 
         {/* Hamburger (mobile) */}
@@ -140,38 +113,24 @@ export default function Navbar() {
             ))}
           </nav>
           <div className={styles.mobileCta}>
-            {isLoggedIn ? (
-              <Link
-                to={`/dashboard/${role || 'planner'}`}
-                className="btn btn-primary"
-                onClick={() => setMenuOpen(false)}
-                style={{ width: '100%' }}
-              >
-                <LayoutDashboard size={16} />
-                Go to Dashboard
-              </Link>
-            ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="btn btn-ghost"
-                  onClick={() => setMenuOpen(false)}
-                  style={{ width: '100%' }}
-                  id="mobile-login-btn"
-                >
-                  Log In
-                </Link>
-                <Link
-                  to="/register"
-                  className="btn btn-primary"
-                  onClick={() => setMenuOpen(false)}
-                  style={{ width: '100%' }}
-                  id="mobile-get-started-btn"
-                >
-                  Get Started
-                </Link>
-              </>
-            )}
+            <Link
+              to="/login"
+              className="btn btn-ghost"
+              onClick={() => setMenuOpen(false)}
+              style={{ width: '100%' }}
+              id="mobile-login-btn"
+            >
+              Log In
+            </Link>
+            <Link
+              to="/register"
+              className="btn btn-primary"
+              onClick={() => setMenuOpen(false)}
+              style={{ width: '100%' }}
+              id="mobile-get-started-btn"
+            >
+              Try It Free
+            </Link>
           </div>
         </div>
       )}
