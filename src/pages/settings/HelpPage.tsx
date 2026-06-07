@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronDown, Search, Book, LayoutDashboard, DollarSign, Users, Calendar, Radio, ExternalLink, FileText, MessageSquare, Shield, ArrowLeft, ListChecks } from 'lucide-react'
 import styles from './HelpPage.module.css'
@@ -132,16 +132,24 @@ const TOPICS = [
     content: (
       <>
         <h4>Vendor Directory (<code>/vendors</code>)</h4>
-        <p>Your organisation's vendor directory. Shows all vendors across all events. Add, edit, and search vendors by name or category.</p>
+        <p>Think of this as your phonebook of vendors. Every vendor across all your events lives here. Add, edit, and search by name or category.</p>
         <ul>
-          <li><strong>Add Vendor</strong> — click the add button, fill in name, category, contact info</li>
-          <li><strong>Add Type</strong> — create custom vendor categories</li>
+          <li><strong>Add Vendor</strong> — fill in name, category, phone, email, website</li>
+          <li><strong>Add Type</strong> — create custom categories (e.g. "Photo Booth", "Security")</li>
           <li><strong>Edit</strong> — click pencil to update vendor details</li>
-          <li><strong>Duplicate check</strong> — the system prevents adding the same name + category twice</li>
+          <li><strong>Duplicate check</strong> — the app prevents adding the same name + category twice</li>
         </ul>
 
         <h4>Event Vendors (<code>/events/:id/vendors</code>)</h4>
-        <p>Vendors assigned to a specific event. Track booking status (sourcing → quoted → negotiating → confirmed → paid → cancelled), payment status, and contracts.</p>
+        <p>Vendors booked for a specific event. Pick from your directory and track:</p>
+        <ul>
+          <li><strong>Booking Status</strong> — Sourcing → Quoted → Negotiating → Confirmed → Paid → Cancelled</li>
+          <li><strong>Payment tracking</strong> — total cost, advance paid, balance auto-calculated</li>
+          <li><strong>Advance payment</strong> — mark a deposit and it syncs to the Financials page</li>
+        </ul>
+
+        <h4>Coordinator Access</h4>
+        <p>Coordinators can <strong>view</strong> the directory and event vendors, but cannot add, edit, or delete.</p>
       </>
     ),
   },
@@ -152,41 +160,67 @@ const TOPICS = [
     content: (
       <>
         <h4>Guest List (<code>/events/:id/guests</code>)</h4>
-        <p>Manage your event's guest list. Add guests with name, phone, email, and table assignment.</p>
+        <p>Manage your event's guest list — who's coming, where they sit, and checking them in at the door.</p>
+
+        <h5>Adding Guests</h5>
         <ul>
-          <li><strong>Add Guest</strong> — manually or import via CSV</li>
-          <li><strong>RSVP Status</strong> — pending / confirmed / declined / maybe</li>
-          <li><strong>Seating</strong> — assign guests to tables and seat numbers</li>
-          <li><strong>Check-in</strong> — mark guests as checked in at the event</li>
-          <li><strong>VIP</strong> — flag VIP guests</li>
-          <li><strong>Plus One</strong> — allow guests to bring a companion</li>
+          <li><strong>Manual</strong> — click Add Guest, fill in name, phone, email</li>
+          <li><strong>CSV Import</strong> — bulk upload with columns: name, phone, email, table</li>
         </ul>
 
-        <h4>Seating Tables</h4>
-        <p>Create tables with names and capacities. Drag guests between tables visually.</p>
+        <h5>RSVP Status</h5>
+        <p>Click the badge to cycle: <strong>Pending</strong> → <strong>Confirmed</strong> → <strong>Declined</strong> → <strong>Maybe</strong></p>
+        <ul>
+          <li><strong>VIP</strong> — flag important guests</li>
+          <li><strong>Plus One</strong> — let guests bring a companion</li>
+        </ul>
+
+        <h5>Check-in</h5>
+        <p>When guests arrive, click <strong>Check-in</strong> to mark them as arrived. Checked-in guests are highlighted.</p>
+
+        <h5>Seating</h5>
+        <p>Create tables with names and capacities. Assign guests to tables visually.</p>
+
+        <h5>Coordinator Access</h5>
+        <p>Coordinators can view the guest list and check guests in, but cannot add, edit, or delete.</p>
       </>
     ),
   },
   {
-    id: 'team',
+    id: 'team-tasks',
     icon: ListChecks,
     label: 'Team & Tasks',
     content: (
       <>
         <h4>Team Page (<code>/events/:id/team</code>)</h4>
-        <p>Manage your event team. Add coordinators and staff members, assign them to phases or tasks.</p>
+        <p>Manage your event team. Invite people to your organisation and assign roles.</p>
         <ul>
-          <li><strong>Invite Team Members</strong> — send email invitations</li>
-          <li><strong>Roles</strong> — assign coordinator or staff access</li>
+          <li><strong>View team</strong> — table of all members in your org</li>
+          <li><strong>Invite member</strong> — enter email, select role (Planner or Coordinator), invite is sent via email</li>
+          <li><strong>Invite status</strong> — Pending (not yet accepted) or Accepted</li>
+          <li><strong>Remove member</strong> — cannot remove yourself</li>
+        </ul>
+
+        <h5>Roles</h5>
+        <ul>
+          <li><strong>Planner</strong> — full access to everything</li>
+          <li><strong>Coordinator</strong> — can view and update tasks, live board, guests (check-in only), team</li>
         </ul>
 
         <h4>Task Board (<code>/events/:id/tasks</code>)</h4>
-        <p>A kanban-style task board. Create tasks with titles, descriptions, assignees, due dates, and priority levels.</p>
-        <ul>
-          <li><strong>Columns:</strong> Pending → In Progress → Done → Blocked</li>
-          <li><strong>Drag &amp; drop</strong> tasks between columns</li>
-          <li><strong>Overdue tasks</strong> highlighted in red on the Event Details page</li>
-        </ul>
+        <p>A kanban-style board. Tasks are arranged in columns: <strong>Pending</strong> → <strong>In Progress</strong> → <strong>Done</strong> → <strong>Blocked</strong>.</p>
+
+        <h5>Creating a Task</h5>
+        <p>Click <strong>Add Task</strong> and fill in: Title (required), Description, Assignee, Due date, Priority (low/medium/high/critical).</p>
+
+        <h5>Drag &amp; Drop</h5>
+        <p>Drag task cards between columns to update status.</p>
+
+        <h5>Overdue Tasks</h5>
+        <p>Past-due tasks show in red on the board and appear in the Event Details Upcoming Deadlines widget.</p>
+
+        <h5>Coordinator Access</h5>
+        <p>Coordinators can view and drag tasks, add comments, but cannot create, edit, or delete tasks.</p>
       </>
     ),
   },
@@ -197,14 +231,31 @@ const TOPICS = [
     content: (
       <>
         <h4>Live Board (<code>/events/:id/live-board</code>)</h4>
-        <p>Real-time event day operations. Monitor stations (e.g. "Reception", "Catering", "Stage") with status indicators.</p>
+        <p>Your event-day command centre. Monitor areas (stations), flag problems (issues), and resolve them in real time.</p>
+
+        <h5>Stations</h5>
+        <p>Each area or activity gets a status card. Click a card to update its status via a modal.</p>
         <ul>
-          <li><strong>Stations</strong> — each area or activity has a status: Green (on track), Yellow (attention needed), Red (critical issue), Grey (not started)</li>
-          <li><strong>Status updates</strong> — change station status as the event progresses</li>
-          <li><strong>Issues</strong> — log issues with severity (low/medium/high/critical), add photos and resolution notes</li>
-          <li><strong>Run Sheet</strong> — timed schedule of activities with actual time tracking</li>
+          <li><strong>Green</strong> — on track, all good</li>
+          <li><strong>Yellow</strong> — minor issue, watch it</li>
+          <li><strong>Red</strong> — serious problem, needs attention</li>
+          <li><strong>Grey</strong> — not started yet</li>
+          <li><strong>Add Station</strong> — give it a name and optional category</li>
         </ul>
-        <p>This page is designed for use during the event itself, typically on a tablet or large screen.</p>
+
+        <h5>Issues</h5>
+        <p>Flag issues from any station card. Set severity (low/medium/high/critical). High/critical issues auto-turn the station red.</p>
+
+        <h5>Issues Panel</h5>
+        <p>All issues in one table with <strong>Open</strong> and <strong>Received</strong> tabs:</p>
+        <ul>
+          <li><strong>Resolve</strong> — add a resolution note and mark done</li>
+          <li><strong>Bulk actions</strong> — select multiple to resolve or delete at once</li>
+          <li><strong>Columns</strong> — checkbox, issue title, station, severity badge, raised info, actions</li>
+        </ul>
+
+        <h5>Coordinator Access</h5>
+        <p>Coordinators have full access — they can view stations, update status, flag and resolve issues. This is intentional for event-day use.</p>
       </>
     ),
   },
@@ -215,14 +266,27 @@ const TOPICS = [
     content: (
       <>
         <h4>Client Portal</h4>
-        <p>Share event progress with your client without giving them full app access.</p>
+        <p>Share event progress with your client without giving them an account. They get a read-only link.</p>
+
+        <h5>Creating a Portal Link</h5>
         <ol>
           <li>On the Event Details page, click <strong>Client Portal</strong></li>
           <li>Enter the client's name, email, and phone</li>
-          <li>A shareable link is generated — send it to your client</li>
-          <li>The client sees a read-only view: event info, vendor list, run sheet, and progress</li>
+          <li>A unique link is generated (slug format: client name + short code)</li>
+          <li>Copy and send it to your client</li>
         </ol>
-        <p>Access tokens use a simple slug format (client name + short code) so they're easy to share.</p>
+
+        <h5>What Clients See</h5>
+        <ul>
+          <li>Event name and date</li>
+          <li>List of vendors booked</li>
+          <li>Run sheet / schedule</li>
+          <li>Phase completion progress</li>
+        </ul>
+        <p>Everything is read-only. The link works on any device.</p>
+
+        <h5>Coordinator Access</h5>
+        <p>Only planners can generate or manage client portals.</p>
       </>
     ),
   },
@@ -233,12 +297,29 @@ const TOPICS = [
     content: (
       <>
         <h4>Aftermath Page (<code>/events/:id/aftermath</code>)</h4>
-        <p>Post-event documentation and reports.</p>
+        <p>Post-event documentation hub. Generate reports, record lessons, and organise photos.</p>
+
+        <h5>Report Builder</h5>
+        <p>Generate a professional PDF report including: event overview, vendor list with costs, budget summary, guest counts, and notes.</p>
+        <ol>
+          <li>Click <strong>Build Report</strong></li>
+          <li>Select what to include</li>
+          <li>Click <strong>Generate PDF</strong> — downloads directly</li>
+        </ol>
+
+        <h5>Lessons Learned</h5>
+        <p>Document what went well and what could improve for future events.</p>
         <ul>
-          <li><strong>Report Builder</strong> — generate a PDF report with event summary, vendor list, financials, and notes</li>
-          <li><strong>Lessons Learned</strong> — document what went well and what could improve</li>
-          <li><strong>Media Gallery</strong> — upload and organise event photos</li>
+          <li><strong>What worked</strong> — things to repeat</li>
+          <li><strong>What didn't</strong> — things to improve</li>
+          <li><strong>Surprises</strong> — unexpected things</li>
         </ul>
+
+        <h5>Media Gallery</h5>
+        <p>Upload event photos. Grouped by date, click to view full size.</p>
+
+        <h5>Coordinator Access</h5>
+        <p>Coordinators can view the aftermath page but cannot generate reports or add content.</p>
       </>
     ),
   },
@@ -249,15 +330,28 @@ const TOPICS = [
     content: (
       <>
         <h4>Feedback</h4>
-        <p>From the sidebar, click the <strong>Feedback</strong> button (bottom-left). Submit suggestions, bug reports, or general feedback. Super Admins can reply, and you'll see the response in your Notifications.</p>
+        <p>Found a bug or have a suggestion? Click the <strong>Feedback</strong> button in the sidebar (bottom-left, message icon).</p>
+        <ul>
+          <li>Choose category: Bug Report, Feature Request, or General</li>
+          <li>Write your message and click Send</li>
+          <li>Super Admins can reply — you'll get a notification</li>
+          <li>Check your Notifications page for their response</li>
+        </ul>
 
         <h4>Notifications (<code>/notifications</code>)</h4>
-        <p>All your notifications in one place. Unread items are highlighted. Click <strong>Mark all read</strong> to clear them. You'll be notified when:</p>
+        <p>All your notifications in one place. Newest first.</p>
+        <ul>
+          <li><strong>Unread</strong> items are highlighted</li>
+          <li>Click a notification to mark it read</li>
+          <li>Click <strong>Mark All Read</strong> to clear everything</li>
+        </ul>
+
+        <h5>You'll Be Notified When:</h5>
         <ul>
           <li>Someone replies to your feedback</li>
           <li>A task is assigned to you</li>
-          <li>Your client portal is accessed</li>
           <li>Payment is confirmed</li>
+          <li>Your client portal is accessed</li>
         </ul>
       </>
     ),
@@ -282,6 +376,18 @@ const TOPICS = [
   },
 ]
 
+function TopicBody({ children, isOpen }: { children: React.ReactNode; isOpen: boolean }) {
+  const innerRef = useRef<HTMLDivElement>(null)
+
+  return (
+    <div className={`${styles.topicBodyWrap} ${isOpen ? styles.topicBodyWrapOpen : ''}`}>
+      <div className={styles.topicBodyInner} ref={innerRef}>
+        {isOpen && <div className={styles.topicBody}>{children}</div>}
+      </div>
+    </div>
+  )
+}
+
 export function HelpPage() {
   const [search, setSearch] = useState('')
   const [openTopic, setOpenTopic] = useState<string | null>('getting-started')
@@ -292,13 +398,20 @@ export function HelpPage() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.header}>
-        <Link to="/settings" className={styles.backBtn} aria-label="Back to settings">
-          <ArrowLeft size={18} />
-        </Link>
-        <div>
-          <h2 className={styles.title}>User Manual</h2>
-          <p className={styles.subtitle}>Everything you need to know about using EventGrid</p>
+      <div className={styles.hero}>
+        <div className={styles.heroContent}>
+          <div className={styles.heroIcon}>
+            <Book size={24} />
+          </div>
+          <div className={styles.heroText}>
+            <h1 className={styles.heroTitle}>User Manual</h1>
+            <p className={styles.heroSubtitle}>Everything you need to know about using EventGrid</p>
+          </div>
+          <div className={styles.heroActions}>
+            <Link to="/settings" className={styles.backBtn} aria-label="Back to settings">
+              <ArrowLeft size={18} />
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -315,13 +428,22 @@ export function HelpPage() {
 
       <div className={styles.topics}>
         {filtered.length === 0 ? (
-          <div className={styles.empty}>No topics match your search.</div>
+          <div className={styles.empty}>
+            <div className={styles.emptyIcon}>
+              <Search size={24} />
+            </div>
+            <div className={styles.emptyTitle}>No topics found</div>
+            <div className={styles.emptyDesc}>Try a different search term</div>
+          </div>
         ) : (
           filtered.map(topic => {
             const Icon = topic.icon
             const isOpen = openTopic === topic.id
             return (
-              <div key={topic.id} className={`card ${styles.topicCard}`}>
+              <div
+                key={topic.id}
+                className={`card ${styles.topicCard} ${isOpen ? styles.topicCardOpen : ''}`}
+              >
                 <button
                   type="button"
                   className={styles.topicHeader}
@@ -331,13 +453,12 @@ export function HelpPage() {
                     <Icon size={18} />
                   </span>
                   <span className={styles.topicLabel}>{topic.label}</span>
+                  <span className={styles.topicCount}>{topic.id === 'team-tasks' ? '2' : '1'}</span>
                   <ChevronDown size={16} className={`${styles.chevron} ${isOpen ? styles.chevronOpen : ''}`} />
                 </button>
-                {isOpen && (
-                  <div className={styles.topicBody}>
-                    {topic.content}
-                  </div>
-                )}
+                <TopicBody isOpen={isOpen}>
+                  {topic.content}
+                </TopicBody>
               </div>
             )
           })

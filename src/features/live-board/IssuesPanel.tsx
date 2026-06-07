@@ -4,11 +4,12 @@ import { useAuthStore } from '@/store/auth.store'
 import { useLiveBoardStore } from '@/store/liveBoard.store'
 import { useUIStore } from '@/store/ui.store'
 import { Checkbox } from '@/components/ui/Checkbox'
+import { Tabs } from '@/components/ui/Tabs'
 import { CheckCircle, Clock, Trash2, CircleX, User } from 'lucide-react'
 import type { Issue, IssueSeverity } from '@/types'
 import styles from './LiveBoardPage.module.css'
 
-type FilterTab = 'all' | 'open' | 'resolved'
+type FilterTab = 'open' | 'received'
 
 const severityConfig: Record<IssueSeverity, { badgeClass: string }> = {
   low: { badgeClass: 'badge-low' },
@@ -35,7 +36,7 @@ export function IssuesPanel() {
 
   const filtered = issues.filter((i) => {
     if (filter === 'open') return !i.resolved_at
-    if (filter === 'resolved') return i.resolved_at
+    if (filter === 'received') return i.resolved_at
     return true
   })
 
@@ -161,25 +162,14 @@ export function IssuesPanel() {
     })
   }
 
-  const tabs: { value: FilterTab; label: string }[] = [
-    { value: 'all', label: `All (${issues.length})` },
-    { value: 'open', label: `Open (${issues.filter((i) => !i.resolved_at).length})` },
-    { value: 'resolved', label: `Resolved (${issues.filter((i) => i.resolved_at).length})` },
+  const tabItems = [
+    { key: 'open' as FilterTab, label: 'Open', badge: issues.filter((i) => !i.resolved_at).length },
+    { key: 'received' as FilterTab, label: 'Received', badge: issues.filter((i) => i.resolved_at).length },
   ]
 
   return (
     <div className={styles.issuesCard}>
-      <div className={styles.issuesTabs}>
-        {tabs.map((tab) => (
-          <button
-            key={tab.value}
-            className={`${styles.issuesTab} ${filter === tab.value ? styles.issuesTabActive : ''}`}
-            onClick={() => { setFilter(tab.value); setResolvingId(null); setSelected(new Set()) }}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <Tabs tabs={tabItems} activeTab={filter} onChange={(key) => { setFilter(key); setResolvingId(null); setSelected(new Set()) }} />
 
       {someSelected && (
         <div className={styles.issuesBulkBar}>
@@ -204,7 +194,7 @@ export function IssuesPanel() {
             <CheckCircle size={20} />
           </div>
           <div className="empty-state__title" style={{ fontSize: 'var(--text-xs)' }}>
-            {filter === 'resolved' ? 'No resolved issues' : filter === 'open' ? 'No open issues' : 'No issues'}
+            {filter === 'received' ? 'No received issues' : 'No open issues'}
           </div>
         </div>
       ) : (

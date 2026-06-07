@@ -19,53 +19,62 @@ export function StatusCard({ item }: { item: LiveBoardItem }) {
   const cfg = statusConfig[item.status] || statusConfig.grey
 
   return (
-    <div
-      className={styles.statusCard}
-      onClick={() => setShowUpdate(!showUpdate)}
-    >
-      <div className={styles.statusCardTop}>
-        <div className={styles.statusCardInfo}>
-          <div className={styles.stationName}>{item.station_name}</div>
-          {item.category && (
-            <span className={`badge badge-medium ${styles.categoryBadge}`}>
-              {item.category}
-            </span>
+    <>
+      <div className={styles.statusCard}>
+        <button
+          type="button"
+          className={styles.statusCardClickable}
+          onClick={() => setShowUpdate(true)}
+        >
+          <div className={styles.statusCardTop}>
+            <div className={styles.statusCardInfo}>
+              <div className={styles.stationName}>{item.station_name}</div>
+              {item.category && (
+                <span className={`badge badge-medium ${styles.categoryBadge}`}>
+                  {item.category}
+                </span>
+              )}
+            </div>
+            <div className={styles.statusDot} style={{ backgroundColor: cfg.dot }} />
+          </div>
+
+          {item.status_label && (
+            <div className={styles.statusLabel}>{item.status_label}</div>
           )}
-        </div>
-        <div className={styles.statusDot} style={{ backgroundColor: cfg.dot }} />
+
+          <div
+            className={styles.statusPill}
+            style={{ backgroundColor: cfg.bg, color: cfg.dot }}
+          >
+            <span className={styles.pillDot} style={{ backgroundColor: cfg.dot }} />
+            {cfg.label}
+          </div>
+        </button>
+
+        <button
+          className={`btn btn-ghost btn-sm ${styles.flagBtn}`}
+          onClick={() => setShowIssue(true)}
+        >
+          <AlertTriangle size={14} />
+          Flag Issue
+        </button>
       </div>
-
-      {item.status_label && (
-        <div className={styles.statusLabel}>{item.status_label}</div>
-      )}
-
-      <div
-        className={styles.statusPill}
-        style={{ backgroundColor: cfg.bg, color: cfg.dot }}
-      >
-        <span className={styles.pillDot} style={{ backgroundColor: cfg.dot }} />
-        {cfg.label}
-      </div>
-
-      <button
-        className={`btn btn-ghost btn-sm ${styles.flagBtn}`}
-        onClick={(e) => { e.stopPropagation(); setShowIssue(!showIssue) }}
-      >
-        <AlertTriangle size={14} />
-        Flag Issue
-      </button>
 
       {showUpdate && (
-        <div onClick={(e) => e.stopPropagation()}>
-          <StatusUpdateSheet item={item} onClose={() => setShowUpdate(false)} />
+        <div className={styles.modalOverlay} onClick={() => setShowUpdate(false)}>
+          <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+            <StatusUpdateSheet item={item} onClose={() => setShowUpdate(false)} />
+          </div>
         </div>
       )}
 
       {showIssue && (
-        <div onClick={(e) => e.stopPropagation()}>
-          <IssueForm item={item} onClose={() => setShowIssue(false)} />
+        <div className={styles.modalOverlay} onClick={() => setShowIssue(false)}>
+          <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+            <IssueForm item={item} onClose={() => setShowIssue(false)} />
+          </div>
         </div>
       )}
-    </div>
+    </>
   )
 }

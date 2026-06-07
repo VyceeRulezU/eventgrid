@@ -5,9 +5,10 @@ import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
 import {
   Users, Search, Plus, X, Upload, Check, UserCheck,
-  LayoutGrid, Star, List, ArrowLeft,
+  LayoutGrid, Star, List, ArrowLeft, User,
 } from 'lucide-react'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
+import { Tabs } from '@/components/ui/Tabs'
 import { sendGuestNotification } from '@/lib/email'
 import type { Guest, SeatingTable } from '@/types'
 import { Checkbox } from '@/components/ui/Checkbox'
@@ -192,11 +193,15 @@ export function GuestManagementPage() {
         </div>
       </div>
 
-      <div className={styles.tabs}>
-        <button className={`${styles.tab} ${tab === 'list' ? styles.activeTab : ''}`} onClick={() => setTab('list')}><List size={16} /> <span>List</span></button>
-        <button className={`${styles.tab} ${tab === 'checkin' ? styles.activeTab : ''}`} onClick={() => setTab('checkin')}><UserCheck size={16} /> <span>Check-In</span></button>
-        <button className={`${styles.tab} ${tab === 'seating' ? styles.activeTab : ''}`} onClick={() => setTab('seating')}><LayoutGrid size={16} /> <span>Seating</span></button>
-      </div>
+      <Tabs
+        tabs={[
+          { key: 'list', label: 'Guest List', icon: <List size={16} />, badge: rsvpCounts.total },
+          { key: 'checkin', label: 'Check-In', icon: <UserCheck size={16} />, badge: rsvpCounts.confirmed },
+          { key: 'seating', label: 'Seating', icon: <LayoutGrid size={16} />, badge: tables.length },
+        ]}
+        activeTab={tab}
+        onChange={(key) => setTab(key as 'list' | 'checkin' | 'seating')}
+      />
 
       <RSVPSummary />
 
@@ -267,23 +272,69 @@ export function GuestManagementPage() {
 
       {tab === 'checkin' && (
         <div className={styles.checkinView}>
-          <div className={styles.searchWrap} style={{ marginBottom: 'var(--space-3)', maxWidth: 400 }}>
-            <Search size={16} className={styles.searchIcon} />
-            <input className={styles.searchInput} placeholder="Search guest name or phone..." value={search} onChange={(e) => setSearch(e.target.value)} autoFocus />
+          <div className={styles.checkinStats}>
+            <div className={styles.checkinStatItem}>
+              <span className={styles.checkinStatNum}>{guests.filter(g => g.checked_in).length}</span>
+              <span className={styles.checkinStatLabel}>Checked In</span>
+            </div>
+            <div className={styles.checkinStatDivider} />
+            <div className={styles.checkinStatItem}>
+              <span className={styles.checkinStatNum}>{guests.length}</span>
+              <span className={styles.checkinStatLabel}>Total Guests</span>
+            </div>
+            <div className={styles.checkinStatDivider} />
+            <div className={styles.checkinStatItem}>
+              <span className={styles.checkinStatNum}>
+                {guests.length > 0 ? Math.round((guests.filter(g => g.checked_in).length / guests.length) * 100) : 0}%
+              </span>
+              <span className={styles.checkinStatLabel}>Attendance</span>
+            </div>
           </div>
-          <div className={styles.chipGroup}>
-            <button className={`${styles.chip} ${rsvpFilter === 'all' ? styles.chipActive : ''}`} onClick={() => setRsvpFilter('all')}>All</button>
-            <button className={`${styles.chip} ${rsvpFilter === 'confirmed' ? styles.chipActive : ''}`} onClick={() => setRsvpFilter('confirmed')}>Confirmed</button>
-            <button className={`${styles.chip} ${rsvpFilter === 'pending' ? styles.chipActive : ''}`} onClick={() => setRsvpFilter('pending')}>Pending</button>
+          <div className={styles.checkinSearchRow}>
+            <div className={styles.checkinSearchWrap}>
+              <Search size={16} className={styles.checkinSearchIcon} />
+              <input className={styles.checkinSearchInput} placeholder="Search name or phone..." value={search} onChange={(e) => setSearch(e.target.value)} autoFocus />
+            </div>
+            <div className={styles.checkinChips}>
+              <button className={`${styles.checkinChip} ${rsvpFilter === 'all' ? styles.checkinChipActive : ''}`} onClick={() => setRsvpFilter('all')}>All</button>
+              <button className={`${styles.checkinChip} ${rsvpFilter === 'confirmed' ? styles.checkinChipActive : ''}`} onClick={() => setRsvpFilter('confirmed')}>Confirmed</button>
+              <button className={`${styles.checkinChip} ${rsvpFilter === 'pending' ? styles.checkinChipActive : ''}`} onClick={() => setRsvpFilter('pending')}>Pending</button>
+            </div>
           </div>
           <div className={styles.checkinGrid}>
-            {filteredGuests.map((g) => (
-              <button key={g.id} className={`${styles.checkinCard} ${g.checked_in ? styles.checkedIn : ''}`} onClick={() => handleCheckin(g.id)}>
-                <div className={styles.checkinName}>{g.first_name} {g.last_name || ''}</div>
-                <div className={styles.checkinMeta}>{g.phone || g.email || ''}</div>
-                {g.checked_in && <div className={styles.checkinBadge}><Check size={14} /> Checked In</div>}
-              </button>
-            ))}
+            {filteredGuests.length === 0 ? (
+              <div className={styles.checkinEmpty}>
+                <User size={32} />
+                <div>No guests match your search</div>
+              </div>
+            ) : (
+              filteredGuests.map((g) => {
+                const initial = (g.first_name || '?').charAt(0).toUpperCase()
+                return (
+                  <div key={g.id} className={`${styles.checkinCard} ${g.checked_in ? styles.checkedIn : ''}`} onClick={() => handleCheckin(g.id)}>
+                    <div className={styles.checkinAvatar} style={{ background: g.checked_in ? 'var(--color-success)' : 'var(--color-surface-3)' }}>
+                      {initial}
+                    </div>
+                    <div className={styles.checkinInfo}>
+                      <div className={styles.checkinName}>{g.first_name} {g.last_name || ''}</div>
+                      <div className={styles.checkinMeta}>{g.phone || g.email || ''}</div>
+                      {g.is_vip && <span className={styles.checkinVip}>VIP</span>}
+                    </div>
+                    <div className={styles.checkinToggle}>
+                      {g.checked_in ? (
+                        <span className={styles.checkinToggleIn}>
+                          <Check size={16} />
+                        </span>
+                      ) : (
+                        <span className={styles.checkinToggleOut}>
+                          <UserCheck size={16} />
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )
+              })
+            )}
           </div>
         </div>
       )}
