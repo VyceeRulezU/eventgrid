@@ -56,7 +56,7 @@ export default function Navbar() {
     >
       <div className={styles.container}>
         {/* Logo */}
-        <Link to="/" className={styles.logo} aria-label="EventGrid home">
+        <Link to={isLoggedIn ? `/dashboard/${role || 'planner'}` : '/home'} className={styles.logo} aria-label="EventGrid home">
           <svg
             className={styles.logoMark}
             width="32"
