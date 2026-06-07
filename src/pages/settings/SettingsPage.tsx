@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { compressImage } from '@/lib/image'
 import { clearTourForRole } from '@/components/shared/AppTour'
+import { SEO } from '@/components/shared/SEO'
 import type { Profile } from '@/types'
 import styles from './SettingsPage.module.css'
 
@@ -185,6 +186,7 @@ export function SettingsPage() {
 
   return (
     <div className={styles.page}>
+      <SEO title="Settings" description="Manage your EventGrid profile, business organization parameters, team invitations, and integration preferences." />
       <div className={styles.pageHeader}>
         <h2 className={styles.pageTitle}>Settings</h2>
       </div>

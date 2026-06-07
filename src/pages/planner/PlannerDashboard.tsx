@@ -11,6 +11,7 @@ import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { Pagination } from '@/components/ui/Pagination'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
+import { SEO } from '@/components/shared/SEO'
 import type { Event, EventPhase, Task } from '@/types'
 import styles from './PlannerDashboard.module.css'
 
@@ -515,6 +516,7 @@ export function PlannerDashboard() {
 
   return (
     <div className={styles.dashboard}>
+      <SEO title="Planner Dashboard" description="Access your Planner Workspace: track guest counts, budget developments, vendor payouts, and coordinator tasks live." />
       {/* Quick Actions */}
       <div className={styles.quickActions}>
         <h2 className={styles.quickActionsTitle}>Quick Actions</h2>

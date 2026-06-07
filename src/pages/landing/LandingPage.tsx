@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Helmet } from 'react-helmet-async'
+import { SEO } from '@/components/shared/SEO'
 import {
   Star, Play,
   Calendar, Users, Wallet, Radio,
@@ -70,13 +70,7 @@ export function LandingPage() {
 
   return (
     <div className={styles.page}>
-      <Helmet>
-        <title>EventGrid — Software for Event Pros</title>
-        <meta
-          name="description"
-          content="The premium event management platform built for Nigerian planners, coordinators, vendors, and clients."
-        />
-      </Helmet>
+      <SEO title="EventGrid — Software for Event Pros" description="The premium event management platform built for Nigerian planners, coordinators, vendors, and clients." />
 
       <Navbar />
       <main>

@@ -4,6 +4,7 @@ import { Info, Sparkles, ChevronRight, LogOut, ArrowLeft, Star } from 'lucide-re
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
+import { SEO } from '@/components/shared/SEO'
 import styles from './Onboarding.module.css'
 
 const STEP_LABELS = ['Your Profile', 'Specialization']
@@ -73,6 +74,7 @@ export function CoordinatorOnboarding() {
 
   return (
     <div className={styles.container}>
+      <SEO title="Coordinator Onboarding" description="Set up your coordinator profile and area of event day expertise on EventGrid." />
       {/* ── Left panel ── */}
       <div className={styles.leftPanel}>
         <div className={styles.topBar}>

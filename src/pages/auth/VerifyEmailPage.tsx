@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Mail } from 'lucide-react'
+import { SEO } from '@/components/shared/SEO'
 
 export function VerifyEmailPage() {
   return (
@@ -11,6 +12,7 @@ export function VerifyEmailPage() {
       padding: 'var(--space-4)',
       textAlign: 'center',
     }}>
+      <SEO title="Verify Your Email" description="Please verify your email address to activate your EventGrid account and start managing your event workflows." />
       <div style={{ maxWidth: 400 }}>
         <div style={{
           width: 64,

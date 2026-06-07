@@ -4,6 +4,7 @@ import { ArrowLeft, Star, Mail, Key } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
+import { SEO } from '@/components/shared/SEO'
 import styles from './Auth.module.css'
 
 import weddingImg from '@/assets/images/wedding_event_hall.png'
@@ -98,6 +99,7 @@ export function LoginPage() {
 
   return (
     <div className={styles.container}>
+      <SEO title="Sign In to EventGrid" description="Log in to your EventGrid account to manage your 9-phase event workflow, track financials in Naira, and stay synced with your vendors." />
       <div className={styles.leftPanel}>
         <div className={styles.floatingCard}>
           <div className={styles.sliderContainer}>

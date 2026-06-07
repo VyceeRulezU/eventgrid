@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
 import type { UserRole } from '@/types'
 import { getPasswordStrength, strengthColors } from '@/lib/passwordStrength'
+import { SEO } from '@/components/shared/SEO'
 import styles from './Auth.module.css'
 
 import weddingImg from '@/assets/images/wedding_event_hall.png'
@@ -110,6 +111,7 @@ export function RegisterPage() {
 
   return (
     <div className={styles.container}>
+      <SEO title="Create Your EventGrid Account" description="Join EventGrid to manage event setups, timelines, budget tracking, teams, and vendors as an event planner or coordinator." />
       <div className={styles.leftPanel}>
         <div className={styles.floatingCard}>
           <div className={styles.sliderContainer}>

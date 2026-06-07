@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Upload, X, Info, Sparkles, ChevronRight, LogOut, ArrowLeft, Star } from 'lucide-react'
+import { SEO } from '@/components/shared/SEO'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -119,6 +120,7 @@ export function PlannerOnboarding() {
 
   return (
     <div className={styles.container}>
+      <SEO title="Planner Onboarding" description="Set up your event planning organization profile, team collaboration, and workspace configurations on EventGrid." />
       {/* ── Left panel ── */}
       <div className={styles.leftPanel}>
         <div className={styles.topBar}>
