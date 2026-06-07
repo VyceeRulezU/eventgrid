@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { HelpCircle } from 'lucide-react'
+import { HelpCircle, Sparkles } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { TOUR_STEPS, type TourRole } from './tourSteps'
 import styles from './AppTour.module.css'
@@ -158,14 +158,10 @@ export function AppTour() {
 
   // ── Welcome Modal ──────────────────────────────────────────────────────────
   if (phase === 'welcome') {
-    const firstStep = steps[0]
-    const roleLabel: Record<TourRole, string> = {
-      planner: 'Event Planner',
-      coordinator: 'Coordinator',
-      client: 'Client',
-      vendor: 'Vendor',
-      super_admin: 'Admin',
-    }
+    const profile = useAuthStore.getState().profile
+    const user = useAuthStore.getState().user
+    const displayName = profile?.display_name || user?.user_metadata?.display_name || role || 'User'
+    const firstName = displayName.split(' ')[0]
     const features = {
       planner: ['Create & Manage Events', 'Track Financials', 'Client Portals'],
       coordinator: ['Assigned Projects', 'Task Board', 'Live Board'],
@@ -177,11 +173,10 @@ export function AppTour() {
       <div className={styles.welcomeOverlay}>
         <div className={styles.welcomeCard} role="dialog" aria-modal="true" aria-label="Welcome">
           <div className={styles.welcomeEmojiWrap}>
-            <span className={styles.welcomeEmoji}>🎉</span>
+            <Sparkles size={32} className={styles.welcomeIcon} />
           </div>
-          <div className={styles.welcomeSubtitle}>{roleLabel[role!]} Dashboard</div>
-          <h2 className={styles.welcomeTitle}>{firstStep.title}</h2>
-          <p className={styles.welcomeBody}>{firstStep.body}</p>
+          <h2 className={styles.welcomeTitle}>Welcome, {firstName}</h2>
+          <p className={styles.welcomeBody}>EventGrid is your all-in-one command centre for planning, coordinating, and executing unforgettable events. Let's take a quick tour to get you started.</p>
           <div className={styles.welcomeFeatures}>
             {(features[role!] ?? []).map((f) => (
               <span key={f} className={styles.welcomeFeaturePill}>
@@ -312,7 +307,7 @@ export function AppTour() {
                 </button>
               )}
               <button className={`${styles.navBtn} ${styles.navBtnPrimary}`} onClick={next}>
-                {isLast ? 'Done 🎉' : 'Next →'}
+                {isLast ? 'Done' : 'Next →'}
               </button>
             </div>
           </div>

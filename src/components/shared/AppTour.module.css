@@ -59,9 +59,8 @@
   margin: 0 auto var(--space-5);
 }
 
-.welcomeEmoji {
-  font-size: 36px;
-  line-height: 1;
+.welcomeIcon {
+  color: var(--color-accent);
 }
 
 .welcomeTitle {
@@ -73,14 +72,6 @@
   line-height: 1.2;
 }
 
-.welcomeSubtitle {
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: var(--color-accent);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: var(--space-3);
-}
 
 .welcomeBody {
   font-size: var(--text-sm);

@@ -185,7 +185,9 @@ export function SettingsPage() {
 
   return (
     <div className={styles.page}>
-      <h2 style={{ marginBottom: 'var(--space-6)' }}>Settings</h2>
+      <div className={styles.pageHeader}>
+        <h2 className={styles.pageTitle}>Settings</h2>
+      </div>
 
       <div className={styles.grid}>
         <div className={`card ${styles.identityCard}`} id="tour-settings-profile">

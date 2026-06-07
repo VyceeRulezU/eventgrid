@@ -612,7 +612,9 @@ export function PlannerDashboard() {
                             {completed}/{phases.length || 9} phases · Updated {formatDate(event.updated_at)}
                           </div>
                         </div>
-                        <div className={styles.cellTruncate}>{formatEventType(event.event_type)}</div>
+                        <div className={styles.cellTruncate}>
+                          <span className={styles.eventType}>{formatEventType(event.event_type)}</span>
+                        </div>
                         <div className={styles.cellTruncate}>{formatDate(event.event_date)}</div>
                         <div className={styles.cellCenter}>
                           <span className={styles.cellTruncate}>{event.guest_count ?? '—'}</span>

@@ -12,7 +12,7 @@ export const TOUR_STEPS: Record<TourRole, TourStep[]> = {
   planner: [
     {
       targetId: null,
-      title: 'Welcome to EventGrid 🎉',
+      title: 'Welcome to EventGrid',
       body: 'EventGrid is your all-in-one command centre for planning, coordinating, and executing unforgettable events. Let\'s take a quick tour to get you started.',
       placement: 'bottom',
     },
@@ -48,7 +48,7 @@ export const TOUR_STEPS: Record<TourRole, TourStep[]> = {
     },
     {
       targetId: null,
-      title: "You're all set! 🚀",
+      title: "You're all set!",
       body: 'That covers the essentials. Explore each event to manage phases, coordinate your team, track finances, and run your day-of operations. You can restart this tour from Settings → Help.',
       placement: 'bottom',
     },
@@ -57,7 +57,7 @@ export const TOUR_STEPS: Record<TourRole, TourStep[]> = {
   coordinator: [
     {
       targetId: null,
-      title: 'Welcome, Coordinator! 👋',
+      title: 'Welcome, Coordinator!',
       body: 'EventGrid gives you everything you need to coordinate events efficiently. Your planner has added you to their organisation — here\'s a quick tour.',
       placement: 'bottom',
     },
@@ -81,7 +81,7 @@ export const TOUR_STEPS: Record<TourRole, TourStep[]> = {
     },
     {
       targetId: null,
-      title: "Ready to coordinate! ✅",
+      title: 'Ready to coordinate!',
       body: 'Your planner will assign tasks and phases to you. Check your task board daily and use the Live Board on event day. You can replay this tour from Settings.',
       placement: 'bottom',
     },
@@ -90,7 +90,7 @@ export const TOUR_STEPS: Record<TourRole, TourStep[]> = {
   client: [
     {
       targetId: null,
-      title: 'Your Event Portal 🎊',
+      title: 'Your Event Portal',
       body: 'Welcome to your private event portal! Your event planner has given you access to track the progress of your event in real time.',
       placement: 'bottom',
     },
@@ -108,7 +108,7 @@ export const TOUR_STEPS: Record<TourRole, TourStep[]> = {
     },
     {
       targetId: null,
-      title: "Questions? Reach out! 💬",
+      title: 'Questions? Reach out!',
       body: 'If you have any questions about your event planning, contact your planner directly. This portal is always up to date with the latest progress.',
       placement: 'bottom',
     },
@@ -117,7 +117,7 @@ export const TOUR_STEPS: Record<TourRole, TourStep[]> = {
   vendor: [
     {
       targetId: null,
-      title: 'Welcome to EventGrid! 🏪',
+      title: 'Welcome to EventGrid!',
       body: 'Your vendor portal gives you visibility into event bookings, your contract status, and payment progress.',
       placement: 'bottom',
     },
@@ -138,7 +138,7 @@ export const TOUR_STEPS: Record<TourRole, TourStep[]> = {
   super_admin: [
     {
       targetId: null,
-      title: 'EventGrid Admin Panel 🛡️',
+      title: 'EventGrid Admin Panel',
       body: 'Welcome to the super admin dashboard. You have full visibility across all organisations, users, and feedback on this platform.',
       placement: 'bottom',
     },
@@ -162,7 +162,7 @@ export const TOUR_STEPS: Record<TourRole, TourStep[]> = {
     },
     {
       targetId: null,
-      title: "Full control, responsibly used ⚡",
+      title: 'Full control, responsibly used',
       body: 'With admin access comes full platform visibility. Use the role switcher to test the experience from any user perspective.',
       placement: 'bottom',
     },
