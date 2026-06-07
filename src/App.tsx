@@ -17,6 +17,7 @@ import { RegisterPage } from '@/pages/auth/RegisterPage'
 import { VerifyEmailPage } from '@/pages/auth/VerifyEmailPage'
 import { PlannerOnboarding } from '@/pages/onboarding/PlannerOnboarding'
 import { CoordinatorOnboarding } from '@/pages/onboarding/CoordinatorOnboarding'
+import { TeamMemberOnboarding } from '@/pages/onboarding/TeamMemberOnboarding'
 import { PlannerDashboard } from '@/pages/planner/PlannerDashboard'
 import { CoordinatorDashboard } from '@/pages/coordinator/CoordinatorDashboard'
 import { ClientDashboard } from '@/pages/client/ClientDashboard'
@@ -281,6 +282,9 @@ export function App() {
         } />
           <Route path="/onboarding/coordinator" element={
             <AuthGuard><CoordinatorOnboarding /></AuthGuard>
+          } />
+          <Route path="/onboarding/team-member" element={
+            <AuthGuard><TeamMemberOnboarding /></AuthGuard>
           } />
 
           <Route element={<AuthGuard><AppShell /></AuthGuard>}>

@@ -310,7 +310,14 @@ Deno.serve(async (req) => {
                 Link: <a href="${inviteLink}" style="color:#D4A017;">${inviteLink}</a>
               </p>`)
 
-    } else if (type === 'coordinator_invite') {
+    // Query to see if the user is already registered in the profiles table
+    const { data: existingProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('id')
+      .eq('email', email)
+      .maybeSingle()
+
+    if (type === 'coordinator_invite') {
       // Invite an existing or new coordinator to join an org (no event_id required)
       if (!org_id) {
         return new Response(
@@ -320,14 +327,33 @@ Deno.serve(async (req) => {
       }
 
       const redirectUrl = `${APP_URL}/onboarding/coordinator?org_id=${org_id}&invited_by=${encodeURIComponent(invited_by_name ?? '')}`;  
-      const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
-        type: 'invite',
-        email,
-        options: {
-          data: { role: 'coordinator', org_id },
-          redirectTo: redirectUrl,
-        },
-      })
+      let linkData: any
+      let linkError: any
+
+      if (existingProfile) {
+        // User already exists, generate a login link that redirects to coordinator onboarding to associate with org
+        const { data, error } = await supabaseAdmin.auth.admin.generateLink({
+          type: 'magiclink',
+          email,
+          options: {
+            redirectTo: redirectUrl,
+          },
+        })
+        linkData = data
+        linkError = error
+      } else {
+        // User does not exist, generate an invite link which also creates the user record
+        const { data, error } = await supabaseAdmin.auth.admin.generateLink({
+          type: 'invite',
+          email,
+          options: {
+            data: { role: 'coordinator', org_id },
+            redirectTo: redirectUrl,
+          },
+        })
+        linkData = data
+        linkError = error
+      }
 
       if (linkError || !linkData?.properties?.action_link) {
         console.error('Coordinator invite link error:', linkError)
@@ -367,20 +393,39 @@ Deno.serve(async (req) => {
               </p>`)
 
     } else if (type === 'team_member') {
-      // Generate magic link invite
-      const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
-        type: 'invite',
-        email,
-        options: {
-          data: { role: 'team_member', event_id },
-          redirectTo: `${APP_URL}/onboarding/team-member?event_id=${event_id}`,
-        },
-      })
+      const redirectUrl = `${APP_URL}/onboarding/team-member?event_id=${event_id}`;
+      let linkData: any
+      let linkError: any
+
+      if (existingProfile) {
+        // User already exists, generate a login link that redirects to team member onboarding to add event access
+        const { data, error } = await supabaseAdmin.auth.admin.generateLink({
+          type: 'magiclink',
+          email,
+          options: {
+            redirectTo: redirectUrl,
+          },
+        })
+        linkData = data
+        linkError = error
+      } else {
+        // User does not exist, generate an invite link which also creates the user record
+        const { data, error } = await supabaseAdmin.auth.admin.generateLink({
+          type: 'invite',
+          email,
+          options: {
+            data: { role: 'team_member', event_id },
+            redirectTo: redirectUrl,
+          },
+        })
+        linkData = data
+        linkError = error
+      }
 
       if (linkError || !linkData?.properties?.action_link) {
         console.error('Magic link error:', linkError)
         return new Response(
-          JSON.stringify({ error: 'Failed to generate invite link' }),
+          JSON.stringify({ error: 'Failed to generate invite link: ' + (linkError?.message ?? 'unknown') }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }

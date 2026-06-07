@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronDown, Search, Book, LayoutDashboard, DollarSign, Users, Calendar, Radio, ExternalLink, FileText, MessageSquare, Shield, ArrowLeft, ListChecks } from 'lucide-react'
+import corporateImg from '@/assets/images/corporate_event_hall.png'
 import styles from './HelpPage.module.css'
 
 const TOPICS = [
@@ -398,7 +399,15 @@ export function HelpPage() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.hero}>
+      <div className={styles.hero} style={{ backgroundImage: `url(${corporateImg})` }}>
+        <div className={styles.heroOverlay} />
+        
+        <div className={styles.breadcrumbs}>
+          <Link to="/settings" className={styles.breadcrumbLink}>Settings</Link>
+          <span className={styles.breadcrumbSeparator}>&gt;</span>
+          <span className={styles.breadcrumbCurrent}>User Manual</span>
+        </div>
+
         <div className={styles.heroContent}>
           <div className={styles.heroIcon}>
             <Book size={24} />

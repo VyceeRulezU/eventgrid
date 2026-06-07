@@ -32,18 +32,42 @@ export function CoordinatorOnboarding() {
     navigate('/login')
   }
 
+  const setOrg = useAuthStore((s) => s.setOrg)
+
   const handleSubmit = async () => {
     if (!user) return
     setLoading(true)
+
+    let finalOrgId = inviteOrgId
+
+    if (!finalOrgId) {
+      // Auto-create a default organization for independent coordinators
+      const { data: newOrg, error: orgErr } = await supabase
+        .rpc('create_org', {
+          p_name: `${name}'s Coordination`,
+          p_owner_id: user.id,
+          p_city: 'Lagos, Lagos',
+          p_logo_url: null,
+        })
+      
+      if (orgErr) {
+        showToast({ type: 'error', title: 'Failed to initialize coordination space', body: orgErr.message })
+        setLoading(false)
+        return
+      }
+
+      if (newOrg) {
+        finalOrgId = (newOrg as any).id
+      }
+    }
 
     const updatePayload: Record<string, unknown> = {
       display_name: name,
       phone,
     }
 
-    // If joining via invite, assign to org and set role
-    if (inviteOrgId) {
-      updatePayload.org_id = inviteOrgId
+    if (finalOrgId) {
+      updatePayload.org_id = finalOrgId
       updatePayload.role = 'coordinator'
     }
 
@@ -56,6 +80,27 @@ export function CoordinatorOnboarding() {
       showToast({ type: 'error', title: 'Update failed', body: error.message })
       setLoading(false)
       return
+    }
+
+    // Save onboarding completed in Supabase Auth user metadata
+    const { error: authErr } = await supabase.auth.updateUser({
+      data: {
+        onboarding_completed: true,
+        specialization: specialization,
+      }
+    })
+
+    if (authErr) {
+      showToast({ type: 'error', title: 'Session sync failed', body: authErr.message })
+    }
+
+    if (finalOrgId) {
+      const { data: orgData } = await supabase
+        .from('organizations')
+        .select('id, name, logo_url')
+        .eq('id', finalOrgId)
+        .single()
+      if (orgData) setOrg(orgData)
     }
 
     showToast({ type: 'success', title: 'Profile completed!', body: 'Welcome to the EventGrid team.' })

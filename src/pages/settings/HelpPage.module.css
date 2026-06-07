@@ -8,37 +8,51 @@
 .hero {
   position: relative;
   margin-bottom: 2rem;
-  padding: 2.5rem 2rem;
+  padding: 3rem 2rem 2.5rem;
   border-radius: var(--radius-xl);
-  background: linear-gradient(135deg, var(--color-surface-2) 0%, var(--color-surface-3) 100%);
+  background-size: cover;
+  background-position: center;
   border: 1px solid var(--color-border);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
 }
 
-.hero::before {
-  content: '';
+.heroOverlay {
   position: absolute;
-  top: -40%;
-  right: -10%;
-  width: 300px;
-  height: 300px;
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--color-accent-muted) 0%, transparent 70%);
-  opacity: 0.4;
-  pointer-events: none;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(11, 17, 32, 0.55) 0%, rgba(11, 17, 32, 0.85) 100%);
+  z-index: 1;
 }
 
-.hero::after {
-  content: '';
-  position: absolute;
-  bottom: -30%;
-  left: -5%;
-  width: 200px;
-  height: 200px;
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--color-accent-muted) 0%, transparent 70%);
-  opacity: 0.2;
-  pointer-events: none;
+.breadcrumbs {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--text-xs);
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: var(--weight-semibold);
+}
+
+.breadcrumbLink {
+  color: rgba(255, 255, 255, 0.6);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.breadcrumbLink:hover {
+  color: var(--color-accent);
+}
+
+.breadcrumbSeparator {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.breadcrumbCurrent {
+  color: #fff;
 }
 
 .heroContent {

@@ -1,23 +1,85 @@
 import { useState, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Upload, X, Info, Sparkles, ChevronRight, LogOut, ArrowLeft, Star } from 'lucide-react'
+import { Upload, X, Info, Sparkles, ChevronRight, LogOut, ArrowLeft, Star, Check } from 'lucide-react'
 import { SEO } from '@/components/shared/SEO'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import styles from './Onboarding.module.css'
 
-const STEP_LABELS = ['Your Focus', 'Organization', 'Event Volume', 'Team']
+const STEP_LABELS = ['Company Profile', 'Primary Focus', 'Secondary Services', 'Workspace Scale', 'Welcome']
+
+const PRIMARY_OPTIONS = [
+  {
+    id: 'boutique_weddings',
+    title: 'Luxury Weddings',
+    desc: 'High-end custom wedding productions',
+    image: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=500&auto=format&fit=crop&q=60'
+  },
+  {
+    id: 'corporate_events',
+    title: 'Corporate & Tech',
+    desc: 'Conferences, launches, and summits',
+    image: 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=500&auto=format&fit=crop&q=60'
+  },
+  {
+    id: 'social_celebrations',
+    title: 'Social & Galas',
+    desc: 'Birthdays, anniversaries, and milestones',
+    image: 'https://images.unsplash.com/photo-1469371670807-013ccf25f16a?w=500&auto=format&fit=crop&q=60'
+  },
+  {
+    id: 'concerts_entertainment',
+    title: 'Concerts & Shows',
+    desc: 'Live performances, festivals, and gigs',
+    image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&auto=format&fit=crop&q=60'
+  }
+]
+
+const SECONDARY_OPTIONS = [
+  {
+    id: 'venue_management',
+    title: 'Venue Management',
+    desc: 'Site operations and hall coordination',
+    image: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=500&auto=format&fit=crop&q=60'
+  },
+  {
+    id: 'catering',
+    title: 'Catering & Food',
+    desc: 'Buffets, banquets, and menu sourcing',
+    image: 'https://images.unsplash.com/photo-1555244162-803834f70033?w=500&auto=format&fit=crop&q=60'
+  },
+  {
+    id: 'photography',
+    title: 'Photo & Video',
+    desc: 'Capturing memories and live coverage',
+    image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=500&auto=format&fit=crop&q=60'
+  },
+  {
+    id: 'decor_design',
+    title: 'Decor & Flowers',
+    desc: 'Designing layout, stage, and floral concepts',
+    image: 'https://images.unsplash.com/photo-1526047932273-341f2a7631f9?w=500&auto=format&fit=crop&q=60'
+  }
+]
 
 export function PlannerOnboarding() {
   const [step, setStep] = useState(1)
 
-  const [experience, setExperience] = useState('boutique_weddings')
+  // Step 1: Company Profile
   const [orgName, setOrgName] = useState('')
   const [city, setCity] = useState('Lagos')
   const [state, setState] = useState('Lagos')
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
+
+  // Step 2: Primary Focus
+  const [experience, setExperience] = useState('boutique_weddings')
+
+  // Step 3: Secondary Services (Multi-select)
+  const [secondaryServices, setSecondaryServices] = useState<string[]>([])
+
+  // Step 4: Workspace Scale
   const [volume, setVolume] = useState('1-10')
   const [teamSize, setTeamSize] = useState('2-5')
 
@@ -28,7 +90,7 @@ export function PlannerOnboarding() {
   const showToast = useUIStore((s) => s.showToast)
   const navigate = useNavigate()
 
-  const TOTAL_STEPS = 4
+  const TOTAL_STEPS = 5
 
   const handleLogo = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -44,6 +106,12 @@ export function PlannerOnboarding() {
   const handleLogout = async () => {
     await supabase.auth.signOut()
     navigate('/login')
+  }
+
+  const toggleSecondaryService = (serviceId: string) => {
+    setSecondaryServices((prev) =>
+      prev.includes(serviceId) ? prev.filter((id) => id !== serviceId) : [...prev, serviceId]
+    )
   }
 
   const handleSubmit = async () => {
@@ -83,18 +151,20 @@ export function PlannerOnboarding() {
 
     const orgData = org as { id: string; name: string; logo_url: string | null }
 
-    await supabase
-      .from('profiles')
-      .update({
-        user_metadata: {
-          ...user.user_metadata,
-          onboarding_completed: true,
-          planner_experience: experience,
-          expected_volume: volume,
-          team_size: teamSize,
-        }
-      })
-      .eq('id', user.id)
+    // Save onboarding completed in Supabase Auth user metadata
+    const { error: authErr } = await supabase.auth.updateUser({
+      data: {
+        onboarding_completed: true,
+        planner_experience: experience,
+        secondary_services: secondaryServices,
+        expected_volume: volume,
+        team_size: teamSize,
+      }
+    })
+
+    if (authErr) {
+      showToast({ type: 'error', title: 'Session sync failed', body: authErr.message })
+    }
 
     setOrg(orgData)
     showToast({ type: 'success', title: 'Welcome to EventGrid!', body: 'Organization set up successfully.' })
@@ -103,7 +173,7 @@ export function PlannerOnboarding() {
   }
 
   const handleNext = () => {
-    if (step === 2 && !orgName.trim()) {
+    if (step === 1 && !orgName.trim()) {
       showToast({ type: 'error', title: 'Organization Name Required', body: 'Please enter a name for your business.' })
       return
     }
@@ -195,42 +265,6 @@ export function PlannerOnboarding() {
         <div className={styles.stepContent} key={step}>
 
           {step === 1 && (
-            <div>
-              <div className={styles.infoBox}>
-                <Info size={16} className={styles.infoIcon} />
-                <p style={{ margin: 0 }}>
-                  Setting up your profile allows us to customize budget templates, local checklists, and contracts specifically for your agency.
-                </p>
-              </div>
-
-              <h2 className={styles.question}>What best describes your event focus?</h2>
-
-              <div className={styles.optionList}>
-                {[
-                  { id: 'boutique_weddings', title: 'Luxury & Boutique Weddings', desc: 'Custom high-end wedding planning for selective couples' },
-                  { id: 'corporate_events', title: 'Corporate & Tech Events', desc: 'Product launches, annual dinners, AGMs, and conferences' },
-                  { id: 'social_celebrations', title: 'Social Celebrations & Galas', desc: 'Birthdays, anniversaries, traditional celebrations' },
-                  { id: 'all_rounder', title: 'General Event Planner', desc: 'We handle weddings, corporates, and everything in between' },
-                ].map((opt) => (
-                  <button
-                    key={opt.id}
-                    className={`${styles.optionCard} ${experience === opt.id ? styles.optionCardActive : ''}`}
-                    onClick={() => setExperience(opt.id)}
-                  >
-                    <div className={styles.optionDetails}>
-                      <span className={styles.optionTitle}>{opt.title}</span>
-                      <span className={styles.optionDesc}>{opt.desc}</span>
-                    </div>
-                    <div className={styles.radioIndicator}>
-                      <div className={styles.radioIndicatorInner} />
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {step === 2 && (
             <div>
               <div className={styles.infoBox}>
                 <Sparkles size={16} className={styles.infoIcon} />
@@ -330,7 +364,80 @@ export function PlannerOnboarding() {
             </div>
           )}
 
+          {step === 2 && (
+            <div>
+              <div className={styles.infoBox}>
+                <Info size={16} className={styles.infoIcon} />
+                <p style={{ margin: 0 }}>
+                  Setting up your profile allows us to customize budget templates, local checklists, and contracts specifically for your agency.
+                </p>
+              </div>
+
+              <h2 className={styles.question}>What is your primary event focus?</h2>
+
+              <div className={styles.photoGrid}>
+                {PRIMARY_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.id}
+                    className={`${styles.photoCard} ${experience === opt.id ? styles.photoCardActive : ''}`}
+                    onClick={() => setExperience(opt.id)}
+                    style={{ backgroundImage: `url(${opt.image})` }}
+                  >
+                    <div className={styles.photoCardOverlay} />
+                    <div className={styles.photoCardContent}>
+                      <div className={styles.photoCardTitle}>
+                        {opt.title}
+                        <div className={styles.radioIndicator} style={{ border: experience === opt.id ? '2px solid var(--color-accent)' : '2px solid rgba(255,255,255,0.6)' }}>
+                          <div className={styles.radioIndicatorInner} style={{ opacity: experience === opt.id ? 1 : 0, transform: experience === opt.id ? 'scale(1)' : 'scale(0.4)' }} />
+                        </div>
+                      </div>
+                      <div className={styles.photoCardDesc}>{opt.desc}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {step === 3 && (
+            <div>
+              <div className={styles.infoBox}>
+                <Sparkles size={16} className={styles.infoIcon} />
+                <p style={{ margin: 0 }}>
+                  Select additional operational services you contract or coordinate. This tailors your vendor directory categories.
+                </p>
+              </div>
+
+              <h2 className={styles.question}>Which secondary services do you coordinate?</h2>
+
+              <div className={styles.photoGrid}>
+                {SECONDARY_OPTIONS.map((opt) => {
+                  const isSelected = secondaryServices.includes(opt.id)
+                  return (
+                    <button
+                      key={opt.id}
+                      className={`${styles.photoCard} ${isSelected ? styles.photoCardActive : ''}`}
+                      onClick={() => toggleSecondaryService(opt.id)}
+                      style={{ backgroundImage: `url(${opt.image})` }}
+                    >
+                      <div className={styles.photoCardOverlay} />
+                      <div className={styles.photoCardContent}>
+                        <div className={styles.photoCardTitle}>
+                          {opt.title}
+                          <div className={styles.checkboxIndicator} style={{ borderColor: isSelected ? 'var(--color-accent)' : 'rgba(255,255,255,0.6)' }}>
+                            {isSelected && <Check size={12} style={{ color: '#fff' }} />}
+                          </div>
+                        </div>
+                        <div className={styles.photoCardDesc}>{opt.desc}</div>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {step === 4 && (
             <div>
               <div className={styles.infoBox}>
                 <Info size={16} className={styles.infoIcon} />
@@ -339,70 +446,106 @@ export function PlannerOnboarding() {
                 </p>
               </div>
 
-              <h2 className={styles.question}>What is your estimated annual event volume?</h2>
+              <h2 className={styles.question}>Estimated annual event volume & team size</h2>
 
-              <div className={styles.optionList}>
-                {[
-                  { id: '1-10', title: '1 – 10 events', desc: 'For independent planners and boutique event firms' },
-                  { id: '11-30', title: '11 – 30 events', desc: 'For established agencies running concurrent setups' },
-                  { id: '31-50', title: '31 – 50 events', desc: 'For multi-team agencies running weekly productions' },
-                  { id: '50+', title: '50+ events', desc: 'For large event management firms and concert venues' },
-                ].map((opt) => (
-                  <button
-                    key={opt.id}
-                    className={`${styles.optionCard} ${volume === opt.id ? styles.optionCardActive : ''}`}
-                    onClick={() => setVolume(opt.id)}
-                  >
-                    <div className={styles.optionDetails}>
-                      <span className={styles.optionTitle}>{opt.title}</span>
-                      <span className={styles.optionDesc}>{opt.desc}</span>
-                    </div>
-                    <div className={styles.radioIndicator}>
-                      <div className={styles.radioIndicatorInner} />
-                    </div>
-                  </button>
-                ))}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+                <div>
+                  <label className={styles.formLabel}>Estimated Annual Event Volume</label>
+                  <div className={styles.optionList}>
+                    {[
+                      { id: '1-10', title: '1 – 10 events', desc: 'For independent planners and boutique event firms' },
+                      { id: '11-30', title: '11 – 30 events', desc: 'For established agencies running concurrent setups' },
+                      { id: '31-50', title: '31 – 50 events', desc: 'For multi-team agencies running weekly productions' },
+                      { id: '50+', title: '50+ events', desc: 'For large event management firms and concert venues' },
+                    ].map((opt) => (
+                      <button
+                        key={opt.id}
+                        className={`${styles.optionCard} ${volume === opt.id ? styles.optionCardActive : ''}`}
+                        onClick={() => setVolume(opt.id)}
+                      >
+                        <div className={styles.optionDetails}>
+                          <span className={styles.optionTitle}>{opt.title}</span>
+                          <span className={styles.optionDesc}>{opt.desc}</span>
+                        </div>
+                        <div className={styles.radioIndicator}>
+                          <div className={styles.radioIndicatorInner} />
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ marginTop: 'var(--space-4)' }}>
+                  <label className={styles.formLabel}>How large is your team?</label>
+                  <div className={styles.optionList}>
+                    {[
+                      { id: 'solo', title: 'Solo — Just me', desc: 'Independent planner handling everything personally' },
+                      { id: '2-5', title: 'Small Team — 2 to 5 members', desc: 'A core team with occasional freelancers' },
+                      { id: '6-15', title: 'Growing Agency — 6 to 15 members', desc: 'Dedicated teams for sales, operations, and delivery' },
+                      { id: '16+', title: 'Large Firm — 16+ members', desc: 'Multi-department agency with specialized roles' },
+                    ].map((opt) => (
+                      <button
+                        key={opt.id}
+                        className={`${styles.optionCard} ${teamSize === opt.id ? styles.optionCardActive : ''}`}
+                        onClick={() => setTeamSize(opt.id)}
+                      >
+                        <div className={styles.optionDetails}>
+                          <span className={styles.optionTitle}>{opt.title}</span>
+                          <span className={styles.optionDesc}>{opt.desc}</span>
+                        </div>
+                        <div className={styles.radioIndicator}>
+                          <div className={styles.radioIndicatorInner} />
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           )}
 
-          {step === 4 && (
+          {step === 5 && (
             <div>
               <div className={styles.infoBox}>
                 <Sparkles size={16} className={styles.infoIcon} />
                 <p style={{ margin: 0 }}>
-                  Tell us about your team composition so we can tailor collaboration tools and permissions from the start.
+                  You are all set! Review your details below to finalize setting up your premium EventGrid workspace.
                 </p>
               </div>
 
-              <h2 className={styles.question}>How large is your team?</h2>
+              <h2 className={styles.question}>Welcome to EventGrid!</h2>
 
-              <div className={styles.optionList}>
-                {[
-                  { id: 'solo', title: 'Solo — Just me', desc: 'Independent planner handling everything personally' },
-                  { id: '2-5', title: 'Small Team — 2 to 5 members', desc: 'A core team with occasional freelancers' },
-                  { id: '6-15', title: 'Growing Agency — 6 to 15 members', desc: 'Dedicated teams for sales, operations, and delivery' },
-                  { id: '16+', title: 'Large Firm — 16+ members', desc: 'Multi-department agency with specialized roles' },
-                ].map((opt) => (
-                  <button
-                    key={opt.id}
-                    className={`${styles.optionCard} ${teamSize === opt.id ? styles.optionCardActive : ''}`}
-                    onClick={() => setTeamSize(opt.id)}
-                  >
-                    <div className={styles.optionDetails}>
-                      <span className={styles.optionTitle}>{opt.title}</span>
-                      <span className={styles.optionDesc}>{opt.desc}</span>
-                    </div>
-                    <div className={styles.radioIndicator}>
-                      <div className={styles.radioIndicatorInner} />
-                    </div>
-                  </button>
-                ))}
+              <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', padding: 'var(--space-5)', background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-xl)', marginBottom: 'var(--space-6)' }}>
+                <h3 style={{ margin: '0 0 var(--space-2)', fontSize: 'var(--text-base)', color: 'var(--color-text-primary)' }}>Workspace Summary</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-sm)' }}>
+                  <span style={{ color: 'var(--color-text-muted)' }}>Business Name:</span>
+                  <strong style={{ color: 'var(--color-text-primary)' }}>{orgName}</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-sm)' }}>
+                  <span style={{ color: 'var(--color-text-muted)' }}>Location:</span>
+                  <span style={{ color: 'var(--color-text-primary)', fontWeight: 500 }}>{city}, {state}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-sm)' }}>
+                  <span style={{ color: 'var(--color-text-muted)' }}>Primary Focus:</span>
+                  <span style={{ color: 'var(--color-text-primary)', fontWeight: 500 }}>
+                    {PRIMARY_OPTIONS.find((o) => o.id === experience)?.title || experience}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-sm)' }}>
+                  <span style={{ color: 'var(--color-text-muted)' }}>Secondary Services:</span>
+                  <span style={{ color: 'var(--color-text-primary)', fontWeight: 500, textAlign: 'right', maxWidth: '60%' }}>
+                    {secondaryServices.map((id) => SECONDARY_OPTIONS.find((o) => o.id === id)?.title).join(', ') || 'None selected'}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-sm)' }}>
+                  <span style={{ color: 'var(--color-text-muted)' }}>Expected Volume:</span>
+                  <span style={{ color: 'var(--color-text-primary)', fontWeight: 500 }}>{volume} events/year</span>
+                </div>
               </div>
 
-              <div style={{ marginTop: 'var(--space-4)', padding: 'var(--space-3) var(--space-4)', background: 'var(--color-surface-1)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
-                <p style={{ margin: 0, fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
-                  You'll be able to invite team members and assign roles from the Team page in your dashboard at any time.
+              <div style={{ padding: 'var(--space-4)', background: 'rgba(212,160,23,0.06)', border: '1px dashed var(--color-accent)', borderRadius: 'var(--radius-md)' }}>
+                <p style={{ margin: 0, fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>
+                  By clicking Launch Workspace, we will set up your professional planners dashboard, configure your default RLS policies, and customize your templates.
                 </p>
               </div>
             </div>
@@ -419,9 +562,9 @@ export function PlannerOnboarding() {
           <button
             onClick={handleNext}
             className={styles.continueBtn}
-            disabled={loading || (step === 2 && !orgName.trim())}
+            disabled={loading || (step === 1 && !orgName.trim())}
           >
-            {loading ? 'Finalizing Setup…' : step === TOTAL_STEPS ? 'Finish Setup' : (
+            {loading ? 'Launching Workspace…' : step === TOTAL_STEPS ? 'Launch Workspace' : (
               <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 Continue <ChevronRight size={16} />
               </span>

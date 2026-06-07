@@ -141,15 +141,31 @@ export function CoordinatorDashboard() {
   })()
 
   useEffect(() => {
-    if (!user || !org) { setLoading(false); return }
+    if (!user) { setLoading(false); return }
 
     async function load() {
       const today = new Date().toISOString()
 
+      // Fetch event access records for this user
+      const { data: accessData } = await supabase
+        .from('event_access')
+        .select('event_id')
+        .eq('user_id', user.id)
+
+      const eventIds = (accessData || []).map(a => a.event_id)
+
+      const orConditions = [`coordinator_id.eq.${user.id}`]
+      if (org?.id) {
+        orConditions.push(`org_id.eq.${org.id}`)
+      }
+      if (eventIds.length > 0) {
+        orConditions.push(`id.in.(${eventIds.join(',')})`)
+      }
+
       const { data: evts } = await supabase
         .from('events')
         .select('*')
-        .eq('org_id', org!.id)
+        .or(orConditions.join(','))
         .is('deleted_at', null)
         .order('event_date', { ascending: true })
 
