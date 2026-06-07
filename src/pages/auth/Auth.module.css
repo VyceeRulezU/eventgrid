@@ -223,45 +223,83 @@
   text-decoration: underline;
 }
 
-.roleSelector {
+.formWrapperRole {
+  max-width: 720px;
+}
+
+.roleSelectorRow {
+  display: flex;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .roleSelectorRow {
+    flex-direction: column;
+  }
+  .formWrapperRole {
+    max-width: 420px;
+  }
+}
+
+.roleCardPicture {
+  flex: 1;
+  position: relative;
+  height: 220px;
+  border-radius: var(--radius-lg);
+  border: 1.5px solid var(--color-border);
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+  cursor: pointer;
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  margin-bottom: var(--space-4);
-}
-
-.roleCard {
-  background-color: var(--color-surface-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  justify-content: flex-end;
   padding: var(--space-4);
-  cursor: pointer;
   text-align: left;
   transition: all var(--transition-base);
+  font-family: inherit;
 }
 
-.roleCard:hover {
+.roleCardPicture:hover {
+  border-color: var(--color-accent-border);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.roleCardPictureOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(17, 24, 39, 0.15) 0%, rgba(17, 24, 39, 0.7) 50%, rgba(17, 24, 39, 0.95) 100%);
+  z-index: 1;
+  transition: background var(--transition-fast);
+}
+
+.roleCardPictureActive {
   border-color: var(--color-accent);
-  transform: translateY(-1px);
-  background-color: var(--color-surface-hover);
+  box-shadow: 0 0 0 1px var(--color-accent), 0 8px 24px rgba(99, 102, 241, 0.25);
+  transform: translateY(-2px);
 }
 
-.roleCardActive {
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 1px var(--color-accent);
-  background-color: var(--color-accent-muted);
+.roleCardPictureContent {
+  position: relative;
+  z-index: 2;
+  color: #fff;
+  pointer-events: none;
 }
 
-.roleTitle {
+.roleCardPictureTitle {
   font-size: var(--text-base);
   font-weight: var(--weight-bold);
-  color: var(--color-text-primary);
-  margin-bottom: 2px;
+  color: #fff;
+  margin-bottom: 4px;
 }
 
-.roleDesc {
-  font-size: var(--text-xs);
-  color: var(--color-text-secondary);
+.roleCardPictureDesc {
+  font-size: 11px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .submitBtn {

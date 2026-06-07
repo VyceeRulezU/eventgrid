@@ -51,9 +51,17 @@ export function VendorDirectoryPage() {
         .order('name', { ascending: true })
 
       if (data) {
+        const seen = new Set<string>()
         const mapped = (data as unknown as Array<Record<string, unknown>>).map((v: Record<string, unknown>) => {
           const orgEntry = (v.organizations as { name: string } | null)
           return { ...v, org_name: orgEntry?.name || '' } as Vendor & { org_name?: string }
+        }).filter((v: any) => {
+          if (v.category === 'Coordinator' && v.email) {
+            const key = `${v.org_id}-${v.email.toLowerCase()}`
+            if (seen.has(key)) return false
+            seen.add(key)
+          }
+          return true
         })
         setVendors(mapped)
       }

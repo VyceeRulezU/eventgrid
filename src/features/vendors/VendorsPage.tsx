@@ -65,7 +65,18 @@ export function VendorsPage() {
         .is('deleted_at', null)
         .order('name', { ascending: true })
 
-      if (vends) setVendors(vends as unknown as Vendor[])
+      if (vends) {
+        const seen = new Set<string>()
+        const filteredVends = (vends as unknown as Vendor[]).filter((v) => {
+          if (v.category === 'Coordinator' && v.email) {
+            const key = v.email.toLowerCase()
+            if (seen.has(key)) return false
+            seen.add(key)
+          }
+          return true
+        })
+        setVendors(filteredVends)
+      }
 
       setLoading(false)
     }

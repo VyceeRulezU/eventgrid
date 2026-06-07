@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronDown, Search, Book, LayoutDashboard, DollarSign, Users, Calendar, Radio, ExternalLink, FileText, MessageSquare, Shield, ArrowLeft, ListChecks } from 'lucide-react'
+import { ChevronDown, ChevronRight, Search, Book, LayoutDashboard, DollarSign, Users, Calendar, Radio, ExternalLink, FileText, MessageSquare, Shield, ArrowLeft, ListChecks } from 'lucide-react'
 import corporateImg from '@/assets/images/corporate_event_hall.png'
 import styles from './HelpPage.module.css'
 
@@ -377,25 +377,26 @@ const TOPICS = [
   },
 ]
 
-function TopicBody({ children, isOpen }: { children: React.ReactNode; isOpen: boolean }) {
-  const innerRef = useRef<HTMLDivElement>(null)
-
-  return (
-    <div className={`${styles.topicBodyWrap} ${isOpen ? styles.topicBodyWrapOpen : ''}`}>
-      <div className={styles.topicBodyInner} ref={innerRef}>
-        {isOpen && <div className={styles.topicBody}>{children}</div>}
-      </div>
-    </div>
-  )
-}
-
 export function HelpPage() {
   const [search, setSearch] = useState('')
-  const [openTopic, setOpenTopic] = useState<string | null>('getting-started')
+  const [activeTopicId, setActiveTopicId] = useState<string | null>('getting-started')
 
   const filtered = search.trim()
     ? TOPICS.filter(t => t.label.toLowerCase().includes(search.toLowerCase()))
     : TOPICS
+
+  useEffect(() => {
+    if (filtered.length > 0) {
+      const exists = filtered.some(t => t.id === activeTopicId)
+      if (!exists) {
+        setActiveTopicId(filtered[0].id)
+      }
+    } else {
+      setActiveTopicId(null)
+    }
+  }, [search, filtered, activeTopicId])
+
+  const activeTopic = TOPICS.find(t => t.id === activeTopicId)
 
   return (
     <div className={styles.page}>
@@ -435,43 +436,55 @@ export function HelpPage() {
         />
       </div>
 
-      <div className={styles.topics}>
-        {filtered.length === 0 ? (
-          <div className={styles.empty}>
-            <div className={styles.emptyIcon}>
-              <Search size={24} />
-            </div>
-            <div className={styles.emptyTitle}>No topics found</div>
-            <div className={styles.emptyDesc}>Try a different search term</div>
-          </div>
-        ) : (
-          filtered.map(topic => {
-            const Icon = topic.icon
-            const isOpen = openTopic === topic.id
-            return (
-              <div
-                key={topic.id}
-                className={`card ${styles.topicCard} ${isOpen ? styles.topicCardOpen : ''}`}
-              >
+      <div className={styles.docsContainer}>
+        {/* Sidebar */}
+        <div className={styles.docsSidebar}>
+          {filtered.length === 0 ? (
+            <div className={styles.sidebarEmpty}>No matches</div>
+          ) : (
+            filtered.map(topic => {
+              const Icon = topic.icon
+              const isActive = activeTopicId === topic.id
+              return (
                 <button
+                  key={topic.id}
                   type="button"
-                  className={styles.topicHeader}
-                  onClick={() => setOpenTopic(isOpen ? null : topic.id)}
+                  className={`${styles.sidebarItem} ${isActive ? styles.sidebarItemActive : ''}`}
+                  onClick={() => setActiveTopicId(topic.id)}
                 >
-                  <span className={styles.topicIcon}>
-                    <Icon size={18} />
-                  </span>
-                  <span className={styles.topicLabel}>{topic.label}</span>
-                  <span className={styles.topicCount}>{topic.id === 'team-tasks' ? '2' : '1'}</span>
-                  <ChevronDown size={16} className={`${styles.chevron} ${isOpen ? styles.chevronOpen : ''}`} />
+                  <Icon size={18} className={styles.sidebarIcon} />
+                  <span className={styles.sidebarLabel}>{topic.label}</span>
+                  <ChevronRight size={14} className={styles.sidebarChevron} />
                 </button>
-                <TopicBody isOpen={isOpen}>
-                  {topic.content}
-                </TopicBody>
+              )
+            })
+          )}
+        </div>
+
+        {/* Content Area */}
+        <div className={styles.docsContent}>
+          {activeTopic ? (
+            <div className={`card ${styles.contentCard}`}>
+              <div className={styles.contentHeader}>
+                <div className={styles.contentHeaderIcon}>
+                  <activeTopic.icon size={20} />
+                </div>
+                <h2 className={styles.contentTitle}>{activeTopic.label}</h2>
               </div>
-            )
-          })
-        )}
+              <div className={styles.contentBody}>
+                {activeTopic.content}
+              </div>
+            </div>
+          ) : (
+            <div className={styles.empty}>
+              <div className={styles.emptyIcon}>
+                <Search size={24} />
+              </div>
+              <div className={styles.emptyTitle}>No topics found</div>
+              <div className={styles.emptyDesc}>Try a different search term</div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

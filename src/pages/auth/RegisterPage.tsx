@@ -36,10 +36,10 @@ const slides = [
   },
 ]
 
-const roles: { value: UserRole; label: string; desc: string }[] = [
-  { value: 'planner', label: 'Event Planner', desc: 'Manage event setups, client portals, budgeting, and teams' },
-  { value: 'coordinator', label: 'Coordinator', desc: 'Operational day-of coordination, assigning tasks, and timelines' },
-  { value: 'client', label: 'Client / Guest', desc: 'View your invited events and browse the vendor directory' },
+const roles: { value: UserRole; label: string; desc: string; image: string }[] = [
+  { value: 'planner', label: 'Event Planner', desc: 'Manage event setups, client portals, budgeting, and teams', image: weddingImg },
+  { value: 'coordinator', label: 'Coordinator', desc: 'Operational day-of coordination, assigning tasks, and timelines', image: traditionalImg },
+  { value: 'client', label: 'Client / Guest', desc: 'View your invited events and browse the vendor directory', image: corporateImg },
 ]
 
 const passwordChecks = [
@@ -168,7 +168,7 @@ export function RegisterPage() {
       </div>
 
       <div className={styles.rightPanel}>
-        <div className={styles.formWrapper}>
+        <div className={`${styles.formWrapper} ${step === 'role' ? styles.formWrapperRole : ''}`}>
           
           {step === 'role' ? (
             <>
@@ -182,18 +182,22 @@ export function RegisterPage() {
                 </p>
               </div>
 
-              <div className={styles.roleSelector}>
+              <div className={styles.roleSelectorRow}>
                 {roles.map((r) => (
                   <button
                     key={r.value}
-                    className={`${styles.roleCard} ${role === r.value ? styles.roleCardActive : ''}`}
+                    className={`${styles.roleCardPicture} ${role === r.value ? styles.roleCardPictureActive : ''}`}
                     onClick={() => {
                       setRole(r.value)
                       setStep('form')
                     }}
+                    style={{ backgroundImage: `url(${r.image})` }}
                   >
-                    <div className={styles.roleTitle}>{r.label}</div>
-                    <div className={styles.roleDesc}>{r.desc}</div>
+                    <div className={styles.roleCardPictureOverlay} />
+                    <div className={styles.roleCardPictureContent}>
+                      <div className={styles.roleCardPictureTitle}>{r.label}</div>
+                      <div className={styles.roleCardPictureDesc}>{r.desc}</div>
+                    </div>
                   </button>
                 ))}
               </div>

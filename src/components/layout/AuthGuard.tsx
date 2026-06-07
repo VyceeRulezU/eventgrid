@@ -29,7 +29,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
   const isExempt = location.pathname.startsWith('/onboarding') || location.pathname === '/verify-email'
 
   if (!isExempt) {
-    const isCompleted = user.user_metadata?.onboarding_completed === true
+    const isCompleted = user.user_metadata?.onboarding_completed === true || !!profile?.org_id
     if (!isCompleted) {
       if (role === 'planner') {
         return <Navigate to="/onboarding/planner" replace />
