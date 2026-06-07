@@ -1,6 +1,7 @@
 import { Helmet } from 'react-helmet-async'
 
 const SITE_URL = import.meta.env.VITE_APP_URL || 'https://eventgrid.ng'
+const SITE_IMAGE = `${SITE_URL}/favicon/EventGrid-logo.png`
 const DEFAULT_TITLE = 'EventGrid — Event Management Platform'
 const DEFAULT_DESC = 'The premium event management platform built for event planners, coordinators, vendors, and clients.'
 const DEFAULT_KEYWORDS = 'event planning, event management, nigeria events, wedding coordinator, corporate event planner, budget tracker, live board, paystack, flutterwave'
@@ -21,7 +22,7 @@ export function SEO({
   title = DEFAULT_TITLE,
   description = DEFAULT_DESC,
   keywords = DEFAULT_KEYWORDS,
-  image = '/EventGrid-logo.svg',
+  image = SITE_IMAGE,
   url,
   type = 'website',
   publishedTime,
