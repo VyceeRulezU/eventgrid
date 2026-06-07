@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronDown, Search, Book, LayoutDashboard, DollarSign, Users, Calendar, Radio, ExternalLink, FileText, MessageSquare, Shield, ArrowLeft, ListChecks, Wallet } from 'lucide-react'
+import { ChevronDown, Search, Book, LayoutDashboard, DollarSign, Users, Calendar, Radio, ExternalLink, FileText, MessageSquare, Shield, ArrowLeft, ListChecks } from 'lucide-react'
 import styles from './HelpPage.module.css'
 
 const TOPICS = [
