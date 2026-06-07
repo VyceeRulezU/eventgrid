@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard/
+Disallow: /events/
+Disallow: /financials/
+Disallow: /vendors/
+Disallow: /vendors/directory
+Disallow: /notifications/
+Disallow: /settings/
+Disallow: /admin/
+Disallow: /onboarding/
+Disallow: /portal/
+
+Sitemap: https://eventgrid.ng/sitemap.xml
