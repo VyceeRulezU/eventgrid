@@ -26,6 +26,14 @@ interface ClientPortalInviteParams extends BaseInviteParams {
   event_date?: string
 }
 
+interface CoordinatorInviteParams {
+  type: 'coordinator_invite'
+  email: string
+  invited_by_name: string
+  org_id: string
+  org_name?: string
+}
+
 interface AdminInviteParams {
   type: 'admin_monitor'
   email: string
@@ -37,7 +45,9 @@ export type SendInviteParams =
   | TeamInviteParams
   | VendorInviteParams
   | ClientPortalInviteParams
+  | CoordinatorInviteParams
   | AdminInviteParams
+
 
 // ── Edge Function Caller ─────────────────────────────────────────────────────
 

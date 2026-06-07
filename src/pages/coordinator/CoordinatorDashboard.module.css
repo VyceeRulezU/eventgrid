@@ -1,5 +1,5 @@
 /* ==========================================================================
-   PLANNER DASHBOARD - MODERN & PREMIUM STYLES
+   COORDINATOR DASHBOARD — PREMIUM STYLES (mirrors Planner Dashboard)
    ========================================================================== */
 
 .dashboard {
@@ -42,41 +42,11 @@
   align-items: center;
 }
 
-/* Premium outline button style */
-.actionOutline {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-height: 40px;
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface-3);
-  color: var(--color-text-secondary);
-  font-size: var(--text-xs);
-  font-weight: var(--weight-bold);
-  font-family: var(--font-base);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-  text-decoration: none;
-  transition: all var(--transition-fast);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.actionOutline:hover {
-  border-color: var(--color-accent);
-  color: var(--color-text-primary);
-  background: var(--color-accent-muted);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(212, 160, 23, 0.15);
-}
-
 /* ── Overview Bento Cards ── */
 .statsGrid {
   display: grid;
   gap: var(--space-5);
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
 .statCard {
@@ -88,7 +58,7 @@
   flex-direction: column;
   gap: var(--space-3);
   transition: all var(--transition-base);
-  box-shadow: 
+  box-shadow:
     0 10px 25px -10px rgba(0, 0, 0, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
   position: relative;
@@ -113,7 +83,7 @@
 .statCardClickable:hover {
   transform: translateY(-4px);
   border-color: var(--color-accent-border);
-  box-shadow: 
+  box-shadow:
     0 20px 35px -15px rgba(212, 160, 23, 0.15),
     0 4px 20px -5px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
@@ -178,6 +148,7 @@
   -webkit-text-fill-color: transparent;
 }
 
+/* ── Bar Sparkline ── */
 .barSparkline {
   display: flex;
   align-items: flex-end;
@@ -213,7 +184,7 @@
   border: 1px solid rgba(255, 255, 255, 0.04);
   border-radius: 24px;
   overflow: hidden;
-  box-shadow: 
+  box-shadow:
     0 10px 30px -10px rgba(0, 0, 0, 0.25),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
@@ -224,7 +195,7 @@
   justify-content: space-between;
   padding: var(--space-5) var(--space-6);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  background: linear-gradient(180deg, rgba(255,255,255,0.01) 0%, transparent 100%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.01) 0%, transparent 100%);
   gap: var(--space-3);
 }
 
@@ -254,7 +225,7 @@
   color: var(--color-accent-hover);
 }
 
-/* ── Data Table ── */
+/* ── Data Tables ── */
 .tableScroll {
   overflow-x: auto;
 }
@@ -277,14 +248,22 @@
   column-gap: var(--space-4);
 }
 
-.tableHeadEvents {
-  grid-template-columns: minmax(160px, 2.2fr) 130px 100px 75px minmax(100px, 1.2fr) 95px minmax(120px, 1.3fr) 85px;
-  min-width: 960px;
+/* Projects table: Project | Type | Date | Status | Current Phase | Tasks */
+.tableHeadProjects {
+  grid-template-columns: minmax(160px, 2.2fr) 120px 110px 95px minmax(120px, 1.3fr) 95px;
+  min-width: 760px;
 }
 
+/* Tasks table: Task | Project | Due | Priority | Status */
+.tableHeadTasks {
+  grid-template-columns: minmax(180px, 2.5fr) minmax(120px, 1.2fr) 110px 95px 100px;
+  min-width: 640px;
+}
+
+/* Activity table: icon | type | activity | project | status | when */
 .tableHeadActivity {
-  grid-template-columns: 40px 80px minmax(180px, 2fr) minmax(120px, 1fr) 120px 100px 80px;
-  min-width: 900px;
+  grid-template-columns: 40px 80px minmax(180px, 2fr) minmax(120px, 1fr) 110px 80px;
+  min-width: 860px;
 }
 
 .tableHeadCenter {
@@ -317,6 +296,10 @@
   background-color: rgba(0, 0, 0, 0.08);
 }
 
+.tableBody .tableRow:last-child {
+  border-bottom: none;
+}
+
 .tableRow {
   display: grid;
   padding: var(--space-5) var(--space-6);
@@ -324,9 +307,19 @@
   column-gap: var(--space-4);
 }
 
-.tableRowEvents {
-  grid-template-columns: minmax(160px, 2.2fr) 130px 100px 75px minmax(100px, 1.2fr) 95px minmax(120px, 1.3fr) 85px;
-  min-width: 960px;
+.tableRowProjects {
+  grid-template-columns: minmax(160px, 2.2fr) 120px 110px 95px minmax(120px, 1.3fr) 95px;
+  min-width: 760px;
+}
+
+.tableRowTasks {
+  grid-template-columns: minmax(180px, 2.5fr) minmax(120px, 1.2fr) 110px 95px 100px;
+  min-width: 640px;
+}
+
+.tableRowActivity {
+  grid-template-columns: 40px 80px minmax(180px, 2fr) minmax(120px, 1fr) 110px 80px;
+  min-width: 860px;
 }
 
 .tableRowClickable {
@@ -338,15 +331,7 @@
   transform: scale(1.002);
 }
 
-.tableBody .tableRow:last-child {
-  border-bottom: none;
-}
-
-.tableRowActivity {
-  grid-template-columns: 40px 80px minmax(180px, 2fr) minmax(120px, 1fr) 120px 100px 80px;
-  min-width: 900px;
-}
-
+/* ── Cell helpers ── */
 .cellPrimary {
   font-weight: var(--weight-bold);
   font-size: var(--text-sm);
@@ -360,6 +345,9 @@
   font-size: 11px;
   color: var(--color-text-muted);
   margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .cellCenter {
@@ -376,6 +364,29 @@
   color: var(--color-text-muted);
 }
 
+.cellTruncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.cellOverdue {
+  color: var(--color-error);
+}
+
+.overdueTag {
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  color: var(--color-error);
+  background: rgba(239, 68, 68, 0.12);
+  padding: 1px 5px;
+  border-radius: var(--radius-sm);
+  margin-left: 4px;
+}
+
+/* ── Event type pill ── */
 .eventType {
   font-size: var(--text-xs);
   color: var(--color-text-muted);
@@ -392,6 +403,35 @@
   vertical-align: middle;
 }
 
+/* ── Task priority badges ── */
+.taskPriority {
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: inline-block;
+  text-align: center;
+  max-width: max-content;
+}
+
+.priorityHigh {
+  background-color: rgba(239, 68, 68, 0.12);
+  color: var(--color-error);
+}
+
+.priorityMedium {
+  background-color: rgba(245, 158, 11, 0.12);
+  color: var(--color-warning);
+}
+
+.priorityLow {
+  background-color: rgba(59, 130, 246, 0.12);
+  color: var(--color-info);
+}
+
+/* ── Activity table specifics ── */
 .activityIcon {
   width: 32px;
   height: 32px;
@@ -412,21 +452,6 @@
   white-space: nowrap;
 }
 
-.typeBadge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  font-weight: var(--weight-bold);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 2px 8px;
-  border-radius: var(--radius-full);
-  background-color: var(--color-accent-muted);
-  color: var(--color-accent);
-  border: 1px solid var(--color-accent-border);
-}
-
 .activityTypeText {
   font-size: var(--text-xs);
   font-weight: var(--weight-bold);
@@ -435,14 +460,7 @@
   letter-spacing: 0.05em;
 }
 
-.cellTruncate {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: var(--text-sm);
-  color: var(--color-text-secondary);
-}
-
+/* ── Table footer with pagination ── */
 .tableFooter {
   display: flex;
   align-items: center;
@@ -495,20 +513,25 @@
   transition: all var(--transition-fast);
 }
 
+.shortcutItem:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .shortcutItem:last-child {
   border-bottom: none;
 }
 
-.shortcutItem:hover {
+.shortcutItem:not(:disabled):hover {
   background-color: rgba(255, 255, 255, 0.02);
 }
 
-.shortcutItem:hover .shortcutIcon {
+.shortcutItem:not(:disabled):hover .shortcutIcon {
   transform: scale(1.1);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
-.shortcutItem:hover .shortcutArrow {
+.shortcutItem:not(:disabled):hover .shortcutArrow {
   transform: translateX(4px);
   color: var(--color-accent);
 }
@@ -546,98 +569,6 @@
   color: var(--color-text-muted);
   flex-shrink: 0;
   transition: all var(--transition-fast);
-}
-
-/* ── Modal overlay ── */
-.modalOverlay {
-  position: fixed;
-  inset: 0;
-  z-index: var(--z-modal);
-  background-color: rgba(0, 0, 0, 0.68);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-4);
-  animation: fadeIn 0.2s ease;
-}
-
-.modalCard {
-  width: 100%;
-  max-width: 480px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 
-    0 24px 54px -10px rgba(0,0,0,0.5),
-    inset 0 1px 0 rgba(255,255,255,0.05);
-}
-
-.modalHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-4);
-}
-
-.modalTitle {
-  margin: 0;
-  font-size: var(--text-base);
-  font-weight: var(--weight-extrabold);
-  display: flex;
-  align-items: center;
-}
-
-.modalDesc {
-  font-size: var(--text-sm);
-  color: var(--color-text-secondary);
-  line-height: 1.55;
-  margin-bottom: var(--space-5);
-}
-
-.modalActions {
-  display: flex;
-  gap: var(--space-3);
-}
-
-.modalActionsPrimary {
-  flex: 1;
-}
-
-.modalSuccess {
-  text-align: center;
-  padding: var(--space-4) 0;
-}
-
-.modalSuccessIcon {
-  width: 56px;
-  height: 56px;
-  border-radius: var(--radius-full);
-  background-color: var(--color-success-bg);
-  color: var(--color-success);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto var(--space-4);
-  border: 1px solid rgba(34, 197, 94, 0.2);
-}
-
-.modalUrlBox {
-  background-color: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: var(--radius-lg);
-  padding: var(--space-3) var(--space-4);
-  margin-bottom: var(--space-5);
-  font-size: var(--text-sm);
-  word-break: break-all;
-  color: var(--color-accent);
-  font-family: monospace;
-}
-
-.modalFieldGroup {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  margin-bottom: var(--space-5);
 }
 
 /* Keyframes */

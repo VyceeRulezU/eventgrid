@@ -280,10 +280,12 @@ Deno.serve(async (req) => {
 
   try {
     const {
-      type,           // 'team_member' | 'vendor' | 'client_portal'
+      type,           // 'team_member' | 'vendor' | 'client_portal' | 'coordinator_invite' | 'admin_monitor'
       email,
       event_id,
       invited_by_name,
+      org_id,         // coordinator_invite specific
+      org_name,       // coordinator_invite specific
       // admin_monitor specific
       role,
       // vendor-specific
@@ -302,7 +304,9 @@ Deno.serve(async (req) => {
       )
     }
 
-    if (type !== 'admin_monitor' && !event_id) {
+    // coordinator_invite and admin_monitor don't require event_id
+    const needsEventId = !['admin_monitor', 'coordinator_invite'].includes(type)
+    if (needsEventId && !event_id) {
       return new Response(
         JSON.stringify({ error: 'event_id is required for this invite type' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -372,6 +376,97 @@ Deno.serve(async (req) => {
 </body>
 </html>`
 
+    } else if (type === 'coordinator_invite') {
+      // Invite an existing or new coordinator to join an org (no event_id required)
+      if (!org_id) {
+        return new Response(
+          JSON.stringify({ error: 'org_id is required for coordinator_invite' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      const redirectUrl = `${APP_URL}/onboarding/coordinator?org_id=${org_id}&invited_by=${encodeURIComponent(invited_by_name ?? '')}`;  
+      const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+        type: 'invite',
+        email,
+        options: {
+          data: { role: 'coordinator', org_id },
+          redirectTo: redirectUrl,
+        },
+      })
+
+      if (linkError || !linkData?.properties?.action_link) {
+        console.error('Coordinator invite link error:', linkError)
+        return new Response(
+          JSON.stringify({ error: 'Failed to generate invite link: ' + (linkError?.message ?? 'unknown') }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      const displayOrgName = org_name ?? 'an event planning team'
+      subject = `You've been invited to join ${displayOrgName} on EventGrid`
+      html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Coordinator Invitation</title>
+</head>
+<body style="margin:0;padding:0;background:#111827;font-family:'Plus Jakarta Sans',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#111827;padding:40px 16px;">
+    <tr>
+      <td align="center">
+        <table width="560" cellpadding="0" cellspacing="0" style="background:#1F2937;border:1px solid #374151;border-radius:16px;overflow:hidden;max-width:560px;width:100%;">
+          <tr>
+            <td style="background:#D4A017;padding:24px 32px;">
+              <span style="font-size:20px;font-weight:700;color:#111827;letter-spacing:-0.01em;">EventGrid</span>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:32px;">
+              <h1 style="margin:0 0 12px;font-size:24px;font-weight:700;color:#F9FAFB;line-height:1.3;">
+                You're invited as a Coordinator 🎉
+              </h1>
+              <p style="margin:0 0 20px;font-size:15px;color:#9CA3AF;line-height:1.6;">
+                <strong style="color:#F9FAFB;">${invited_by_name ?? 'An event planner'}</strong> has invited you
+                to join <strong style="color:#D4A017;">${displayOrgName}</strong> as a Coordinator on EventGrid.
+              </p>
+              <p style="margin:0 0 28px;font-size:14px;color:#9CA3AF;line-height:1.6;">
+                Accept your invitation to set up your profile, receive task assignments, and manage
+                events in real-time. This link expires in 7 days.
+              </p>
+              <table cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+                <tr>
+                  <td style="background:#D4A017;border-radius:10px;">
+                    <a href="${linkData.properties.action_link}"
+                       style="display:inline-block;padding:14px 28px;font-size:15px;font-weight:600;color:#111827;text-decoration:none;border-radius:10px;">
+                      Accept Invitation →
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:0;font-size:12px;color:#6B7280;line-height:1.5;">
+                If the button doesn't work, copy and paste this link:<br/>
+                <a href="${linkData.properties.action_link}" style="color:#D4A017;word-break:break-all;">${linkData.properties.action_link}</a>
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:20px 32px;border-top:1px solid #374151;">
+              <p style="margin:0;font-size:12px;color:#4B5563;text-align:center;">
+                EventGrid — Software for Event Pros ·
+                <a href="${APP_URL}" style="color:#6B7280;text-decoration:none;">eventgrid.ng</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
+
     } else if (type === 'team_member') {
       // Generate magic link invite
       const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
@@ -393,7 +488,7 @@ Deno.serve(async (req) => {
 
       const template = teamInviteEmail({
         invitedByName: invited_by_name ?? 'Your event planner',
-        eventName: event.name,
+        eventName: event!.name,
         inviteLink: linkData.properties.action_link,
       })
       subject = template.subject

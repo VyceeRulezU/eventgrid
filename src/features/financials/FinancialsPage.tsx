@@ -468,7 +468,24 @@ export function FinancialsPage() {
 
       <PnLSummary totalRevenue={totalRevenue} totalVendorCost={totalVendorCost} pettyCashTotal={pettyCashTotal} />
 
-      <PaymentAlerts dueVendors={dueVendors.map(e => ({ vendor_name: e.vendor_name, balance: e.balance }))} dueClients={dueClients.map(p => ({ description: p.description, amount: p.amount, due_date: p.due_date || '' }))} totalVendorDue={totalVendorDue} totalClientDue={totalClientDue} />
+      <PaymentAlerts
+        dueVendors={dueVendors.map(e => ({ vendor_name: e.vendor_name, balance: e.balance }))}
+        dueClients={dueClients.map(p => ({ description: p.description, amount: p.amount, due_date: p.due_date || '' }))}
+        totalVendorDue={totalVendorDue}
+        totalClientDue={totalClientDue}
+        onReviewVendor={() => {
+          setActiveTab('vendors')
+          setTimeout(() => {
+            document.querySelector('.financial-table-wrapper')?.scrollIntoView({ behavior: 'smooth' })
+          }, 100)
+        }}
+        onReviewClient={() => {
+          setActiveTab('income')
+          setTimeout(() => {
+            document.querySelector('.financial-table-wrapper')?.scrollIntoView({ behavior: 'smooth' })
+          }, 100)
+        }}
+      />
 
       <Tabs
         tabs={[

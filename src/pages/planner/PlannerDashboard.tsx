@@ -4,11 +4,12 @@ import {
   Plus, Calendar, CircleDollarSign, Users, UserPlus,
   ExternalLink, BarChart3, CheckCircle2,
   Mail, X, Copy, Check, UserCheck, ListChecks,
-  Activity, ChevronRight,
+  Activity, ChevronRight, Search, UserRoundPlus, AlertCircle,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
+import { sendInvite } from '@/lib/edgeFunctions'
 import { Pagination } from '@/components/ui/Pagination'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { SEO } from '@/components/shared/SEO'
@@ -19,6 +20,11 @@ const ACTIVITY_PAGE_SIZE = 5
 
 interface EventWithPhases extends Event {
   phases?: EventPhase[]
+  coordinator?: { display_name: string | null } | null
+}
+
+interface TaskWithAssignee extends Task {
+  assignee?: { display_name: string | null } | null
 }
 
 interface ActivityItem {
@@ -26,6 +32,10 @@ interface ActivityItem {
   type: 'event_created' | 'task_updated' | 'phase_completed'
   typeLabel: string
   desc: string
+  subDesc?: string
+  status?: string
+  statusColor?: 'green' | 'yellow' | 'red' | 'grey'
+  assigneeName?: string
   eventName?: string
   timestamp: string
   link?: string
@@ -199,47 +209,96 @@ function InviteClientModal({ events, onClose }: {
 }
 
 function AddCoordinatorModal({ onClose }: { onClose: () => void }) {
-  const [email, setEmail] = useState('')
-  const [name, setName] = useState('')
-  const [sending, setSending] = useState(false)
-  const [sent, setSent] = useState(false)
   const org = useAuthStore((s) => s.org)
+  const profile = useAuthStore((s) => s.profile)
   const showNotification = useUIStore((s) => s.showNotification)
 
-  const handleInvite = async () => {
-    if (!email.trim()) return
+  // search state
+  const [query, setQuery] = useState('')
+  const [searching, setSearching] = useState(false)
+  const [searchResult, setSearchResult] = useState<{ id: string; email: string; display_name: string | null; role: string; org_id: string | null } | null | 'not_found'>('not_found')
+  const [hasSearched, setHasSearched] = useState(false)
+
+  // invite state
+  const [sending, setSending] = useState(false)
+  const [done, setDone] = useState<'added' | 'invited' | null>(null)
+
+  const searchProfile = async () => {
+    const q = query.trim().toLowerCase()
+    if (!q) return
+    setSearching(true)
+    setHasSearched(true)
+    setSearchResult('not_found')
+
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, email, display_name, role, org_id')
+      .or(`email.ilike.%${q}%,display_name.ilike.%${q}%`)
+      .neq('role', 'client')
+      .limit(1)
+      .single()
+
+    setSearchResult(data ?? 'not_found')
+    setSearching(false)
+  }
+
+  const handleAddToOrg = async () => {
+    if (!org || searchResult === 'not_found' || !searchResult) return
     setSending(true)
 
     const { error } = await supabase
-      .from('org_invites')
-      .insert({
-        org_id: org!.id,
-        email: email.trim().toLowerCase(),
-        role: 'coordinator',
-        display_name: name.trim() || null,
-      })
+      .from('profiles')
+      .update({ org_id: org.id, role: 'coordinator' })
+      .eq('id', searchResult.id)
 
     if (error) {
-      if (error.code === '42P01') {
-        setSent(true)
-        setSending(false)
-        return
-      }
-      showNotification({ variant: 'error', title: 'Failed to invite', message: error.message })
+      showNotification({ variant: 'error', title: 'Failed to add coordinator', message: error.message })
       setSending(false)
       return
     }
 
-    setSent(true)
+    setDone('added')
     setSending(false)
   }
 
+  const handleSendInvite = async () => {
+    if (!org) return
+    setSending(true)
+
+    // Record invite in org_invites (best-effort, table may not exist)
+    try {
+      await supabase
+        .from('org_invites')
+        .insert({ org_id: org.id, email: query.trim().toLowerCase(), role: 'coordinator' })
+    } catch (_) { /* ignore if table missing */ }
+
+    const result = await sendInvite({
+      type: 'coordinator_invite',
+      email: query.trim().toLowerCase(),
+      invited_by_name: profile?.display_name ?? 'Your event planner',
+      org_id: org.id,
+      org_name: org.name,
+    })
+
+    if (!result.success) {
+      showNotification({ variant: 'error', title: 'Invite failed', message: result.error ?? 'Unknown error' })
+      setSending(false)
+      return
+    }
+
+    setDone('invited')
+    setSending(false)
+  }
+
+  const found = searchResult !== 'not_found' && searchResult !== null
+  const alreadyInOrg = found && (searchResult as any)?.org_id === org?.id
+
   return (
     <div className={styles.modalOverlay}>
-      <div className={`card ${styles.modalCard}`} style={{ maxWidth: 440 }}>
+      <div className={`card ${styles.modalCard}`} style={{ maxWidth: 460 }}>
         <div className={styles.modalHeader}>
           <h3 className={styles.modalTitle}>
-            <UserCheck size={18} style={{ marginRight: 'var(--space-2)', verticalAlign: 'middle', color: 'var(--color-info)' }} />
+            <UserRoundPlus size={18} style={{ marginRight: 'var(--space-2)', verticalAlign: 'middle', color: 'var(--color-info)' }} />
             Add Coordinator
           </h3>
           <button type="button" className="btn btn-ghost btn-icon btn-sm" onClick={onClose} aria-label="Close">
@@ -247,58 +306,154 @@ function AddCoordinatorModal({ onClose }: { onClose: () => void }) {
           </button>
         </div>
 
-        {!sent ? (
-          <>
-            <p className={styles.modalDesc}>Invite a coordinator to join your organisation.</p>
-            <div className={styles.modalFieldGroup}>
-              <div className="input-wrapper">
-                <label className="input-label" htmlFor="coord-name">Coordinator Name</label>
-                <input
-                  id="coord-name"
-                  className="input"
-                  placeholder="e.g. Amaka Obi"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </div>
-              <div className="input-wrapper">
-                <label className="input-label" htmlFor="coord-email">Email Address *</label>
-                <input
-                  id="coord-email"
-                  className="input"
-                  type="email"
-                  placeholder="coordinator@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleInvite()}
-                  autoFocus
-                />
-              </div>
-            </div>
-            <div className={styles.modalActions}>
-              <button
-                type="button"
-                className={`btn btn-primary ${styles.modalActionsPrimary}`}
-                onClick={handleInvite}
-                disabled={sending || !email.trim()}
-              >
-                <Mail size={16} />
-                {sending ? 'Sending...' : 'Send Invite'}
-              </button>
-              <button type="button" className="btn btn-ghost" onClick={onClose}>Cancel</button>
-            </div>
-          </>
-        ) : (
+        {/* ── Success state ── */}
+        {done && (
           <div className={styles.modalSuccess}>
             <div className={styles.modalSuccessIcon}>
               <CheckCircle2 size={28} />
             </div>
-            <div style={{ fontWeight: 700, marginBottom: 'var(--space-2)' }}>Invite Sent!</div>
+            <div style={{ fontWeight: 700, marginBottom: 'var(--space-2)' }}>
+              {done === 'added' ? 'Coordinator Added!' : 'Invite Sent!'}
+            </div>
             <div className={styles.modalDesc}>
-              An invite has been recorded for <strong>{email}</strong>.
+              {done === 'added'
+                ? `${(searchResult as any)?.display_name ?? query} has been added to ${org?.name} and can now log in.`
+                : `An invite email was sent to ${query}. They can sign up and join your org.`
+              }
             </div>
             <button type="button" className="btn btn-primary" onClick={onClose} style={{ width: '100%' }}>Done</button>
           </div>
+        )}
+
+        {/* ── Search + action state ── */}
+        {!done && (
+          <>
+            <p className={styles.modalDesc}>
+              Search for an existing EventGrid user by email or name, or enter an email to send an invitation.
+            </p>
+
+            {/* Search bar */}
+            <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-4)' }}>
+              <div className="input-wrapper" style={{ flex: 1, margin: 0 }}>
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="Search by email or name..."
+                  value={query}
+                  onChange={(e) => { setQuery(e.target.value); setHasSearched(false); setSearchResult('not_found') }}
+                  onKeyDown={(e) => e.key === 'Enter' && searchProfile()}
+                  autoFocus
+                />
+              </div>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={searchProfile}
+                disabled={searching || !query.trim()}
+                style={{ flexShrink: 0 }}
+              >
+                {searching ? '...' : <Search size={16} />}
+              </button>
+            </div>
+
+            {/* Result: found on platform */}
+            {hasSearched && found && (
+              <div style={{
+                padding: 'var(--space-4)',
+                borderRadius: 'var(--radius-lg)',
+                background: 'var(--color-surface-3)',
+                border: '1px solid rgba(255,255,255,0.06)',
+                marginBottom: 'var(--space-4)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-3)',
+              }}>
+                <div style={{
+                  width: 42, height: 42, borderRadius: '50%',
+                  background: 'var(--color-accent-muted)', color: 'var(--color-accent)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontWeight: 700, fontSize: 'var(--text-base)', flexShrink: 0,
+                }}>
+                  {((searchResult as any).display_name ?? (searchResult as any).email ?? '?').charAt(0).toUpperCase()}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: 'var(--color-text-primary)' }}>
+                    {(searchResult as any).display_name ?? '(No name set)'}
+                  </div>
+                  <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                    {(searchResult as any).email} · {(searchResult as any).role}
+                  </div>
+                  {alreadyInOrg && (
+                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-warning)', marginTop: 2 }}>
+                      Already in your organisation
+                    </div>
+                  )}
+                </div>
+                <span className="badge badge-green" style={{ flexShrink: 0 }}>
+                  <span className="badge-dot" /> On platform
+                </span>
+              </div>
+            )}
+
+            {/* Result: not found on platform (after search) */}
+            {hasSearched && !found && (
+              <div style={{
+                padding: 'var(--space-3) var(--space-4)',
+                borderRadius: 'var(--radius-lg)',
+                background: 'rgba(245, 158, 11, 0.08)',
+                border: '1px solid rgba(245, 158, 11, 0.2)',
+                marginBottom: 'var(--space-4)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-2)',
+                fontSize: 'var(--text-sm)',
+                color: 'var(--color-warning)',
+              }}>
+                <AlertCircle size={15} />
+                No EventGrid account found for <strong style={{ marginLeft: 4 }}>{query}</strong>.
+                You can send them an invite email.
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className={styles.modalActions}>
+              {/* If found and not already in org → Add to Org */}
+              {hasSearched && found && !alreadyInOrg && (
+                <button
+                  type="button"
+                  className={`btn btn-primary ${styles.modalActionsPrimary}`}
+                  onClick={handleAddToOrg}
+                  disabled={sending}
+                >
+                  <UserCheck size={16} />
+                  {sending ? 'Adding...' : 'Add to Organisation'}
+                </button>
+              )}
+
+              {/* If found but already in org → disabled */}
+              {hasSearched && found && alreadyInOrg && (
+                <button type="button" className={`btn btn-ghost ${styles.modalActionsPrimary}`} disabled>
+                  Already in org
+                </button>
+              )}
+
+              {/* If not found → Send Invite */}
+              {hasSearched && !found && query.includes('@') && (
+                <button
+                  type="button"
+                  className={`btn btn-primary ${styles.modalActionsPrimary}`}
+                  onClick={handleSendInvite}
+                  disabled={sending}
+                >
+                  <Mail size={16} />
+                  {sending ? 'Sending...' : 'Send Invite Email'}
+                </button>
+              )}
+
+              {/* Before search or not a valid email — just cancel */}
+              <button type="button" className="btn btn-ghost" onClick={onClose}>Cancel</button>
+            </div>
+          </>
         )}
       </div>
     </div>
@@ -311,7 +466,7 @@ export function PlannerDashboard() {
   const org = useAuthStore((s) => s.org)
 
   const [events, setEvents] = useState<EventWithPhases[]>([])
-  const [tasks, setTasks] = useState<Task[]>([])
+  const [tasks, setTasks] = useState<TaskWithAssignee[]>([])
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({
     totalEvents: 0, activeEvents: 0, draftEvents: 0,
@@ -333,7 +488,7 @@ export function PlannerDashboard() {
     async function load() {
       const { data: evts } = await supabase
         .from('events')
-        .select('*')
+        .select('*, coordinator:profiles!events_coordinator_id_fkey(display_name)')
         .eq('org_id', org!.id)
         .is('deleted_at', null)
         .order('created_at', { ascending: false })
@@ -376,11 +531,11 @@ export function PlannerDashboard() {
 
       const { data: taskData } = await supabase
         .from('tasks')
-        .select('*')
+        .select('*, assignee:profiles!tasks_assignee_id_fkey(display_name)')
         .order('updated_at', { ascending: false })
         .limit(20)
 
-      if (taskData) setTasks(taskData)
+      if (taskData) setTasks(taskData as unknown as TaskWithAssignee[])
 
       setStats({
         totalEvents: evts.length,
@@ -441,6 +596,10 @@ export function PlannerDashboard() {
         type: 'event_created',
         typeLabel: 'Event',
         desc: `Created "${ev.name}"`,
+        subDesc: `Scheduled for ${formatDate(ev.event_date)} · Venue: ${ev.venue_name || 'TBD'}`,
+        status: ev.status ? ev.status.replace(/_/g, ' ') : 'draft',
+        statusColor: ev.status === 'active' || ev.status === 'in_progress' || ev.status === 'completed' ? 'green' : 'grey',
+        assigneeName: ev.coordinator?.display_name || 'Owner',
         eventName: ev.name,
         timestamp: ev.created_at,
         link: `/events/${ev.id}`,
@@ -456,6 +615,10 @@ export function PlannerDashboard() {
           type: 'phase_completed',
           typeLabel: 'Phase',
           desc: `Completed "${latest.phase_name}"`,
+          subDesc: `Phase ${latest.phase_number} of ${ev.phases?.length || 9} fully done`,
+          status: 'completed',
+          statusColor: 'green',
+          assigneeName: ev.coordinator?.display_name || 'Owner',
           eventName: ev.name,
           timestamp: latest.completed_at || ev.updated_at,
           link: `/events/${ev.id}`,
@@ -467,11 +630,16 @@ export function PlannerDashboard() {
 
     for (const t of tasks) {
       const linkedEvent = events.find((e) => e.id === t.event_id)
+      const dueStr = t.due_datetime ? `Due: ${formatDate(t.due_datetime)}` : 'No due date'
       items.push({
         id: `task-${t.id}`,
         type: 'task_updated',
         typeLabel: 'Task',
-        desc: `"${t.title}" → ${t.status.replace('_', ' ')}`,
+        desc: `"${t.title}"`,
+        subDesc: dueStr,
+        status: t.status ? t.status.replace(/_/g, ' ') : 'todo',
+        statusColor: t.status === 'done' ? 'green' : t.status === 'in_progress' ? 'yellow' : 'grey',
+        assigneeName: t.assignee?.display_name || 'Unassigned',
         eventName: linkedEvent?.name,
         timestamp: t.updated_at || t.created_at,
         link: t.event_id ? `/events/${t.event_id}/tasks` : undefined,
@@ -521,10 +689,10 @@ export function PlannerDashboard() {
       <div className={styles.quickActions}>
         <h2 className={styles.quickActionsTitle}>Quick Actions</h2>
         <div className={styles.quickActionsBtns}>
-          <button type="button" className={styles.actionOutline} onClick={() => setShowAddCoordinator(true)}>
+          <button type="button" className="btn btn-secondary" onClick={() => setShowAddCoordinator(true)}>
             <UserPlus size={16} /> Add Coordinator
           </button>
-          <button type="button" className={styles.actionOutline} onClick={() => setShowInviteClient(true)}>
+          <button type="button" className="btn btn-secondary" onClick={() => setShowInviteClient(true)}>
             <ExternalLink size={16} /> Invite Client
           </button>
           <Link to="/events/new" className="btn btn-primary" id="tour-create-event">
@@ -705,7 +873,8 @@ export function PlannerDashboard() {
                   <span>Type</span>
                   <span>Activity</span>
                   <span>Event</span>
-                  <span>Date</span>
+                  <span>Assignee</span>
+                  <span className={styles.tableHeadCenter}>Status</span>
                   <span className={styles.tableHeadRight}>Ago</span>
                 </div>
                 <div className={styles.tableBody}>
@@ -724,10 +893,19 @@ export function PlannerDashboard() {
                       >
                         <act.icon size={14} />
                       </div>
-                      <div className={styles.typeBadge}>{act.typeLabel}</div>
-                      <div className={styles.activityDesc}>{act.desc}</div>
+                      <div className={styles.activityTypeText}>{act.typeLabel}</div>
+                      <div className={styles.activityDesc}>
+                        <div className={styles.cellPrimary}>{act.desc}</div>
+                        {act.subDesc && <div className={styles.cellSecondary}>{act.subDesc}</div>}
+                      </div>
                       <div className={styles.cellTruncate}>{act.eventName || '—'}</div>
-                      <div className={styles.cellTruncate}>{formatDate(act.timestamp)}</div>
+                      <div className={styles.cellTruncate}>{act.assigneeName || '—'}</div>
+                      <div className={styles.cellCenter}>
+                        <span className={`badge badge-${act.statusColor || 'grey'}`}>
+                          <span className="badge-dot" />
+                          {act.status}
+                        </span>
+                      </div>
                       <div className={styles.cellRight}>{timeAgo(act.timestamp)}</div>
                     </div>
                   ))}

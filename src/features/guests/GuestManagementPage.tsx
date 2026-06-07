@@ -266,33 +266,35 @@ export function GuestManagementPage() {
 
       {tab === 'checkin' && (
         <div className={styles.checkinView}>
-          <div className={styles.checkinStats}>
-            <div className={styles.checkinStatItem}>
-              <span className={styles.checkinStatNum}>{guests.filter(g => g.checked_in).length}</span>
-              <span className={styles.checkinStatLabel}>Checked In</span>
+          <div className={styles.checkinHeaderRow}>
+            <div className={styles.checkinStats}>
+              <div className={styles.checkinStatItem}>
+                <span className={styles.checkinStatNum}>{guests.filter(g => g.checked_in).length}</span>
+                <span className={styles.checkinStatLabel}>Checked In</span>
+              </div>
+              <div className={styles.checkinStatDivider} />
+              <div className={styles.checkinStatItem}>
+                <span className={styles.checkinStatNum}>{guests.length}</span>
+                <span className={styles.checkinStatLabel}>Total Guests</span>
+              </div>
+              <div className={styles.checkinStatDivider} />
+              <div className={styles.checkinStatItem}>
+                <span className={styles.checkinStatNum}>
+                  {guests.length > 0 ? Math.round((guests.filter(g => g.checked_in).length / guests.length) * 100) : 0}%
+                </span>
+                <span className={styles.checkinStatLabel}>Attendance</span>
+              </div>
             </div>
-            <div className={styles.checkinStatDivider} />
-            <div className={styles.checkinStatItem}>
-              <span className={styles.checkinStatNum}>{guests.length}</span>
-              <span className={styles.checkinStatLabel}>Total Guests</span>
-            </div>
-            <div className={styles.checkinStatDivider} />
-            <div className={styles.checkinStatItem}>
-              <span className={styles.checkinStatNum}>
-                {guests.length > 0 ? Math.round((guests.filter(g => g.checked_in).length / guests.length) * 100) : 0}%
-              </span>
-              <span className={styles.checkinStatLabel}>Attendance</span>
-            </div>
-          </div>
-          <div className={styles.checkinSearchRow}>
-            <div className={styles.checkinSearchWrap}>
-              <Search size={16} className={styles.checkinSearchIcon} />
-              <input className={styles.checkinSearchInput} placeholder="Search name or phone..." value={search} onChange={(e) => setSearch(e.target.value)} autoFocus />
-            </div>
-            <div className={styles.checkinChips}>
-              <button className={`${styles.checkinChip} ${rsvpFilter === 'all' ? styles.checkinChipActive : ''}`} onClick={() => setRsvpFilter('all')}>All</button>
-              <button className={`${styles.checkinChip} ${rsvpFilter === 'confirmed' ? styles.checkinChipActive : ''}`} onClick={() => setRsvpFilter('confirmed')}>Confirmed</button>
-              <button className={`${styles.checkinChip} ${rsvpFilter === 'pending' ? styles.checkinChipActive : ''}`} onClick={() => setRsvpFilter('pending')}>Pending</button>
+            <div className={styles.checkinSearchRow}>
+              <div className={styles.checkinSearchWrap}>
+                <Search size={16} className={styles.checkinSearchIcon} />
+                <input className={styles.checkinSearchInput} placeholder="Search name or phone..." value={search} onChange={(e) => setSearch(e.target.value)} autoFocus />
+              </div>
+              <div className={styles.checkinChips}>
+                <button className={`${styles.checkinChip} ${rsvpFilter === 'all' ? styles.checkinChipActive : ''}`} onClick={() => setRsvpFilter('all')}>All</button>
+                <button className={`${styles.checkinChip} ${rsvpFilter === 'confirmed' ? styles.checkinChipActive : ''}`} onClick={() => setRsvpFilter('confirmed')}>Confirmed</button>
+                <button className={`${styles.checkinChip} ${rsvpFilter === 'pending' ? styles.checkinChipActive : ''}`} onClick={() => setRsvpFilter('pending')}>Pending</button>
+              </div>
             </div>
           </div>
           <div className={styles.checkinGrid}>

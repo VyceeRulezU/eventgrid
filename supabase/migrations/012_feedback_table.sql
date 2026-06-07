@@ -56,3 +56,7 @@ CREATE POLICY "Super admins can update feedback"
 CREATE INDEX IF NOT EXISTS idx_feedback_user_id ON feedback(user_id);
 CREATE INDEX IF NOT EXISTS idx_feedback_status ON feedback(status);
 CREATE INDEX IF NOT EXISTS idx_feedback_created_at ON feedback(created_at DESC);
+
+GRANT ALL ON feedback TO authenticated;
+GRANT ALL ON feedback TO anon;
+GRANT ALL ON feedback TO service_role;

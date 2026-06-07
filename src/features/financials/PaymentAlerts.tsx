@@ -20,9 +20,11 @@ interface PaymentAlertsProps {
   dueClients: DueClient[]
   totalVendorDue: number
   totalClientDue: number
+  onReviewVendor?: () => void
+  onReviewClient?: () => void
 }
 
-export function PaymentAlerts({ dueVendors, dueClients, totalVendorDue, totalClientDue }: PaymentAlertsProps) {
+export function PaymentAlerts({ dueVendors, dueClients, totalVendorDue, totalClientDue, onReviewVendor, onReviewClient }: PaymentAlertsProps) {
   const hasAlerts = dueVendors.length > 0 || dueClients.length > 0
   if (!hasAlerts) return null
 
@@ -34,7 +36,7 @@ export function PaymentAlerts({ dueVendors, dueClients, totalVendorDue, totalCli
           <span style={{ flex: 1, color: 'var(--color-text-primary)' }}>
             <strong>{dueVendors.length} vendor payment{dueVendors.length !== 1 ? 's' : ''} due this week</strong> — {formatNaira(totalVendorDue)} total
           </span>
-          <button className="btn btn-ghost btn-sm" onClick={() => document.getElementById('vendor-payments-section')?.scrollIntoView({ behavior: 'smooth' })} style={{ flexShrink: 0 }}>
+          <button className="btn btn-ghost btn-sm" onClick={onReviewVendor} style={{ flexShrink: 0, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
             Review <ArrowRight size={14} />
           </button>
         </div>
@@ -45,7 +47,7 @@ export function PaymentAlerts({ dueVendors, dueClients, totalVendorDue, totalCli
           <span style={{ flex: 1, color: 'var(--color-text-primary)' }}>
             Client balance{totalClientDue > 0 ? ` of ${formatNaira(totalClientDue)}` : ''} due in 14 days
           </span>
-          <button className="btn btn-ghost btn-sm" onClick={() => document.getElementById('income-section')?.scrollIntoView({ behavior: 'smooth' })} style={{ flexShrink: 0 }}>
+          <button className="btn btn-ghost btn-sm" onClick={onReviewClient} style={{ flexShrink: 0, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
             Review <ArrowRight size={14} />
           </button>
         </div>

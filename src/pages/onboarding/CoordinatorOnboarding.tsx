@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Info, Sparkles, ChevronRight, LogOut, ArrowLeft, Star } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
@@ -20,6 +20,10 @@ export function CoordinatorOnboarding() {
   const user = useAuthStore((s) => s.user)
   const showToast = useUIStore((s) => s.showToast)
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+
+  // If coming via coordinator invite link, org_id is in the URL
+  const inviteOrgId = searchParams.get('org_id')
 
   const TOTAL_STEPS = 2
 
@@ -32,17 +36,20 @@ export function CoordinatorOnboarding() {
     if (!user) return
     setLoading(true)
 
+    const updatePayload: Record<string, unknown> = {
+      display_name: name,
+      phone,
+    }
+
+    // If joining via invite, assign to org and set role
+    if (inviteOrgId) {
+      updatePayload.org_id = inviteOrgId
+      updatePayload.role = 'coordinator'
+    }
+
     const { error } = await supabase
       .from('profiles')
-      .update({
-        display_name: name,
-        phone,
-        user_metadata: {
-          ...user.user_metadata,
-          coordinator_specialization: specialization,
-          onboarding_completed: true
-        }
-      })
+      .update(updatePayload)
       .eq('id', user.id)
 
     if (error) {
@@ -55,6 +62,7 @@ export function CoordinatorOnboarding() {
     navigate('/dashboard/coordinator')
     setLoading(false)
   }
+
 
   const handleNext = () => {
     if (step === 1 && !name.trim()) {
