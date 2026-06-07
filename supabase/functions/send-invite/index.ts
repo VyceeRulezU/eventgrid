@@ -14,7 +14,76 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// ── Email templates ─────────────────────────────────────────────────────────
+// ── Shared email shell ──────────────────────────────────────────────────────
+
+const HERO_IMAGE = APP_URL + '/emails/corporate_event_hall.png'
+
+function emailShell(title: string, bodyHtml: string): string {
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${title}</title>
+  <style>
+    @media only screen and (max-width: 600px) {
+      .container { width: 100% !important; max-width: 100% !important; }
+      .content-pad { padding: 32px 20px !important; }
+      .button { width: 100% !important; text-align: center !important; box-sizing: border-box !important; display: block !important; }
+    }
+  </style>
+</head>
+<body style="margin:0;padding:0;background-color:#0B1120;font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0B1120;padding:40px 16px;">
+    <tr>
+      <td align="center">
+        <table class="container" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background-color:#1a2432;border:1px solid #2a3a4e;border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
+          <tr>
+            <td style="background-color:#1a1a2e;background-image:url('${HERO_IMAGE}');background-size:cover;background-position:center;background-repeat:no-repeat;padding:0;">
+              <div style="background:linear-gradient(135deg, rgba(11,17,32,0.92) 0%, rgba(11,17,32,0.55) 50%, rgba(11,17,32,0.3) 100%);padding:52px 32px 44px;text-align:center;">
+                <table cellpadding="0" cellspacing="0" style="margin:0 auto 18px;">
+                  <tr><td style="width:44px;height:3px;background-color:#D4A017;border-radius:2px;"></td></tr>
+                </table>
+                <table cellpadding="0" cellspacing="0" style="margin:0 auto;">
+                  <tr>
+                    <td style="vertical-align:middle;padding-right:12px;">
+                      <svg width="34" height="34" viewBox="0 0 32 32" fill="none">
+                        <rect x="2" y="2" width="12" height="12" rx="3" fill="#D4A017" opacity="0.9"/>
+                        <rect x="18" y="2" width="12" height="12" rx="3" fill="#D4A017" opacity="0.6"/>
+                        <rect x="2" y="18" width="12" height="12" rx="3" fill="#D4A017" opacity="0.6"/>
+                        <rect x="18" y="18" width="12" height="12" rx="3" fill="#D4A017" opacity="0.9"/>
+                      </svg>
+                    </td>
+                    <td style="vertical-align:middle;">
+                      <span style="font-size:26px;font-weight:800;color:#FFFFFF;letter-spacing:-0.02em;">EventGrid</span>
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin:10px 0 0;font-size:12px;color:rgba(255,255,255,0.45);letter-spacing:0.06em;text-transform:uppercase;font-weight:600;">Software for Event Pros</p>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td class="content-pad" style="padding:44px 36px;background-color:#1a2432;">
+              ${bodyHtml}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:24px 32px;border-top:1px solid #2a3a4e;background-color:#141e2a;">
+              <p style="margin:0 0 4px;font-size:12px;color:#6B7280;text-align:center;line-height:1.6;">EventGrid &mdash; Software for Event Pros</p>
+              <p style="margin:0;font-size:11px;color:#4B5563;text-align:center;line-height:1.6;">This email was sent to you because you have an account on <a href="${APP_URL}" style="color:#D4A017;text-decoration:none;font-weight:600;">eventgrid.ng</a>.</p>
+              <p style="margin:8px 0 0;font-size:11px;color:#4B5563;text-align:center;">&copy; 2026 EventGrid. All rights reserved.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
+}
+
+// ── Email builders ──────────────────────────────────────────────────────────
 
 function teamInviteEmail(opts: {
   invitedByName: string
@@ -23,44 +92,9 @@ function teamInviteEmail(opts: {
 }): { subject: string; html: string } {
   return {
     subject: `You've been invited to join the ${opts.eventName} team on EventGrid`,
-    html: `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Team Invitation</title>
-</head>
-<body style="margin:0;padding:0;background:#111827;font-family:'Plus Jakarta Sans',Helvetica,Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#111827;padding:40px 16px;">
-    <tr>
-      <td align="center">
-        <table width="560" cellpadding="0" cellspacing="0" style="background:#1F2937;border:1px solid #374151;border-radius:16px;overflow:hidden;max-width:560px;width:100%;">
-          <!-- Header -->
-          <tr>
-            <td style="background:#D4A017;padding:24px 32px;">
-              <table cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="padding-right:10px;">
-                    <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-                      <rect x="2" y="2" width="12" height="12" rx="3" fill="#111827" opacity="0.9"/>
-                      <rect x="18" y="2" width="12" height="12" rx="3" fill="#111827" opacity="0.6"/>
-                      <rect x="2" y="18" width="12" height="12" rx="3" fill="#111827" opacity="0.6"/>
-                      <rect x="18" y="18" width="12" height="12" rx="3" fill="#111827" opacity="0.9"/>
-                    </svg>
-                  </td>
-                  <td>
-                    <span style="font-size:20px;font-weight:700;color:#111827;letter-spacing:-0.01em;">EventGrid</span>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-          <!-- Body -->
-          <tr>
-            <td style="padding:32px;">
-              <h1 style="margin:0 0 12px;font-size:24px;font-weight:700;color:#F9FAFB;line-height:1.3;">
-                You're invited to the team! 🎉
+    html: emailShell('Team Invitation', `
+              <h1 style="margin:0 0 12px;font-size:24px;font-weight:700;color:#F9FAFB;line-height:1.3;letter-spacing:-0.02em;">
+                You're invited to the team!
               </h1>
               <p style="margin:0 0 20px;font-size:15px;color:#9CA3AF;line-height:1.6;">
                 <strong style="color:#F9FAFB;">${opts.invitedByName}</strong> has invited you to collaborate 
@@ -72,10 +106,10 @@ function teamInviteEmail(opts: {
               </p>
               <table cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
                 <tr>
-                  <td style="background:#D4A017;border-radius:10px;">
-                    <a href="${opts.inviteLink}" 
-                       style="display:inline-block;padding:14px 28px;font-size:15px;font-weight:600;color:#111827;text-decoration:none;border-radius:10px;">
-                      Accept Invitation →
+                  <td style="background-color:#D4A017;border-radius:10px;">
+                    <a href="${opts.inviteLink}" class="button"
+                       style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:700;color:#111827;text-decoration:none;border-radius:10px;box-shadow:0 4px 12px rgba(212,160,23,0.25);">
+                      Accept Invitation &rarr;
                     </a>
                   </td>
                 </tr>
@@ -83,24 +117,7 @@ function teamInviteEmail(opts: {
               <p style="margin:0;font-size:12px;color:#6B7280;line-height:1.5;">
                 If the button doesn't work, copy and paste this link:<br/>
                 <a href="${opts.inviteLink}" style="color:#D4A017;word-break:break-all;">${opts.inviteLink}</a>
-              </p>
-            </td>
-          </tr>
-          <!-- Footer -->
-          <tr>
-            <td style="padding:20px 32px;border-top:1px solid #374151;">
-              <p style="margin:0;font-size:12px;color:#4B5563;text-align:center;">
-                EventGrid — Software for Event Pros · 
-                <a href="${APP_URL}" style="color:#6B7280;text-decoration:none;">eventgrid.ng</a>
-              </p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`,
+              </p>`),
   }
 }
 
@@ -113,26 +130,8 @@ function vendorInviteEmail(opts: {
 }): { subject: string; html: string } {
   return {
     subject: `Vendor confirmation for ${opts.eventName} — EventGrid`,
-    html: `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-</head>
-<body style="margin:0;padding:0;background:#111827;font-family:'Plus Jakarta Sans',Helvetica,Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#111827;padding:40px 16px;">
-    <tr>
-      <td align="center">
-        <table width="560" cellpadding="0" cellspacing="0" style="background:#1F2937;border:1px solid #374151;border-radius:16px;overflow:hidden;max-width:560px;width:100%;">
-          <tr>
-            <td style="background:#D4A017;padding:24px 32px;">
-              <span style="font-size:20px;font-weight:700;color:#111827;">EventGrid</span>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:32px;">
-              <h1 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#F9FAFB;">
+    html: emailShell('Vendor Confirmation', `
+              <h1 style="margin:0 0 12px;font-size:24px;font-weight:700;color:#F9FAFB;line-height:1.3;letter-spacing:-0.02em;">
                 You've been booked for ${opts.eventName}
               </h1>
               <p style="margin:0 0 16px;font-size:15px;color:#9CA3AF;line-height:1.6;">
@@ -147,32 +146,17 @@ function vendorInviteEmail(opts: {
               </p>
               <table cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
                 <tr>
-                  <td style="background:#D4A017;border-radius:10px;">
-                    <a href="${opts.portalLink}" 
-                       style="display:inline-block;padding:14px 28px;font-size:15px;font-weight:600;color:#111827;text-decoration:none;">
-                      Open Vendor Portal →
+                  <td style="background-color:#D4A017;border-radius:10px;">
+                    <a href="${opts.portalLink}" class="button"
+                       style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:700;color:#111827;text-decoration:none;border-radius:10px;box-shadow:0 4px 12px rgba(212,160,23,0.25);">
+                      Open Vendor Portal &rarr;
                     </a>
                   </td>
                 </tr>
               </table>
               <p style="margin:0;font-size:12px;color:#6B7280;">
                 Portal link: <a href="${opts.portalLink}" style="color:#D4A017;">${opts.portalLink}</a>
-              </p>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:20px 32px;border-top:1px solid #374151;">
-              <p style="margin:0;font-size:12px;color:#4B5563;text-align:center;">
-                EventGrid · <a href="${APP_URL}" style="color:#6B7280;">eventgrid.ng</a>
-              </p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`,
+              </p>`),
   }
 }
 
@@ -185,27 +169,9 @@ function clientPortalEmail(opts: {
 }): { subject: string; html: string } {
   return {
     subject: `Your event portal for ${opts.eventName} is ready`,
-    html: `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-</head>
-<body style="margin:0;padding:0;background:#111827;font-family:'Plus Jakarta Sans',Helvetica,Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#111827;padding:40px 16px;">
-    <tr>
-      <td align="center">
-        <table width="560" cellpadding="0" cellspacing="0" style="background:#1F2937;border:1px solid #374151;border-radius:16px;overflow:hidden;max-width:560px;width:100%;">
-          <tr>
-            <td style="background:#D4A017;padding:24px 32px;">
-              <span style="font-size:20px;font-weight:700;color:#111827;">EventGrid</span>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:32px;">
-              <h1 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#F9FAFB;">
-                Your event is in great hands ✨
+    html: emailShell('Client Portal', `
+              <h1 style="margin:0 0 12px;font-size:24px;font-weight:700;color:#F9FAFB;line-height:1.3;letter-spacing:-0.02em;">
+                Your event is in great hands
               </h1>
               <p style="margin:0 0 16px;font-size:15px;color:#9CA3AF;line-height:1.6;">
                 Hi <strong style="color:#F9FAFB;">${opts.clientName}</strong>,<br/>
@@ -214,36 +180,21 @@ function clientPortalEmail(opts: {
               </p>
               <p style="margin:0 0 28px;font-size:14px;color:#9CA3AF;line-height:1.6;">
                 Track your event planning progress, view milestones, approve decisions, 
-                and stay updated — all without needing to create an account.
+                and stay updated &mdash; all without needing to create an account.
               </p>
               <table cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
                 <tr>
-                  <td style="background:#D4A017;border-radius:10px;">
-                    <a href="${opts.portalLink}" 
-                       style="display:inline-block;padding:14px 28px;font-size:15px;font-weight:600;color:#111827;text-decoration:none;">
-                      View My Event Portal →
+                  <td style="background-color:#D4A017;border-radius:10px;">
+                    <a href="${opts.portalLink}" class="button"
+                       style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:700;color:#111827;text-decoration:none;border-radius:10px;box-shadow:0 4px 12px rgba(212,160,23,0.25);">
+                      View My Event Portal &rarr;
                     </a>
                   </td>
                 </tr>
               </table>
               <p style="margin:0;font-size:12px;color:#6B7280;">
                 Your private portal: <a href="${opts.portalLink}" style="color:#D4A017;word-break:break-all;">${opts.portalLink}</a>
-              </p>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:20px 32px;border-top:1px solid #374151;">
-              <p style="margin:0;font-size:12px;color:#4B5563;text-align:center;">
-                EventGrid · <a href="${APP_URL}" style="color:#6B7280;">eventgrid.ng</a>
-              </p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`,
+              </p>`),
   }
 }
 
@@ -340,41 +291,24 @@ Deno.serve(async (req) => {
         : 'Admin'
       const inviteLink = `${APP_URL}/register?role=${adminRole}&invited_by=${encodeURIComponent(email)}`
       subject = `You've been invited as ${roleLabel} on EventGrid`
-      html = `
-<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /></head>
-<body style="margin:0;padding:0;background:#111827;font-family:'Plus Jakarta Sans',Helvetica,Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#111827;padding:40px 16px;">
-    <tr><td align="center">
-      <table width="560" cellpadding="0" cellspacing="0" style="background:#1F2937;border:1px solid #374151;border-radius:16px;overflow:hidden;max-width:560px;width:100%;">
-        <tr><td style="background:#D4A017;padding:24px 32px;">
-          <span style="font-size:20px;font-weight:700;color:#111827;">EventGrid</span>
-        </td></tr>
-        <tr><td style="padding:32px;">
-          <h1 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#F9FAFB;">${roleLabel} Invitation</h1>
-          <p style="margin:0 0 20px;font-size:15px;color:#9CA3AF;line-height:1.6;">
-            You've been invited to join EventGrid as a <strong style="color:#F9FAFB;">${roleLabel}</strong>. ${adminRole === 'super_admin' ? 'You will have full platform-wide access.' : adminRole === 'monitor' ? 'You will have read-only access to analytics and platform data.' : 'You will be able to manage feedback and platform users.'}
-          </p>
-          <table cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
-            <tr><td style="background:#D4A017;border-radius:10px;">
-              <a href="${inviteLink}" style="display:inline-block;padding:14px 28px;font-size:15px;font-weight:600;color:#111827;text-decoration:none;border-radius:10px;">
-                Accept Invitation →
-              </a>
-            </td></tr>
-          </table>
-          <p style="margin:0;font-size:12px;color:#6B7280;">
-            Link: <a href="${inviteLink}" style="color:#D4A017;">${inviteLink}</a>
-          </p>
-        </td></tr>
-        <tr><td style="padding:20px 32px;border-top:1px solid #374151;">
-          <p style="margin:0;font-size:12px;color:#4B5563;text-align:center;">EventGrid · <a href="${APP_URL}" style="color:#6B7280;">eventgrid.ng</a></p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`
+      html = emailShell(`${roleLabel} Invitation`, `
+              <h1 style="margin:0 0 12px;font-size:24px;font-weight:700;color:#F9FAFB;line-height:1.3;letter-spacing:-0.02em;">${roleLabel} Invitation</h1>
+              <p style="margin:0 0 20px;font-size:15px;color:#9CA3AF;line-height:1.6;">
+                You've been invited to join EventGrid as a <strong style="color:#F9FAFB;">${roleLabel}</strong>. ${adminRole === 'super_admin' ? 'You will have full platform-wide access.' : adminRole === 'monitor' ? 'You will have read-only access to analytics and platform data.' : 'You will be able to manage feedback and platform users.'}
+              </p>
+              <table cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+                <tr>
+                  <td style="background-color:#D4A017;border-radius:10px;">
+                    <a href="${inviteLink}" class="button"
+                       style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:700;color:#111827;text-decoration:none;border-radius:10px;box-shadow:0 4px 12px rgba(212,160,23,0.25);">
+                      Accept Invitation &rarr;
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:0;font-size:12px;color:#6B7280;">
+                Link: <a href="${inviteLink}" style="color:#D4A017;">${inviteLink}</a>
+              </p>`)
 
     } else if (type === 'coordinator_invite') {
       // Invite an existing or new coordinator to join an org (no event_id required)
@@ -405,28 +339,9 @@ Deno.serve(async (req) => {
 
       const displayOrgName = org_name ?? 'an event planning team'
       subject = `You've been invited to join ${displayOrgName} on EventGrid`
-      html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Coordinator Invitation</title>
-</head>
-<body style="margin:0;padding:0;background:#111827;font-family:'Plus Jakarta Sans',Helvetica,Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#111827;padding:40px 16px;">
-    <tr>
-      <td align="center">
-        <table width="560" cellpadding="0" cellspacing="0" style="background:#1F2937;border:1px solid #374151;border-radius:16px;overflow:hidden;max-width:560px;width:100%;">
-          <tr>
-            <td style="background:#D4A017;padding:24px 32px;">
-              <span style="font-size:20px;font-weight:700;color:#111827;letter-spacing:-0.01em;">EventGrid</span>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:32px;">
-              <h1 style="margin:0 0 12px;font-size:24px;font-weight:700;color:#F9FAFB;line-height:1.3;">
-                You're invited as a Coordinator 🎉
+      html = emailShell('Coordinator Invitation', `
+              <h1 style="margin:0 0 12px;font-size:24px;font-weight:700;color:#F9FAFB;line-height:1.3;letter-spacing:-0.02em;">
+                You're invited as a Coordinator
               </h1>
               <p style="margin:0 0 20px;font-size:15px;color:#9CA3AF;line-height:1.6;">
                 <strong style="color:#F9FAFB;">${invited_by_name ?? 'An event planner'}</strong> has invited you
@@ -438,10 +353,10 @@ Deno.serve(async (req) => {
               </p>
               <table cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
                 <tr>
-                  <td style="background:#D4A017;border-radius:10px;">
-                    <a href="${linkData.properties.action_link}"
-                       style="display:inline-block;padding:14px 28px;font-size:15px;font-weight:600;color:#111827;text-decoration:none;border-radius:10px;">
-                      Accept Invitation →
+                  <td style="background-color:#D4A017;border-radius:10px;">
+                    <a href="${linkData.properties.action_link}" class="button"
+                       style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:700;color:#111827;text-decoration:none;border-radius:10px;box-shadow:0 4px 12px rgba(212,160,23,0.25);">
+                      Accept Invitation &rarr;
                     </a>
                   </td>
                 </tr>
@@ -449,23 +364,7 @@ Deno.serve(async (req) => {
               <p style="margin:0;font-size:12px;color:#6B7280;line-height:1.5;">
                 If the button doesn't work, copy and paste this link:<br/>
                 <a href="${linkData.properties.action_link}" style="color:#D4A017;word-break:break-all;">${linkData.properties.action_link}</a>
-              </p>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:20px 32px;border-top:1px solid #374151;">
-              <p style="margin:0;font-size:12px;color:#4B5563;text-align:center;">
-                EventGrid — Software for Event Pros ·
-                <a href="${APP_URL}" style="color:#6B7280;text-decoration:none;">eventgrid.ng</a>
-              </p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`
+              </p>`)
 
     } else if (type === 'team_member') {
       // Generate magic link invite
