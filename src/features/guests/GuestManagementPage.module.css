@@ -118,7 +118,7 @@
   outline: none;
 }
 
-/* ---- Table (matches Events/Vendors style) ---- */
+/* ---- Flexbox Table ---- */
 .tableCard {
   width: 100%;
   background-color: var(--color-surface-2);
@@ -127,69 +127,93 @@
   overflow: hidden;
 }
 
-.tableScroll {
-  overflow-x: auto;
-}
-
-.table {
-  width: 100%;
-  min-width: 700px;
-  border-collapse: collapse;
-}
-
-.thead {
+.tableHeader {
+  display: flex;
+  align-items: center;
   background-color: var(--color-surface-3);
   border-bottom: 1px solid var(--color-border);
-}
-
-.thead tr:first-child th:first-child {
-  border-top-left-radius: 0;
-}
-
-.thead tr:first-child th:last-child {
-  border-top-right-radius: 0;
-}
-
-.th {
   padding: var(--space-3) var(--space-4);
+  gap: var(--space-2);
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  text-align: left;
-  white-space: nowrap;
-  vertical-align: middle;
-  box-sizing: border-box;
 }
 
-.thCenter {
-  text-align: center;
+.tableBody {
+  width: 100%;
 }
 
-.tr {
+.tableRow {
+  display: flex;
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  gap: var(--space-2);
   border-bottom: 1px solid var(--color-border-subtle);
   transition: background-color var(--transition-fast);
+  font-size: var(--text-sm);
 }
 
-.tr:nth-child(odd) {
+.tableRow:nth-child(odd) {
   background-color: var(--color-surface-1);
 }
 
-.tr:nth-child(even) {
+.tableRow:nth-child(even) {
   background-color: var(--color-surface-2);
 }
 
-.tr:hover {
+.tableRow:hover {
   background-color: var(--color-accent-muted);
 }
 
-.td {
-  padding: var(--space-3) var(--space-4);
-  vertical-align: middle;
-  font-size: var(--text-sm);
+/* Column widths */
+.colName {
+  flex: 3 0 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
-  box-sizing: border-box;
+  text-align: left;
+}
+
+.colPhone {
+  flex: 2 0 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.colRsvp {
+  flex: 1.5 0 0;
+  min-width: 0;
+  text-align: left;
+}
+
+.colGroup {
+  flex: 1.5 0 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.colTable {
+  flex: 1.2 0 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.colCheckin {
+  flex: 1 0 0;
+  min-width: 0;
+  text-align: center;
 }
 
 .nameCell {
@@ -197,6 +221,8 @@
   align-items: center;
   gap: var(--space-1);
   font-weight: var(--weight-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .vipStar {

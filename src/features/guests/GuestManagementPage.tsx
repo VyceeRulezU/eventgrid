@@ -217,50 +217,44 @@ export function GuestManagementPage() {
             </div>
           ) : (
             <div className={styles.tableCard}>
-              <div className={styles.tableScroll}>
-                <table className={styles.table}>
-                  <thead className={styles.thead}>
-                    <tr>
-                      <th className={styles.th}>Name</th>
-                      <th className={styles.th}>Phone</th>
-                      <th className={styles.th}>RSVP</th>
-                      <th className={styles.th}>Group</th>
-                      <th className={styles.th}>Table</th>
-                      <th className={`${styles.th} ${styles.thCenter}`}>Check-In</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredGuests.map((g) => (
-                      <tr key={g.id} className={styles.tr}>
-                        <td className={styles.td}>
-                          <span className={styles.nameCell}>
-                            {g.is_vip && <Star size={12} className={styles.vipStar} />}
-                            {g.first_name} {g.last_name || ''}
-                          </span>
-                        </td>
-                        <td className={`${styles.td} ${styles.cellMuted}`}>{g.phone || '-'}</td>
-                        <td className={styles.td}>
-                          <span className={`badge badge-${g.rsvp_status === 'confirmed' ? 'green' : g.rsvp_status === 'declined' ? 'red' : g.rsvp_status === 'maybe' ? 'yellow' : 'grey'}`}>
-                            <span className="badge-dot" />
-                            {g.rsvp_status}
-                          </span>
-                        </td>
-                        <td className={`${styles.td} ${styles.cellMuted}`}>{g.group_name || '-'}</td>
-                        <td className={`${styles.td} ${styles.cellMuted}`}>{g.table_id ? tables.find(t => t.id === g.table_id)?.table_name || '-' : '-'}</td>
-                        <td className={styles.td} style={{ textAlign: 'center' }}>
-                          <button
-                            className={`btn btn-sm ${g.checked_in ? 'btn-primary' : 'btn-secondary'}`}
-                            style={{ borderRadius: 'var(--radius-sm)' }}
-                            onClick={() => handleCheckin(g.id)}
-                          >
-                            {g.checked_in ? <Check size={12} /> : <UserCheck size={12} />}
-                            {g.checked_in ? ' In' : ' Out'}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className={styles.tableHeader}>
+                <div className={styles.colName}>Name</div>
+                <div className={styles.colPhone}>Phone</div>
+                <div className={styles.colRsvp}>RSVP</div>
+                <div className={styles.colGroup}>Group</div>
+                <div className={styles.colTable}>Table</div>
+                <div className={styles.colCheckin}>Check-In</div>
+              </div>
+              <div className={styles.tableBody}>
+                {filteredGuests.map((g) => (
+                  <div key={g.id} className={styles.tableRow}>
+                    <div className={styles.colName}>
+                      <span className={styles.nameCell}>
+                        {g.is_vip && <Star size={12} className={styles.vipStar} />}
+                        {g.first_name} {g.last_name || ''}
+                      </span>
+                    </div>
+                    <div className={`${styles.colPhone} ${styles.cellMuted}`}>{g.phone || '-'}</div>
+                    <div className={styles.colRsvp}>
+                      <span className={`badge badge-${g.rsvp_status === 'confirmed' ? 'green' : g.rsvp_status === 'declined' ? 'red' : g.rsvp_status === 'maybe' ? 'yellow' : 'grey'}`}>
+                        <span className="badge-dot" />
+                        {g.rsvp_status}
+                      </span>
+                    </div>
+                    <div className={`${styles.colGroup} ${styles.cellMuted}`}>{g.group_name || '-'}</div>
+                    <div className={`${styles.colTable} ${styles.cellMuted}`}>{g.table_id ? tables.find(t => t.id === g.table_id)?.table_name || '-' : '-'}</div>
+                    <div className={styles.colCheckin}>
+                      <button
+                        className={`btn btn-sm ${g.checked_in ? 'btn-primary' : 'btn-secondary'}`}
+                        style={{ borderRadius: 'var(--radius-sm)' }}
+                        onClick={() => handleCheckin(g.id)}
+                      >
+                        {g.checked_in ? <Check size={12} /> : <UserCheck size={12} />}
+                        {g.checked_in ? ' In' : ' Out'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
               <div className={styles.tableFooter}>
                 <span>Showing {filteredGuests.length} of {guests.length} guests</span>
