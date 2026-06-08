@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { HelpCircle, Sparkles } from 'lucide-react'
+import { HelpCircle, Sparkles, Check } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { TOUR_STEPS, type TourRole } from './tourSteps'
 import styles from './AppTour.module.css'
@@ -169,29 +169,64 @@ export function AppTour() {
       vendor: ['Booking Overview', 'Contract Status', 'Payment Tracking'],
       super_admin: ['Platform Analytics', 'Feedback Review', 'User Management'],
     }
+    
+    // Premium event images based on user role
+    const roleImages: Record<TourRole, string> = {
+      planner: 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&auto=format&fit=crop&q=80', // elegant setup
+      coordinator: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80', // coordination / concert
+      client: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=800&auto=format&fit=crop&q=80', // event table setup
+      vendor: 'https://images.unsplash.com/photo-1555244162-803834f70033?w=800&auto=format&fit=crop&q=80', // banquet catering
+      super_admin: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&auto=format&fit=crop&q=80', // stage/lights
+    }
+    
+    const headerImg = roleImages[role!] || 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&auto=format&fit=crop&q=80'
+
     return (
       <div className={styles.welcomeOverlay}>
         <div className={styles.welcomeCard} role="dialog" aria-modal="true" aria-label="Welcome">
-          <div className={styles.welcomeEmojiWrap}>
-            <Sparkles size={32} className={styles.welcomeIcon} />
+          <div className={styles.welcomeHeader}>
+            <img src={headerImg} alt="Event Setup" className={styles.welcomeHeaderImg} />
+            <div className={styles.welcomeHeaderOverlay} />
+            <div className={styles.welcomeBadge}>
+              <Sparkles size={13} className={styles.welcomeBadgeIcon} />
+              <span>Interactive Tour</span>
+            </div>
           </div>
-          <h2 className={styles.welcomeTitle}>Welcome, {firstName}</h2>
-          <p className={styles.welcomeBody}>EventGrid is your all-in-one command centre for planning, coordinating, and executing unforgettable events. Let's take a quick tour to get you started.</p>
-          <div className={styles.welcomeFeatures}>
-            {(features[role!] ?? []).map((f) => (
-              <span key={f} className={styles.welcomeFeaturePill}>
-                <span className={styles.welcomeFeatureDot} />
-                {f}
+          
+          <div className={styles.welcomeContent}>
+            <div className={styles.welcomeMeta}>
+              <span className={styles.welcomeRoleTag}>
+                {role?.replace('_', ' ')} workspace
               </span>
-            ))}
-          </div>
-          <div className={styles.welcomeActions}>
-            <button className={`${styles.welcomeBtn} ${styles.welcomeBtnPrimary}`} onClick={startTour}>
-              Start the Tour →
-            </button>
-            <button className={`${styles.welcomeBtn} ${styles.welcomeBtnGhost}`} onClick={skipWelcome}>
-              I'll explore on my own
-            </button>
+            </div>
+            
+            <h2 className={styles.welcomeTitle}>Welcome to EventGrid, {firstName}</h2>
+            <p className={styles.welcomeBody}>
+              Your all-in-one command centre for planning, coordinating, and executing unforgettable events. Let's take a quick tour to get you oriented.
+            </p>
+            
+            <div className={styles.welcomeFeaturesSection}>
+              <div className={styles.welcomeFeaturesTitle}>What we'll cover in the tour:</div>
+              <div className={styles.welcomeFeaturesGrid}>
+                {(features[role!] ?? []).map((f) => (
+                  <div key={f} className={styles.welcomeFeatureItem}>
+                    <div className={styles.welcomeFeatureCheckWrap}>
+                      <Check size={11} className={styles.welcomeFeatureCheckIcon} />
+                    </div>
+                    <span className={styles.welcomeFeatureText}>{f}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className={styles.welcomeActions}>
+              <button className={`${styles.welcomeBtn} ${styles.welcomeBtnPrimary}`} onClick={startTour}>
+                Start the Tour
+              </button>
+              <button className={`${styles.welcomeBtn} ${styles.welcomeBtnGhost}`} onClick={skipWelcome}>
+                I'll explore on my own
+              </button>
+            </div>
           </div>
         </div>
       </div>

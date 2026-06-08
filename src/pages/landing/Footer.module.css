@@ -48,11 +48,26 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
+.container {
+  width: 100%;
+  max-width: 1800px;
+  margin: 0 auto;
+  padding: 0 var(--space-6);
+}
+
+@media (min-width: 768px) {
+  .container { padding: 0 var(--space-8); }
+}
+
+@media (min-width: 1280px) {
+  .container { padding: 0 var(--space-12); }
+}
+
 .ctaBannerInner {
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
-  padding: 120px 220px 120px 220px;
+  padding: 120px 0;
   align-items: flex-start;
 }
 
@@ -66,7 +81,7 @@
 
 @media (max-width: 768px) {
   .ctaBannerInner {
-    padding: 48px 24px 40px 24px;
+    padding: 48px 0 40px 0;
   }
 }
 
@@ -152,7 +167,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-12);
-  padding: 120px 220px 120px 220px;
+  padding: 120px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
@@ -166,7 +181,7 @@
 
 @media (max-width: 768px) {
   .navBlock {
-    padding: 40px 24px;
+    padding: 40px 0;
   }
 }
 
@@ -297,7 +312,7 @@
 .wordmarkBlock {
   position: relative;
   z-index: 1;
-  padding: 120px 120px 0 120px;
+  padding: 120px 0 0 0;
   overflow: hidden;
   line-height: 1;
 }
@@ -379,7 +394,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  padding: 48px 64px 40px 64px;
+  padding: 48px 0 40px 0;
   align-items: flex-start;
 }
 
@@ -393,7 +408,7 @@
 
 @media (max-width: 768px) {
   .bottomContent {
-    padding: 32px 24px;
+    padding: 32px 0;
   }
 }
 

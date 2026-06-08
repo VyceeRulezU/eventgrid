@@ -60,78 +60,84 @@ export default function Footer() {
 
       {/* ── CTA banner ── */}
       <div className={styles.ctaBanner}>
-        <div className={styles.ctaBannerInner}>
-          <div className={styles.ctaBannerText}>
-            <p className={styles.ctaBannerEyebrow}>Ready to run better events?</p>
-            <h2 className={styles.ctaBannerHeadline}>
-              The platform built for<br />Nigerian event professionals.
-            </h2>
-          </div>
-          <div className={styles.ctaBannerActions}>
-            <Link to="/register" className={styles.ctaPrimary}>
-              Get started free
-              <ArrowUpRight size={16} />
-            </Link>
-            <a href="mailto:hello@eventgrid.ng" className={styles.ctaSecondary}>
-              hello@eventgrid.ng
-            </a>
+        <div className={styles.container}>
+          <div className={styles.ctaBannerInner}>
+            <div className={styles.ctaBannerText}>
+              <p className={styles.ctaBannerEyebrow}>Ready to run better events?</p>
+              <h2 className={styles.ctaBannerHeadline}>
+                The platform built for<br />Nigerian event professionals.
+              </h2>
+            </div>
+            <div className={styles.ctaBannerActions}>
+              <Link to="/register" className={styles.ctaPrimary}>
+                Get started free
+                <ArrowUpRight size={16} />
+              </Link>
+              <a href="mailto:hello@eventgrid.ng" className={styles.ctaSecondary}>
+                hello@eventgrid.ng
+              </a>
+            </div>
           </div>
         </div>
       </div>
 
       {/* ── Nav + Tagline block ── */}
-      <div className={styles.navBlock}>
-        {/* Nav columns */}
-        <div className={styles.navCols}>
-          {NAV_COLS.map((col) => (
-            <div key={col.title} className={styles.navCol}>
-              <span className={styles.colTitle}>{col.title}</span>
-              <ul className={styles.linksList}>
-                {col.links.map((link) => (
-                  <li key={link.label}>
-                    {link.internal ? (
-                      <Link to={link.href} className={styles.navLink}>
-                        {link.label}
-                      </Link>
-                    ) : (
-                      <a
-                        href={link.href}
-                        onClick={(e) => scrollTo(e, link.href)}
-                        className={styles.navLink}
-                      >
-                        {link.label}
-                      </a>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
+      <div className={styles.container}>
+        <div className={styles.navBlock}>
+          {/* Nav columns */}
+          <div className={styles.navCols}>
+            {NAV_COLS.map((col) => (
+              <div key={col.title} className={styles.navCol}>
+                <span className={styles.colTitle}>{col.title}</span>
+                <ul className={styles.linksList}>
+                  {col.links.map((link) => (
+                    <li key={link.label}>
+                      {link.internal ? (
+                        <Link to={link.href} className={styles.navLink}>
+                          {link.label}
+                        </Link>
+                      ) : (
+                        <a
+                          href={link.href}
+                          onClick={(e) => scrollTo(e, link.href)}
+                          className={styles.navLink}
+                        >
+                          {link.label}
+                        </a>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
 
-        {/* Right: Built for Nigeria + socials */}
-        <div className={styles.brandSide}>
-          <p className={styles.builtFor}>
-            Built for Nigeria.<br />
-            <span className={styles.builtForMuted}>Ready for Africa.</span>
-          </p>
-          <div className={styles.socials}>
-            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className={styles.socialLink}>
-              <Instagram size={17} />
-            </a>
-            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className={styles.socialLink}>
-              <Linkedin size={17} />
-            </a>
-            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter (X)" className={styles.socialLink}>
-              <Twitter size={17} />
-            </a>
+          {/* Right: Built for Nigeria + socials */}
+          <div className={styles.brandSide}>
+            <p className={styles.builtFor}>
+              Built for Nigeria.<br />
+              <span className={styles.builtForMuted}>Ready for Africa.</span>
+            </p>
+            <div className={styles.socials}>
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className={styles.socialLink}>
+                <Instagram size={17} />
+              </a>
+              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className={styles.socialLink}>
+                <Linkedin size={17} />
+              </a>
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter (X)" className={styles.socialLink}>
+                <Twitter size={17} />
+              </a>
+            </div>
           </div>
         </div>
       </div>
 
       {/* ── Giant wordmark ── */}
-      <div className={styles.wordmarkBlock}>
-        <span className={styles.wordmark} aria-hidden>EventGrid</span>
+      <div className={styles.container}>
+        <div className={styles.wordmarkBlock}>
+          <span className={styles.wordmark} aria-hidden>EventGrid</span>
+        </div>
       </div>
 
       {/* ── Bottom bar — legal + city image ── */}
@@ -146,22 +152,24 @@ export default function Footer() {
           />
           <div className={styles.bottomBgOverlay} />
         </div>
-        <div className={styles.bottomContent}>
-          <div className={styles.legalLinks}>
-            {LEGAL_LINKS.map((link, i) => (
-              <span key={link.label} className={styles.legalGroup}>
-                <Link to={link.href} className={styles.legalLink}>
-                  {link.label}
-                </Link>
-                {i < LEGAL_LINKS.length - 1 && (
-                  <span className={styles.legalDot} aria-hidden>·</span>
-                )}
-              </span>
-            ))}
+        <div className={styles.container}>
+          <div className={styles.bottomContent}>
+            <div className={styles.legalLinks}>
+              {LEGAL_LINKS.map((link, i) => (
+                <span key={link.label} className={styles.legalGroup}>
+                  <Link to={link.href} className={styles.legalLink}>
+                    {link.label}
+                  </Link>
+                  {i < LEGAL_LINKS.length - 1 && (
+                    <span className={styles.legalDot} aria-hidden>·</span>
+                  )}
+                </span>
+              ))}
+            </div>
+            <p className={styles.copyright}>
+              © 2026 EventGrid by NaliTech Consults · Nigeria 🇳🇬
+            </p>
           </div>
-          <p className={styles.copyright}>
-            © 2026 EventGrid by NaliTech Consults · Nigeria 🇳🇬
-          </p>
         </div>
       </div>
 
