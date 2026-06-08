@@ -36,6 +36,7 @@
   .sidebar.open .navItem span { display: block; }
   .sidebar.open .categoryLabel { display: block; }
   .sidebar.open .logoImg { display: block; height: 44px; }
+  .sidebar.open .header { justify-content: space-between; }
 }
 
 .overlay {

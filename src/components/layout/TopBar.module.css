@@ -70,6 +70,10 @@
   user-select: none;
 }
 
+@media (max-width: 767px) {
+  .pipe { display: none; }
+}
+
 .subtitle {
   font-size: var(--text-xs);
   color: var(--color-text-muted);
@@ -77,6 +81,10 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+  .subtitle { display: none; }
 }
 
 .iconBtn {
