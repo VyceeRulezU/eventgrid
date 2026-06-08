@@ -6,9 +6,9 @@ import { useEventStore } from '@/store/event.store'
 import { useUIStore } from '@/store/ui.store'
 import { PhaseTimelineTracker } from '@/components/shared/PhaseTimelineTracker'
 import {
-  ArrowLeft, Calendar, Users, Wallet, AlertTriangle,
+  Calendar, Users, Wallet, AlertTriangle,
   ExternalLink, FileText, CheckCircle2, Circle,
-  CreditCard, ShieldCheck, Radio, ListChecks, MapPin, BarChart3,
+  CreditCard, ShieldCheck, Radio, ListChecks, BarChart3,
   Clock, ArrowRight, Zap, X, Pencil,
 } from 'lucide-react'
 import { PageHero } from '@/components/shared/PageHero'

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import { ListChecks, ExternalLink, ChevronDown, ChevronUp, Send, Image as ImageIcon, X, Calendar, User } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { ListChecks, ExternalLink, ChevronDown, ChevronUp, Send, Image as ImageIcon, X, Calendar } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -47,7 +47,6 @@ function timeAgo(dateStr: string): string {
 
 export function MyTasksPage() {
   const user = useAuthStore((s) => s.user)
-  const navigate = useNavigate()
   const showNotification = useUIStore((s) => s.showNotification)
 
   const [tasks, setTasks] = useState<MyTask[]>([])

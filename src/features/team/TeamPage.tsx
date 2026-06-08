@@ -204,8 +204,6 @@ export function TeamPage() {
 
     setInviting(true)
 
-    const displayName = profile?.display_name || user?.user_metadata?.display_name || 'A team member'
-
     const { success, error } = await sendInvite({
       type: 'team_member',
       event_id: eventId,
