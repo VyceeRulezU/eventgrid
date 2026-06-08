@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ListChecks, ExternalLink, ChevronDown, ChevronUp, Send, Image as ImageIcon, X, Calendar } from 'lucide-react'
+import { ListChecks, ExternalLink, ChevronDown, ChevronUp, Send, Paperclip, X, Calendar } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -307,7 +307,11 @@ export function MyTasksPage() {
 
                                 <div onClick={(e) => e.stopPropagation()}>
                                   <div className={styles.commentForm}>
-                                    <div className={styles.commentInputWrap}>
+                                    <div className={styles.commentInputRow}>
+                                      <label className={styles.attachBtn}>
+                                        <Paperclip size={16} />
+                                        <input type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={(e) => handlePhotoSelect(task.id, e)} />
+                                      </label>
                                       <textarea
                                         className={`input ${styles.commentInput}`}
                                         placeholder="Add an update, photo, or change status..."
@@ -320,10 +324,6 @@ export function MyTasksPage() {
                                           }
                                         }}
                                       />
-                                      <label className={styles.photoBtn}>
-                                        <ImageIcon size={14} />
-                                        <input type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={(e) => handlePhotoSelect(task.id, e)} />
-                                      </label>
                                     </div>
                                     <button
                                       className={`btn btn-primary btn-sm ${styles.sendBtn}`}
