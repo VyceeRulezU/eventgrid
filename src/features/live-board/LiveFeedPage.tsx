@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useResolvedEventId } from '@/hooks/useResolvedEventId'
 import { supabase } from '@/lib/supabase'
@@ -24,15 +24,15 @@ export function LiveFeedPage() {
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [profiles, setProfiles] = useState<Record<string, ProfileInfo>>({})
+  const [profileMap, setProfileMap] = useState<Record<string, ProfileInfo>>({})
   const [showIssues, setShowIssues] = useState(false)
 
   const channelRef = useRef<RealtimeChannel | null>(null)
+  const profileRef = useRef<Record<string, ProfileInfo>>({})
 
-  const loadProfiles = useCallback(async (userIds: string[]) => {
+  async function ensureProfiles(userIds: string[]) {
     const unique = [...new Set(userIds)]
-    const cached = new Set(Object.keys(profiles))
-    const missing = unique.filter((id) => !cached.has(id))
+    const missing = unique.filter((id) => !profileRef.current[id])
     if (missing.length === 0) return
 
     const { data } = await supabase
@@ -41,15 +41,12 @@ export function LiveFeedPage() {
       .in('id', missing)
 
     if (data) {
-      setProfiles((prev) => {
-        const next = { ...prev }
-        data.forEach((p) => {
-          next[p.id] = { display_name: p.display_name, avatar_url: p.avatar_url }
-        })
-        return next
+      data.forEach((p) => {
+        profileRef.current[p.id] = { display_name: p.display_name, avatar_url: p.avatar_url }
       })
+      setProfileMap({ ...profileRef.current })
     }
-  }, [profiles])
+  }
 
   useEffect(() => {
     if (!eventId) return
@@ -86,7 +83,7 @@ export function LiveFeedPage() {
           ...issuesData.map((i) => i.raised_by).filter(Boolean),
         ]),
       ]
-      await loadProfiles(userIds)
+      await ensureProfiles(userIds)
 
       setLoading(false)
     }
@@ -104,7 +101,7 @@ export function LiveFeedPage() {
         if (payload.new) {
           const post = payload.new as LiveFeedPostType
           addPost(post)
-          await loadProfiles([post.user_id])
+          await ensureProfiles([post.user_id])
         }
       })
       .on('postgres_changes', {
@@ -203,8 +200,8 @@ export function LiveFeedPage() {
                   key={post.id}
                   post={post}
                   eventId={eventId!}
-                  displayName={profiles[post.user_id]?.display_name}
-                  avatarUrl={profiles[post.user_id]?.avatar_url}
+                  displayName={profileMap[post.user_id]?.display_name}
+                  avatarUrl={profileMap[post.user_id]?.avatar_url}
                 />
               ))}
             </div>
