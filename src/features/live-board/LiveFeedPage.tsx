@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { useResolvedEventId } from '@/hooks/useResolvedEventId'
 import { supabase } from '@/lib/supabase'
 import { useLiveFeedStore } from '@/store/liveFeed.store'
-import { useUIStore } from '@/store/ui.store'
 import { PostForm } from './PostForm'
 import { LiveFeedPost } from './LiveFeedPost'
 import { IssuesPanel } from './IssuesPanel'
@@ -22,7 +21,6 @@ export function LiveFeedPage() {
   const { eventId, paramId } = useResolvedEventId()
   const navigate = useNavigate()
   const { posts, setPosts, addPost, issues, setIssues, addIssue } = useLiveFeedStore()
-  const showNotification = useUIStore((s) => s.showNotification)
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
