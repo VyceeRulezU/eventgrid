@@ -16,13 +16,38 @@
 .left {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 
 .right {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-1);
+}
+
+.menuBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-md);
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-base);
+  flex-shrink: 0;
+}
+
+.menuBtn:hover {
+  background-color: var(--color-surface-2);
+  color: var(--color-text-primary);
+}
+
+@media (min-width: 768px) {
+  .menuBtn { display: none; }
 }
 
 .titleGroup {
@@ -74,6 +99,10 @@
   color: var(--color-text-primary);
 }
 
+.userBtnWrap {
+  position: relative;
+}
+
 .userBtn {
   display: flex;
   align-items: center;
@@ -93,9 +122,46 @@
   background-color: var(--color-surface-2);
 }
 
+.userDropdown {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  right: 0;
+  min-width: 160px;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  z-index: var(--z-dropdown);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.userDropdownItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font-family: var(--font-base);
+}
+
+.userDropdownItem:hover {
+  background-color: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+
 .userAvatar {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: var(--radius-full);
   background: linear-gradient(180deg, var(--color-accent) 0%, var(--color-accent-hover) 100%);
   background-size: cover;
@@ -108,7 +174,8 @@
   font-weight: var(--weight-bold);
   flex-shrink: 0;
   overflow: hidden;
-  border: 1px solid var(--color-accent-border);
+  border: 1.5px solid var(--color-accent-border);
+  box-sizing: content-box;
 }
 
 .userName {

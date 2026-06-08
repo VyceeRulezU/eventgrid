@@ -1,9 +1,11 @@
+import { useState, useRef, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Sun, Moon, Bell } from 'lucide-react'
+import { ArrowLeft, Sun, Moon, Bell, Menu, LogOut, Settings } from 'lucide-react'
 import { useUIStore } from '@/store/ui.store'
 import { useAuthStore } from '@/store/auth.store'
 import { useNotificationStore } from '@/store/notification.store'
 import { Link } from 'react-router-dom'
+import { supabase } from '@/lib/supabase'
 import styles from './TopBar.module.css'
 
 const routeMeta: Record<string, { title: string; subtitle: string }> = {
@@ -19,11 +21,25 @@ const routeMeta: Record<string, { title: string; subtitle: string }> = {
 export function TopBar() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { theme, toggleTheme } = useUIStore()
+  const { theme, toggleTheme, setSidebarOpen } = useUIStore()
   const profile = useAuthStore((s) => s.profile)
   const user = useAuthStore((s) => s.user)
   const org = useAuthStore((s) => s.org)
+  const clearAuth = useAuthStore((s) => s.clearAuth)
   const unreadCount = useNotificationStore((s) => s.unreadCount)
+
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false)
+      }
+    }
+    if (userMenuOpen) document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [userMenuOpen])
 
   const meta = routeMeta[location.pathname] ?? getDynamicMeta(location.pathname)
   const isEventDetail = /^\/events\/[^/]+$/.test(location.pathname)
@@ -33,6 +49,13 @@ export function TopBar() {
     if (/^\/events\/[^/]+\/financials$/.test(path)) return { title: 'Financials', subtitle: 'Track payments and budgets' }
     if (/^\/events\/[^/]+$/.test(path)) return { title: 'Event Dashboard', subtitle: '' }
     return { title: 'EventGrid', subtitle: '' }
+  }
+
+  const handleLogout = async () => {
+    setUserMenuOpen(false)
+    await supabase.auth.signOut()
+    clearAuth()
+    navigate('/')
   }
 
   const displayName = profile?.display_name || user?.user_metadata?.display_name || ''
@@ -46,6 +69,9 @@ export function TopBar() {
   return (
     <header className={styles.topBar}>
       <div className={styles.left}>
+        <button className={styles.menuBtn} onClick={() => setSidebarOpen(true)} aria-label="Open menu">
+          <Menu size={20} />
+        </button>
         {showBack && (
           <button className={styles.iconBtn} onClick={() => navigate(-1)} aria-label="Go back">
             <ArrowLeft size={20} />
@@ -79,15 +105,29 @@ export function TopBar() {
         <button className={styles.iconBtn} onClick={toggleTheme} aria-label="Toggle theme">
           {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
         </button>
-        <Link to="/settings" className={styles.userBtn} aria-label="Settings">
-          <span
-            className={styles.userAvatar}
-            style={avatarUrl ? { backgroundImage: `url(${avatarUrl})` } : undefined}
-          >
-            {!avatarUrl && avatarLetter}
-          </span>
-          <span className={styles.userName}>{displayName}</span>
-        </Link>
+        <div className={styles.userBtnWrap} ref={menuRef}>
+          <button className={styles.userBtn} onClick={() => setUserMenuOpen((p) => !p)} aria-label="User menu">
+            <span
+              className={styles.userAvatar}
+              style={avatarUrl ? { backgroundImage: `url(${avatarUrl})` } : undefined}
+            >
+              {!avatarUrl && avatarLetter}
+            </span>
+            <span className={styles.userName}>{displayName}</span>
+          </button>
+          {userMenuOpen && (
+            <div className={styles.userDropdown}>
+              <Link to="/settings" className={styles.userDropdownItem} onClick={() => setUserMenuOpen(false)}>
+                <Settings size={16} />
+                Settings
+              </Link>
+              <button className={styles.userDropdownItem} onClick={handleLogout}>
+                <LogOut size={16} />
+                Log out
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   )

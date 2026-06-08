@@ -88,6 +88,18 @@
   align-items: start;
 }
 
+@media (max-width: 900px) {
+  .kanbanGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 500px) {
+  .kanbanGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .kanbanCol {
   display: flex;
   flex-direction: column;

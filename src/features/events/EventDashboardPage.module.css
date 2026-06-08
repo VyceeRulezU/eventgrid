@@ -1590,6 +1590,8 @@
 }
 
 @media (max-width: 480px) {
+  .financialSnapshot { display: none; }
+  .ganttSection { display: none; }
   .commandHeader { padding: var(--space-3) var(--space-4); }
   .headerName { font-size: var(--text-title); }
   .phaseStrip { padding: var(--space-3) var(--space-4); }

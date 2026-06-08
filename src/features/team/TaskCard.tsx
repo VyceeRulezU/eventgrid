@@ -280,7 +280,7 @@ export function TaskCard({ task, onUpdate }: TaskCardProps) {
                 <div style={{ flex: 1, position: 'relative' }}>
                   <textarea
                     className="input"
-                    style={{ minHeight: 52, resize: 'none', fontSize: 'var(--text-xs)', paddingRight: 32 }}
+                    style={{ minHeight: 52, resize: 'none', fontSize: 'var(--text-xs)' }}
                     placeholder={isAssignee ? "Add an update, photo, or change status..." : "Add a comment..."}
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
@@ -291,14 +291,16 @@ export function TaskCard({ task, onUpdate }: TaskCardProps) {
                       }
                     }}
                   />
-                  <label style={{
-                    position: 'absolute', right: 6, bottom: 6, cursor: 'pointer',
-                    color: 'var(--color-text-muted)', display: 'flex',
-                  }}>
-                    <ImageIcon size={14} />
-                    <input type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handlePhotoSelect} />
-                  </label>
                 </div>
+                <label style={{
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: 36, height: 36, borderRadius: 'var(--radius-md)',
+                  background: 'var(--color-surface-2)', border: '1px solid var(--color-border)',
+                  color: 'var(--color-text-muted)', flexShrink: 0, transition: 'all var(--transition-fast)',
+                }}>
+                  <ImageIcon size={14} />
+                  <input type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handlePhotoSelect} />
+                </label>
                 <button
                   className="btn btn-primary btn-sm"
                   style={{ borderRadius: 'var(--radius-sm)', minHeight: 36, padding: '0 var(--space-3)' }}
