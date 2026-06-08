@@ -64,7 +64,7 @@ export function Sidebar() {
         { to: `/events/${eventId}/vendors`, label: 'Vendors', icon: Users },
         { to: `/events/${eventId}/guests`, label: 'Guests', icon: Calendar },
         { to: `/events/${eventId}/tasks`, label: 'Tasks', icon: ListChecks },
-        { to: `/events/${eventId}/live-board`, label: 'Live Board', icon: Radio },
+        { to: `/events/${eventId}/live-board`, label: 'Live Feed', icon: Radio },
         { to: `/events/${eventId}/aftermath`, label: 'Aftermath', icon: FileText },
       ]
     : []

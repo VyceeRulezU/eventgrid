@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
-import { useLiveBoardStore } from '@/store/liveBoard.store'
+import { useLiveFeedStore } from '@/store/liveFeed.store'
 import { useUIStore } from '@/store/ui.store'
-import type { LiveBoardItem, Issue, IssueSeverity } from '@/types'
+import type { Issue, IssueSeverity } from '@/types'
 import styles from './LiveBoardPage.module.css'
 
 const severities: { value: IssueSeverity; label: string; badgeClass: string }[] = [
@@ -13,10 +13,14 @@ const severities: { value: IssueSeverity; label: string; badgeClass: string }[] 
   { value: 'critical', label: 'Critical', badgeClass: 'badge-urgent' },
 ]
 
-export function IssueForm({ item, onClose }: { item: LiveBoardItem; onClose: () => void }) {
+interface IssueFormProps {
+  eventId: string
+  onClose: () => void
+}
+
+export function IssueForm({ eventId, onClose }: IssueFormProps) {
   const user = useAuthStore((s) => s.user)
-  const addIssue = useLiveBoardStore((s) => s.addIssue)
-  const updateItem = useLiveBoardStore((s) => s.updateItem)
+  const addIssue = useLiveFeedStore((s) => s.addIssue)
   const showModal = useUIStore((s) => s.showModal)
 
   const [title, setTitle] = useState('')
@@ -31,8 +35,7 @@ export function IssueForm({ item, onClose }: { item: LiveBoardItem; onClose: () 
     const { data, error } = await supabase
       .from('issues')
       .insert({
-        event_id: item.event_id,
-        board_item_id: item.id,
+        event_id: eventId,
         title: title.trim(),
         description: description.trim() || null,
         severity,
@@ -52,22 +55,14 @@ export function IssueForm({ item, onClose }: { item: LiveBoardItem; onClose: () 
       addIssue(data as unknown as Issue)
     }
 
-    if (severity === 'high' || severity === 'critical') {
-      await supabase
-        .from('live_board_items')
-        .update({ status: 'red', status_label: `Issue: ${title.trim()}`, updated_at: new Date().toISOString() })
-        .eq('id', item.id)
-      updateItem(item.id, 'red', `Issue: ${title.trim()}`)
-    }
-
     setSaving(false)
-    showModal({ variant: 'success', title: 'Issue raised', message: `"${title.trim()}" has been flagged for ${item.station_name}` })
+    showModal({ variant: 'success', title: 'Issue raised', message: `"${title.trim()}" has been flagged` })
     onClose()
   }
 
   return (
     <div className={styles.inlineCard}>
-      <div className={styles.inlineTitle}>Flag Issue — {item.station_name}</div>
+      <div className={styles.inlineTitle}>Flag Issue</div>
 
       <div className="input-wrapper" style={{ marginBottom: 'var(--space-3)' }}>
         <label className="input-label">Title</label>

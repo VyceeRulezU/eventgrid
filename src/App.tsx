@@ -31,7 +31,7 @@ import { EventVendorsPage } from '@/features/vendors/EventVendorsPage'
 import { VendorDirectoryPage } from '@/features/vendors/VendorDirectoryPage'
 import { TeamPage } from '@/features/team/TeamPage'
 import { TaskBoard } from '@/features/team/TaskBoard'
-import { LiveBoardPage } from '@/features/live-board/LiveBoardPage'
+import { LiveFeedPage } from '@/features/live-board/LiveFeedPage'
 
 const GuestManagementPage = lazy(() => import('@/features/guests/GuestManagementPage').then(m => ({ default: m.GuestManagementPage })))
 const FinancialsPage = lazy(() => import('@/features/financials/FinancialsPage').then(m => ({ default: m.FinancialsPage })))
@@ -317,7 +317,7 @@ export function App() {
             <Route path="/events/:id/team" element={<TeamPage />} />
             <Route path="/events/:id/tasks" element={<TaskBoard />} />
             <Route path="/events/:id/vendors" element={<EventVendorsPage />} />
-          <Route path="/events/:id/live-board" element={<LiveBoardPage />} />
+          <Route path="/events/:id/live-board" element={<LiveFeedPage />} />
           <Route path="/events/:id/guests" element={
             <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
               <GuestManagementPage />

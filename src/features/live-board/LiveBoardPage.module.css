@@ -535,3 +535,380 @@
 .modalClose:hover {
   background: var(--color-accent);
 }
+
+/* ── Feed Layout ── */
+.feedLayout {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-start;
+}
+
+.feedMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.feedSidebar {
+  width: 420px;
+  flex-shrink: 0;
+  position: sticky;
+  top: var(--space-4);
+}
+
+@media (max-width: 1024px) {
+  .feedLayout {
+    flex-direction: column;
+  }
+  .feedSidebar {
+    width: 100%;
+    position: static;
+  }
+}
+
+.feedTimeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+/* ── Post Form ── */
+.postForm {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4);
+}
+
+.postFormInputRow {
+  margin-bottom: var(--space-3);
+}
+
+.postFormInput {
+  min-height: 64px;
+  resize: none;
+  font-size: var(--text-sm);
+  width: 100%;
+}
+
+.postFormPreviews {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-3);
+}
+
+.postFormPreviewItem {
+  position: relative;
+  width: 64px;
+  height: 64px;
+}
+
+.postFormPreviewImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+}
+
+.postFormPreviewRemove {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-error);
+  border: none;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.postFormActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.postFormLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.postFormAttachBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-3);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+}
+
+.postFormAttachBtn:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+
+.postFormLocation {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-text-muted);
+}
+
+.postFormLocationInput {
+  border: none;
+  background: transparent;
+  font-size: var(--text-xs);
+  color: var(--color-text-primary);
+  min-height: 28px;
+  width: 130px;
+  outline: none;
+}
+
+.postFormLocationInput::placeholder {
+  color: var(--color-text-muted);
+}
+
+.postFormSendBtn {
+  border-radius: var(--radius-sm);
+  min-height: 36px;
+}
+
+/* ── Feed Post (timeline item) ── */
+.feedPost {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  transition: border-color var(--transition-fast);
+}
+
+.feedPost:hover {
+  border-color: var(--color-accent-border);
+}
+
+.feedPostAvatar {
+  flex-shrink: 0;
+}
+
+.feedPostAvatarImg {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.feedPostAvatarPlaceholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-surface-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+}
+
+.feedPostBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.feedPostHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+}
+
+.feedPostAuthor {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.feedPostTime {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: auto;
+}
+
+.feedPostMessage {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-relaxed);
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin-bottom: var(--space-2);
+}
+
+.feedPostPhotos {
+  display: grid;
+  gap: 2px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: var(--space-2);
+}
+
+.feedPostPhotos[data-count="1"] {
+  grid-template-columns: 1fr;
+  max-width: 320px;
+}
+
+.feedPostPhotos[data-count="2"] {
+  grid-template-columns: 1fr 1fr;
+}
+
+.feedPostPhotos[data-count="3"],
+.feedPostPhotos[data-count="4"] {
+  grid-template-columns: 1fr 1fr;
+}
+
+.feedPostPhotoLink {
+  display: block;
+  overflow: hidden;
+  position: relative;
+}
+
+.feedPostPhoto {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  display: block;
+  transition: transform var(--transition-fast);
+}
+
+.feedPostPhotoLink:hover .feedPostPhoto {
+  transform: scale(1.03);
+}
+
+.feedPostPhotoMore {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+
+.feedPostFooter {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.feedPostLocation {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: var(--text-xs);
+  color: var(--color-accent);
+  background: var(--color-accent-muted);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-full);
+}
+
+.feedPostFlagBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px var(--space-1);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  transition: all var(--transition-fast);
+}
+
+.feedPostFlagBtn:hover {
+  color: var(--color-status-red);
+  background: var(--color-status-red-bg);
+}
+
+/* ── Issues card header ── */
+.issuesCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding-right: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.issuesToggleBtn {
+  position: relative;
+}
+
+.issuesBadge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-error);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+  .postForm {
+    padding: var(--space-3);
+  }
+
+  .postFormInput {
+    min-height: 52px;
+  }
+
+  .postFormPreviews {
+    gap: var(--space-1);
+  }
+
+  .postFormPreviewItem {
+    width: 48px;
+    height: 48px;
+  }
+
+  .feedPost {
+    padding: var(--space-3);
+  }
+
+  .feedPostPhoto {
+    height: 120px;
+  }
+
+  .feedPostPhotos[data-count="1"] {
+    max-width: 100%;
+  }
+}

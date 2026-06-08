@@ -1,26 +1,21 @@
 import { create } from 'zustand'
-import type { LiveBoardItem, Issue, LiveBoardStatus } from '@/types'
+import type { LiveFeedPost, Issue } from '@/types'
 
-interface LiveBoardStore {
-  items: LiveBoardItem[]
+interface LiveFeedStore {
+  posts: LiveFeedPost[]
   issues: Issue[]
-  setItems: (items: LiveBoardItem[]) => void
-  updateItem: (id: string, status: LiveBoardStatus, statusLabel?: string) => void
+  setPosts: (posts: LiveFeedPost[]) => void
+  addPost: (post: LiveFeedPost) => void
   setIssues: (issues: Issue[]) => void
   addIssue: (issue: Issue) => void
   resolveIssue: (id: string, resolution: string, resolvedBy: string) => void
 }
 
-export const useLiveBoardStore = create<LiveBoardStore>((set) => ({
-  items: [],
+export const useLiveFeedStore = create<LiveFeedStore>((set) => ({
+  posts: [],
   issues: [],
-  setItems: (items) => set({ items }),
-  updateItem: (id, status, statusLabel) =>
-    set((state) => ({
-      items: state.items.map((item) =>
-        item.id === id ? { ...item, status, status_label: statusLabel ?? item.status_label } : item
-      ),
-    })),
+  setPosts: (posts) => set({ posts }),
+  addPost: (post) => set((state) => ({ posts: [post, ...state.posts] })),
   setIssues: (issues) => set({ issues }),
   addIssue: (issue) => set((state) => ({ issues: [...state.issues, issue] })),
   resolveIssue: (id, resolution, resolvedBy) =>

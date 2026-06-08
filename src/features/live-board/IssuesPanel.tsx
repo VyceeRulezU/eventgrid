@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
-import { useLiveBoardStore } from '@/store/liveBoard.store'
+import { useLiveFeedStore } from '@/store/liveFeed.store'
 import { useUIStore } from '@/store/ui.store'
 import { Checkbox } from '@/components/ui/Checkbox'
 import { Tabs } from '@/components/ui/Tabs'
-import { CheckCircle, Clock, Trash2, CircleX, User } from 'lucide-react'
+import { CheckCircle, Clock, Trash2, CircleX, User, Plus } from 'lucide-react'
+import { IssueForm } from './IssueForm'
 import type { Issue, IssueSeverity } from '@/types'
 import styles from './LiveBoardPage.module.css'
 
@@ -18,14 +19,18 @@ const severityConfig: Record<IssueSeverity, { badgeClass: string }> = {
   critical: { badgeClass: 'badge-urgent' },
 }
 
-export function IssuesPanel() {
+interface IssuesPanelProps {
+  eventId: string
+}
+
+export function IssuesPanel({ eventId }: IssuesPanelProps) {
   const user = useAuthStore((s) => s.user)
-  const items = useLiveBoardStore((s) => s.items)
-  const issues = useLiveBoardStore((s) => s.issues)
-  const setIssues = useLiveBoardStore((s) => s.setIssues)
-  const resolveIssue = useLiveBoardStore((s) => s.resolveIssue)
+  const issues = useLiveFeedStore((s) => s.issues)
+  const setIssues = useLiveFeedStore((s) => s.setIssues)
+  const resolveIssue = useLiveFeedStore((s) => s.resolveIssue)
   const showNotification = useUIStore((s) => s.showNotification)
   const showModal = useUIStore((s) => s.showModal)
+  const [showIssueForm, setShowIssueForm] = useState(false)
 
   const [filter, setFilter] = useState<FilterTab>('open')
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -56,12 +61,6 @@ export function IssuesPanel() {
     if (next.has(id)) next.delete(id)
     else next.add(id)
     setSelected(next)
-  }
-
-  const getStationName = (boardItemId: string | null) => {
-    if (!boardItemId) return '—'
-    const station = items.find((s) => s.id === boardItemId)
-    return station?.station_name || '—'
   }
 
   const handleResolve = async (issue: Issue) => {
@@ -169,7 +168,21 @@ export function IssuesPanel() {
 
   return (
     <div className={styles.issuesCard}>
-      <Tabs tabs={tabItems} activeTab={filter} onChange={(key) => { setFilter(key); setResolvingId(null); setSelected(new Set()) }} />
+      <div className={styles.issuesCardHeader}>
+        <Tabs tabs={tabItems} activeTab={filter} onChange={(key) => { setFilter(key); setResolvingId(null); setSelected(new Set()) }} />
+        <button className="btn btn-ghost btn-sm" style={{ borderRadius: 'var(--radius-sm)', flexShrink: 0 }} onClick={() => setShowIssueForm(true)}>
+          <Plus size={14} />
+          Raise Issue
+        </button>
+      </div>
+
+      {showIssueForm && (
+        <div className={styles.modalOverlay} onClick={() => setShowIssueForm(false)}>
+          <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+            <IssueForm eventId={eventId} onClose={() => setShowIssueForm(false)} />
+          </div>
+        </div>
+      )}
 
       {someSelected && (
         <div className={styles.issuesBulkBar}>
@@ -205,9 +218,8 @@ export function IssuesPanel() {
                 <th className={styles.issuesThCheck}>
                   <Checkbox checked={allSelected} onChange={toggleAll} aria-label="Select all issues" />
                 </th>
-                <th className={styles.issuesTh}>Issue</th>
-                <th className={styles.issuesTh}>Station</th>
-                <th className={styles.issuesTh}>Severity</th>
+                  <th className={styles.issuesTh}>Issue</th>
+                  <th className={styles.issuesTh}>Severity</th>
                 <th className={styles.issuesTh}>Raised</th>
                 <th className={styles.issuesThActions}>Actions</th>
               </tr>
@@ -230,9 +242,6 @@ export function IssuesPanel() {
                       {issue.description && (
                         <div className={styles.issueCellDesc}>{issue.description}</div>
                       )}
-                    </td>
-                    <td className={styles.issuesTd}>
-                      <span className={styles.issueCellStation}>{getStationName(issue.board_item_id)}</span>
                     </td>
                     <td className={styles.issuesTd}>
                       <span className={`${cfg.badgeClass} ${styles.severityBadge}`}>

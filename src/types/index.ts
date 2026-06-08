@@ -153,19 +153,14 @@ export interface TaskComment {
   created_at: string
 }
 
-export type LiveBoardStatus = 'green' | 'yellow' | 'red' | 'grey'
-
-export interface LiveBoardItem {
+export interface LiveFeedPost {
   id: string
   event_id: string
-  station_name: string
-  category: string | null
-  status: LiveBoardStatus
-  status_label: string | null
-  updated_by: string | null
-  sort_order: number
+  user_id: string
+  message: string
+  photo_urls: string[]
+  location_tag: string | null
   created_at: string
-  updated_at: string
 }
 
 export type IssueSeverity = 'low' | 'medium' | 'high' | 'critical'

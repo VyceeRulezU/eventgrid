@@ -1,5 +1,5 @@
-export { LiveBoardPage } from './LiveBoardPage'
-export { StatusCard } from './StatusCard'
-export { StatusUpdateSheet } from './StatusUpdateSheet'
+export { LiveFeedPage } from './LiveFeedPage'
+export { PostForm } from './PostForm'
+export { LiveFeedPost } from './LiveFeedPost'
 export { IssueForm } from './IssueForm'
 export { IssuesPanel } from './IssuesPanel'

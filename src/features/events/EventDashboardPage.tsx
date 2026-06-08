@@ -1180,8 +1180,8 @@ export function EventDashboardPage() {
                   <Radio size={18} />
                 </div>
                 <div className={styles.moduleInfo}>
-                  <span className={styles.moduleTitle}>Live Operations Board</span>
-                  <span className={styles.moduleDesc}>Real-time arrival tracking and event day issue logs</span>
+                  <span className={styles.moduleTitle}>Live Feed</span>
+                  <span className={styles.moduleDesc}>Real-time team updates with photos</span>
                 </div>
                 {stats.openIssues > 0 && (
                   <span className={`${styles.moduleBadge} ${styles.moduleBadgeError}`}>
