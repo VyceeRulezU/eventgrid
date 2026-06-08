@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { lazy, Suspense } from 'react'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
+import { Sentry } from '@/lib/sentry'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
@@ -187,6 +188,33 @@ VITE_SUPABASE_ANON_KEY=your-anon-key`}
   )
 }
 
+function ErrorFallback() {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      minHeight: '100vh', background: '#111827', color: '#F9FAFB',
+      fontFamily: "'Plus Jakarta Sans', sans-serif", padding: 24,
+    }}>
+      <div style={{ textAlign: 'center', maxWidth: 420 }}>
+        <h1 style={{ fontSize: 24, marginBottom: 8 }}>Something went wrong</h1>
+        <p style={{ color: '#9CA3AF', fontSize: 14, lineHeight: 1.6, marginBottom: 24 }}>
+          An unexpected error occurred. The team has been notified.
+        </p>
+        <button
+          onClick={() => window.location.reload()}
+          style={{
+            padding: '10px 24px', borderRadius: 8, border: 'none',
+            background: '#D4A017', color: '#111827', fontWeight: 700,
+            cursor: 'pointer', fontSize: 14,
+          }}
+        >
+          Reload Page
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export function App() {
   const setUser = useAuthStore((s) => s.setUser)
   const setProfile = useAuthStore((s) => s.setProfile)
@@ -266,6 +294,7 @@ export function App() {
     <>
       <Analytics />
       <SpeedInsights />
+      <Sentry.ErrorBoundary fallback={<ErrorFallback />}>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<AuthGate />} />
@@ -371,6 +400,7 @@ export function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
+      </Sentry.ErrorBoundary>
       <PremiumModalContainer />
       <NotificationsDrawer />
     </>
