@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
 import { Users, Plus, X, Pencil, ExternalLink } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
+import { useResolvedEventId } from '@/hooks/useResolvedEventId'
 import { PageHero } from '@/components/shared/PageHero'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import styles from './EventVendorsPage.module.css'
@@ -54,7 +54,7 @@ function fmtNaira(kobo: number): string {
 }
 
 export function EventVendorsPage({ standalone = true }: { standalone?: boolean }) {
-  const { id: eventId } = useParams<{ id: string }>()
+  const { eventId } = useResolvedEventId()
   const org = useAuthStore((s) => s.org)
   const showNotification = useUIStore((s) => s.showNotification)
 
