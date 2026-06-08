@@ -27,6 +27,7 @@ import { EventsListPage } from '@/features/events/EventsListPage'
 import { CreateEventPage } from '@/features/events/CreateEventPage'
 import { EventDashboardPage } from '@/features/events/EventDashboardPage'
 import { VendorsPage } from '@/features/vendors/VendorsPage'
+import { EventVendorsPage } from '@/features/vendors/EventVendorsPage'
 import { VendorDirectoryPage } from '@/features/vendors/VendorDirectoryPage'
 import { TeamPage } from '@/features/team/TeamPage'
 import { TaskBoard } from '@/features/team/TaskBoard'
@@ -315,6 +316,7 @@ export function App() {
             <Route path="/events/:id" element={<EventDashboardPage />} />
             <Route path="/events/:id/team" element={<TeamPage />} />
             <Route path="/events/:id/tasks" element={<TaskBoard />} />
+            <Route path="/events/:id/vendors" element={<EventVendorsPage />} />
           <Route path="/events/:id/live-board" element={<LiveBoardPage />} />
           <Route path="/events/:id/guests" element={
             <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>

@@ -12,6 +12,7 @@ import {
   Clock, ArrowRight, Zap, X, Pencil,
 } from 'lucide-react'
 import { PageHero } from '@/components/shared/PageHero'
+import { EventVendorsPage } from '@/features/vendors/EventVendorsPage'
 import { GeneratePortalModal } from '@/features/client-portal/GeneratePortalModal'
 import { EditEventModal } from '@/features/events/EditEventModal'
 import { Tabs } from '@/components/ui/Tabs'
@@ -126,14 +127,14 @@ export function EventDashboardPage() {
   const [deadlines, setDeadlines] = useState<DeadlineItem[]>([])
   const [activity, setActivity] = useState<EventActivity[]>([])
   const [financialSummary, setFinancialSummary] = useState({ paid: 0, outstanding: 0 })
-  const [activeTab, setActiveTab] = useState<'overview' | 'timeline' | 'phases' | 'modules'>(() => {
+  const [activeTab, setActiveTab] = useState<'overview' | 'timeline' | 'phases' | 'vendors' | 'modules'>(() => {
     const params = new URLSearchParams(window.location.search)
     const tab = params.get('tab')
     if (tab === 'timeline' || tab === 'phases' || tab === 'modules') return tab
     return 'overview'
   })
 
-  const handleTabChange = (tab: 'overview' | 'timeline' | 'phases' | 'modules') => {
+  const handleTabChange = (tab: 'overview' | 'timeline' | 'phases' | 'vendors' | 'modules') => {
     setActiveTab(tab)
     const params = new URLSearchParams(window.location.search)
     params.set('tab', tab)
@@ -676,6 +677,7 @@ export function EventDashboardPage() {
           { key: 'overview', label: 'Overview', icon: <BarChart3 size={15} /> },
           { key: 'timeline', label: 'Timeline', icon: <Clock size={15} /> },
           { key: 'phases', label: 'Phases', icon: <ListChecks size={15} /> },
+          { key: 'vendors', label: 'Vendors', icon: <Users size={15} /> },
           { key: 'modules', label: 'Modules', icon: <Radio size={15} /> },
         ]}
         activeTab={activeTab}
@@ -1099,6 +1101,12 @@ export function EventDashboardPage() {
               )
             })}
           </div>
+        </div>
+      )}
+
+      {activeTab === 'vendors' && (
+        <div style={{ animation: `${styles.slideFadeIn} 0.3s ease` }}>
+          <EventVendorsPage standalone={false} />
         </div>
       )}
 

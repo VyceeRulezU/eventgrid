@@ -61,6 +61,7 @@ export function Sidebar() {
   const eventModules: NavItem[] = eventId
     ? [
         { to: `/events/${eventId}/team`, label: 'Team', icon: Users },
+        { to: `/events/${eventId}/vendors`, label: 'Vendors', icon: Users },
         { to: `/events/${eventId}/guests`, label: 'Guests', icon: Calendar },
         { to: `/events/${eventId}/tasks`, label: 'Tasks', icon: ListChecks },
         { to: `/events/${eventId}/live-board`, label: 'Live Board', icon: Radio },
