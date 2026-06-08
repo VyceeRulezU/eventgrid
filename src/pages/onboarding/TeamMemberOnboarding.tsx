@@ -94,13 +94,21 @@ export function TeamMemberOnboarding() {
         .eq('email', user.email)
     }
 
-    // 2. Update profiles role and details
+    // 2. Get the event's org_id
+    const { data: evtData } = await supabase
+      .from('events')
+      .select('org_id')
+      .eq('id', eventId)
+      .single()
+
+    // 3. Update profiles role and details
     const { error: profileErr } = await supabase
       .from('profiles')
       .update({
         display_name: name,
         phone: phone || null,
-        role: 'team_member'
+        role: 'team_member',
+        org_id: evtData?.org_id || null,
       })
       .eq('id', user.id)
 
