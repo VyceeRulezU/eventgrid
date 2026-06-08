@@ -269,6 +269,13 @@ Deno.serve(async (req) => {
     let subject: string
     let html: string
 
+    // Query to see if the user is already registered in the profiles table
+    const { data: existingProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('id')
+      .eq('email', email)
+      .maybeSingle()
+
     if (type === 'admin_monitor') {
       const adminRole = role || 'super_admin'
       const roleLabel = adminRole === 'super_admin' ? 'Super Admin'
@@ -296,14 +303,7 @@ Deno.serve(async (req) => {
                 Link: <a href="${inviteLink}" style="color:#D4A017;">${inviteLink}</a>
               </p>`)
 
-    // Query to see if the user is already registered in the profiles table
-    const { data: existingProfile } = await supabaseAdmin
-      .from('profiles')
-      .select('id')
-      .eq('email', email)
-      .maybeSingle()
-
-    if (type === 'coordinator_invite') {
+    } else if (type === 'coordinator_invite') {
       // Invite an existing or new coordinator to join an org (no event_id required)
       if (!org_id) {
         return new Response(
