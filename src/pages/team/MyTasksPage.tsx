@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ListChecks, ExternalLink, ChevronDown, ChevronUp, Send, Paperclip, X, Calendar } from 'lucide-react'
+import { ListChecks, ExternalLink, ChevronDown, ChevronUp, Send, Paperclip, X, Calendar, Radio } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -221,9 +221,15 @@ export function MyTasksPage() {
                       {eventName}
                       <ExternalLink size={12} />
                     </Link>
-                    <span className={styles.eventCount}>
-                      {doneCount}/{eventTasks.length} done
-                    </span>
+                    <div className={styles.eventActions}>
+                      <Link to={`/events/${eventId}/live-board`} className={styles.liveFeedLink}>
+                        <Radio size={12} />
+                        Live Feed
+                      </Link>
+                      <span className={styles.eventCount}>
+                        {doneCount}/{eventTasks.length} done
+                      </span>
+                    </div>
                   </div>
 
                   <div className={styles.taskList}>

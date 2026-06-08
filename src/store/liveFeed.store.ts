@@ -15,7 +15,9 @@ export const useLiveFeedStore = create<LiveFeedStore>((set) => ({
   posts: [],
   issues: [],
   setPosts: (posts) => set({ posts }),
-  addPost: (post) => set((state) => ({ posts: [post, ...state.posts] })),
+  addPost: (post) => set((state) => ({
+    posts: state.posts.find((p) => p.id === post.id) ? state.posts : [post, ...state.posts],
+  })),
   setIssues: (issues) => set({ issues }),
   addIssue: (issue) => set((state) => ({ issues: [...state.issues, issue] })),
   resolveIssue: (id, resolution, resolvedBy) =>

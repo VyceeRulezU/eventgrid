@@ -97,7 +97,6 @@ export function PostForm({ eventId }: PostFormProps) {
       setFiles([])
       setPreviews([])
       setLocationTag('')
-      showNotification({ variant: 'success', title: 'Update posted' })
     } catch (err: any) {
       showNotification({ variant: 'error', title: 'Failed to post', message: err.message })
     }
