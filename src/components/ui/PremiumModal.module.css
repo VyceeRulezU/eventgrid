@@ -3,7 +3,7 @@
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
-  z-index: var(--z-overlay);
+  z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -286,7 +286,7 @@
 .toastLayer {
   position: fixed;
   inset: 0;
-  z-index: var(--z-toast);
+  z-index: 10000;
   display: flex;
   align-items: center;
   justify-content: center;
