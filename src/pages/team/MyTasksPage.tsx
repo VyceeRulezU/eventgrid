@@ -60,19 +60,29 @@ export function MyTasksPage() {
   const [uploadingMap, setUploadingMap] = useState<Record<string, { file: File; preview: string }[]>>({})
 
   useEffect(() => {
-    if (!user) return
+    if (!user) {
+      setLoading(false)
+      return
+    }
     loadTasks()
   }, [user])
 
   async function loadTasks() {
     setLoading(true)
-    const { data } = await supabase
-      .from('tasks')
-      .select('*, event:events!inner(id, name), phase:event_phases(phase_name), assignee:profiles!tasks_assignee_id_fkey(display_name, avatar_url)')
-      .eq('assignee_id', user!.id)
-      .order('created_at', { ascending: false })
-    if (data) {
-      setTasks(data as unknown as MyTask[])
+    try {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*, event:events!inner(id, name), phase:event_phases(phase_name), assignee:profiles!tasks_assignee_id_fkey(display_name, avatar_url)')
+        .eq('assignee_id', user!.id)
+        .order('created_at', { ascending: false })
+      if (error) {
+        console.error('MyTasks load error:', error)
+      }
+      if (data) {
+        setTasks(data as unknown as MyTask[])
+      }
+    } catch (err) {
+      console.error('MyTasks load exception:', err)
     }
     setLoading(false)
   }
