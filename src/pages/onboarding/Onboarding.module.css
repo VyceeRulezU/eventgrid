@@ -279,6 +279,31 @@ img.testimonialAvatar {
   box-shadow: inset 4px 0 32px rgba(0, 0, 0, 0.3);
 }
 
+.stepContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  animation: fadeSlideIn 0.25s ease forwards;
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+
+.navRow {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: auto;
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--color-border-subtle);
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+
 .stepHeader {
   display: flex;
   align-items: flex-start;
@@ -320,13 +345,6 @@ img.testimonialAvatar {
 .stepDotInactive {
   width: 8px;
   background-color: var(--color-surface-3);
-}
-
-.stepContent {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  animation: fadeSlideIn 0.25s ease forwards;
 }
 
 @keyframes fadeSlideIn {
@@ -516,16 +534,6 @@ img.testimonialAvatar {
 .uploadActionText {
   color: var(--color-accent);
   font-weight: var(--weight-semibold);
-}
-
-.navRow {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: var(--space-3);
-  margin-top: auto;
-  padding-top: var(--space-6);
-  border-top: 1px solid var(--color-border-subtle);
 }
 
 .stepBackBtn {

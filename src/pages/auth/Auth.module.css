@@ -89,11 +89,13 @@
 
 .testimonialWrapper {
   margin-top: auto;
-  width: 100%; /* Fill width */
+  display: flex;
+  justify-content: center;
 }
 
 .testimonialCard {
-  background: rgba(255, 255, 255, 0.1); /* High glassmorphism */
+  max-width: 420px;
+  background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   border: 1px solid rgba(255, 255, 255, 0.14);
