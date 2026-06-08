@@ -15,6 +15,7 @@ const slides = [
     author: "Tolu & Chioma",
     role: "Founders, Premium Nuptials",
     stars: 5,
+    avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&h=100&fit=crop&crop=face",
   },
   {
     image: corporateImg,
@@ -22,6 +23,7 @@ const slides = [
     author: "Chinedu",
     role: "Managing Director, Innovate Africa Events",
     stars: 5,
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
   },
   {
     image: traditionalImg,
@@ -29,6 +31,7 @@ const slides = [
     author: "Halima",
     role: "Lead Coordinator, Oasis Event Architects",
     stars: 5,
+    avatar: "https://images.unsplash.com/photo-1594744803329-e58b31de8bf5?w=100&h=100&fit=crop&crop=face",
   },
 ]
 
@@ -77,9 +80,13 @@ export function VerifyEmailPage() {
                 <p className={styles.quoteText}>"{slides[currentSlide].quote}"</p>
                 
                 <div className={styles.authorInfo}>
-                  <div className={styles.authorAvatar}>
-                    {slides[currentSlide].author.substring(0, 2).toUpperCase()}
-                  </div>
+                  {slides[currentSlide].avatar ? (
+                    <img className={styles.authorAvatar} src={slides[currentSlide].avatar} alt={slides[currentSlide].author} />
+                  ) : (
+                    <div className={styles.authorAvatar}>
+                      {slides[currentSlide].author.substring(0, 2).toUpperCase()}
+                    </div>
+                  )}
                   <div className={styles.authorDetails}>
                     <span className={styles.authorName}>{slides[currentSlide].author}</span>
                     <span className={styles.authorRole}>{slides[currentSlide].role}</span>

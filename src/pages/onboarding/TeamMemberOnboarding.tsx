@@ -192,7 +192,7 @@ export function TeamMemberOnboarding() {
               "Using EventGrid's task boards and live sheets keeps our team completely aligned on logistics on event day."
             </p>
             <div className={styles.testimonialUser}>
-              <div className={styles.testimonialAvatar}>AO</div>
+              <img className={styles.testimonialAvatar} src="https://images.unsplash.com/photo-1594744803329-e58b31de8bf5?w=100&h=100&fit=crop&crop=face" alt="Amara Okoro" />
               <div className={styles.testimonialDetails}>
                 <span className={styles.testimonialName}>Amara Okoro</span>
                 <span className={styles.testimonialRole}>Operations Lead, Nexus Events</span>

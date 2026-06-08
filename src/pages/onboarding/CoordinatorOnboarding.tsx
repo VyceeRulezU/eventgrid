@@ -163,7 +163,7 @@ export function CoordinatorOnboarding() {
               "EventGrid keeps my event day tasks completely organized. I can view the timeline on my phone and update checklists in real-time."
             </p>
             <div className={styles.testimonialUser}>
-              <div className={styles.testimonialAvatar}>TA</div>
+              <img className={styles.testimonialAvatar} src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face" alt="Tobi Adeleke" />
               <div className={styles.testimonialDetails}>
                 <span className={styles.testimonialName}>Tobi Adeleke</span>
                 <span className={styles.testimonialRole}>Lead Day-of Coordinator</span>

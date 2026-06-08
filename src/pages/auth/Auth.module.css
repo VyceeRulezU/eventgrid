@@ -139,6 +139,11 @@
   color: var(--color-accent);
 }
 
+img.authorAvatar {
+  object-fit: cover;
+  display: block;
+}
+
 .authorDetails {
   display: flex;
   flex-direction: column;

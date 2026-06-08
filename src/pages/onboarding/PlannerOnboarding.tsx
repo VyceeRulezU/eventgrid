@@ -232,7 +232,7 @@ export function PlannerOnboarding() {
               "EventGrid scaled our wedding coordination efficiency. We managed 25 premium weddings in Lagos last year alone!"
             </p>
             <div className={styles.testimonialUser}>
-              <div className={styles.testimonialAvatar}>FO</div>
+              <img className={styles.testimonialAvatar} src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&h=100&fit=crop&crop=face" alt="Funmi Oladipupo" />
               <div className={styles.testimonialDetails}>
                 <span className={styles.testimonialName}>Funmi Oladipupo</span>
                 <span className={styles.testimonialRole}>Creative Director, Elegance Events</span>

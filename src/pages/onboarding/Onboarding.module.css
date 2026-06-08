@@ -197,6 +197,11 @@
   flex-shrink: 0;
 }
 
+img.testimonialAvatar {
+  object-fit: cover;
+  display: block;
+}
+
 .testimonialDetails {
   display: flex;
   flex-direction: column;
