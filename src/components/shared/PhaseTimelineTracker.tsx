@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react'
-import { Search, Check, Play, Pause, Circle, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Check, Play, Pause, Circle, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { Event, EventPhase, PhaseStatus } from '@/types'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
+import { useSearch } from '@/hooks/useSearch'
+import { SearchBar } from '@/components/shared/SearchBar'
 import styles from './PhaseTimelineTracker.module.css'
 
 type FilterTab = 'all' | 'active' | 'done' | 'blocked'
@@ -65,7 +67,6 @@ function formatDateNum(date: Date): string {
 
 export function PhaseTimelineTracker({ phases, event, readOnly: _readOnly }: PhaseTimelineTrackerProps) {
   const [filter, setFilter] = useState<FilterTab>('all')
-  const [search, setSearch] = useState('')
   const [viewMode, setViewMode] = useState<ViewMode>('week')
   const [weekOffset, setWeekOffset] = useState(0)
 
@@ -73,6 +74,8 @@ export function PhaseTimelineTracker({ phases, event, readOnly: _readOnly }: Pha
     () => [...phases].sort((a, b) => a.phase_number - b.phase_number),
     [phases]
   )
+
+  const { query, setQuery, filtered: searched } = useSearch(sorted, ['phase_name'])
 
   const { columns, todayPct } = useMemo(() => {
     const today = new Date()
@@ -114,17 +117,12 @@ export function PhaseTimelineTracker({ phases, event, readOnly: _readOnly }: Pha
   }, [sorted, viewMode, weekOffset, event?.event_date])
 
   const filtered = useMemo(() => {
-    let list = sorted
+    let list = searched
     if (filter === 'active') list = list.filter((p) => p.status === 'in_progress')
     else if (filter === 'done') list = list.filter((p) => p.status === 'completed')
     else if (filter === 'blocked') list = list.filter((p) => p.status === 'blocked')
-
-    if (search.trim()) {
-      const q = search.toLowerCase()
-      list = list.filter((p) => p.phase_name.toLowerCase().includes(q))
-    }
     return list
-  }, [sorted, filter, search])
+  }, [searched, filter])
 
   const getBarPosition = (phase: EventPhase) => {
     const total = sorted.length || 9
@@ -179,15 +177,7 @@ export function PhaseTimelineTracker({ phases, event, readOnly: _readOnly }: Pha
           ))}
         </div>
         <div className={styles.toolbarRight}>
-          <div className={styles.searchWrap}>
-            <Search size={14} className={styles.searchIcon} />
-            <input
-              className={styles.searchInput}
-              placeholder="Search phases..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
+          <SearchBar value={query} onChange={setQuery} placeholder="Search phases..." containerStyle={{ minWidth: 180 }} />
           <DropdownMenu
             trigger={<span>{viewMode === 'week' ? 'Week' : 'By Phase'}</span>}
             items={[

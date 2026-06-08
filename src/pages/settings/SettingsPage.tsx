@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Camera, Upload, ArrowLeft, ExternalLink, LogOut, Building2, LifeBuoy, Book } from 'lucide-react'
+import { Camera, Upload, ArrowLeft, ExternalLink, LogOut, Building2, LifeBuoy, Book, Bell } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
@@ -7,6 +7,7 @@ import { useUIStore } from '@/store/ui.store'
 import { compressImage } from '@/lib/image'
 import { clearTourForRole } from '@/components/shared/AppTour'
 import { SEO } from '@/components/shared/SEO'
+import { PushNotificationSetup } from '@/components/shared/PushNotificationSetup'
 import type { Profile } from '@/types'
 import styles from './SettingsPage.module.css'
 
@@ -419,6 +420,14 @@ export function SettingsPage() {
               Visit EventGrid website
             </a>
           </div>
+        </div>
+
+        <div className="card">
+          <h3 className={`${styles.cardTitle} ${styles.cardTitleRow}`}>
+            <Bell size={18} style={{ color: 'var(--color-accent)' }} />
+            Notifications
+          </h3>
+          <PushNotificationSetup />
         </div>
 
         {/* Help & Onboarding */}

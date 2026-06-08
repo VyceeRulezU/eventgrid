@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Upload, X, Info, Sparkles, ChevronRight, LogOut, ArrowLeft, Star, Check, Calendar, Users, User, Briefcase, Building2, MapPin, Target } from 'lucide-react'
 import { SEO } from '@/components/shared/SEO'
@@ -95,6 +95,13 @@ export function PlannerOnboarding() {
   const setOrg = useAuthStore((s) => s.setOrg)
   const showToast = useUIStore((s) => s.showToast)
   const navigate = useNavigate()
+  const existingOrg = useAuthStore((s) => s.profile?.org_id)
+
+  useEffect(() => {
+    if (existingOrg) {
+      navigate('/dashboard/planner', { replace: true })
+    }
+  }, [existingOrg, navigate])
 
   const TOTAL_STEPS = 5
 

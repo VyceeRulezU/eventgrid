@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { ChevronRight, Search, Book, LayoutDashboard, DollarSign, Users, Calendar, Radio, ExternalLink, FileText, MessageSquare, Shield, ListChecks } from 'lucide-react'
 import { PageHero } from '@/components/shared/PageHero'
+import { useSearch } from '@/hooks/useSearch'
+import { SearchBar } from '@/components/shared/SearchBar'
 import corporateImg from '@/assets/images/corporate_event_hall.png'
 import styles from './HelpPage.module.css'
 
@@ -378,12 +380,8 @@ const TOPICS = [
 ]
 
 export function HelpPage() {
-  const [search, setSearch] = useState('')
   const [activeTopicId, setActiveTopicId] = useState<string | null>('getting-started')
-
-  const filtered = search.trim()
-    ? TOPICS.filter(t => t.label.toLowerCase().includes(search.toLowerCase()))
-    : TOPICS
+  const { query, setQuery, filtered } = useSearch(TOPICS, ['label'])
 
   useEffect(() => {
     if (filtered.length > 0) {
@@ -394,7 +392,7 @@ export function HelpPage() {
     } else {
       setActiveTopicId(null)
     }
-  }, [search, filtered, activeTopicId])
+  }, [filtered, activeTopicId])
 
   const activeTopic = TOPICS.find(t => t.id === activeTopicId)
 
@@ -412,16 +410,7 @@ export function HelpPage() {
         backTo="/settings"
       />
 
-      <div className={styles.searchWrap}>
-        <Search size={16} className={styles.searchIcon} />
-        <input
-          className={styles.searchInput}
-          placeholder="Search topics..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          autoFocus
-        />
-      </div>
+      <SearchBar value={query} onChange={setQuery} placeholder="Search topics..." autoFocus containerStyle={{ marginBottom: '1.75rem' }} />
 
       <div className={styles.docsContainer}>
         {/* Sidebar */}

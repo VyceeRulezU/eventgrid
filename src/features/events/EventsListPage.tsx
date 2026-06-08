@@ -2,8 +2,9 @@ import { useEffect, useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   Plus, Calendar, Pencil, Trash2, ExternalLink,
-  Search,
 } from 'lucide-react'
+import { useSearch } from '@/hooks/useSearch'
+import { SearchBar } from '@/components/shared/SearchBar'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -36,13 +37,14 @@ export function EventsListPage() {
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const org = useAuthStore((s) => s.org)
+  const role = useAuthStore((s) => s.role)
   const showNotification = useUIStore((s) => s.showNotification)
   const showModal = useUIStore((s) => s.showModal)
   const [events, setEvents] = useState<(Event & { phases?: EventPhase[] })[]>([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<Set<string>>(new Set())
-  const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const { query, setQuery, filtered: searched } = useSearch(events, ['name', 'event_type', 'venue_name'])
   const [deleting, setDeleting] = useState(false)
 
   const loadEvents = async () => {
@@ -90,20 +92,11 @@ export function EventsListPage() {
   }, [user, org])
 
   const filtered = useMemo(() => {
-    let result = events
-    if (search.trim()) {
-      const q = search.toLowerCase()
-      result = result.filter((e) =>
-        e.name.toLowerCase().includes(q) ||
-        e.event_type?.toLowerCase().includes(q) ||
-        e.venue_name?.toLowerCase().includes(q)
-      )
-    }
     if (statusFilter !== 'all') {
-      result = result.filter((e) => e.status === statusFilter)
+      return searched.filter((e) => e.status === statusFilter)
     }
-    return result
-  }, [events, search, statusFilter])
+    return searched
+  }, [searched, statusFilter])
 
   const allSelected = filtered.length > 0 && filtered.every((e) => selected.has(e.id))
   const someSelected = selected.size > 0
@@ -183,8 +176,15 @@ export function EventsListPage() {
         <div className="empty-state">
           <div className="empty-state__icon"><Calendar size={24} /></div>
           <div className="empty-state__title">No events yet</div>
-          <div className="empty-state__description">{org ? 'Create your first event to get started' : 'You haven\'t been added to any events yet'}</div>
+          {org ? (
+            <div className="empty-state__description">Create your first event to get started</div>
+          ) : role === 'planner' ? (
+            <div className="empty-state__description">Complete your organization setup to start creating events</div>
+          ) : (
+            <div className="empty-state__description">You haven't been added to any events yet</div>
+          )}
           {org && <Link to="/events/new" className="btn btn-primary"><Plus size={16} /> Create Event</Link>}
+          {!org && role === 'planner' && <Link to="/onboarding/planner" className="btn btn-primary"><Plus size={16} /> Complete Onboarding</Link>}
         </div>
       </div>
     )
@@ -224,15 +224,7 @@ export function EventsListPage() {
         )}
 
         <div className={styles.toolbar}>
-          <div className={styles.searchWrap}>
-            <Search size={16} className={styles.searchIcon} />
-            <input
-              className={`input ${styles.searchInput}`}
-              placeholder="Search events..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
+          <SearchBar value={query} onChange={setQuery} placeholder="Search events..." containerStyle={{ flex: 1, maxWidth: 320 }} />
           <div className={styles.filterWrap}>
             <DropdownMenu
               trigger={<span>{statusFilter === 'all' ? 'All status' : statusFilter.replace('_', ' ')}</span>}

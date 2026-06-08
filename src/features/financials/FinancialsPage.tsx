@@ -1,7 +1,9 @@
 import { useEffect, useState, useRef } from 'react'
 import React from 'react'
 import { useSearchParams, useNavigate, useParams } from 'react-router-dom'
-import { Plus, Search, Wallet, Upload, FileSpreadsheet, X, AlertTriangle, Check, Pencil, Trash2, TrendingUp } from 'lucide-react'
+import { Plus, Wallet, Upload, FileSpreadsheet, X, AlertTriangle, Check, Pencil, Trash2, TrendingUp } from 'lucide-react'
+import { useSearch } from '@/hooks/useSearch'
+import { SearchBar } from '@/components/shared/SearchBar'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { Tabs } from '@/components/ui/Tabs'
 import { PageHero } from '@/components/shared/PageHero'
@@ -67,8 +69,8 @@ export function FinancialsPage() {
   const [importing, setImporting] = useState(false)
   const [importError, setImportError] = useState<string | null>(null)
   const importRef = useRef<HTMLInputElement>(null)
-  const [search, setSearch] = useState('')
   const [events, setEvents] = useState<{ id: string; name: string }[]>([])
+  const { query, setQuery, filtered } = useSearch(entries, ['vendor_name', 'category'])
   const [form, setForm] = useState({
     eventId: eventId || '',
     vendorName: '',
@@ -217,11 +219,6 @@ export function FinancialsPage() {
     load()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, org, eventId])
-
-  const filtered = entries.filter((e) =>
-    e.vendor_name.toLowerCase().includes(search.toLowerCase()) ||
-    e.category.toLowerCase().includes(search.toLowerCase())
-  )
 
   const grouped = categories.reduce<Record<string, FinancialEntry[]>>((acc, cat) => {
     const items = filtered.filter((e) => e.category === cat)
@@ -400,15 +397,7 @@ export function FinancialsPage() {
         subtitle={activeEventName || undefined}
         actions={
           <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', flexWrap: 'wrap' }}>
-            <div className={styles.searchWrap}>
-              <Search size={16} className={styles.searchIcon} />
-              <input
-                className={`input ${styles.searchInput}`}
-                placeholder="Search vendors..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
+            <SearchBar value={query} onChange={setQuery} placeholder="Search vendors..." containerStyle={{ flex: 1, maxWidth: 320 }} />
             <div className={styles.dropdownFilterWrap}>
               <DropdownMenu
                 trigger={

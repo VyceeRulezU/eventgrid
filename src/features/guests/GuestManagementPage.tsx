@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useResolvedEventId } from '@/hooks/useResolvedEventId'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
 import {
-  Users, Search, Plus, X, Upload, Check, UserCheck,
+  Users, Plus, X, Upload, Check, UserCheck,
   LayoutGrid, Star, List, User,
 } from 'lucide-react'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
@@ -12,6 +12,8 @@ import { sendGuestNotification } from '@/lib/email'
 import type { Guest, SeatingTable } from '@/types'
 import { Checkbox } from '@/components/ui/Checkbox'
 import { PageHero } from '@/components/shared/PageHero'
+import { useSearch } from '@/hooks/useSearch'
+import { SearchBar } from '@/components/shared/SearchBar'
 import styles from './GuestManagementPage.module.css'
 
 type RSVP = 'pending' | 'confirmed' | 'declined' | 'maybe'
@@ -23,10 +25,11 @@ export function GuestManagementPage() {
   const [guests, setGuests] = useState<(Guest & { table_name?: string })[]>([])
   const [tables, setTables] = useState<SeatingTable[]>([])
   const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
   const [rsvpFilter, setRsvpFilter] = useState<RSVP | 'all'>('all')
   const [eventName, setEventName] = useState('')
   const [tab, setTab] = useState<'list' | 'checkin' | 'seating'>('list')
+  const { query: listSearch, setQuery: setListSearch, filtered: listSearched } = useSearch(guests, ['first_name', 'last_name', 'phone'])
+  const { query: checkinSearch, setQuery: setCheckinSearch, filtered: checkinSearched } = useSearch(guests, ['first_name', 'last_name', 'phone'])
   const [showAdd, setShowAdd] = useState(false)
   const [showCSV, setShowCSV] = useState(false)
   const [newGuest, setNewGuest] = useState({ first_name: '', last_name: '', phone: '', email: '', group_name: '', is_vip: false, plus_one: false })
@@ -49,12 +52,11 @@ export function GuestManagementPage() {
     })
   }, [eventId])
 
-  const filteredGuests = guests.filter((g) => {
-    const name = `${g.first_name} ${g.last_name || ''}`.toLowerCase()
-    const phone = (g.phone || '').toLowerCase()
-    const q = search.toLowerCase()
-    return (name.includes(q) || phone.includes(q)) && (rsvpFilter === 'all' || g.rsvp_status === rsvpFilter)
-  })
+  const filteredGuests = useMemo(() => {
+    const base = tab === 'checkin' ? checkinSearched : listSearched
+    if (rsvpFilter === 'all') return base
+    return base.filter((g) => g.rsvp_status === rsvpFilter)
+  }, [listSearched, checkinSearched, rsvpFilter, tab])
 
   const rsvpCounts = { confirmed: guests.filter(g => g.rsvp_status === 'confirmed').length, declined: guests.filter(g => g.rsvp_status === 'declined').length, pending: guests.filter(g => g.rsvp_status === 'pending').length, maybe: guests.filter(g => g.rsvp_status === 'maybe').length, total: guests.length }
 
@@ -164,11 +166,8 @@ export function GuestManagementPage() {
         title="Guests"
         subtitle={`${guests.length} guest${guests.length !== 1 ? 's' : ''} on this event`}
         actions={
-          <div className={styles.toolbar} style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', flexWrap: 'wrap' }}>
-            <div className={styles.searchWrap}>
-              <Search size={16} className={styles.searchIcon} />
-              <input className={styles.searchInput} placeholder="Search name or phone..." value={search} onChange={(e) => setSearch(e.target.value)} />
-            </div>
+            <div className={styles.toolbar} style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', flexWrap: 'wrap' }}>
+            <SearchBar value={listSearch} onChange={setListSearch} placeholder="Search name or phone..." containerStyle={{ maxWidth: 260 }} />
             <div className={styles.filterSelect}>
               <DropdownMenu
                 trigger={rsvpFilter === 'all' ? 'All RSVP' : rsvpFilter.charAt(0).toUpperCase() + rsvpFilter.slice(1)}
@@ -281,10 +280,7 @@ export function GuestManagementPage() {
               </div>
             </div>
             <div className={styles.checkinSearchRow}>
-              <div className={styles.checkinSearchWrap}>
-                <Search size={16} className={styles.checkinSearchIcon} />
-                <input className={styles.checkinSearchInput} placeholder="Search name or phone..." value={search} onChange={(e) => setSearch(e.target.value)} autoFocus />
-              </div>
+              <SearchBar value={checkinSearch} onChange={setCheckinSearch} placeholder="Search name or phone..." containerStyle={{ width: 280 }} autoFocus />
               <div className={styles.checkinChips}>
                 <button className={`${styles.checkinChip} ${rsvpFilter === 'all' ? styles.checkinChipActive : ''}`} onClick={() => setRsvpFilter('all')}>All</button>
                 <button className={`${styles.checkinChip} ${rsvpFilter === 'confirmed' ? styles.checkinChipActive : ''}`} onClick={() => setRsvpFilter('confirmed')}>Confirmed</button>

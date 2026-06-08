@@ -204,7 +204,13 @@ export function Sidebar() {
               <div className={styles.onboardingBannerText}>Complete onboarding to unlock all features</div>
               <button
                 className={styles.onboardingBannerBtn}
-                onClick={() => { navigate('/onboarding/planner'); setSidebarOpen(false) }}
+                onClick={() => {
+                  const path = role === 'coordinator' ? '/onboarding/coordinator'
+                    : role === 'team_member' ? '/onboarding/team-member'
+                    : '/onboarding/planner'
+                  navigate(path);
+                  setSidebarOpen(false)
+                }}
               >
                 Complete Onboarding
               </button>

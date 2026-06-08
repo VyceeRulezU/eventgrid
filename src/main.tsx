@@ -9,6 +9,13 @@ import './styles/components.css'
 
 initSentry()
 
+// Register service worker for push notifications
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {
+    // Service worker registration failed (e.g., HTTP, not HTTPS)
+  })
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <HelmetProvider>

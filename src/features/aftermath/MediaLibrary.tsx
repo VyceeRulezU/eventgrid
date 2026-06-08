@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react'
-import { X, Share2, Search, ChevronLeft, ChevronRight, Image } from 'lucide-react'
+import { useEffect, useState, useMemo } from 'react'
+import { X, Share2, ChevronLeft, ChevronRight, Image } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
+import { useSearch } from '@/hooks/useSearch'
+import { SearchBar } from '@/components/shared/SearchBar'
 import type { Media } from '@/types'
 import styles from './Aftermath.module.css'
 
@@ -13,8 +15,8 @@ export function MediaLibrary({ eventId }: { eventId: string }) {
   const [media, setMedia] = useState<Media[]>([])
   const [loading, setLoading] = useState(true)
   const [tagFilter, setTagFilter] = useState<string>('')
-  const [search, setSearch] = useState('')
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+  const { query, setQuery, filtered: searched } = useSearch(media, ['caption'])
 
   useEffect(() => {
     if (!user) return
@@ -38,11 +40,10 @@ export function MediaLibrary({ eventId }: { eventId: string }) {
 
   const tags = [...new Set(media.map((m) => m.tag).filter(Boolean))] as string[]
 
-  const filtered = media.filter((m) => {
-    if (tagFilter && m.tag !== tagFilter) return false
-    if (search && !m.caption?.toLowerCase().includes(search.toLowerCase())) return false
-    return true
-  })
+  const filtered = useMemo(() => {
+    if (tagFilter) return searched.filter((m) => m.tag === tagFilter)
+    return searched
+  }, [searched, tagFilter])
 
   const toggleClientShare = async (item: Media) => {
     const newTag = item.tag === 'client_share' ? null : 'client_share'
@@ -81,15 +82,7 @@ export function MediaLibrary({ eventId }: { eventId: string }) {
   return (
     <div>
       <div className={styles.mediaToolbar}>
-        <div className={styles.mediaSearch}>
-          <Search size={16} className={styles.mediaSearchIcon} />
-          <input
-            className={styles.mediaSearchInput}
-            placeholder="Search captions..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
+        <SearchBar value={query} onChange={setQuery} placeholder="Search captions..." containerStyle={{ flex: 1 }} />
         <DropdownMenu
           trigger={<span>{tagFilter || 'All tags'}</span>}
           items={[

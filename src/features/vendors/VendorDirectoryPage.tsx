@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react'
-import { Users, Plus, Search, Pencil, Star, Trash2, Phone, Mail, Building, X } from 'lucide-react'
+import { useEffect, useState, useMemo } from 'react'
+import { Users, Plus, Pencil, Star, Trash2, Phone, Mail, Building, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { PageHero } from '@/components/shared/PageHero'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
+import { useSearch } from '@/hooks/useSearch'
+import { SearchBar } from '@/components/shared/SearchBar'
 import type { Vendor } from '@/types'
 
 const DEFAULT_TYPES = [
@@ -26,8 +28,8 @@ export function VendorDirectoryPage() {
   const [vendors, setVendors] = useState<(Vendor & { org_name?: string })[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [search, setSearch] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')
+  const { query, setQuery, filtered: searched } = useSearch(vendors, ['name', 'category', 'contact_name', 'org_name'])
   const [showForm, setShowForm] = useState(false)
   const [editingVendor, setEditingVendor] = useState<Vendor | null>(null)
   const [form, setForm] = useState({
@@ -75,15 +77,10 @@ export function VendorDirectoryPage() {
 
   const availableTypes = [...new Set([...DEFAULT_TYPES, ...vendors.map((v) => v.category)])]
 
-  const filtered = vendors.filter((v) => {
-    const matchSearch =
-      v.name.toLowerCase().includes(search.toLowerCase()) ||
-      (v.category || '').toLowerCase().includes(search.toLowerCase()) ||
-      (v.contact_name || '').toLowerCase().includes(search.toLowerCase()) ||
-      (v.org_name || '').toLowerCase().includes(search.toLowerCase())
-    const matchCategory = !categoryFilter || v.category === categoryFilter
-    return matchSearch && matchCategory
-  })
+  const filtered = useMemo(() => {
+    if (!categoryFilter) return searched
+    return searched.filter((v) => v.category === categoryFilter)
+  }, [searched, categoryFilter])
 
   /* ══════════════════════════════════════════════
      Vendor form / CRUD — scoped to user's org
@@ -253,18 +250,7 @@ export function VendorDirectoryPage() {
       />
 
       <div style={{ display: 'flex', gap: 'var(--space-3)', marginBottom: 'var(--space-6)', flexWrap: 'wrap' }}>
-        <div className="input-wrapper" style={{ flex: 1, minWidth: 200, maxWidth: 320 }}>
-          <div style={{ position: 'relative' }}>
-            <Search size={16} style={{ position: 'absolute', left: 'var(--space-3)', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
-            <input
-              className="input"
-              style={{ paddingLeft: 'var(--space-10)' }}
-              placeholder="Search vendors..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-        </div>
+        <SearchBar value={query} onChange={setQuery} placeholder="Search vendors..." containerStyle={{ flex: 1, minWidth: 200, maxWidth: 320 }} />
         <div style={{ minWidth: 180, maxWidth: 220 }}>
           <DropdownMenu
             trigger={categoryFilter || 'All Categories'}
@@ -408,9 +394,9 @@ export function VendorDirectoryPage() {
           </div>
           <div className="empty-state__title">No vendors found</div>
           <div className="empty-state__description">
-            {search || categoryFilter ? 'Try a different search or filter' : 'Add your first vendor to the directory'}
+            {query || categoryFilter ? 'Try a different search or filter' : 'Add your first vendor to the directory'}
           </div>
-          {!search && !categoryFilter && (
+          {!query && !categoryFilter && (
             <button className="btn btn-primary" onClick={() => { resetForm(); setShowForm(true) }}>
               <Plus size={16} />
               Add Vendor

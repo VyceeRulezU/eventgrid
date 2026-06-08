@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Users, Plus, Search, Pencil, Tag, Star, Trash2 } from 'lucide-react'
+import { Users, Plus, Pencil, Tag, Star, Trash2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -10,6 +10,8 @@ import { EditVendorModal } from './EditVendorModal'
 import { AddVendorModal } from './AddVendorModal'
 import { AddTypeModal } from './AddTypeModal'
 import { PageHero } from '@/components/shared/PageHero'
+import { useSearch } from '@/hooks/useSearch'
+import { SearchBar } from '@/components/shared/SearchBar'
 import type { Vendor } from '@/types'
 import styles from './VendorsPage.module.css'
 
@@ -35,8 +37,8 @@ export function VendorsPage() {
 
   const [vendors, setVendors] = useState<Vendor[]>([])
   const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
   const [events, setEvents] = useState<{ id: string; name: string }[]>([])
+  const { query, setQuery, filtered } = useSearch(vendors, ['name', 'category'])
   const [editingVendor, setEditingVendor] = useState<Vendor | null>(null)
   const [selectedVendors, setSelectedVendors] = useState<Set<string>>(new Set())
   const [showAddType, setShowAddType] = useState(false)
@@ -84,12 +86,6 @@ export function VendorsPage() {
 
     load()
   }, [user, org])
-
-  const filtered = vendors.filter(
-    (v) =>
-      v.name.toLowerCase().includes(search.toLowerCase()) ||
-      (v.category || '').toLowerCase().includes(search.toLowerCase())
-  )
 
   const handleEdit = (vendor: Vendor) => {
     setEditingVendor(vendor)
@@ -238,9 +234,9 @@ export function VendorsPage() {
           </div>
           <div className="empty-state__title">No vendors found</div>
           <div className="empty-state__description">
-            {search ? 'Try a different search term' : 'Add your first vendor type or vendor'}
+            {query ? 'Try a different search term' : 'Add your first vendor type or vendor'}
           </div>
-          {!search && (
+          {!query && (
             <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-4)' }}>
               <button className="btn btn-secondary" onClick={() => setShowAddType(true)} style={{ minHeight: 40 }}>
                 <Tag size={16} />
@@ -279,16 +275,7 @@ export function VendorsPage() {
           )}
 
           <div style={{ padding: 'var(--space-3) var(--space-5)', borderBottom: '1px solid var(--color-border-subtle)' }}>
-            <div style={{ position: 'relative', maxWidth: 320 }}>
-              <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
-              <input
-                className="input"
-                placeholder="Search by name or category..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                style={{ paddingLeft: 36 }}
-              />
-            </div>
+            <SearchBar value={query} onChange={setQuery} placeholder="Search by name or category..." containerStyle={{ maxWidth: 320 }} />
           </div>
 
           <div className={styles.tableScroll}>
