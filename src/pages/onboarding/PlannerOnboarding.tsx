@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Upload, X, Info, Sparkles, ChevronRight, LogOut, ArrowLeft, Star, Check } from 'lucide-react'
+import { Upload, X, Info, Sparkles, ChevronRight, LogOut, ArrowLeft, Star, Check, Calendar, Users, User, Briefcase, Building2, MapPin, Target } from 'lucide-react'
 import { SEO } from '@/components/shared/SEO'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
@@ -53,6 +53,20 @@ const SECONDARY_OPTIONS = [
     title: 'Decor & Flowers',
     desc: 'Designing layout, stage, and floral concepts',
   }
+]
+
+const VOLUME_OPTIONS = [
+  { id: '1-10', title: '1 – 10 events', desc: 'For independent planners and boutique event firms', icon: Calendar },
+  { id: '11-30', title: '11 – 30 events', desc: 'For established agencies running concurrent setups', icon: Briefcase },
+  { id: '31-50', title: '31 – 50 events', desc: 'For multi-team agencies running weekly productions', icon: Building2 },
+  { id: '50+', title: '50+ events', desc: 'For large event management firms and concert venues', icon: Sparkles },
+]
+
+const TEAM_OPTIONS = [
+  { id: 'solo', title: 'Solo — Just me', desc: 'Independent planner handling everything personally', icon: User },
+  { id: '2-5', title: 'Small Team — 2 to 5 members', desc: 'A core team with occasional freelancers', icon: Users },
+  { id: '6-15', title: 'Growing Agency — 6 to 15 members', desc: 'Dedicated teams for sales, operations, and delivery', icon: Users },
+  { id: '16+', title: 'Large Firm — 16+ members', desc: 'Multi-department agency with specialized roles', icon: Building2 },
 ]
 
 export function PlannerOnboarding() {
@@ -438,56 +452,64 @@ export function PlannerOnboarding() {
 
               <h2 className={styles.question}>Estimated annual event volume & team size</h2>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
                 <div>
                   <label className={styles.formLabel}>Estimated Annual Event Volume</label>
-                  <div className={styles.optionList}>
-                    {[
-                      { id: '1-10', title: '1 – 10 events', desc: 'For independent planners and boutique event firms' },
-                      { id: '11-30', title: '11 – 30 events', desc: 'For established agencies running concurrent setups' },
-                      { id: '31-50', title: '31 – 50 events', desc: 'For multi-team agencies running weekly productions' },
-                      { id: '50+', title: '50+ events', desc: 'For large event management firms and concert venues' },
-                    ].map((opt) => (
-                      <button
-                        key={opt.id}
-                        className={`${styles.optionCard} ${volume === opt.id ? styles.optionCardActive : ''}`}
-                        onClick={() => setVolume(opt.id)}
-                      >
-                        <div className={styles.optionDetails}>
-                          <span className={styles.optionTitle}>{opt.title}</span>
-                          <span className={styles.optionDesc}>{opt.desc}</span>
-                        </div>
-                        <div className={styles.radioIndicator}>
-                          <div className={styles.radioIndicatorInner} />
-                        </div>
-                      </button>
-                    ))}
+                  <div className={styles.optionGrid}>
+                    {VOLUME_OPTIONS.map((opt) => {
+                      const Icon = opt.icon
+                      const isActive = volume === opt.id
+                      return (
+                        <button
+                          key={opt.id}
+                          className={`${styles.optionCard} ${isActive ? styles.optionCardActive : ''}`}
+                          onClick={() => setVolume(opt.id)}
+                        >
+                          <div className={styles.optionCardHeader}>
+                            <div className={styles.optionIconWrapper}>
+                              <Icon size={16} />
+                            </div>
+                            <div className={styles.radioIndicator}>
+                              <div className={styles.radioIndicatorInner} />
+                            </div>
+                          </div>
+                          <div className={styles.optionDetails}>
+                            <span className={styles.optionTitle}>{opt.title}</span>
+                            <span className={styles.optionDesc}>{opt.desc}</span>
+                          </div>
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
 
-                <div style={{ marginTop: 'var(--space-4)' }}>
+                <div>
                   <label className={styles.formLabel}>How large is your team?</label>
-                  <div className={styles.optionList}>
-                    {[
-                      { id: 'solo', title: 'Solo — Just me', desc: 'Independent planner handling everything personally' },
-                      { id: '2-5', title: 'Small Team — 2 to 5 members', desc: 'A core team with occasional freelancers' },
-                      { id: '6-15', title: 'Growing Agency — 6 to 15 members', desc: 'Dedicated teams for sales, operations, and delivery' },
-                      { id: '16+', title: 'Large Firm — 16+ members', desc: 'Multi-department agency with specialized roles' },
-                    ].map((opt) => (
-                      <button
-                        key={opt.id}
-                        className={`${styles.optionCard} ${teamSize === opt.id ? styles.optionCardActive : ''}`}
-                        onClick={() => setTeamSize(opt.id)}
-                      >
-                        <div className={styles.optionDetails}>
-                          <span className={styles.optionTitle}>{opt.title}</span>
-                          <span className={styles.optionDesc}>{opt.desc}</span>
-                        </div>
-                        <div className={styles.radioIndicator}>
-                          <div className={styles.radioIndicatorInner} />
-                        </div>
-                      </button>
-                    ))}
+                  <div className={styles.optionGrid}>
+                    {TEAM_OPTIONS.map((opt) => {
+                      const Icon = opt.icon
+                      const isActive = teamSize === opt.id
+                      return (
+                        <button
+                          key={opt.id}
+                          className={`${styles.optionCard} ${isActive ? styles.optionCardActive : ''}`}
+                          onClick={() => setTeamSize(opt.id)}
+                        >
+                          <div className={styles.optionCardHeader}>
+                            <div className={styles.optionIconWrapper}>
+                              <Icon size={16} />
+                            </div>
+                            <div className={styles.radioIndicator}>
+                              <div className={styles.radioIndicatorInner} />
+                            </div>
+                          </div>
+                          <div className={styles.optionDetails}>
+                            <span className={styles.optionTitle}>{opt.title}</span>
+                            <span className={styles.optionDesc}>{opt.desc}</span>
+                          </div>
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
               </div>
@@ -505,37 +527,125 @@ export function PlannerOnboarding() {
 
               <h2 className={styles.question}>Welcome to EventGrid!</h2>
 
-              <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', padding: 'var(--space-5)', background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-xl)', marginBottom: 'var(--space-6)' }}>
-                <h3 style={{ margin: '0 0 var(--space-2)', fontSize: 'var(--text-base)', color: 'var(--color-text-primary)' }}>Workspace Summary</h3>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-sm)' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Business Name:</span>
-                  <strong style={{ color: 'var(--color-text-primary)' }}>{orgName}</strong>
+              <div className={styles.summaryCard}>
+                <div className={styles.summaryHeader}>
+                  {logoPreview ? (
+                    <img src={logoPreview} alt="Business Logo" className={styles.summaryLogo} />
+                  ) : (
+                    <div className={styles.summaryLogoFallback}>
+                      {orgName.trim().slice(0, 2).toUpperCase() || 'EG'}
+                    </div>
+                  )}
+                  <div className={styles.summaryBusinessInfo}>
+                    <h3 className={styles.summaryTitle}>{orgName}</h3>
+                    <div className={styles.summaryLocation}>
+                      <MapPin size={12} className={styles.locationIcon} />
+                      <span>{city}, {state}</span>
+                    </div>
+                  </div>
+                  <div className={styles.summaryBadge}>
+                    <span className={styles.summaryStatusDot} />
+                    Ready to Launch
+                  </div>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-sm)' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Location:</span>
-                  <span style={{ color: 'var(--color-text-primary)', fontWeight: 500 }}>{city}, {state}</span>
+
+                <div className={styles.summaryDivider} />
+
+                <div className={styles.summaryGrid}>
+                  <div className={styles.summaryGridItem}>
+                    <span className={styles.summaryItemLabel}>Primary Focus</span>
+                    <div className={styles.summaryItemValueContainer}>
+                      <Target size={14} className={styles.summaryItemIcon} />
+                      <span className={styles.summaryItemValue}>
+                        {PRIMARY_OPTIONS.find((o) => o.id === experience)?.title || experience}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className={styles.summaryGridItem}>
+                    <span className={styles.summaryItemLabel}>Expected Volume</span>
+                    <div className={styles.summaryItemValueContainer}>
+                      <Calendar size={14} className={styles.summaryItemIcon} />
+                      <span className={styles.summaryItemValue}>
+                        {VOLUME_OPTIONS.find((o) => o.id === volume)?.title || `${volume} events/yr`}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className={styles.summaryGridItem}>
+                    <span className={styles.summaryItemLabel}>Team Scale</span>
+                    <div className={styles.summaryItemValueContainer}>
+                      <Users size={14} className={styles.summaryItemIcon} />
+                      <span className={styles.summaryItemValue}>
+                        {TEAM_OPTIONS.find((o) => o.id === teamSize)?.title?.split(' — ')[0] || teamSize}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-sm)' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Primary Focus:</span>
-                  <span style={{ color: 'var(--color-text-primary)', fontWeight: 500 }}>
-                    {PRIMARY_OPTIONS.find((o) => o.id === experience)?.title || experience}
-                  </span>
+
+                <div className={styles.summaryDivider} />
+
+                <div className={styles.summarySection}>
+                  <span className={styles.summarySectionLabel}>Selected Capabilities & Services</span>
+                  <div className={styles.serviceBadgesList}>
+                    <div className={styles.serviceBadgeActive}>
+                      <Check size={10} />
+                      <span>Event Coordination</span>
+                    </div>
+                    {secondaryServices.length > 0 ? (
+                      secondaryServices.map((id) => {
+                        const title = SECONDARY_OPTIONS.find((o) => o.id === id)?.title || id
+                        return (
+                          <div key={id} className={styles.serviceBadge}>
+                            <Check size={10} />
+                            <span>{title}</span>
+                          </div>
+                        )
+                      })
+                    ) : (
+                      <div className={styles.serviceBadgeMuted}>
+                        No secondary services selected
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-sm)' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Secondary Services:</span>
-                  <span style={{ color: 'var(--color-text-primary)', fontWeight: 500, textAlign: 'right', maxWidth: '60%' }}>
-                    {secondaryServices.map((id) => SECONDARY_OPTIONS.find((o) => o.id === id)?.title).join(', ') || 'None selected'}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-sm)' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Expected Volume:</span>
-                  <span style={{ color: 'var(--color-text-primary)', fontWeight: 500 }}>{volume} events/year</span>
+
+                <div className={styles.summaryDivider} />
+
+                <div className={styles.dashboardPreviewContainer}>
+                  <div className={styles.previewSidebar}>
+                    <div className={styles.previewSidebarDotActive} />
+                    <div className={styles.previewSidebarDot} />
+                    <div className={styles.previewSidebarDot} />
+                    <div className={styles.previewSidebarDot} />
+                  </div>
+                  <div className={styles.previewMain}>
+                    <div className={styles.previewHeaderBar}>
+                      <div className={styles.previewHeaderTitle} />
+                      <div className={styles.previewHeaderAvatar} />
+                    </div>
+                    <div className={styles.previewCardsGrid}>
+                      <div className={styles.previewCardMini}>
+                        <div className={styles.previewCardLineShort} />
+                        <div className={styles.previewCardLineLong} />
+                      </div>
+                      <div className={styles.previewCardMiniActive}>
+                        <div className={styles.previewCardLineShortGold} />
+                        <div className={styles.previewCardLineLongGold} />
+                      </div>
+                      <div className={styles.previewCardMini}>
+                        <div className={styles.previewCardLineShort} />
+                        <div className={styles.previewCardLineLong} />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div style={{ padding: 'var(--space-4)', background: 'rgba(212,160,23,0.06)', border: '1px dashed var(--color-accent)', borderRadius: 'var(--radius-md)' }}>
-                <p style={{ margin: 0, fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>
-                  By clicking Launch Workspace, we will set up your professional planners dashboard, configure your default RLS policies, and customize your templates.
+              <div className={styles.launchDisclaimer}>
+                <Sparkles size={14} className={styles.disclaimerIcon} />
+                <p style={{ margin: 0 }}>
+                  By launching your workspace, we will automatically set up your dashboard, configure database tables, and personalize templates based on these settings.
                 </p>
               </div>
             </div>

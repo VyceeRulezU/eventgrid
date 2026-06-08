@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useResolvedEventId } from '@/hooks/useResolvedEventId'
-import { Users, X, Mail, UserPlus, FileText, CheckCircle2, AlertTriangle, Clock, Send, Download } from 'lucide-react'
+import { Users, X, Mail, UserPlus, FileText, CheckCircle2, AlertTriangle, Clock, Send, Download, Plus } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -85,6 +85,9 @@ export function TeamPage() {
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState('team')
   const [inviting, setInviting] = useState(false)
+  const [addingExisting, setAddingExisting] = useState<string | null>(null)
+  const [existingCandidates, setExistingCandidates] = useState<(Profile & { event_name?: string })[]>([])
+  const [showExistingDirectory, setShowExistingDirectory] = useState(true)
   const [taskCounts, setTaskCounts] = useState<Record<string, number>>({})
   const [pendingInvitations, setPendingInvitations] = useState<PendingInvitation[]>([])
 
@@ -104,7 +107,7 @@ export function TeamPage() {
   async function loadData() {
     setLoading(true)
 
-    const [{ data: membersData }, { data: tasksData }, { data: reportsData }, { data: invitationsData }] = await Promise.all([
+    const [{ data: membersData }, { data: tasksData }, { data: reportsData }, { data: invitationsData }, { data: eventData }] = await Promise.all([
       supabase
         .from('event_access')
         .select('*, profile:profiles!event_access_user_id_fkey(id, email, display_name, phone, avatar_url)')
@@ -127,6 +130,11 @@ export function TeamPage() {
         .eq('event_id', eventId)
         .eq('status', 'pending')
         .order('created_at', { ascending: true }),
+      supabase
+        .from('events')
+        .select('org_id')
+        .eq('id', eventId)
+        .single(),
     ])
 
     if (membersData) setMembers(membersData as unknown as TeamMemberRow[])
@@ -142,6 +150,35 @@ export function TeamPage() {
       }
     }
     setTaskCounts(counts)
+
+    /* ── Fetch existing team members from other events in same org ── */
+    if (eventData?.org_id) {
+      const { data: orgEvents } = await supabase
+        .from('events')
+        .select('id')
+        .eq('org_id', eventData.org_id)
+      if (orgEvents && orgEvents.length > 0) {
+        const eventIds = orgEvents.map((e: { id: string }) => e.id)
+        const existingIds = new Set((membersData ?? []).map((m: TeamMemberRow) => m.user_id).filter(Boolean))
+        const { data: candidates } = await supabase
+          .from('event_access')
+          .select('user_id, profiles!event_access_user_id_fkey(id, email, display_name, phone, avatar_url)')
+          .in('event_id', eventIds)
+          .neq('event_id', eventId)
+          .eq('role', 'team_member')
+          .not('accepted_at', 'is', null)
+        if (candidates) {
+          const unique = new Map<string, Profile>()
+          for (const c of candidates as any[]) {
+            if (!existingIds.has(c.user_id) && c.profiles) {
+              unique.set(c.user_id, c.profiles as Profile)
+            }
+          }
+          setExistingCandidates(Array.from(unique.values()))
+        }
+      }
+    }
+
     setLoading(false)
   }
 
@@ -225,6 +262,22 @@ export function TeamPage() {
     setInviting(false)
   }
 
+  async function handleAddExisting(userId: string) {
+    if (!eventId || !userId) return
+    setAddingExisting(userId)
+    const { error } = await supabase
+      .from('event_access')
+      .upsert({ event_id: eventId, user_id: userId, role: 'team_member', accepted_at: new Date().toISOString() }, { onConflict: 'event_id,user_id' })
+    if (error) {
+      showNotification({ variant: 'error', title: 'Failed to add member', message: error.message })
+    } else {
+      showNotification({ variant: 'success', title: 'Member added', message: 'Team member has been added to this event.' })
+      setShowInvite(false)
+      loadData()
+    }
+    setAddingExisting(null)
+  }
+
   if (loading) {
     return (
       <div className={styles.page}>
@@ -254,9 +307,9 @@ export function TeamPage() {
               </button>
             )}
             {(role === 'planner' || role === 'coordinator') && (
-              <button className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => setShowInvite(true)}>
+              <button className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => { setShowExistingDirectory(true); setShowInvite(true) }}>
                 <UserPlus size={14} />
-                Invite Member
+                Add Member
               </button>
             )}
           </div>
@@ -497,44 +550,106 @@ export function TeamPage() {
         </div>
       )}
 
-      {/* ── Invite modal ── */}
+      {/* ── Invite / Add modal ── */}
       {showInvite && (
         <div className={styles.overlay} onClick={() => setShowInvite(false)}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h3 className={styles.modalTitle}>Invite Team Member</h3>
+              <h3 className={styles.modalTitle}>
+                {showExistingDirectory ? 'Add Team Member' : 'Invite New Member'}
+              </h3>
               <button type="button" className={styles.modalClose} onClick={() => setShowInvite(false)} aria-label="Close">
                 <X size={18} />
               </button>
             </div>
             <div className={styles.modalBody}>
-              <div className="input-wrapper">
-                <label className="input-label">Email Address</label>
-                <input
-                  className="input"
-                  type="email"
-                  placeholder="member@example.com"
-                  value={inviteEmail}
-                  onChange={(e) => setInviteEmail(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleInvite()}
-                  autoFocus
-                />
-              </div>
-              <div className="input-wrapper">
-                <label className="input-label">Role</label>
-                <DropdownMenu
-                  trigger={inviteRole.charAt(0).toUpperCase() + inviteRole.slice(1)}
-                  items={ROLES.map((r) => ({ label: r.charAt(0).toUpperCase() + r.slice(1), value: r }))}
-                  onSelect={(item) => setInviteRole(item.value)}
-                />
-              </div>
-              <div className={styles.modalActions}>
-                <button className="btn btn-primary btn-sm" onClick={handleInvite} disabled={inviting}>
-                  <Mail size={14} />
-                  {inviting ? 'Inviting...' : 'Send Invite'}
-                </button>
-                <button className="btn btn-ghost btn-sm" onClick={() => setShowInvite(false)}>Cancel</button>
-              </div>
+              {showExistingDirectory ? (
+                <>
+                  {existingCandidates.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: 'var(--space-8) var(--space-4)', color: 'var(--color-text-muted)' }}>
+                      <Users size={32} style={{ marginBottom: 'var(--space-3)', opacity: 0.4 }} />
+                      <div style={{ fontSize: 'var(--text-sm)', fontWeight: 500, marginBottom: 'var(--space-1)' }}>No existing team members found</div>
+                      <div style={{ fontSize: 'var(--text-xs)' }}>All team members from your other events are already part of this one.</div>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', maxHeight: 340, overflowY: 'auto' }}>
+                      {existingCandidates.map((candidate) => (
+                        <div
+                          key={candidate.id}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: 'var(--space-3)',
+                            padding: 'var(--space-3)', borderRadius: 'var(--radius-md)',
+                            border: '1px solid var(--color-border-subtle)',
+                            background: 'var(--color-surface-3)',
+                          }}
+                        >
+                          <div style={{
+                            width: 34, height: 34, borderRadius: 'var(--radius-full)',
+                            background: 'var(--color-accent-muted)', color: 'var(--color-accent)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 'var(--text-sm)', fontWeight: 700, flexShrink: 0,
+                          }}>
+                            {(candidate.display_name || candidate.email || '?')[0].toUpperCase()}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>{candidate.display_name || 'Unnamed'}</div>
+                            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>{candidate.email}</div>
+                          </div>
+                          <button
+                            className="btn btn-primary btn-sm"
+                            style={{ borderRadius: 'var(--radius-sm)', flexShrink: 0, whiteSpace: 'nowrap' }}
+                            onClick={() => handleAddExisting(candidate.id)}
+                            disabled={addingExisting === candidate.id}
+                          >
+                            {addingExisting === candidate.id ? 'Adding...' : <><Plus size={12} /> Add</>}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div style={{ marginTop: 'var(--space-4)', paddingTop: 'var(--space-3)', borderTop: '1px solid var(--color-border-subtle)' }}>
+                    <button
+                      className="btn btn-ghost btn-sm"
+                      style={{ width: '100%', justifyContent: 'center', gap: 'var(--space-2)' }}
+                      onClick={() => { setShowExistingDirectory(false); setInviteEmail('') }}
+                    >
+                      <Mail size={14} />
+                      Invite new member via email
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="input-wrapper">
+                    <label className="input-label">Email Address</label>
+                    <input
+                      className="input"
+                      type="email"
+                      placeholder="member@example.com"
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleInvite()}
+                      autoFocus
+                    />
+                  </div>
+                  <div className="input-wrapper">
+                    <label className="input-label">Role</label>
+                    <DropdownMenu
+                      trigger={inviteRole.charAt(0).toUpperCase() + inviteRole.slice(1)}
+                      items={ROLES.map((r) => ({ label: r.charAt(0).toUpperCase() + r.slice(1), value: r }))}
+                      onSelect={(item) => setInviteRole(item.value)}
+                    />
+                  </div>
+                  <div className={styles.modalActions}>
+                    <button className="btn btn-primary btn-sm" onClick={handleInvite} disabled={inviting}>
+                      <Mail size={14} />
+                      {inviting ? 'Inviting...' : 'Send Invite'}
+                    </button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => setShowExistingDirectory(true)}>Back</button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => setShowInvite(false)}>Cancel</button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

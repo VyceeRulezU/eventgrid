@@ -713,3 +713,419 @@
     height: 180px;
   }
 }
+
+/* Option Grid and Card Styles */
+.optionGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.optionCard {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  transition: all var(--transition-base);
+  position: relative;
+}
+
+.optionCard:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--color-accent-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.optionCardActive {
+  background: rgba(212, 160, 23, 0.04);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 20px rgba(212, 160, 23, 0.08), inset 0 0 12px rgba(212, 160, 23, 0.03);
+}
+
+.optionCardHeader {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.optionIconWrapper {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.optionCardActive .optionIconWrapper {
+  background: rgba(212, 160, 23, 0.1);
+  border-color: rgba(212, 160, 23, 0.25);
+  color: var(--color-accent);
+}
+
+/* Welcome Card / Workspace Summary Passport Styles */
+.summaryCard {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.summaryHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  position: relative;
+}
+
+.summaryLogo {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-lg);
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.summaryLogoFallback {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--color-accent-muted) 0%, rgba(212, 160, 23, 0.2) 100%);
+  border: 1.5px solid var(--color-accent);
+  color: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--weight-bold);
+  font-size: var(--text-lg);
+  letter-spacing: 1px;
+}
+
+.summaryBusinessInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  flex: 1;
+}
+
+.summaryTitle {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: var(--weight-extrabold);
+  color: #ffffff;
+  letter-spacing: -0.3px;
+}
+
+.summaryLocation {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.locationIcon {
+  color: var(--color-accent);
+}
+
+.summaryBadge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.summaryStatusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background-color: #10b981;
+  box-shadow: 0 0 8px #10b981;
+}
+
+.summaryDivider {
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+}
+
+.summaryGridItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.summaryItemLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  letter-spacing: 0.5px;
+}
+
+.summaryItemValueContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.summaryItemIcon {
+  color: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.summaryItemValue {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: #ffffff;
+}
+
+.summarySection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.summarySectionLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  letter-spacing: 0.5px;
+}
+
+.serviceBadgesList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.serviceBadgeActive {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2_5);
+  border-radius: var(--radius-md);
+  background: rgba(212, 160, 23, 0.1);
+  border: 1px solid rgba(212, 160, 23, 0.25);
+  color: var(--color-accent);
+  font-size: 11px;
+  font-weight: var(--weight-semibold);
+}
+
+.serviceBadge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2_5);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: var(--weight-medium);
+  transition: all var(--transition-fast);
+}
+
+.serviceBadge:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+.serviceBadgeMuted {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* CSS micro-layout preview of dashboard */
+.dashboardPreviewContainer {
+  height: 100px;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.25);
+  display: flex;
+  overflow: hidden;
+  margin-top: var(--space-1);
+}
+
+.previewSidebar {
+  width: 32px;
+  background: rgba(255, 255, 255, 0.01);
+  border-right: 1px solid rgba(255, 255, 255, 0.03);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-3) 0;
+  gap: var(--space-2);
+}
+
+.previewSidebarDot {
+  width: 5px;
+  height: 5px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.previewSidebarDotActive {
+  width: 5px;
+  height: 5px;
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  box-shadow: 0 0 4px var(--color-accent);
+}
+
+.previewMain {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-3);
+  gap: var(--space-3);
+}
+
+.previewHeaderBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.previewHeaderTitle {
+  width: 50px;
+  height: 5px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.previewHeaderAvatar {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.previewCardsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+  flex: 1;
+}
+
+.previewCardMini {
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.01);
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1_5);
+  justify-content: center;
+}
+
+.previewCardMiniActive {
+  border: 1px solid rgba(212, 160, 23, 0.15);
+  border-radius: var(--radius-md);
+  background: rgba(212, 160, 23, 0.03);
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1_5);
+  justify-content: center;
+}
+
+.previewCardLineShort {
+  width: 15px;
+  height: 4px;
+  border-radius: 1px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.previewCardLineLong {
+  width: 25px;
+  height: 3px;
+  border-radius: 1px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.previewCardLineShortGold {
+  width: 15px;
+  height: 4px;
+  border-radius: 1px;
+  background: var(--color-accent);
+}
+
+.previewCardLineLongGold {
+  width: 25px;
+  height: 3px;
+  border-radius: 1px;
+  background: rgba(212, 160, 23, 0.25);
+}
+
+.launchDisclaimer {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: rgba(212, 160, 23, 0.03);
+  border: 1px dashed rgba(212, 160, 23, 0.2);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+  line-height: 1.6;
+}
+
+.disclaimerIcon {
+  color: var(--color-accent);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+@media (max-width: 768px) {
+  .optionGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .summaryGrid {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+
+  .dashboardPreviewContainer {
+    display: none;
+  }
+}
