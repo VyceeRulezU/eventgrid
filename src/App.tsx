@@ -410,10 +410,10 @@ export function App() {
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        <NotificationsDrawer />
       </BrowserRouter>
       </Sentry.ErrorBoundary>
       <PremiumModalContainer />
-      <NotificationsDrawer />
     </>
   )
 }

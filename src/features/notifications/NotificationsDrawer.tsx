@@ -3,27 +3,20 @@ import { X, Bell, CheckCheck } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth.store'
 import { useNotificationStore } from '@/store/notification.store'
-import { getNotifications, subscribeToNotifications, markAsRead, markAllAsRead, navigateFromNotification } from '@/lib/notifications'
+import { getNotifications, markAsRead, markAllAsRead, navigateFromNotification } from '@/lib/notifications'
 import { NotificationItem } from './NotificationItem'
 import type { Notification } from '@/types'
 
 export function NotificationsDrawer() {
   const user = useAuthStore((s) => s.user)
   const navigate = useNavigate()
-  const { notifications, drawerOpen, setDrawerOpen, setNotifications, prependNotification, decrementUnread, unreadCount } = useNotificationStore()
+  const { notifications, drawerOpen, setDrawerOpen, setNotifications, decrementUnread, unreadCount } = useNotificationStore()
   const drawerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!user || !drawerOpen) return
-
     getNotifications(user.id).then(setNotifications)
-
-    const unsubscribe = subscribeToNotifications(user.id, (n) => {
-      prependNotification(n)
-    })
-
-    return unsubscribe
-  }, [user, drawerOpen])
+  }, [user, drawerOpen, setNotifications])
 
   useEffect(() => {
     if (!drawerOpen) return

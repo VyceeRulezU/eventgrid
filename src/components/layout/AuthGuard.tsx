@@ -29,6 +29,9 @@ export function AuthGuard({ children }: AuthGuardProps) {
   const isExempt = location.pathname.startsWith('/onboarding') || location.pathname === '/verify-email'
 
   if (!isExempt) {
+    if (role === 'super_admin' || profile?.is_super_admin) {
+      return <>{children}</>
+    }
     const isCompleted = user.user_metadata?.onboarding_completed === true || !!profile?.org_id
     if (!isCompleted) {
       if (role === 'planner') {
