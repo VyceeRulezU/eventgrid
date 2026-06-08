@@ -123,6 +123,7 @@ export function TeamMemberOnboarding() {
     // 3. Mark onboarding completed in Auth metadata
     const { error: authErr } = await supabase.auth.updateUser({
       data: {
+        role: 'team_member',
         onboarding_completed: true,
         joined_event_id: eventId
       }

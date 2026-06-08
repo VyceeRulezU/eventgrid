@@ -46,17 +46,24 @@ export function EventsListPage() {
   const [deleting, setDeleting] = useState(false)
 
   const loadEvents = async () => {
-    if (!user || !org) {
+    if (!user) {
       setLoading(false)
       return
     }
 
-    const { data } = await supabase
-      .from('events')
-      .select('*')
-      .eq('org_id', org.id)
-      .is('deleted_at', null)
-      .order('created_at', { ascending: false })
+    const { data } = org
+      ? await supabase
+          .from('events')
+          .select('*')
+          .eq('org_id', org.id)
+          .is('deleted_at', null)
+          .order('created_at', { ascending: false })
+      : await supabase
+          .from('events')
+          .select('*, event_access!inner(user_id)')
+          .eq('event_access.user_id', user.id)
+          .is('deleted_at', null)
+          .order('created_at', { ascending: false })
 
     if (!data) {
       setLoading(false)
@@ -171,13 +178,13 @@ export function EventsListPage() {
           icon={Calendar}
           title="Events"
           subtitle="Manage all your events in one place"
-          actions={<Link to="/events/new" className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }}><Plus size={16} /> Create Event</Link>}
+          actions={org ? <Link to="/events/new" className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }}><Plus size={16} /> Create Event</Link> : undefined}
         />
         <div className="empty-state">
           <div className="empty-state__icon"><Calendar size={24} /></div>
           <div className="empty-state__title">No events yet</div>
-          <div className="empty-state__description">Create your first event to get started</div>
-          <Link to="/events/new" className="btn btn-primary"><Plus size={16} /> Create Event</Link>
+          <div className="empty-state__description">{org ? 'Create your first event to get started' : 'You haven\'t been added to any events yet'}</div>
+          {org && <Link to="/events/new" className="btn btn-primary"><Plus size={16} /> Create Event</Link>}
         </div>
       </div>
     )
@@ -188,12 +195,12 @@ export function EventsListPage() {
       <PageHero
         icon={Calendar}
         title="Events"
-        subtitle={`${events.length} event${events.length !== 1 ? 's' : ''} in your organisation`}
-        actions={<Link to="/events/new" className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }}><Plus size={16} /> Create Event</Link>}
+        subtitle={`${events.length} event${events.length !== 1 ? 's' : ''}${org ? ' in your organisation' : ''}`}
+        actions={org ? <Link to="/events/new" className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }}><Plus size={16} /> Create Event</Link> : undefined}
       />
 
       <div className={styles.tableCard}>
-        {someSelected && (
+        {someSelected && org && (
           <div className={styles.bulkBar}>
             <span className={styles.bulkInfo}>{selected.size} selected</span>
             <div className={styles.bulkActions}>
@@ -246,6 +253,7 @@ export function EventsListPage() {
           <table className={styles.table}>
             <thead className={styles.thead}>
               <tr>
+                {org && (
                   <th className={`${styles.th} ${styles.thCheck}`}>
                     <Checkbox
                       checked={allSelected}
@@ -253,6 +261,7 @@ export function EventsListPage() {
                       aria-label="Select all events"
                     />
                   </th>
+                )}
                 <th className={styles.th}>Event</th>
                 <th className={styles.th}>Type</th>
                 <th className={styles.th}>Date</th>
@@ -261,7 +270,7 @@ export function EventsListPage() {
                 <th className={`${styles.th} ${styles.thCenter}`}>Status</th>
                 <th className={styles.th}>Progress</th>
                 <th className={`${styles.th} ${styles.thCenter}`}>Payment</th>
-                <th className={`${styles.th} ${styles.thCenter}`}>Actions</th>
+                {org && <th className={`${styles.th} ${styles.thCenter}`}>Actions</th>}
               </tr>
             </thead>
             <tbody>
@@ -273,6 +282,7 @@ export function EventsListPage() {
                     key={event.id}
                     className={`${styles.tr} ${isSelected ? styles.trSelected : ''}`}
                   >
+                    {org && (
                       <td className={`${styles.td} ${styles.tdCheck}`}>
                         <Checkbox
                           checked={isSelected}
@@ -280,6 +290,7 @@ export function EventsListPage() {
                           aria-label={`Select ${event.name}`}
                         />
                       </td>
+                    )}
                     <td className={`${styles.td} ${styles.eventCell}`}>
                       <button
                         type="button"
@@ -322,34 +333,36 @@ export function EventsListPage() {
                         {event.payment_status === 'paid' ? 'Paid' : 'Unpaid'}
                       </span>
                     </td>
-                    <td className={styles.td}>
-                      <div className={styles.rowActions}>
-                        <button
-                          type="button"
-                          className={styles.iconBtn}
-                          onClick={() => navigate(`/events/${event.slug || event.id}`)}
-                          aria-label={`Open ${event.name}`}
-                        >
-                          <ExternalLink size={14} />
-                        </button>
-                        <button
-                          type="button"
-                          className={styles.iconBtn}
-                          onClick={() => navigate(`/events/${event.slug || event.id}`)}
-                          aria-label={`Edit ${event.name}`}
-                        >
-                          <Pencil size={14} />
-                        </button>
-                        <button
-                          type="button"
-                          className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
-                          onClick={() => handleDelete([event.id])}
-                          aria-label={`Delete ${event.name}`}
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
+                    {org && (
+                      <td className={styles.td}>
+                        <div className={styles.rowActions}>
+                          <button
+                            type="button"
+                            className={styles.iconBtn}
+                            onClick={() => navigate(`/events/${event.slug || event.id}`)}
+                            aria-label={`Open ${event.name}`}
+                          >
+                            <ExternalLink size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            className={styles.iconBtn}
+                            onClick={() => navigate(`/events/${event.slug || event.id}`)}
+                            aria-label={`Edit ${event.name}`}
+                          >
+                            <Pencil size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
+                            onClick={() => handleDelete([event.id])}
+                            aria-label={`Delete ${event.name}`}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 )
               })}

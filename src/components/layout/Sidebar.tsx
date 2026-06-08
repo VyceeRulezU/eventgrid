@@ -35,7 +35,7 @@ export function Sidebar() {
   const [showFeedbackForm, setShowFeedbackForm] = useState(false)
 
   const mainItems: NavItem[] = [
-    { to: role === 'team_member' ? '/dashboard/my-tasks' : `/dashboard/${role}`, label: 'Dashboard', icon: LayoutDashboard },
+    { to: role === 'team_member' || !role ? '/dashboard/my-tasks' : `/dashboard/${role}`, label: 'Dashboard', icon: LayoutDashboard },
     { to: '/dashboard/my-tasks', label: 'My Tasks', icon: ListChecks },
   ]
 
