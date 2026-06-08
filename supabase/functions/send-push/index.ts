@@ -1,19 +1,32 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import webpush from 'npm:web-push'
 
-interface PushPayload {
-  userId: string
-  title: string
-  body?: string
-  url?: string
+interface WebhookPayload {
+  type: 'INSERT'
+  table: string
+  record: {
+    id: string
+    user_id: string
+    event_id: string | null
+    type: string
+    title: string
+    body: string | null
+    is_read: boolean
+    read_at: string | null
+    created_at: string
+  }
+  schema: string
+  old_record: null
 }
 
 Deno.serve(async (req) => {
   try {
-    const { userId, title, body, url } = (await req.json()) as PushPayload
-    if (!userId || !title) {
+    const { record } = (await req.json()) as WebhookPayload
+    if (!record?.user_id || !record?.title) {
       return new Response(JSON.stringify({ error: 'userId and title are required' }), { status: 400 })
     }
+
+    const { user_id: userId, title, body } = record
 
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL')!,
@@ -42,7 +55,7 @@ Deno.serve(async (req) => {
       vapidPrivateKey
     )
 
-    const payload = JSON.stringify({ title, body, url, icon: '/favicon/favicon-96x96.png' })
+    const payload = JSON.stringify({ title, body, url: '/', icon: '/favicon/favicon-96x96.png' })
     let sent = 0
 
     for (const sub of subs) {
