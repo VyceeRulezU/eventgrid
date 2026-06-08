@@ -8,6 +8,7 @@ export interface Profile {
   avatar_url: string | null
   role: UserRole
   org_id: string | null
+  is_super_admin?: boolean
   is_active: boolean
   created_at: string
   updated_at: string

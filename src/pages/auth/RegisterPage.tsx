@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Star, Eye, EyeOff, Check, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
@@ -53,7 +53,11 @@ const passwordChecks = [
 ]
 
 export function RegisterPage() {
-  const [step, setStep] = useState<'role' | 'form'>('role')
+  const [searchParams] = useSearchParams()
+  const inviteRole = searchParams.get('role')
+  const isSuperAdminInvite = inviteRole === 'super_admin'
+
+  const [step, setStep] = useState<'role' | 'form'>(isSuperAdminInvite ? 'form' : 'role')
   const [role, setRole] = useState<UserRole>('planner')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -77,11 +81,16 @@ export function RegisterPage() {
     e.preventDefault()
     setLoading(true)
 
+    const metadata: Record<string, any> = { display_name: name, role, phone }
+    if (isSuperAdminInvite) {
+      metadata.is_super_admin = true
+    }
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { display_name: name, role, phone },
+        data: metadata,
         emailRedirectTo: import.meta.env.VITE_APP_URL,
       },
     })
@@ -247,7 +256,7 @@ export function RegisterPage() {
               <div className={styles.formHeader}>
                 <h1>Create Account</h1>
                 <p className={styles.formSubtitle}>
-                  Signing up as <strong>{role === 'planner' ? 'Event Planner' : role === 'coordinator' ? 'Coordinator' : 'Client / Guest'}</strong>.
+                  Signing up as <strong>{isSuperAdminInvite ? 'Super Admin' : role === 'planner' ? 'Event Planner' : role === 'coordinator' ? 'Coordinator' : 'Client / Guest'}</strong>.
                 </p>
               </div>
 

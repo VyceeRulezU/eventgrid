@@ -39,17 +39,10 @@ export function SuperAdminTeamPage() {
   }, [])
 
   async function loadMembers() {
-    const superEmails = (import.meta.env.VITE_SUPER_ADMIN_EMAILS as string | undefined) || ''
-    const emails = superEmails.split(',').map(e => e.trim().toLowerCase()).filter(Boolean)
-    if (emails.length === 0) {
-      setLoading(false)
-      return
-    }
-
     const { data } = await supabase
       .from('profiles')
       .select('id, email, display_name, role, created_at, last_sign_in_at')
-      .in('email', emails)
+      .eq('is_super_admin', true)
       .order('created_at', { ascending: false })
 
     if (data) setMembers(data as AdminMember[])
@@ -128,7 +121,7 @@ export function SuperAdminTeamPage() {
                     <div style={{ textAlign: 'center', padding: 'var(--space-8) var(--space-4)', color: 'var(--color-text-muted)' }}>
                       <Users size={24} style={{ marginBottom: 'var(--space-2)', opacity: 0.4 }} />
                       <div style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>No admin team configured</div>
-                      <div style={{ fontSize: 'var(--text-xs)', marginTop: 4 }}>Add emails to VITE_SUPER_ADMIN_EMAILS env var</div>
+                      <div style={{ fontSize: 'var(--text-xs)', marginTop: 4 }}>No super admins found in the database</div>
                     </div>
                   </td>
                 </tr>

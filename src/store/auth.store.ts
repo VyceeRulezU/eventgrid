@@ -2,14 +2,6 @@ import { create } from 'zustand'
 import type { User } from '@supabase/supabase-js'
 import type { Profile, UserRole } from '@/types'
 
-function detectSuperAdmin(user: User | null): UserRole | null {
-  if (!user?.email) return null
-  const superEmails = (import.meta.env.VITE_SUPER_ADMIN_EMAILS as string | undefined) || ''
-  const emails = superEmails.split(',').map(e => e.trim().toLowerCase()).filter(Boolean)
-  if (emails.includes(user.email.toLowerCase())) return 'super_admin'
-  return null
-}
-
 interface AuthStore {
   user: User | null
   profile: Profile | null
@@ -31,9 +23,12 @@ export const useAuthStore = create<AuthStore>((set) => ({
   isLoading: true,
   setUser: (user) => set({
     user,
-    role: detectSuperAdmin(user) || ((user?.user_metadata?.role as UserRole) ?? null),
+    role: (user?.user_metadata?.role as UserRole) ?? null,
   }),
-  setProfile: (profile) => set({ profile }),
+  setProfile: (profile) => set((state) => ({
+    profile,
+    role: profile?.is_super_admin ? 'super_admin' as UserRole : (state.role || profile?.role || null),
+  })),
   setOrg: (org) => set({ org }),
   setLoading: (isLoading) => set({ isLoading }),
   clearAuth: () => set({ user: null, profile: null, role: null, org: null, isLoading: false }),

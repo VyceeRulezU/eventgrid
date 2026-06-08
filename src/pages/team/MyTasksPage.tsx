@@ -4,6 +4,7 @@ import { ListChecks, ExternalLink, ChevronDown, ChevronUp, Send, Paperclip, X, C
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
+import { compressImage } from '@/lib/compressImage'
 import { PageHero } from '@/components/shared/PageHero'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import type { Task, TaskComment } from '@/types'
@@ -141,7 +142,8 @@ export function MyTasksPage() {
     for (const p of photos) {
       const ext = p.file.name.split('.').pop()
       const path = `${task?.event_id}/comments/${taskId}/${crypto.randomUUID()}.${ext}`
-      const { error: uploadErr } = await supabase.storage.from('event-media').upload(path, p.file)
+      const blob = await compressImage(p.file)
+      const { error: uploadErr } = await supabase.storage.from('event-media').upload(path, blob)
       if (uploadErr) {
         showNotification({ variant: 'error', title: 'Upload failed', message: uploadErr.message })
         continue

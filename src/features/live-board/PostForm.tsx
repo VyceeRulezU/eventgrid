@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useLiveFeedStore } from '@/store/liveFeed.store'
 import { useUIStore } from '@/store/ui.store'
+import { compressImage } from '@/lib/compressImage'
 import { Send, Paperclip, X, MapPin } from 'lucide-react'
 import type { LiveFeedPost } from '@/types'
 import styles from './LiveBoardPage.module.css'
@@ -52,7 +53,8 @@ export function PostForm({ eventId }: PostFormProps) {
       for (const f of files) {
         const ext = f.name.split('.').pop()
         const path = `live-feed/${eventId}/${user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
-        const { error: uploadErr } = await supabase.storage.from('event-media').upload(path, f)
+        const blob = await compressImage(f)
+        const { error: uploadErr } = await supabase.storage.from('event-media').upload(path, blob)
         if (uploadErr) {
           showNotification({ variant: 'error', title: 'Upload failed', message: uploadErr.message })
           continue

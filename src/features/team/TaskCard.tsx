@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp, Calendar, User, Send, Image as ImageIcon, X } f
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
+import { compressImage } from '@/lib/compressImage'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import type { Task, TaskComment } from '@/types'
 
@@ -104,9 +105,10 @@ export function TaskCard({ task, onUpdate }: TaskCardProps) {
     for (const file of uploadingPhotos) {
       const ext = file.name.split('.').pop()
       const path = `${task.event_id}/comments/${task.id}/${crypto.randomUUID()}.${ext}`
+      const blob = await compressImage(file)
       const { error: uploadErr } = await supabase.storage
         .from('event-media')
-        .upload(path, file)
+        .upload(path, blob)
       if (uploadErr) {
         showNotification({ variant: 'error', title: 'Upload failed', message: uploadErr.message })
         continue
