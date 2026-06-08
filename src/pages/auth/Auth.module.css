@@ -90,11 +90,13 @@
 .testimonialWrapper {
   margin-top: auto;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
 }
 
 .testimonialCard {
-  max-width: 420px;
+  width: 70%;
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
@@ -166,7 +168,6 @@ img.authorAvatar {
   display: flex;
   gap: var(--space-2);
   margin-top: var(--space-3);
-  padding-left: var(--space-2);
 }
 
 .dot {
