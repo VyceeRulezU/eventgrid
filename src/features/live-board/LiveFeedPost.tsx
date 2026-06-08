@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { MapPin, Clock, Flag, User } from 'lucide-react'
+import { MapPin, Clock, Flag, User, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { IssueForm } from './IssueForm'
 import type { LiveFeedPost as LiveFeedPostType } from '@/types'
 import styles from './LiveBoardPage.module.css'
@@ -13,6 +13,8 @@ interface LiveFeedPostProps {
 
 export function LiveFeedPost({ post, eventId, displayName, avatarUrl }: LiveFeedPostProps) {
   const [showIssueForm, setShowIssueForm] = useState(false)
+  const [lightboxIdx, setLightboxIdx] = useState<number | null>(null)
+
   const photos: string[] = Array.isArray(post.photo_urls)
     ? post.photo_urls
     : typeof post.photo_urls === 'string'
@@ -30,6 +32,8 @@ export function LiveFeedPost({ post, eventId, displayName, avatarUrl }: LiveFeed
     return `${days}d ago`
   })()
 
+  const authorName = displayName || 'Team Member'
+
   return (
     <>
       <div className={styles.feedPost}>
@@ -45,7 +49,7 @@ export function LiveFeedPost({ post, eventId, displayName, avatarUrl }: LiveFeed
 
         <div className={styles.feedPostBody}>
           <div className={styles.feedPostHeader}>
-            <span className={styles.feedPostAuthor}>{displayName || post.user_id.slice(0, 8)}</span>
+            <span className={styles.feedPostAuthor}>{authorName}</span>
             <span className={styles.feedPostTime}>
               <Clock size={12} />
               {timeAgo}
@@ -57,9 +61,9 @@ export function LiveFeedPost({ post, eventId, displayName, avatarUrl }: LiveFeed
           {photos.length > 0 && (
             <div className={styles.feedPostPhotos} data-count={Math.min(photos.length, 4)}>
               {photos.slice(0, 4).map((url, i) => (
-                <a key={i} href={url} target="_blank" rel="noopener noreferrer" className={styles.feedPostPhotoLink}>
+                <button key={i} className={styles.feedPostPhotoLink} onClick={() => setLightboxIdx(i)}>
                   <img src={url} alt="" className={styles.feedPostPhoto} />
-                </a>
+                </button>
               ))}
               {photos.length > 4 && (
                 <div className={styles.feedPostPhotoMore}>+{photos.length - 4}</div>
@@ -81,6 +85,34 @@ export function LiveFeedPost({ post, eventId, displayName, avatarUrl }: LiveFeed
           </div>
         </div>
       </div>
+
+      {lightboxIdx !== null && (
+        <div className={styles.lightboxOverlay} onClick={() => setLightboxIdx(null)}>
+          <div className={styles.lightboxContent} onClick={(e) => e.stopPropagation()}>
+            <button className={styles.lightboxClose} onClick={() => setLightboxIdx(null)}>
+              <X size={20} />
+            </button>
+            {photos.length > 1 && (
+              <>
+                <button
+                  className={`${styles.lightboxNav} ${styles.lightboxPrev}`}
+                  onClick={() => setLightboxIdx((prev) => prev === null ? 0 : (prev - 1 + photos.length) % photos.length)}
+                >
+                  <ChevronLeft size={24} />
+                </button>
+                <button
+                  className={`${styles.lightboxNav} ${styles.lightboxNext}`}
+                  onClick={() => setLightboxIdx((prev) => prev === null ? 0 : (prev + 1) % photos.length)}
+                >
+                  <ChevronRight size={24} />
+                </button>
+              </>
+            )}
+            <img src={photos[lightboxIdx]} alt="" className={styles.lightboxImage} />
+            <div className={styles.lightboxCounter}>{lightboxIdx + 1} / {photos.length}</div>
+          </div>
+        </div>
+      )}
 
       {showIssueForm && (
         <div className={styles.modalOverlay} onClick={() => setShowIssueForm(false)}>
