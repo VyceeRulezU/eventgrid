@@ -1,18 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Bell, CheckCheck, MessageSquare, Calendar, Users, AlertCircle, Info, ArrowLeft } from 'lucide-react'
+import { Bell, CheckCheck, ArrowLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth.store'
-import { getNotifications, markAsRead, markAllAsRead } from '@/lib/notifications'
+import { getNotifications, markAsRead, markAllAsRead, navigateFromNotification } from '@/lib/notifications'
 import type { Notification } from '@/types'
-
-const TYPE_ICONS: Record<string, typeof Bell> = {
-  feedback_reply: MessageSquare,
-  event_update: Calendar,
-  team_invite: Users,
-  vendor_update: Users,
-  alert: AlertCircle,
-  info: Info,
-}
 
 export function NotificationsPage() {
   const user = useAuthStore((s) => s.user)
@@ -29,11 +20,12 @@ export function NotificationsPage() {
     })
   }, [user])
 
-  const handleMarkRead = async (n: Notification) => {
+  const handleNotificationClick = async (n: Notification) => {
     if (!n.is_read) {
       await markAsRead(n.id)
       setNotifications(notifications.map((x) => (x.id === n.id ? { ...x, is_read: true, read_at: new Date().toISOString() } : x)))
     }
+    navigateFromNotification(n, navigate)
   }
 
   const handleMarkAllRead = async () => {
@@ -86,54 +78,51 @@ export function NotificationsPage() {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-          {notifications.map((n) => {
-            const Icon = TYPE_ICONS[n.type] || Bell
-            return (
-              <button
-                key={n.id}
-                onClick={() => handleMarkRead(n)}
-                style={{
-                  display: 'flex',
-                  gap: 'var(--space-3)',
-                  padding: 'var(--space-4) var(--space-5)',
-                  background: n.is_read ? 'transparent' : 'var(--color-accent-muted)',
-                  border: `1px solid ${n.is_read ? 'var(--color-border-subtle)' : 'var(--color-accent-border)'}`,
-                  borderRadius: 'var(--radius-md)',
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                  width: '100%',
-                  fontFamily: 'inherit',
-                  transition: 'background 0.15s',
-                  alignItems: 'flex-start',
-                }}
-              >
-                <div style={{
-                  width: 36, height: 36, borderRadius: 'var(--radius-md)',
-                  background: n.is_read ? 'var(--color-surface-2)' : 'var(--color-accent-muted)',
-                  color: n.is_read ? 'var(--color-text-muted)' : 'var(--color-accent)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                }}>
-                  <Icon size={16} />
+          {notifications.map((n) => (
+            <button
+              key={n.id}
+              onClick={() => handleNotificationClick(n)}
+              style={{
+                display: 'flex',
+                gap: 'var(--space-3)',
+                padding: 'var(--space-4) var(--space-5)',
+                background: n.is_read ? 'transparent' : 'var(--color-accent-muted)',
+                border: `1px solid ${n.is_read ? 'var(--color-border-subtle)' : 'var(--color-accent-border)'}`,
+                borderRadius: 'var(--radius-md)',
+                textAlign: 'left',
+                cursor: 'pointer',
+                width: '100%',
+                fontFamily: 'inherit',
+                transition: 'background 0.15s',
+                alignItems: 'flex-start',
+              }}
+            >
+              <div style={{
+                width: 36, height: 36, borderRadius: 'var(--radius-md)',
+                background: n.is_read ? 'var(--color-surface-2)' : 'var(--color-accent-muted)',
+                color: n.is_read ? 'var(--color-text-muted)' : 'var(--color-accent)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              }}>
+                <Bell size={16} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: n.is_read ? 400 : 600, fontSize: 'var(--text-sm)', marginBottom: 2 }}>
+                  {n.title}
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: n.is_read ? 400 : 600, fontSize: 'var(--text-sm)', marginBottom: 2 }}>
-                    {n.title}
+                {n.body && (
+                  <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', lineHeight: 1.5, marginBottom: 4 }}>
+                    {n.body}
                   </div>
-                  {n.body && (
-                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', lineHeight: 1.5, marginBottom: 4 }}>
-                      {n.body}
-                    </div>
-                  )}
-                  <div style={{ fontSize: 10, color: 'var(--color-text-muted)' }}>
-                    {new Date(n.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                  </div>
-                </div>
-                {!n.is_read && (
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-accent)', flexShrink: 0, marginTop: 6 }} />
                 )}
-              </button>
-            )
-          })}
+                <div style={{ fontSize: 10, color: 'var(--color-text-muted)' }}>
+                  {new Date(n.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                </div>
+              </div>
+              {!n.is_read && (
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-accent)', flexShrink: 0, marginTop: 6 }} />
+              )}
+            </button>
+          ))}
         </div>
       )}
     </div>

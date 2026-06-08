@@ -6,6 +6,7 @@ import {
   FileText, TrendingUp, Send, MessageSquare, Bell,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
+import { useNotificationStore } from '@/store/notification.store'
 import { useUIStore } from '@/store/ui.store'
 import { useEventStore } from '@/store/event.store'
 import { supabase } from '@/lib/supabase'
@@ -29,6 +30,7 @@ export function Sidebar() {
   const clearAuth = useAuthStore((s) => s.clearAuth)
   const { sidebarOpen, setSidebarOpen } = useUIStore()
   const activeEvent = useEventStore((s) => s.activeEvent)
+  const unreadCount = useNotificationStore((s) => s.unreadCount)
   const navigate = useNavigate()
   const { id: eventId } = useParams<{ id: string }>()
 
@@ -221,6 +223,24 @@ export function Sidebar() {
           >
             <Bell size={20} />
             <span>Notifications</span>
+            {unreadCount > 0 && (
+              <span style={{
+                marginLeft: 'auto',
+                background: 'var(--color-error)',
+                color: '#fff',
+                fontSize: 10,
+                fontWeight: 700,
+                minWidth: 18,
+                height: 18,
+                borderRadius: 9,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0 4px',
+              }}>
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
           </NavLink>
           <button className={styles.navItem} onClick={() => { setSidebarOpen(false); setShowFeedbackForm(true) }}>
             <Send size={20} />

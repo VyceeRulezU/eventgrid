@@ -8,7 +8,7 @@ import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { useNotificationStore } from '@/store/notification.store'
-import { getUnreadCount } from '@/lib/notifications'
+import { getUnreadCount, subscribeToNotifications } from '@/lib/notifications'
 import { AuthGuard } from '@/components/layout/AuthGuard'
 import { RoleGuard } from '@/components/layout/RoleGuard'
 import { AppShell } from '@/components/layout/AppShell'
@@ -274,12 +274,23 @@ export function App() {
         setProfile(null)
         setOrg(null)
         useNotificationStore.getState().setNotifications([])
+        useNotificationStore.getState().setUnreadCount(0)
         setLoading(false)
       }
     })
 
     return () => subscription.unsubscribe()
   }, [setUser, setProfile, setOrg, setLoading, setTheme])
+
+  const user = useAuthStore((s) => s.user)
+
+  useEffect(() => {
+    if (!user) return
+    const unsub = subscribeToNotifications(user.id, () => {
+      getUnreadCount(user.id).then(useNotificationStore.getState().setUnreadCount)
+    })
+    return unsub
+  }, [user])
 
   if (!isSupabaseConfigured) {
     return (

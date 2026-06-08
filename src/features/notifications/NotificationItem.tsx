@@ -23,10 +23,10 @@ const TYPE_COLORS: Record<string, string> = {
 
 interface NotificationItemProps {
   notification: Notification
-  onMarkRead: (id: string) => void
+  onClick: (n: Notification) => void
 }
 
-export function NotificationItem({ notification, onMarkRead }: NotificationItemProps) {
+export function NotificationItem({ notification, onClick }: NotificationItemProps) {
   const Icon = TYPE_ICONS[notification.type] || Bell
   const color = TYPE_COLORS[notification.type] || 'var(--color-text-secondary)'
   const timeAgo = getTimeAgo(notification.created_at)
@@ -42,7 +42,7 @@ export function NotificationItem({ notification, onMarkRead }: NotificationItemP
         cursor: 'pointer',
         transition: 'background var(--transition-fast)',
       }}
-      onClick={() => !notification.is_read && onMarkRead(notification.id)}
+      onClick={() => onClick(notification)}
     >
       <div style={{
         width: 32, height: 32, borderRadius: 'var(--radius-full)',

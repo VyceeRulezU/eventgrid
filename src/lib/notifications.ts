@@ -1,5 +1,29 @@
+import type { NavigateFunction } from 'react-router-dom'
 import { supabase } from './supabase'
 import type { Notification } from '@/types'
+
+export function navigateFromNotification(n: Notification, navigate: NavigateFunction) {
+  if (n.event_id) {
+    switch (n.type) {
+      case 'task_assigned':
+        navigate(`/events/${n.event_id}/tasks`)
+        return
+      case 'issue_raised':
+      case 'issue_resolved':
+        navigate(`/events/${n.event_id}/live-board`)
+        return
+      case 'vendor_update':
+      case 'vendor_confirmed':
+        navigate(`/events/${n.event_id}/vendors`)
+        return
+    }
+  }
+  switch (n.type) {
+    case 'feedback_reply':
+      navigate('/admin/feedback')
+      return
+  }
+}
 
 export async function createNotification(
   userId: string,

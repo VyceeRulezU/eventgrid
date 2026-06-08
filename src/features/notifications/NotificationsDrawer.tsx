@@ -1,12 +1,15 @@
 import { useEffect, useRef } from 'react'
 import { X, Bell, CheckCheck } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth.store'
 import { useNotificationStore } from '@/store/notification.store'
-import { getNotifications, subscribeToNotifications, markAsRead, markAllAsRead } from '@/lib/notifications'
+import { getNotifications, subscribeToNotifications, markAsRead, markAllAsRead, navigateFromNotification } from '@/lib/notifications'
 import { NotificationItem } from './NotificationItem'
+import type { Notification } from '@/types'
 
 export function NotificationsDrawer() {
   const user = useAuthStore((s) => s.user)
+  const navigate = useNavigate()
   const { notifications, drawerOpen, setDrawerOpen, setNotifications, prependNotification, decrementUnread, unreadCount } = useNotificationStore()
   const drawerRef = useRef<HTMLDivElement>(null)
 
@@ -33,10 +36,14 @@ export function NotificationsDrawer() {
     return () => document.removeEventListener('mousedown', handler)
   }, [drawerOpen])
 
-  const handleMarkRead = async (id: string) => {
-    await markAsRead(id)
-    decrementUnread()
-    setNotifications(notifications.map((n) => (n.id === id ? { ...n, is_read: true, read_at: new Date().toISOString() } : n)))
+  const handleNotificationClick = async (n: Notification) => {
+    if (!n.is_read) {
+      await markAsRead(n.id)
+      decrementUnread()
+      setNotifications(notifications.map((x) => (x.id === n.id ? { ...x, is_read: true, read_at: new Date().toISOString() } : x)))
+    }
+    setDrawerOpen(false)
+    navigateFromNotification(n, navigate)
   }
 
   const handleMarkAllRead = async () => {
@@ -115,7 +122,7 @@ export function NotificationsDrawer() {
             </div>
           ) : (
             notifications.map((n) => (
-              <NotificationItem key={n.id} notification={n} onMarkRead={handleMarkRead} />
+              <NotificationItem key={n.id} notification={n} onClick={handleNotificationClick} />
             ))
           )}
         </div>
