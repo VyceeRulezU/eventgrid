@@ -1,24 +1,23 @@
 import { useEffect, useState } from 'react'
 import { useResolvedEventId } from '@/hooks/useResolvedEventId'
-import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
 import {
   Users, Search, Plus, X, Upload, Check, UserCheck,
-  LayoutGrid, Star, List, ArrowLeft, User,
+  LayoutGrid, Star, List, User,
 } from 'lucide-react'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { Tabs } from '@/components/ui/Tabs'
 import { sendGuestNotification } from '@/lib/email'
 import type { Guest, SeatingTable } from '@/types'
 import { Checkbox } from '@/components/ui/Checkbox'
+import { PageHero } from '@/components/shared/PageHero'
 import styles from './GuestManagementPage.module.css'
 
 type RSVP = 'pending' | 'confirmed' | 'declined' | 'maybe'
 
 export function GuestManagementPage() {
   const { eventId } = useResolvedEventId()
-  const navigate = useNavigate()
   const showToast = useUIStore((s) => s.showToast)
 
   const [guests, setGuests] = useState<(Guest & { table_name?: string })[]>([])
@@ -160,38 +159,34 @@ export function GuestManagementPage() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.header}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-          <button type="button" className={styles.headerBack} onClick={() => navigate(-1)} aria-label="Back">
-            <ArrowLeft size={18} />
-          </button>
-          <div>
-            <h2 className={styles.headerTitle}>Guests</h2>
-            <p className={styles.headerDesc}>{guests.length} guest{guests.length !== 1 ? 's' : ''} on this event</p>
+      <PageHero
+        icon={Users}
+        title="Guests"
+        subtitle={`${guests.length} guest${guests.length !== 1 ? 's' : ''} on this event`}
+        actions={
+          <div className={styles.toolbar} style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div className={styles.searchWrap}>
+              <Search size={16} className={styles.searchIcon} />
+              <input className={styles.searchInput} placeholder="Search name or phone..." value={search} onChange={(e) => setSearch(e.target.value)} />
+            </div>
+            <div className={styles.filterSelect}>
+              <DropdownMenu
+                trigger={rsvpFilter === 'all' ? 'All RSVP' : rsvpFilter.charAt(0).toUpperCase() + rsvpFilter.slice(1)}
+                items={[
+                  { label: 'All RSVP', value: 'all' },
+                  { label: 'Confirmed', value: 'confirmed' },
+                  { label: 'Pending', value: 'pending' },
+                  { label: 'Declined', value: 'declined' },
+                  { label: 'Maybe', value: 'maybe' },
+                ]}
+                onSelect={(item) => setRsvpFilter(item.value as RSVP | 'all')}
+              />
+            </div>
+            <button className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => setShowAdd(true)}><Plus size={14} /> Add</button>
+            <button className="btn btn-secondary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => setShowCSV(true)}><Upload size={14} /> CSV</button>
           </div>
-        </div>
-        <div className={styles.toolbar}>
-          <div className={styles.searchWrap}>
-            <Search size={16} className={styles.searchIcon} />
-            <input className={styles.searchInput} placeholder="Search name or phone..." value={search} onChange={(e) => setSearch(e.target.value)} />
-          </div>
-          <div className={styles.filterSelect}>
-            <DropdownMenu
-              trigger={rsvpFilter === 'all' ? 'All RSVP' : rsvpFilter.charAt(0).toUpperCase() + rsvpFilter.slice(1)}
-              items={[
-                { label: 'All RSVP', value: 'all' },
-                { label: 'Confirmed', value: 'confirmed' },
-                { label: 'Pending', value: 'pending' },
-                { label: 'Declined', value: 'declined' },
-                { label: 'Maybe', value: 'maybe' },
-              ]}
-              onSelect={(item) => setRsvpFilter(item.value as RSVP | 'all')}
-            />
-          </div>
-          <button className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => setShowAdd(true)}><Plus size={14} /> Add</button>
-          <button className="btn btn-secondary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => setShowCSV(true)}><Upload size={14} /> CSV</button>
-        </div>
-      </div>
+        }
+      />
 
       <Tabs
         tabs={[

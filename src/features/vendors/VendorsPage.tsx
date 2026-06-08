@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useSearchParams, useNavigate } from 'react-router-dom'
-import { Users, Plus, Search, Pencil, Tag, Star, Trash2, ArrowLeft } from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
+import { Users, Plus, Search, Pencil, Tag, Star, Trash2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -9,6 +9,7 @@ import { Checkbox } from '@/components/ui/Checkbox'
 import { EditVendorModal } from './EditVendorModal'
 import { AddVendorModal } from './AddVendorModal'
 import { AddTypeModal } from './AddTypeModal'
+import { PageHero } from '@/components/shared/PageHero'
 import type { Vendor } from '@/types'
 import styles from './VendorsPage.module.css'
 
@@ -26,9 +27,9 @@ const DEFAULT_TYPES = [
 export function VendorsPage() {
   const [searchParams] = useSearchParams()
   const eventId = searchParams.get('event')
-  const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const org = useAuthStore((s) => s.org)
+  const role = useAuthStore((s) => s.role)
   const showNotification = useUIStore((s) => s.showNotification)
   const showModal = useUIStore((s) => s.showModal)
 
@@ -180,41 +181,37 @@ export function VendorsPage() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.header}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-          <button type="button" className={styles.headerBack} onClick={() => navigate(-1)} aria-label="Back">
-            <ArrowLeft size={18} />
-          </button>
-          <div>
-            <h2 className={styles.headerTitle}>Vendors</h2>
-            <p className={styles.headerDesc}>{vendors.length} vendor{vendors.length !== 1 ? 's' : ''} in your organisation</p>
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-            <div className={styles.eventFilterLabel}>Event filter</div>
-            <div className={styles.eventFilterWrap}>
-              <DropdownMenu
-              trigger={
-                <span className={styles.eventFilterTrigger}>
-                  {events.find((e) => e.id === (eventId || events[0]?.id))?.name || 'Select event'}
-                </span>
-              }
-              items={events.map((e) => ({ label: e.name, value: e.id }))}
-              onSelect={(item) => { window.location.href = `/vendors?event=${item.value}` }}
-            />
+      <PageHero
+        icon={Users}
+        title="Vendors"
+        subtitle={`${vendors.length} vendor${vendors.length !== 1 ? 's' : ''} in your organisation`}
+        actions={
+          <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+              <div className={styles.eventFilterLabel}>Event filter</div>
+              <div className={styles.eventFilterWrap}>
+                <DropdownMenu
+                trigger={
+                  <span className={styles.eventFilterTrigger}>
+                    {events.find((e) => e.id === (eventId || events[0]?.id))?.name || 'Select event'}
+                  </span>
+                }
+                items={events.map((e) => ({ label: e.name, value: e.id }))}
+                onSelect={(item) => { window.location.href = `/vendors?event=${item.value}` }}
+              />
+              </div>
             </div>
+            <button className="btn btn-secondary btn-sm" onClick={() => setShowAddType(true)} style={{ borderRadius: 'var(--radius-sm)' }}>
+              <Tag size={14} />
+              Add Type
+            </button>
+            <button className="btn btn-primary btn-sm" onClick={() => setShowAddVendor(true)} style={{ borderRadius: 'var(--radius-sm)' }}>
+              <Plus size={14} />
+              Add Vendor
+            </button>
           </div>
-          <button className="btn btn-secondary btn-sm" onClick={() => setShowAddType(true)} style={{ borderRadius: 'var(--radius-sm)' }}>
-            <Tag size={14} />
-            Add Type
-          </button>
-          <button className="btn btn-primary btn-sm" onClick={() => setShowAddVendor(true)} style={{ borderRadius: 'var(--radius-sm)' }}>
-            <Plus size={14} />
-            Add Vendor
-          </button>
-        </div>
-      </div>
+        }
+      />
 
       {showAddType && org && (
         <AddTypeModal
@@ -264,14 +261,16 @@ export function VendorsPage() {
             <div className={styles.bulkBar}>
               <span className={styles.bulkInfo}>{selectedVendors.size} selected</span>
               <div className={styles.bulkActions}>
-                <button
-                  type="button"
-                  className="btn btn-destructive btn-sm"
-                  style={{ borderRadius: 'var(--radius-sm)' }}
-                  onClick={handleBulkDelete}
-                >
-                  <Trash2 size={14} /> Delete
-                </button>
+                {role === 'super_admin' && (
+                  <button
+                    type="button"
+                    className="btn btn-destructive btn-sm"
+                    style={{ borderRadius: 'var(--radius-sm)' }}
+                    onClick={handleBulkDelete}
+                  >
+                    <Trash2 size={14} /> Delete
+                  </button>
+                )}
                 <button type="button" className="btn btn-ghost btn-sm" onClick={() => setSelectedVendors(new Set())}>
                   Clear
                 </button>
@@ -366,14 +365,16 @@ export function VendorsPage() {
                           >
                             <Pencil size={14} />
                           </button>
-                          <button
-                            type="button"
-                            className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
-                            onClick={() => handleDelete(vendor.id)}
-                            aria-label={`Delete ${vendor.name || vendor.category}`}
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                          {role === 'super_admin' && (
+                            <button
+                              type="button"
+                              className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
+                              onClick={() => handleDelete(vendor.id)}
+                              aria-label={`Delete ${vendor.name || vendor.category}`}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

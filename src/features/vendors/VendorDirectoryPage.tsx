@@ -3,6 +3,7 @@ import { Users, Plus, Search, Pencil, Star, Trash2, Phone, Mail, Building, X } f
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
+import { PageHero } from '@/components/shared/PageHero'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import type { Vendor } from '@/types'
 
@@ -19,6 +20,7 @@ const DEFAULT_TYPES = [
 
 export function VendorDirectoryPage() {
   const user = useAuthStore((s) => s.user)
+  const role = useAuthStore((s) => s.role)
   const showNotification = useUIStore((s) => s.showNotification)
 
   const [vendors, setVendors] = useState<(Vendor & { org_name?: string })[]>([])
@@ -239,13 +241,16 @@ export function VendorDirectoryPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-6)', flexWrap: 'wrap', gap: 'var(--space-3)' }}>
-        <h2 style={{ marginBottom: 0 }}>Vendor Directory</h2>
-        <button className="btn btn-primary btn-sm" onClick={() => { resetForm(); setShowForm(true) }}>
-          <Plus size={16} />
-          Add Vendor
-        </button>
-      </div>
+      <PageHero
+        icon={Building}
+        title="Vendor Directory"
+        subtitle="Browse and manage your vendor network"
+        actions={
+          <button className="btn btn-primary btn-sm" onClick={() => { resetForm(); setShowForm(true) }}>
+            <Plus size={16} /> Add Vendor
+          </button>
+        }
+      />
 
       <div style={{ display: 'flex', gap: 'var(--space-3)', marginBottom: 'var(--space-6)', flexWrap: 'wrap' }}>
         <div className="input-wrapper" style={{ flex: 1, minWidth: 200, maxWidth: 320 }}>
@@ -340,9 +345,11 @@ export function VendorDirectoryPage() {
                     <button className="btn btn-ghost btn-sm btn-icon" onClick={() => openEdit(vendor)} aria-label="Edit" style={{ width: 32, minHeight: 32 }}>
                       <Pencil size={12} />
                     </button>
-                    <button className="btn btn-ghost btn-sm btn-icon" onClick={() => handleDelete(vendor.id)} aria-label="Delete" style={{ width: 32, minHeight: 32, color: 'var(--color-error)' }}>
-                      <Trash2 size={12} />
-                    </button>
+                    {role === 'super_admin' && (
+                      <button className="btn btn-ghost btn-sm btn-icon" onClick={() => handleDelete(vendor.id)} aria-label="Delete" style={{ width: 32, minHeight: 32, color: 'var(--color-error)' }}>
+                        <Trash2 size={12} />
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

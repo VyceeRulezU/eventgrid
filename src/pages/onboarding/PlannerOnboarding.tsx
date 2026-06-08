@@ -14,25 +14,21 @@ const PRIMARY_OPTIONS = [
     id: 'boutique_weddings',
     title: 'Luxury Weddings',
     desc: 'High-end custom wedding productions',
-    image: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=500&auto=format&fit=crop&q=60'
   },
   {
     id: 'corporate_events',
     title: 'Corporate & Tech',
     desc: 'Conferences, launches, and summits',
-    image: 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=500&auto=format&fit=crop&q=60'
   },
   {
     id: 'social_celebrations',
     title: 'Social & Galas',
     desc: 'Birthdays, anniversaries, and milestones',
-    image: 'https://images.unsplash.com/photo-1469371670807-013ccf25f16a?w=500&auto=format&fit=crop&q=60'
   },
   {
     id: 'concerts_entertainment',
     title: 'Concerts & Shows',
     desc: 'Live performances, festivals, and gigs',
-    image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&auto=format&fit=crop&q=60'
   }
 ]
 
@@ -41,25 +37,21 @@ const SECONDARY_OPTIONS = [
     id: 'venue_management',
     title: 'Venue Management',
     desc: 'Site operations and hall coordination',
-    image: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=500&auto=format&fit=crop&q=60'
   },
   {
     id: 'catering',
     title: 'Catering & Food',
     desc: 'Buffets, banquets, and menu sourcing',
-    image: 'https://images.unsplash.com/photo-1555244162-803834f70033?w=500&auto=format&fit=crop&q=60'
   },
   {
     id: 'photography',
     title: 'Photo & Video',
     desc: 'Capturing memories and live coverage',
-    image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=500&auto=format&fit=crop&q=60'
   },
   {
     id: 'decor_design',
     title: 'Decor & Flowers',
     desc: 'Designing layout, stage, and floral concepts',
-    image: 'https://images.unsplash.com/photo-1526047932273-341f2a7631f9?w=500&auto=format&fit=crop&q=60'
   }
 ]
 
@@ -381,7 +373,6 @@ export function PlannerOnboarding() {
                     key={opt.id}
                     className={`${styles.photoCard} ${experience === opt.id ? styles.photoCardActive : ''}`}
                     onClick={() => setExperience(opt.id)}
-                    style={{ backgroundImage: `url(${opt.image})` }}
                   >
                     <div className={styles.photoCardOverlay} />
                     <div className={styles.photoCardContent}>
@@ -418,7 +409,6 @@ export function PlannerOnboarding() {
                       key={opt.id}
                       className={`${styles.photoCard} ${isSelected ? styles.photoCardActive : ''}`}
                       onClick={() => toggleSecondaryService(opt.id)}
-                      style={{ backgroundImage: `url(${opt.image})` }}
                     >
                       <div className={styles.photoCardOverlay} />
                       <div className={styles.photoCardContent}>

@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Image, MessageSquare, FileText } from 'lucide-react'
+import { Image, MessageSquare, FileText } from 'lucide-react'
+import { PageHero } from '@/components/shared/PageHero'
 import { MediaLibrary } from './MediaLibrary'
 import { IssueLogReview } from './IssueLogReview'
 import { EventReportBuilder } from './EventReportBuilder'
@@ -17,7 +17,6 @@ const TABS: { key: Tab; label: string; icon: typeof Image }[] = [
 
 export function AftermathPage() {
   const { eventId, paramId, loading } = useResolvedEventId()
-  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<Tab>('media')
 
   if (loading) {
@@ -30,12 +29,11 @@ export function AftermathPage() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.header}>
-        <button className="btn btn-ghost btn-icon" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => navigate(`/events/${paramId}`)}>
-          <ArrowLeft size={20} />
-        </button>
-        <h2 className={styles.headerTitle}>Aftermath & Reports</h2>
-      </div>
+      <PageHero
+        icon={FileText}
+        title="Aftermath & Reports"
+        backTo={`/events/${paramId}`}
+      />
 
       <div className={styles.tabBar}>
         {TABS.map((tab) => {

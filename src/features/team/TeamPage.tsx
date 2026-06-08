@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useResolvedEventId } from '@/hooks/useResolvedEventId'
-import { useNavigate } from 'react-router-dom'
-import { Users, X, Mail, UserPlus, FileText, CheckCircle2, AlertTriangle, Clock, Send, Download, ArrowLeft } from 'lucide-react'
+import { Users, X, Mail, UserPlus, FileText, CheckCircle2, AlertTriangle, Clock, Send, Download } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -9,6 +8,7 @@ import { sendInvite } from '@/lib/edgeFunctions'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { Tabs } from '@/components/ui/Tabs'
 import type { Profile } from '@/types'
+import { PageHero } from '@/components/shared/PageHero'
 import styles from './TeamPage.module.css'
 
 interface TeamMemberRow {
@@ -68,7 +68,6 @@ export function TeamPage() {
   const user = useAuthStore((s) => s.user)
   const profile = useAuthStore((s) => s.profile)
   const role = useAuthStore((s) => s.role)
-  const navigate = useNavigate()
   const showNotification = useUIStore((s) => s.showModal)
 
   const [members, setMembers] = useState<TeamMemberRow[]>([])
@@ -226,31 +225,27 @@ export function TeamPage() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.header}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-          <button type="button" className={styles.headerBack} onClick={() => navigate(-1)} aria-label="Back">
-            <ArrowLeft size={18} />
-          </button>
-          <div>
-            <h2 className={styles.headerTitle}>Team</h2>
-            <p className={styles.headerDesc}>{members.length} member{members.length !== 1 ? 's' : ''} · {reports.length} report{reports.length !== 1 ? 's' : ''}</p>
+      <PageHero
+        icon={Users}
+        title="Team"
+        subtitle={`${members.length} member${members.length !== 1 ? 's' : ''} · ${reports.length} report${reports.length !== 1 ? 's' : ''}`}
+        actions={
+          <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+            {role !== 'planner' && (
+              <button className="btn btn-secondary btn-sm" onClick={() => { setShowReportForm(true); setActiveTab('reports') }}>
+                <Send size={14} />
+                Submit Report
+              </button>
+            )}
+            {(role === 'planner' || role === 'coordinator') && (
+              <button className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => setShowInvite(true)}>
+                <UserPlus size={14} />
+                Invite Member
+              </button>
+            )}
           </div>
-        </div>
-        <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
-          {role !== 'planner' && (
-            <button className="btn btn-secondary btn-sm" onClick={() => { setShowReportForm(true); setActiveTab('reports') }}>
-              <Send size={14} />
-              Submit Report
-            </button>
-          )}
-          {(role === 'planner' || role === 'coordinator') && (
-            <button className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => setShowInvite(true)}>
-              <UserPlus size={14} />
-              Invite Member
-            </button>
-          )}
-        </div>
-      </div>
+        }
+      />
 
       {/* ── Attention strip ── */}
       {needsAttentionCount > 0 && (role === 'planner' || role === 'coordinator') && (

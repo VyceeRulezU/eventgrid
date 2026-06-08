@@ -186,25 +186,35 @@ function clientPortalEmail(opts: {
 
 // ── Send email via Resend ────────────────────────────────────────────────────
 
-async function sendEmail(to: string, subject: string, html: string): Promise<boolean> {
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${RESEND_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ from: FROM_EMAIL, to, subject, html }),
-  })
+async function sendEmail(to: string, subject: string, html: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ from: FROM_EMAIL, to, subject, html }),
+    })
 
-  if (!res.ok) {
-    const body = await res.text()
-    console.error('Resend API error:', res.status, body)
-    return false
+    if (!res.ok) {
+      const body = await res.text()
+      console.error('Resend API error:', res.status, body)
+      let parsedError = body
+      try {
+        const json = JSON.parse(body)
+        if (json.message) parsedError = json.message
+      } catch {}
+      return { success: false, error: `Resend error (${res.status}): ${parsedError}` }
+    }
+
+    const data = await res.json()
+    console.log('Email sent:', data.id)
+    return { success: true }
+  } catch (err) {
+    console.error('sendEmail exception:', err)
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown email error' }
   }
-
-  const data = await res.json()
-  console.log('Email sent:', data.id)
-  return true
 }
 
 // ── Main handler ─────────────────────────────────────────────────────────────
@@ -269,12 +279,26 @@ Deno.serve(async (req) => {
     let subject: string
     let html: string
 
-    // Query to see if the user is already registered in the profiles table
-    const { data: existingProfile } = await supabaseAdmin
-      .from('profiles')
-      .select('id')
-      .eq('email', email)
-      .maybeSingle()
+    // Check if the user exists in profiles or auth
+    let userExists = false
+    try {
+      const { data: existingProfile } = await supabaseAdmin
+        .from('profiles')
+        .select('id')
+        .eq('email', email)
+        .maybeSingle()
+      
+      if (existingProfile?.id) {
+        userExists = true
+      } else {
+        const { data: authUserRes } = await supabaseAdmin.auth.admin.getUserByEmail(email)
+        if (authUserRes?.user?.id) {
+          userExists = true
+        }
+      }
+    } catch (err) {
+      console.error('Check user existence failed:', err)
+    }
 
     if (type === 'admin_monitor') {
       const adminRole = role || 'super_admin'
@@ -316,7 +340,7 @@ Deno.serve(async (req) => {
       let linkData: any
       let linkError: any
 
-      if (existingProfile) {
+      if (userExists) {
         // User already exists, generate a login link that redirects to coordinator onboarding to associate with org
         const { data, error } = await supabaseAdmin.auth.admin.generateLink({
           type: 'magiclink',
@@ -383,7 +407,7 @@ Deno.serve(async (req) => {
       let linkData: any
       let linkError: any
 
-      if (existingProfile) {
+      if (userExists) {
         // User already exists, generate a login link that redirects to team member onboarding to add event access
         const { data, error } = await supabaseAdmin.auth.admin.generateLink({
           type: 'magiclink',
@@ -463,11 +487,11 @@ Deno.serve(async (req) => {
       )
     }
 
-    const sent = await sendEmail(email, subject, html)
+    const emailResult = await sendEmail(email, subject, html)
 
-    if (!sent) {
+    if (!emailResult.success) {
       return new Response(
-        JSON.stringify({ error: 'Failed to send email' }),
+        JSON.stringify({ error: emailResult.error ?? 'Failed to send email' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useResolvedEventId } from '@/hooks/useResolvedEventId'
-import { useNavigate } from 'react-router-dom'
-import { Columns, List, Plus, ArrowLeft } from 'lucide-react'
+import { Columns, List, Plus, ListChecks } from 'lucide-react'
+import { PageHero } from '@/components/shared/PageHero'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
 import { TaskCard } from './TaskCard'
@@ -27,8 +27,7 @@ const COLUMNS = [
 ] as const
 
 export function TaskBoard() {
-  const { eventId } = useResolvedEventId()
-  const navigate = useNavigate()
+  const { eventId, paramId } = useResolvedEventId()
   const showNotification = useUIStore((s) => s.showNotification)
   const [tasks, setTasks] = useState<TaskWithAssignee[]>([])
   const [loading, setLoading] = useState(true)
@@ -131,7 +130,7 @@ export function TaskBoard() {
   if (loading) {
     return (
       <div className={styles.page}>
-        <div className={styles.header}><h2 className={styles.headerTitle}>Tasks</h2></div>
+        <PageHero icon={ListChecks} title="Task Board" subtitle="Loading tasks..." backTo={`/events/${paramId}`} />
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 200, gap: 'var(--space-4)' }}>
           <img src="/EventGrid-favicon.svg" alt="Loading" style={{ width: 48, height: 48, opacity: 0.5 }} />
           <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>Loading tasks...</div>
@@ -142,39 +141,36 @@ export function TaskBoard() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.header}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-          <button type="button" className={styles.headerBack} onClick={() => navigate(-1)} aria-label="Back">
-            <ArrowLeft size={18} />
-          </button>
-          <div>
-            <h2 className={styles.headerTitle}>Task Board</h2>
-            <p className={styles.headerDesc}>{tasks.length} task{tasks.length !== 1 ? 's' : ''}</p>
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-          <div className={styles.viewToggle}>
-            <button
-              className={`${styles.viewBtn} ${viewMode === 'kanban' ? styles.viewBtnActive : styles.viewBtnInactive}`}
-              onClick={() => setViewMode('kanban')}
-              aria-label="Kanban view"
-            >
-              <Columns size={14} />
+      <PageHero
+        icon={ListChecks}
+        title="Task Board"
+        subtitle={`${tasks.length} task${tasks.length !== 1 ? 's' : ''}`}
+        backTo={`/events/${paramId}`}
+        actions={
+          <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
+            <div className={styles.viewToggle}>
+              <button
+                className={`${styles.viewBtn} ${viewMode === 'kanban' ? styles.viewBtnActive : styles.viewBtnInactive}`}
+                onClick={() => setViewMode('kanban')}
+                aria-label="Kanban view"
+              >
+                <Columns size={14} />
+              </button>
+              <button
+                className={`${styles.viewBtn} ${viewMode === 'list' ? styles.viewBtnActive : styles.viewBtnInactive}`}
+                onClick={() => setViewMode('list')}
+                aria-label="List view"
+              >
+                <List size={14} />
+              </button>
+            </div>
+            <button className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => setShowCreate(true)}>
+              <Plus size={14} />
+              Add Task
             </button>
-            <button
-              className={`${styles.viewBtn} ${viewMode === 'list' ? styles.viewBtnActive : styles.viewBtnInactive}`}
-              onClick={() => setViewMode('list')}
-              aria-label="List view"
-            >
-              <List size={14} />
-            </button>
           </div>
-          <button className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => setShowCreate(true)}>
-            <Plus size={14} />
-            Add Task
-          </button>
-        </div>
-      </div>
+        }
+      />
 
       {showCreate && (
         <CreateTaskModal

@@ -62,7 +62,20 @@ export async function sendInvite(params: SendInviteParams): Promise<{ success: b
 
   if (error) {
     console.error('sendInvite error:', error)
-    return { success: false, error: error.message }
+    let errMsg = error.message
+    if (error.context) {
+      try {
+        // Clone response to safely read it
+        const resClone = error.context.clone ? error.context.clone() : error.context
+        const body = await resClone.json()
+        if (body && body.error) {
+          errMsg = body.error
+        }
+      } catch (e) {
+        console.warn('Failed to parse error context json:', e)
+      }
+    }
+    return { success: false, error: errMsg }
   }
 
   return { success: data?.success ?? false, error: data?.error }

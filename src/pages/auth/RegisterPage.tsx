@@ -79,6 +79,7 @@ export function RegisterPage() {
       password,
       options: {
         data: { display_name: name, role, phone },
+        emailRedirectTo: import.meta.env.VITE_APP_URL,
       },
     })
 

@@ -6,7 +6,8 @@ import { useLiveBoardStore } from '@/store/liveBoard.store'
 import { useUIStore } from '@/store/ui.store'
 import { StatusCard } from './StatusCard'
 import { IssuesPanel } from './IssuesPanel'
-import { ArrowLeft, Plus, LayoutDashboard, Clock, X } from 'lucide-react'
+import { ArrowLeft, Plus, LayoutDashboard, Clock, X, Radio } from 'lucide-react'
+import { PageHero } from '@/components/shared/PageHero'
 import type { LiveBoardItem, Issue } from '@/types'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import styles from './LiveBoardPage.module.css'
@@ -153,27 +154,24 @@ export function LiveBoardPage() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.header}>
-        <div className={styles.headerLeft}>
-          <button className="btn btn-ghost btn-icon" onClick={() => navigate(`/events/${paramId}`)} aria-label="Back">
-            <ArrowLeft size={20} />
-          </button>
-          <div>
-            <h2 className={styles.headerTitle}>Live Board</h2>
-            <div className={styles.headerDesc}>Real-time station status</div>
+      <PageHero
+        icon={Radio}
+        title="Live Board"
+        subtitle="Real-time station status"
+        backTo={`/events/${paramId}`}
+        actions={
+          <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
+            <div className={styles.clockBadge}>
+              <Clock size={16} className={styles.clockIcon} />
+              {programTime}
+            </div>
+            <button className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => setShowAddForm(!showAddForm)}>
+              <Plus size={16} />
+              Add Station
+            </button>
           </div>
-        </div>
-        <div className={styles.headerRight}>
-          <div className={styles.clockBadge}>
-            <Clock size={16} className={styles.clockIcon} />
-            {programTime}
-          </div>
-          <button className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => setShowAddForm(!showAddForm)}>
-            <Plus size={16} />
-            Add Station
-          </button>
-        </div>
-      </div>
+        }
+      />
 
       {showAddForm && (
         <div className={styles.addForm}>

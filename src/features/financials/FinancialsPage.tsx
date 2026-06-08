@@ -1,9 +1,10 @@
 import { useEffect, useState, useRef } from 'react'
 import React from 'react'
 import { useSearchParams, useNavigate, useParams } from 'react-router-dom'
-import { Plus, Search, Wallet, Upload, FileSpreadsheet, X, AlertTriangle, Check, Pencil, Trash2, TrendingUp, ArrowLeft } from 'lucide-react'
+import { Plus, Search, Wallet, Upload, FileSpreadsheet, X, AlertTriangle, Check, Pencil, Trash2, TrendingUp } from 'lucide-react'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { Tabs } from '@/components/ui/Tabs'
+import { PageHero } from '@/components/shared/PageHero'
 import styles from './FinancialsPage.module.css'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
@@ -393,64 +394,58 @@ export function FinancialsPage() {
 
   return (
     <div>
-      <div className={styles.headerRow}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-          <button type="button" className={styles.headerBack} onClick={() => navigate(-1)} aria-label="Back">
-            <ArrowLeft size={18} />
-          </button>
-          <div>
-            <h2 className={styles.headerTitle}>Financials</h2>
-            {activeEventName && (
-              <div className={styles.activeEventName}>{activeEventName}</div>
-            )}
-          </div>
-        </div>
-        <div className={styles.toolbar}>
-          <div className={styles.searchWrap}>
-            <Search size={16} className={styles.searchIcon} />
+      <PageHero
+        icon={Wallet}
+        title="Financials"
+        subtitle={activeEventName || undefined}
+        actions={
+          <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div className={styles.searchWrap}>
+              <Search size={16} className={styles.searchIcon} />
+              <input
+                className={`input ${styles.searchInput}`}
+                placeholder="Search vendors..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <div className={styles.dropdownFilterWrap}>
+              <DropdownMenu
+                trigger={
+                  <span style={{ color: 'var(--color-text-primary)' }}>
+                    {events.find((e) => e.id === (eventId || events[0]?.id))?.name || 'All events'}
+                  </span>
+                }
+                items={events.map((e) => ({ label: e.name, value: e.id }))}
+                onSelect={(item) => { navigate(`/events/${item.value}/financials`) }}
+              />
+            </div>
             <input
-              className={`input ${styles.searchInput}`}
-              placeholder="Search vendors..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              ref={importRef}
+              type="file"
+              accept=".csv,.txt"
+              className={styles.hiddenFile}
+              onChange={(e) => {
+                const f = e.target.files?.[0]
+                if (f) { handleImportFile(f); setShowImport(true) }
+                e.target.value = ''
+              }}
             />
+            <button
+              className={`btn btn-secondary btn-sm ${styles.toolbarBtn}`}
+              onClick={() => importRef.current?.click()}
+              id="import-csv-btn"
+            >
+              <Upload size={16} />
+              Import CSV
+            </button>
+            <button className={`btn btn-primary btn-sm ${styles.toolbarBtn}`} onClick={() => setShowForm(!showForm)} id="add-entry-btn">
+              <Plus size={16} />
+              Add Entry
+            </button>
           </div>
-          <div className={styles.dropdownFilterWrap}>
-            <DropdownMenu
-              trigger={
-                <span style={{ color: 'var(--color-text-primary)' }}>
-                  {events.find((e) => e.id === (eventId || events[0]?.id))?.name || 'All events'}
-                </span>
-              }
-              items={events.map((e) => ({ label: e.name, value: e.id }))}
-              onSelect={(item) => { navigate(`/events/${item.value}/financials`) }}
-            />
-          </div>
-          <input
-            ref={importRef}
-            type="file"
-            accept=".csv,.txt"
-            className={styles.hiddenFile}
-            onChange={(e) => {
-              const f = e.target.files?.[0]
-              if (f) { handleImportFile(f); setShowImport(true) }
-              e.target.value = ''
-            }}
-          />
-          <button
-            className={`btn btn-secondary btn-sm ${styles.toolbarBtn}`}
-            onClick={() => importRef.current?.click()}
-            id="import-csv-btn"
-          >
-            <Upload size={16} />
-            Import CSV
-          </button>
-          <button className={`btn btn-primary btn-sm ${styles.toolbarBtn}`} onClick={() => setShowForm(!showForm)} id="add-entry-btn">
-            <Plus size={16} />
-            Add Entry
-          </button>
-        </div>
-      </div>
+        }
+      />
 
       <div className={styles.summaryGrid}>
         {[

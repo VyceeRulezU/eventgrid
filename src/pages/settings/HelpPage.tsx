@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { ChevronRight, Search, Book, LayoutDashboard, DollarSign, Users, Calendar, Radio, ExternalLink, FileText, MessageSquare, Shield, ArrowLeft, ListChecks } from 'lucide-react'
+import { ChevronRight, Search, Book, LayoutDashboard, DollarSign, Users, Calendar, Radio, ExternalLink, FileText, MessageSquare, Shield, ListChecks } from 'lucide-react'
+import { PageHero } from '@/components/shared/PageHero'
 import corporateImg from '@/assets/images/corporate_event_hall.png'
 import styles from './HelpPage.module.css'
 
@@ -400,30 +400,17 @@ export function HelpPage() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.hero} style={{ backgroundImage: `url(${corporateImg})` }}>
-        <div className={styles.heroOverlay} />
-        
-        <div className={styles.breadcrumbs}>
-          <Link to="/settings" className={styles.breadcrumbLink}>Settings</Link>
-          <span className={styles.breadcrumbSeparator}>&gt;</span>
-          <span className={styles.breadcrumbCurrent}>User Manual</span>
-        </div>
-
-        <div className={styles.heroContent}>
-          <div className={styles.heroIcon}>
-            <Book size={24} />
-          </div>
-          <div className={styles.heroText}>
-            <h1 className={styles.heroTitle}>User Manual</h1>
-            <p className={styles.heroSubtitle}>Everything you need to know about using EventGrid</p>
-          </div>
-          <div className={styles.heroActions}>
-            <Link to="/settings" className={styles.backBtn} aria-label="Back to settings">
-              <ArrowLeft size={18} />
-            </Link>
-          </div>
-        </div>
-      </div>
+      <PageHero
+        icon={Book}
+        title="User Manual"
+        subtitle="Everything you need to know about using EventGrid"
+        backgroundImage={corporateImg}
+        breadcrumbs={[
+          { label: 'Settings', to: '/settings' },
+          { label: 'User Manual' },
+        ]}
+        backTo="/settings"
+      />
 
       <div className={styles.searchWrap}>
         <Search size={16} className={styles.searchIcon} />
