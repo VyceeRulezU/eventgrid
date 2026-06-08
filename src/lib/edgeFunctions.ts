@@ -6,6 +6,7 @@ interface BaseInviteParams {
   event_id: string
   email: string
   invited_by_name: string
+  invited_by?: string
 }
 
 interface TeamInviteParams extends BaseInviteParams {

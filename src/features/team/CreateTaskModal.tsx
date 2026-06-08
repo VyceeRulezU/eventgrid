@@ -12,9 +12,16 @@ interface TeamMember {
   email: string
 }
 
+interface PhaseOption {
+  id: string
+  phase_number: number
+  phase_name: string
+}
+
 interface CreateTaskModalProps {
   eventId: string
   members: TeamMember[]
+  phases: PhaseOption[]
   onCreated: () => void
   onCancel: () => void
 }
@@ -24,15 +31,17 @@ const PRIORITY_LABELS: Record<string, string> = {
   low: 'Low', medium: 'Medium', high: 'High', urgent: 'Urgent',
 }
 
-export function CreateTaskModal({ eventId, members, onCreated, onCancel }: CreateTaskModalProps) {
+export function CreateTaskModal({ eventId, members, phases, onCreated, onCancel }: CreateTaskModalProps) {
   const user = useAuthStore((s) => s.user)
   const showNotification = useUIStore((s) => s.showModal)
   const [saving, setSaving] = useState(false)
   const [calendarOpen, setCalendarOpen] = useState(false)
+  const sorted = [...phases].sort((a, b) => a.phase_number - b.phase_number)
   const [form, setForm] = useState({
     title: '',
     description: '',
     assignee_id: '',
+    phase_id: '',
     due_datetime: '',
     priority: 'medium',
   })
@@ -52,6 +61,7 @@ export function CreateTaskModal({ eventId, members, onCreated, onCancel }: Creat
         title: form.title.trim(),
         description: form.description.trim() || null,
         assignee_id: form.assignee_id || null,
+        phase_id: form.phase_id || null,
         created_by: user.id,
         due_datetime: form.due_datetime || null,
         priority: form.priority,
@@ -102,6 +112,27 @@ export function CreateTaskModal({ eventId, members, onCreated, onCancel }: Creat
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
               />
             </div>
+          </div>
+
+          <div className="input-wrapper">
+            <label className="input-label">Phase</label>
+            <DropdownMenu
+              trigger={
+                <span style={{ color: form.phase_id ? 'var(--color-text-primary)' : 'var(--color-text-muted)' }}>
+                  {form.phase_id
+                    ? sorted.find((p) => p.id === form.phase_id)?.phase_name || 'Select phase'
+                    : 'No phase'}
+                </span>
+              }
+              items={[
+                { label: 'No phase', value: '' },
+                ...sorted.map((p) => ({
+                  label: `Phase ${p.phase_number}: ${p.phase_name}`,
+                  value: p.id,
+                })),
+              ]}
+              onSelect={(item) => setForm({ ...form, phase_id: item.value })}
+            />
           </div>
 
           <div className="input-wrapper">

@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
 import { TaskCard } from './TaskCard'
 import { CreateTaskModal } from './CreateTaskModal'
-import type { Task } from '@/types'
+import type { Task, EventPhase } from '@/types'
 import styles from './TaskBoard.module.css'
 
 interface TaskWithAssignee extends Task {
@@ -30,6 +30,7 @@ export function TaskBoard() {
   const { eventId, paramId } = useResolvedEventId()
   const showNotification = useUIStore((s) => s.showNotification)
   const [tasks, setTasks] = useState<TaskWithAssignee[]>([])
+  const [phases, setPhases] = useState<EventPhase[]>([])
   const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban')
   const [showCreate, setShowCreate] = useState(false)
@@ -55,7 +56,7 @@ export function TaskBoard() {
   async function loadData() {
     setLoading(true)
 
-    const [{ data: tasksData }, { data: membersData }] = await Promise.all([
+    const [{ data: tasksData }, { data: membersData }, { data: phasesData }] = await Promise.all([
       supabase
         .from('tasks')
         .select('*, assignee:profiles!tasks_assignee_id_fkey(display_name, avatar_url)')
@@ -65,6 +66,11 @@ export function TaskBoard() {
         .from('event_access')
         .select('user_id, profile:profiles!event_access_user_id_fkey(display_name, email)')
         .eq('event_id', eventId),
+      supabase
+        .from('event_phases')
+        .select('*')
+        .eq('event_id', eventId)
+        .order('phase_number'),
     ])
 
     if (tasksData) setTasks(tasksData as unknown as TaskWithAssignee[])
@@ -79,6 +85,8 @@ export function TaskBoard() {
           }))
       )
     }
+
+    if (phasesData) setPhases(phasesData as EventPhase[])
 
     setLoading(false)
   }
@@ -176,6 +184,7 @@ export function TaskBoard() {
         <CreateTaskModal
           eventId={eventId!}
           members={members}
+          phases={phases}
           onCreated={() => {
             setShowCreate(false)
             loadData()

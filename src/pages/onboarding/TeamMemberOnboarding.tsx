@@ -85,13 +85,22 @@ export function TeamMemberOnboarding() {
       return
     }
 
+    // 1b. Mark invitation as accepted
+    if (user.email) {
+      await supabase
+        .from('invitations')
+        .update({ status: 'accepted', accepted_at: new Date().toISOString() })
+        .eq('event_id', eventId)
+        .eq('email', user.email)
+    }
+
     // 2. Update profiles role and details
     const { error: profileErr } = await supabase
       .from('profiles')
       .update({
         display_name: name,
         phone: phone || null,
-        role: 'coordinator' // db role mapping
+        role: 'team_member'
       })
       .eq('id', user.id)
 
@@ -107,7 +116,7 @@ export function TeamMemberOnboarding() {
         ...profile,
         display_name: name,
         phone: phone || null,
-        role: 'coordinator'
+        role: 'team_member'
       })
     }
 
@@ -124,7 +133,7 @@ export function TeamMemberOnboarding() {
     }
 
     showToast({ type: 'success', title: 'Access granted!', body: `You've joined the team for ${eventName}.` })
-    navigate(`/events/${eventId}`)
+    navigate('/dashboard/my-tasks')
     setLoading(false)
   }
 

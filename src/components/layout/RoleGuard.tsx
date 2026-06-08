@@ -14,6 +14,9 @@ export function RoleGuard({ allowedRole, children }: RoleGuardProps) {
   if (role === 'super_admin') return <>{children}</>
 
   if (role !== allowedRole) {
+    if (role === 'team_member') {
+      return <Navigate to="/dashboard/my-tasks" replace />
+    }
     return <Navigate to={`/dashboard/${role}`} replace />
   }
 

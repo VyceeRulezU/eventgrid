@@ -1,4 +1,4 @@
-export type UserRole = 'planner' | 'coordinator' | 'vendor' | 'client' | 'super_admin'
+export type UserRole = 'planner' | 'coordinator' | 'vendor' | 'client' | 'team_member' | 'super_admin'
 
 export interface Profile {
   id: string
@@ -130,6 +130,7 @@ export interface FinancialEntry {
 export interface Task {
   id: string
   event_id: string
+  phase_id: string | null
   title: string
   description: string | null
   assignee_id: string | null
@@ -141,6 +142,15 @@ export interface Task {
   notes: string | null
   created_at: string
   updated_at: string
+}
+
+export interface TaskComment {
+  id: string
+  task_id: string
+  user_id: string
+  message: string
+  photo_urls: string[]
+  created_at: string
 }
 
 export type LiveBoardStatus = 'green' | 'yellow' | 'red' | 'grey'

@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Calendar, CircleDollarSign, Users, LayoutDashboard } from 'lucide-react'
+import { Calendar, CircleDollarSign, Users, LayoutDashboard, ListChecks } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { useEventStore } from '@/store/event.store'
 import styles from './BottomTabBar.module.css'
@@ -9,7 +9,8 @@ export function BottomTabBar() {
   const activeEvent = useEventStore((s) => s.activeEvent)
 
   const items = [
-    { to: `/dashboard/${role}`, label: 'Dashboard', icon: LayoutDashboard },
+    { to: role === 'team_member' ? '/dashboard/my-tasks' : `/dashboard/${role}`, label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/dashboard/my-tasks', label: 'My Tasks', icon: ListChecks },
     { to: '/events', label: 'Events', icon: Calendar },
   ]
 

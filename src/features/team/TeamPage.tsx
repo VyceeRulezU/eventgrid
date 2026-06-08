@@ -30,6 +30,15 @@ interface TeamReport {
   metadata: { status?: string; message?: string } | null
 }
 
+interface PendingInvitation {
+  id: string
+  email: string
+  invited_by: string | null
+  role: string
+  status: string
+  created_at: string
+}
+
 const ROLES = ['team', 'coordinator', 'planner', 'vendor']
 
 const REPORT_STATUS_OPTS = [
@@ -77,6 +86,7 @@ export function TeamPage() {
   const [inviteRole, setInviteRole] = useState('team')
   const [inviting, setInviting] = useState(false)
   const [taskCounts, setTaskCounts] = useState<Record<string, number>>({})
+  const [pendingInvitations, setPendingInvitations] = useState<PendingInvitation[]>([])
 
   /* ── Reports ── */
   const [reports, setReports] = useState<TeamReport[]>([])
@@ -94,7 +104,7 @@ export function TeamPage() {
   async function loadData() {
     setLoading(true)
 
-    const [{ data: membersData }, { data: tasksData }, { data: reportsData }] = await Promise.all([
+    const [{ data: membersData }, { data: tasksData }, { data: reportsData }, { data: invitationsData }] = await Promise.all([
       supabase
         .from('event_access')
         .select('*, profile:profiles!event_access_user_id_fkey(id, email, display_name, phone, avatar_url)')
@@ -111,10 +121,17 @@ export function TeamPage() {
         .eq('action_type', 'team_report')
         .order('created_at', { ascending: false })
         .limit(50),
+      supabase
+        .from('invitations')
+        .select('*')
+        .eq('event_id', eventId)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: true }),
     ])
 
     if (membersData) setMembers(membersData as unknown as TeamMemberRow[])
     if (reportsData) setReports(reportsData as unknown as TeamReport[])
+    if (invitationsData) setPendingInvitations(invitationsData as unknown as PendingInvitation[])
 
     const counts: Record<string, number> = {}
     if (tasksData) {
@@ -193,7 +210,8 @@ export function TeamPage() {
       type: 'team_member',
       event_id: eventId,
       email: inviteEmail.trim(),
-      invited_by_name: displayName,
+      invited_by_name: user.user_metadata?.full_name || user.email || 'A coordinator',
+      invited_by: user.id,
     })
 
     if (!success) {
@@ -288,7 +306,7 @@ export function TeamPage() {
                 </tr>
               </thead>
               <tbody>
-                {members.length === 0 ? (
+                {members.length === 0 && pendingInvitations.length === 0 ? (
                   <tr>
                     <td className={styles.td} colSpan={3}>
                       <div style={{ textAlign: 'center', padding: 'var(--space-8) var(--space-4)', color: 'var(--color-text-muted)' }}>
@@ -298,35 +316,63 @@ export function TeamPage() {
                       </div>
                     </td>
                   </tr>
-                ) : members.map((member) => (
-                  <tr key={member.id} className={styles.tr}>
-                    <td className={`${styles.td} ${styles.memberCell}`}>
-                      <div className={styles.memberInfo}>
-                        <div className={styles.avatar}>
-                          {member.profile?.display_name?.charAt(0)?.toUpperCase() || member.profile?.email?.charAt(0)?.toUpperCase() || '?'}
-                        </div>
-                        <div>
-                          <div className={styles.memberName}>{member.profile?.display_name || 'Unnamed'}</div>
-                          <div className={styles.memberEmail}>{member.profile?.email}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className={styles.td}>
-                      <span className={`badge badge-${member.role === 'coordinator' ? 'yellow' : member.role === 'planner' ? 'green' : 'grey'}`}>
-                        <span className="badge-dot" />
-                        {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
-                      </span>
-                    </td>
-                    <td className={`${styles.td} ${styles.cellCenter}`}>
-                      <span className={styles.tasksCount}>{taskCounts[member.user_id] || 0} tasks</span>
-                    </td>
-                  </tr>
-                ))}
+                ) : (
+                  <>
+                    {members.map((member) => (
+                      <tr key={member.id} className={styles.tr}>
+                        <td className={`${styles.td} ${styles.memberCell}`}>
+                          <div className={styles.memberInfo}>
+                            <div className={styles.avatar}>
+                              {member.profile?.display_name?.charAt(0)?.toUpperCase() || member.profile?.email?.charAt(0)?.toUpperCase() || '?'}
+                            </div>
+                            <div>
+                              <div className={styles.memberName}>{member.profile?.display_name || 'Unnamed'}</div>
+                              <div className={styles.memberEmail}>{member.profile?.email}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className={styles.td}>
+                          <span className={`badge badge-${member.role === 'coordinator' ? 'yellow' : member.role === 'planner' ? 'green' : 'grey'}`}>
+                            <span className="badge-dot" />
+                            {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
+                          </span>
+                        </td>
+                        <td className={`${styles.td} ${styles.cellCenter}`}>
+                          <span className={styles.tasksCount}>{taskCounts[member.user_id] || 0} tasks</span>
+                        </td>
+                      </tr>
+                    ))}
+                    {pendingInvitations.map((inv) => (
+                      <tr key={inv.id} className={styles.tr}>
+                        <td className={`${styles.td} ${styles.memberCell}`}>
+                          <div className={styles.memberInfo}>
+                            <div className={styles.avatar}>
+                              {inv.email.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <div className={styles.memberName}>{inv.email}</div>
+                              <div className={styles.memberEmail}>Invited {timeAgo(inv.created_at)}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className={styles.td}>
+                          <span className="badge badge-grey">
+                            <span className="badge-dot" />
+                            Pending
+                          </span>
+                        </td>
+                        <td className={`${styles.td} ${styles.cellCenter}`}>
+                          <span className={styles.tasksCount}>&mdash;</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </>
+                )}
               </tbody>
             </table>
           </div>
           <div className={styles.tableFooter}>
-            <span>Showing {members.length} member{members.length !== 1 ? 's' : ''}</span>
+            <span>Showing {members.length + pendingInvitations.length} member{(members.length + pendingInvitations.length) !== 1 ? 's' : ''}</span>
           </div>
         </div>
       )}

@@ -11,6 +11,7 @@ import {
   CreditCard, ShieldCheck, Radio, ListChecks, MapPin, BarChart3,
   Clock, ArrowRight, Zap, X, Pencil,
 } from 'lucide-react'
+import { PageHero } from '@/components/shared/PageHero'
 import { GeneratePortalModal } from '@/features/client-portal/GeneratePortalModal'
 import { EditEventModal } from '@/features/events/EditEventModal'
 import { Tabs } from '@/components/ui/Tabs'
@@ -119,6 +120,7 @@ export function EventDashboardPage() {
   const [showEditModal, setShowEditModal] = useState(false)
   const [autoCloseIn, setAutoCloseIn] = useState<number | null>(null)
   const [togglingPhase, setTogglingPhase] = useState<string | null>(null)
+  const [taskCounts, setTaskCounts] = useState<Record<string, { total: number; done: number }>>({})
   const [deadlinePage, setDeadlinePage] = useState(1)
   const [activityPage, setActivityPage] = useState(1)
   const [deadlines, setDeadlines] = useState<DeadlineItem[]>([])
@@ -195,6 +197,23 @@ export function EventDashboardPage() {
         .order('phase_number', { ascending: true })
 
       if (!cancelled && phaseData) setPhases(phaseData as unknown as EventPhase[])
+
+      /* task counts per phase */
+      const { data: taskPhaseCounts } = await supabase
+        .from('tasks')
+        .select('phase_id, status')
+        .eq('event_id', event.id)
+        .not('phase_id', 'is', null)
+      if (taskPhaseCounts) {
+        const counts: Record<string, { total: number; done: number }> = {}
+        for (const t of taskPhaseCounts) {
+          if (!t.phase_id) continue
+          if (!counts[t.phase_id]) counts[t.phase_id] = { total: 0, done: 0 }
+          counts[t.phase_id].total++
+          if (t.status === 'done') counts[t.phase_id].done++
+        }
+        if (!cancelled) setTaskCounts(counts)
+      }
 
       const { count: vendorCount } = await supabase
         .from('event_vendors').select('id', { count: 'exact' }).eq('event_id', event.id)
@@ -285,30 +304,31 @@ export function EventDashboardPage() {
   }, [id, user, setActiveEvent, setPhases])
 
   const togglePhaseStatus = async (phase: EventPhase) => {
-    const newStatus = phase.status === 'completed' ? 'in_progress' : 'completed'
+    const completing = phase.status !== 'completed'
     setTogglingPhase(phase.id)
 
-    const { error: updateErr } = await supabase
-      .from('event_phases')
-      .update({ status: newStatus, completed_at: newStatus === 'completed' ? new Date().toISOString() : null })
-      .eq('id', phase.id)
-
-    if (updateErr) {
-      showNotification({ variant: 'error', title: 'Failed to update phase', message: updateErr.message })
-      setTogglingPhase(null)
-      return
+    if (completing) {
+      const { error } = await supabase.rpc('manually_complete_phase', { p_phase_id: phase.id })
+      if (error) {
+        showNotification({ variant: 'error', title: 'Failed to complete phase', message: error.message })
+        setTogglingPhase(null)
+        return
+      }
+    } else {
+      const { error } = await supabase.rpc('reopen_phase', { p_phase_id: phase.id })
+      if (error) {
+        showNotification({ variant: 'error', title: 'Failed to reopen phase', message: error.message })
+        setTogglingPhase(null)
+        return
+      }
     }
 
-    setPhases(phases.map((p) =>
-      p.id === phase.id
-        ? { ...p, status: newStatus, completed_at: newStatus === 'completed' ? new Date().toISOString() : null }
-        : p
-    ))
     showNotification({
       variant: 'success',
-      title: newStatus === 'completed' ? `"${phase.phase_name}" marked complete` : `"${phase.phase_name}" reopened`,
+      title: completing ? `"${phase.phase_name}" marked complete` : `"${phase.phase_name}" reopened`,
     })
     setTogglingPhase(null)
+    window.location.reload()
   }
 
   const handleEventSaved = (updated: Partial<Event>) => {
@@ -601,92 +621,51 @@ export function EventDashboardPage() {
     <div className={styles.page}>
 
       {/* ── 1. Command Header ── */}
-      <div className={styles.commandHeader}>
-        {/* Row 1: back · title · countdown */}
-        <div className={styles.headerRow1}>
-          <button type="button" className={styles.headerBack} onClick={() => navigate('/events')} aria-label="Back to events">
-            <ArrowLeft size={18} />
-          </button>
-
-          <div className={styles.headerTitle}>
-            <h1 className={styles.headerName}>
-              {activeEvent.name}
-              {activeEvent.event_type && (
-                <span className={styles.headerType}> | {activeEvent.event_type}</span>
-              )}
-            </h1>
+      <PageHero
+        icon={Calendar}
+        title={activeEvent.name}
+        subtitle={[
+          activeEvent.event_type,
+          eventDateLabel,
+          activeEvent.venue_name,
+          activeEvent.guest_count ? `${activeEvent.guest_count.toLocaleString()} guests` : null,
+        ].filter(Boolean).join(' · ')}
+        backTo="/events"
+        actions={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
             <button type="button" className={styles.headerEditBtn} onClick={() => setShowEditModal(true)} aria-label="Edit event">
               <Pencil size={14} />
             </button>
-            <span className={`badge badge-${statusBadge}`} style={{ marginLeft: 'var(--space-2)' }}>
+            <span className={`badge badge-${statusBadge}`}>
               <span className="badge-dot" />
               {activeEvent.status.replace('_', ' ')}
             </span>
             {activeEvent.payment_status === 'unpaid' && (
-              <span className="badge" style={{ marginLeft: 'var(--space-1)', border: '1px solid var(--color-warning)', background: 'var(--color-warning-bg)', color: 'var(--color-warning)', fontWeight: 600 }}>
+              <span className="badge" style={{ border: '1px solid var(--color-warning)', background: 'var(--color-warning-bg)', color: 'var(--color-warning)', fontWeight: 600 }}>
                 ⚡ Unpaid
               </span>
             )}
             {activeEvent.payment_status === 'paid' && (
-              <span className="badge" style={{ marginLeft: 'var(--space-1)', background: 'var(--color-success-bg)', color: 'var(--color-success)', fontWeight: 600 }}>
+              <span className="badge" style={{ background: 'var(--color-success-bg)', color: 'var(--color-success)', fontWeight: 600 }}>
                 ✓ Paid
               </span>
             )}
-            <span className="badge badge-medium" style={{ marginLeft: 'var(--space-1)' }}>Phase {activeEvent.current_phase} / 9</span>
-          </div>
-
-          {countdown && !countdown.past && (
-            <div className={styles.countdown}>
-              <div className={styles.countdownItem}>
-                <span className={styles.countdownNum}>{countdown.days}</span>
-                <span className={styles.countdownLabel}>days</span>
-              </div>
-              <span className={styles.countdownSep}>:</span>
-              <div className={styles.countdownItem}>
-                <span className={styles.countdownNum}>{String(countdown.hours).padStart(2, '0')}</span>
-                <span className={styles.countdownLabel}>hrs</span>
-              </div>
-              <span className={styles.countdownSep}>:</span>
-              <div className={styles.countdownItem}>
-                <span className={styles.countdownNum}>{String(countdown.minutes).padStart(2, '0')}</span>
-                <span className={styles.countdownLabel}>min</span>
-              </div>
-            </div>
-          )}
-          {countdown?.past && (
-            <div className={styles.countdown}>
-              <span className={styles.countdownPast}>Event has passed</span>
-            </div>
-          )}
-        </div>
-
-        {/* Row 2: meta · actions */}
-        <div className={styles.headerRow2}>
-          <div className={styles.headerMeta}>
-            {eventDateLabel && (
-              <span className={styles.headerMetaItem}>
-                <Calendar size={11} /> {eventDateLabel}
+            <span className="badge badge-medium">Phase {activeEvent.current_phase} / 9</span>
+            {countdown && !countdown.past && (
+              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Clock size={12} />
+                {countdown.days}d {String(countdown.hours).padStart(2, '0')}h {String(countdown.minutes).padStart(2, '0')}m
               </span>
             )}
-            {activeEvent.venue_name && (
-              <span className={styles.headerMetaItem}>
-                <MapPin size={11} /> {activeEvent.venue_name}
-              </span>
+            {countdown?.past && (
+              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>Event has passed</span>
             )}
-            {activeEvent.guest_count ? (
-              <span className={styles.headerMetaItem}>
-                <Users size={11} /> {activeEvent.guest_count.toLocaleString()} guests
-              </span>
-            ) : null}
-          </div>
-
-          <div className={styles.headerActions}>
             <button type="button" className="btn btn-secondary btn-sm" onClick={() => setPortalOpen(true)}>
-              <ExternalLink size={14} /> Client Portal
+              <ExternalLink size={14} /> Portal
             </button>
           </div>
-        </div>
-      </div>
+        }
+      />
 
       {/* ── 2. Next Step Context Alert Card ── */}
       {renderNextStepCard()}
@@ -1045,7 +1024,6 @@ export function EventDashboardPage() {
             {phases.map((phase) => {
               const isCompleted = phase.status === 'completed'
               const isToggling = togglingPhase === phase.id
-              const phaseRoute = getPhaseRoute(phase.phase_number, id!)
               
               let cardClass = styles.phaseCard
               if (isCompleted) cardClass += ` ${styles.phaseCardCompleted}`
@@ -1086,9 +1064,34 @@ export function EventDashboardPage() {
                       </span>
                     )}
                   </div>
+
+                  {taskCounts[phase.id] && (
+                    <div style={{ marginTop: 'var(--space-2)' }}>
+                      <div style={{
+                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                        fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', marginBottom: 4,
+                      }}>
+                        <span>Tasks</span>
+                        <span>{taskCounts[phase.id].done}/{taskCounts[phase.id].total} done</span>
+                      </div>
+                      {taskCounts[phase.id].total > 0 && (
+                        <div style={{
+                          height: 4, background: 'var(--color-surface-3)', borderRadius: 2, overflow: 'hidden',
+                        }}>
+                          <div style={{
+                            width: `${Math.round((taskCounts[phase.id].done / taskCounts[phase.id].total) * 100)}%`,
+                            height: '100%',
+                            background: taskCounts[phase.id].done === taskCounts[phase.id].total
+                              ? 'var(--color-success)' : 'var(--color-accent)',
+                            borderRadius: 2, transition: 'width 0.3s ease',
+                          }} />
+                        </div>
+                      )}
+                    </div>
+                  )}
                   
                   <div className={styles.phaseCardFooter}>
-                    <Link to={phaseRoute} className={styles.phaseCardLink}>
+                    <Link to={`/events/${id}/tasks?phase=${phase.phase_number}`} className={styles.phaseCardLink}>
                       Manage Deliverables <ArrowRight size={12} />
                     </Link>
                   </div>

@@ -365,6 +365,7 @@ export interface Database {
         Row: {
           id: string
           event_id: string
+          phase_id: string | null
           title: string
           description: string | null
           assignee_id: string | null
@@ -380,6 +381,7 @@ export interface Database {
         Insert: {
           id?: string
           event_id: string
+          phase_id?: string | null
           title: string
           description?: string | null
           assignee_id?: string | null
@@ -393,6 +395,7 @@ export interface Database {
         Update: {
           id?: string
           event_id?: string
+          phase_id?: string | null
           title?: string
           description?: string | null
           assignee_id?: string | null
@@ -402,6 +405,30 @@ export interface Database {
           status?: string
           completed_at?: string | null
           notes?: string | null
+        }
+      }
+      task_comments: {
+        Row: {
+          id: string
+          task_id: string
+          user_id: string
+          message: string
+          photo_urls: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          task_id: string
+          user_id: string
+          message: string
+          photo_urls?: string
+        }
+        Update: {
+          id?: string
+          task_id?: string
+          user_id?: string
+          message?: string
+          photo_urls?: string
         }
       }
       seating_tables: {
@@ -714,7 +741,16 @@ export interface Database {
       }
     }
     Views: Record<string, never>
-    Functions: Record<string, never>
+    Functions: {
+      manually_complete_phase: {
+        Args: { p_phase_id: string }
+        Returns: undefined
+      }
+      reopen_phase: {
+        Args: { p_phase_id: string }
+        Returns: undefined
+      }
+    }
     Enums: Record<string, never>
   }
 }

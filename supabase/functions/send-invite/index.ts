@@ -16,7 +16,13 @@ const corsHeaders = {
 
 // ── Shared email shell ──────────────────────────────────────────────────────
 
-const HERO_IMAGE = APP_URL + '/emails/corporate_event_hall.png'
+const isProdPlaceholder = APP_URL.includes('eventgrid.ng')
+const HERO_IMAGE = isProdPlaceholder
+  ? 'https://menmpyyrqevonepbpfai.supabase.co/storage/v1/object/public/org-assets/emails/corporate_event_hall.png'
+  : APP_URL + '/emails/corporate_event_hall.png'
+const LOGO_IMAGE = isProdPlaceholder
+  ? 'https://menmpyyrqevonepbpfai.supabase.co/storage/v1/object/public/org-assets/EventGrid-logo-white.svg'
+  : APP_URL + '/EventGrid-logo-white.svg'
 
 function emailShell(title: string, bodyHtml: string): string {
   return `<!DOCTYPE html>
@@ -44,7 +50,7 @@ function emailShell(title: string, bodyHtml: string): string {
                 <table cellpadding="0" cellspacing="0" style="margin:0 auto 18px;">
                   <tr><td style="width:44px;height:3px;background-color:#D4A017;border-radius:2px;"></td></tr>
                 </table>
-                <img src="${APP_URL}/EventGrid-logo-white.svg" alt="EventGrid" style="max-width:180px;height:auto;display:block;margin:0 auto;" />
+                <img src="${LOGO_IMAGE}" alt="EventGrid" style="max-width:180px;height:auto;display:block;margin:0 auto;" />
               </div>
             </td>
           </tr>
@@ -55,7 +61,7 @@ function emailShell(title: string, bodyHtml: string): string {
           </tr>
           <tr>
             <td style="padding:24px 32px;border-top:1px solid #2a3a4e;background-color:#141e2a;text-align:center;">
-              <img src="${APP_URL}/EventGrid-logo-white.svg" alt="EventGrid" style="max-width:120px;height:auto;display:block;margin:0 auto 16px;" />
+              <img src="${LOGO_IMAGE}" alt="EventGrid" style="max-width:120px;height:auto;display:block;margin:0 auto 16px;" />
               <p style="margin:0 0 4px;font-size:12px;color:#6B7280;line-height:1.6;">EventGrid &mdash; Software for Event Pros</p>
               <p style="margin:0;font-size:11px;color:#4B5563;line-height:1.6;">This email was sent to you because you have an account on <a href="${APP_URL}" style="color:#D4A017;text-decoration:none;font-weight:600;">eventgrid.ng</a>.</p>
               <p style="margin:8px 0 0;font-size:11px;color:#4B5563;">&copy; 2026 EventGrid. All rights reserved.</p>
@@ -231,6 +237,7 @@ Deno.serve(async (req) => {
       email,
       event_id,
       invited_by_name,
+      invited_by,
       org_id,         // coordinator_invite specific
       org_name,       // coordinator_invite specific
       // admin_monitor specific
@@ -262,14 +269,17 @@ Deno.serve(async (req) => {
 
     let event: { name: string; event_date: string | null } | null = null
     if (event_id) {
+      console.log('Fetching event with id:', event_id)
       const { data, error: eventError } = await supabaseAdmin
         .from('events')
         .select('name, event_date')
         .eq('id', event_id)
         .single()
       if (eventError || !data) {
+        console.error('Event query failed:', eventError, 'Data:', data)
+        const detail = eventError ? `(${eventError.message})` : '(No rows returned)'
         return new Response(
-          JSON.stringify({ error: 'Event not found' }),
+          JSON.stringify({ error: `Event not found ${detail}` }),
           { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
@@ -494,6 +504,16 @@ Deno.serve(async (req) => {
         JSON.stringify({ error: emailResult.error ?? 'Failed to send email' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
+    }
+
+    if (type === 'team_member' && event_id) {
+      await supabaseAdmin.from('invitations').upsert({
+        event_id,
+        email,
+        invited_by: invited_by || null,
+        role: 'team_member',
+        status: 'pending',
+      }, { onConflict: 'event_id,email' }).maybeSingle()
     }
 
     return new Response(
