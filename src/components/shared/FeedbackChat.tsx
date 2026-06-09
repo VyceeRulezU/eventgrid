@@ -89,18 +89,14 @@ export function FeedbackChat({ mode = 'user', initialFeedbackId }: { mode: 'admi
     async function load() {
       let query = supabase
         .from('feedback')
-        .select('*, profiles(display_name, avatar_url)')
+        .select('*')
         .order('last_message_at', { ascending: false })
 
       if (mode === 'user') query = query.eq('user_id', user!.id)
 
       const { data } = await query
       if (data) {
-        setConversations(data.map((d: Record<string, unknown>) => ({
-          ...d,
-          display_name: (d.profiles as Record<string, unknown> | null)?.['display_name' as keyof object] as string | null,
-          avatar_url: (d.profiles as Record<string, unknown> | null)?.['avatar_url' as keyof object] as string | null,
-        })) as FeedbackWithProfile[])
+        setConversations(data as FeedbackWithProfile[])
         if (initialFeedbackId && !selectedId) setSelectedId(initialFeedbackId)
         else if (!selectedId && data.length > 0) setSelectedId(data[0].id)
       }
@@ -113,15 +109,12 @@ export function FeedbackChat({ mode = 'user', initialFeedbackId }: { mode: 'admi
     if (!selectedId) return
     supabase
       .from('feedback_messages')
-      .select('*, profiles(display_name)')
+      .select('*')
       .eq('feedback_id', selectedId)
       .order('created_at', { ascending: true })
       .then(({ data }) => {
         if (data) {
-          setMessages(data.map((d: Record<string, unknown>) => ({
-            ...d,
-            sender_name: (d.profiles as Record<string, unknown> | null)?.['display_name' as keyof object] as string | null,
-          })) as FeedbackMessage[])
+          setMessages(data as FeedbackMessage[])
         }
       })
   }, [selectedId])
@@ -196,10 +189,25 @@ export function FeedbackChat({ mode = 'user', initialFeedbackId }: { mode: 'admi
       showNotification({ variant: 'error', title: 'Failed to send', message: error.message })
       return
     }
+
+    if (mode === 'admin') {
+      const fb = conversations.find((c) => c.id === selectedId)
+      if (fb) {
+        try {
+          await supabase.from('notifications').insert({
+            user_id: fb.user_id,
+            type: 'feedback_reply',
+            title: `Reply: ${fb.subject}`,
+            body: newMessage.trim().substring(0, 200),
+          })
+        } catch { /* notification is non-critical */ }
+      }
+    }
+
     setNewMessage('')
     setAttachment(null)
     if (fileInputRef.current) fileInputRef.current.value = ''
-  }, [newMessage, attachment, selectedId, user, mode, showNotification])
+  }, [newMessage, attachment, selectedId, user, mode, showNotification, conversations])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -259,39 +267,36 @@ export function FeedbackChat({ mode = 'user', initialFeedbackId }: { mode: 'admi
 
       <div className={styles.messagesArea}>
         {(() => {
-          const displayMessages = messages.length > 0 ? messages
-            : selectedConv
-              ? [
-                  {
-                    id: `${selectedConv.id}-original`,
-                    feedback_id: selectedConv.id,
-                    sender_id: selectedConv.user_id,
-                    sender_role: selectedConv.user_role,
-                    message: selectedConv.message,
-                    attachment_url: null,
-                    attachment_name: null,
-                    created_at: selectedConv.created_at,
-                    sender_name: selectedConv.display_name || selectedConv.user_email,
-                  },
-                  ...(selectedConv.admin_reply && selectedConv.replied_by
-                    ? [{
-                        id: `${selectedConv.id}-legacy`,
-                        feedback_id: selectedConv.id,
-                        sender_id: selectedConv.replied_by,
-                        sender_role: 'super_admin' as const,
-                        message: selectedConv.admin_reply,
-                        attachment_url: null,
-                        attachment_name: null,
-                        created_at: selectedConv.replied_at || selectedConv.created_at,
-                        sender_name: 'Admin',
-                      }]
-                    : []),
-                ]
+          if (!selectedConv) return <div className={styles.emptyChat}>Select a conversation</div>
+
+          const originalMsg = {
+            id: `${selectedConv.id}-original`,
+            feedback_id: selectedConv.id,
+            sender_id: selectedConv.user_id,
+            sender_role: selectedConv.user_role,
+            message: selectedConv.message,
+            attachment_url: null,
+            attachment_name: null,
+            created_at: selectedConv.created_at,
+            sender_name: selectedConv.display_name || selectedConv.user_email,
+          }
+
+          const restMessages = messages.length > 0 ? messages
+            : selectedConv.admin_reply && selectedConv.replied_by
+              ? [{
+                  id: `${selectedConv.id}-legacy`,
+                  feedback_id: selectedConv.id,
+                  sender_id: selectedConv.replied_by,
+                  sender_role: 'super_admin' as const,
+                  message: selectedConv.admin_reply,
+                  attachment_url: null,
+                  attachment_name: null,
+                  created_at: selectedConv.replied_at || selectedConv.created_at,
+                  sender_name: 'Admin',
+                }]
               : []
 
-          if (displayMessages.length === 0) {
-            return <div className={styles.emptyMessages}>No messages yet. Start the conversation.</div>
-          }
+          const displayMessages = [originalMsg, ...restMessages]
 
           return displayMessages.map((msg) => {
             const isMe = msg.sender_id === user?.id

@@ -16,6 +16,7 @@ import { LandingPage } from '@/pages/landing/LandingPage'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
 import { VerifyEmailPage } from '@/pages/auth/VerifyEmailPage'
+import NotFoundPage from '@/pages/error/NotFoundPage'
 import { PlannerOnboarding } from '@/pages/onboarding/PlannerOnboarding'
 import { CoordinatorOnboarding } from '@/pages/onboarding/CoordinatorOnboarding'
 import { TeamMemberOnboarding } from '@/pages/onboarding/TeamMemberOnboarding'
@@ -404,7 +405,7 @@ export function App() {
           } />
         </Route>
 
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
         <NotificationsDrawer />
       </BrowserRouter>

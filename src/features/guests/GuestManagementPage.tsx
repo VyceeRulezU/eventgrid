@@ -214,6 +214,7 @@ export function GuestManagementPage() {
   }
 
   return (
+    <div className={styles.pageWrapper}>
     <div className={styles.page}>
       <PageHero
         icon={Users}
@@ -563,6 +564,7 @@ export function GuestManagementPage() {
           </div>
         </div>
       )}
+    </div>
     </div>
   )
 }

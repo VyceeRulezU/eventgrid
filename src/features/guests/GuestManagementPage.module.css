@@ -7,6 +7,13 @@
   min-height: 0;
 }
 
+.pageWrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
 .header {
   display: flex;
   align-items: center;
