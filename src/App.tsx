@@ -64,8 +64,8 @@ function AuthGate() {
   }
 
   if (!user) return <Navigate to="/home" replace />
-  const dashboardRole = role || (user?.user_metadata?.role as string) || 'planner'
-  return <Navigate to={`/dashboard/${dashboardRole}`} replace />
+  const r = role || (user?.user_metadata?.role as string) || 'planner'
+  return <Navigate to={r === 'super_admin' ? '/admin' : `/dashboard/${r}`} replace />
 }
 
 function SetupNotice() {
@@ -340,9 +340,6 @@ export function App() {
             } />
             <Route path="/dashboard/client" element={
               <RoleGuard allowedRole="client"><ClientDashboard /></RoleGuard>
-            } />
-            <Route path="/dashboard/super_admin" element={
-              <RoleGuard allowedRole="super_admin"><SuperAdminDashboard /></RoleGuard>
             } />
             <Route path="/dashboard/my-tasks" element={
               <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>

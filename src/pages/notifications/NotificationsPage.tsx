@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Bell, CheckCheck, ArrowLeft } from 'lucide-react'
+import { Bell, CheckCheck } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth.store'
 import { getNotifications, markAsRead, markAllAsRead, navigateFromNotification } from '@/lib/notifications'
+import { PageHero } from '@/components/shared/PageHero'
 import type { Notification } from '@/types'
 
 export function NotificationsPage() {
@@ -38,31 +39,19 @@ export function NotificationsPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-6)', flexWrap: 'wrap', gap: 'var(--space-3)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-          <button className="btn btn-ghost btn-icon" onClick={() => navigate(-1)} aria-label="Back">
-            <ArrowLeft size={20} />
-          </button>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 2 }}>
-              <Bell size={20} style={{ color: 'var(--color-accent)' }} />
-              <h2 style={{ margin: 0 }}>Notifications</h2>
-              {unreadCount > 0 && (
-                <span className="badge badge-accent" style={{ fontSize: 11 }}>{unreadCount} new</span>
-              )}
-            </div>
-            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', margin: 0 }}>
-              All communications and alerts
-            </p>
-          </div>
-        </div>
-        {unreadCount > 0 && (
-          <button className="btn btn-secondary btn-sm" onClick={handleMarkAllRead}>
-            <CheckCheck size={14} />
-            Mark All Read
-          </button>
-        )}
-      </div>
+      <PageHero
+        icon={Bell}
+        title="Notifications"
+        subtitle="All communications and alerts"
+        actions={
+          unreadCount > 0 && (
+            <button className="btn btn-secondary btn-sm" onClick={handleMarkAllRead}>
+              <CheckCheck size={14} />
+              Mark All Read
+            </button>
+          )
+        }
+      />
 
       {loading ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
