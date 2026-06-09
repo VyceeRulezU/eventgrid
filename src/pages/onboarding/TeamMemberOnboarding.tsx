@@ -125,7 +125,7 @@ export function TeamMemberOnboarding() {
         ...profile,
         display_name: name,
         phone: phone || null,
-        role: inviteRole
+        role: inviteRole as import('@/types').UserRole
       })
     }
 

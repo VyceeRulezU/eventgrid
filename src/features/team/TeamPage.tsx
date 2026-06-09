@@ -91,7 +91,6 @@ export function TeamPage() {
   const [inviteRole, setInviteRole] = useState('team_member')
   const [inviting, setInviting] = useState(false)
   const [addingExisting, setAddingExisting] = useState<string | null>(null)
-  const [existingCandidates, setExistingCandidates] = useState<(Profile & { event_name?: string })[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<Profile[]>([])
   const [searching, setSearching] = useState(false)
@@ -115,7 +114,8 @@ export function TeamPage() {
   async function loadData() {
     setLoading(true)
 
-    const [{ data: membersData }, { data: tasksData }, { data: reportsData }, { data: invitationsData }, { data: eventData }] = await Promise.all([
+    try {
+      const [{ data: membersData }, { data: tasksData }, { data: reportsData }, { data: invitationsData }] = await Promise.all([
       supabase
         .from('event_access')
         .select('*, profile:profiles!event_access_user_id_fkey(id, email, display_name, phone, avatar_url)')
@@ -138,11 +138,6 @@ export function TeamPage() {
         .eq('event_id', eventId)
         .eq('status', 'pending')
         .order('created_at', { ascending: true }),
-      supabase
-        .from('events')
-        .select('org_id')
-        .eq('id', eventId)
-        .single(),
     ])
 
     if (membersData) setMembers(membersData as unknown as TeamMemberRow[])
@@ -158,6 +153,9 @@ export function TeamPage() {
       }
     }
     setTaskCounts(counts)
+    } catch (err) {
+      console.error('Failed to load team data:', err)
+    }
 
     setLoading(false)
   }
@@ -249,18 +247,23 @@ export function TeamPage() {
   async function handleAddExisting(userId: string) {
     if (!eventId || !userId) return
     setAddingExisting(userId)
-    const { error } = await supabase
-      .from('event_access')
-      .upsert({ event_id: eventId, user_id: userId, role: inviteRole, accepted_at: new Date().toISOString() }, { onConflict: 'event_id,user_id' })
-    if (error) {
-      showNotification({ variant: 'error', title: 'Failed to add member', message: error.message })
-    } else {
-      showNotification({ variant: 'success', title: 'Member added', message: 'Team member has been added to this event.' })
-      setShowInvite(false)
-      setSearchQuery('')
-      setSearchResults([])
-      setShowEmailForm(false)
-      loadData()
+    try {
+      const { error } = await supabase
+        .from('event_access')
+        .upsert({ event_id: eventId, user_id: userId, role: inviteRole, accepted_at: new Date().toISOString() }, { onConflict: 'event_id,user_id' })
+      if (error) {
+        showNotification({ variant: 'error', title: 'Failed to add member', message: error.message })
+      } else {
+        showNotification({ variant: 'success', title: 'Member added', message: 'Team member has been added to this event.' })
+        setShowInvite(false)
+        setSearchQuery('')
+        setSearchResults([])
+        setShowEmailForm(false)
+        loadData()
+      }
+    } catch (err) {
+      showNotification({ variant: 'error', title: 'Failed to add member', message: 'An unexpected error occurred.' })
+      console.error('Add member error:', err)
     }
     setAddingExisting(null)
   }
@@ -270,13 +273,17 @@ export function TeamPage() {
     if (!query.trim()) { setSearchResults([]); return }
     setSearching(true)
     const existingIds = new Set(members.map(m => m.user_id).filter(Boolean))
-    const { data } = await supabase
-      .from('profiles')
-      .select('id, email, display_name, phone, avatar_url')
-      .or(`email.ilike.%${query}%,display_name.ilike.%${query}%`)
-      .limit(20)
-    if (data) {
-      setSearchResults(data.filter(p => !existingIds.has(p.id)) as Profile[])
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, email, display_name, phone, avatar_url')
+        .or(`email.ilike.%${query}%,display_name.ilike.%${query}%`)
+        .limit(20)
+      if (data) {
+        setSearchResults(data.filter(p => !existingIds.has(p.id)) as Profile[])
+      }
+    } catch (err) {
+      console.error('Failed to search users:', err)
     }
     setSearching(false)
   }
@@ -310,7 +317,7 @@ export function TeamPage() {
               </button>
             )}
             {(role === 'planner' || role === 'coordinator') && (
-              <button className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => { setShowExistingDirectory(true); setShowInvite(true) }}>
+              <button className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => setShowInvite(true)}>
                 <UserPlus size={14} />
                 Add Member
               </button>
