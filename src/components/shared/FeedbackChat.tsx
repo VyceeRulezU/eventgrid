@@ -7,6 +7,7 @@ import {
   Send, Paperclip, ArrowLeft, FileText, X, Loader2,
 } from 'lucide-react'
 import type { Feedback as FeedbackType } from '@/types'
+import styles from './FeedbackChat.module.css'
 
 interface FeedbackMessage {
   id: string
@@ -54,6 +55,10 @@ function timeAgo(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
 }
 
+function storageUrl(path: string) {
+  return `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/media/${path}`
+}
+
 export function FeedbackChat({ mode = 'user', initialFeedbackId }: { mode: 'admin' | 'user'; initialFeedbackId?: string }) {
   const user = useAuthStore((s) => s.user)
   const showNotification = useUIStore((s) => s.showNotification)
@@ -69,6 +74,7 @@ export function FeedbackChat({ mode = 'user', initialFeedbackId }: { mode: 'admi
   const [attachment, setAttachment] = useState<{ file: File; preview: string } | null>(null)
   const [uploading, setUploading] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [showMobileList, setShowMobileList] = useState(true)
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 767px)')
@@ -78,15 +84,12 @@ export function FeedbackChat({ mode = 'user', initialFeedbackId }: { mode: 'admi
     return () => mq.removeEventListener('change', handler)
   }, [])
 
-  const [showMobileList, setShowMobileList] = useState(true)
-
-  // Fetch conversations
   useEffect(() => {
     if (!user) return
     async function load() {
       let query = supabase
         .from('feedback')
-        .select('*, profiles!inner(display_name, avatar_url)')
+        .select('*, profiles(display_name, avatar_url)')
         .order('last_message_at', { ascending: false })
 
       if (mode === 'user') query = query.eq('user_id', user!.id)
@@ -106,12 +109,11 @@ export function FeedbackChat({ mode = 'user', initialFeedbackId }: { mode: 'admi
     load()
   }, [user, mode])
 
-  // Fetch messages for selected conversation
   useEffect(() => {
     if (!selectedId) return
     supabase
       .from('feedback_messages')
-      .select('*, profiles!inner(display_name)')
+      .select('*, profiles(display_name)')
       .eq('feedback_id', selectedId)
       .order('created_at', { ascending: true })
       .then(({ data }) => {
@@ -124,7 +126,6 @@ export function FeedbackChat({ mode = 'user', initialFeedbackId }: { mode: 'admi
       })
   }, [selectedId])
 
-  // Realtime for new messages
   useEffect(() => {
     if (!selectedId) return
     const channel = supabase
@@ -143,12 +144,10 @@ export function FeedbackChat({ mode = 'user', initialFeedbackId }: { mode: 'admi
     return () => { supabase.removeChannel(channel) }
   }, [selectedId])
 
-  // Scroll to bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // Update last_message_at of conversation when new msg arrives
   useEffect(() => {
     if (messages.length === 0) return
     const last = messages[messages.length - 1]
@@ -223,104 +222,100 @@ export function FeedbackChat({ mode = 'user', initialFeedbackId }: { mode: 'admi
   const selectedConv = conversations.find((c) => c.id === selectedId)
 
   const chatView = (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* Header */}
+    <div className={styles.chatInner}>
       {selectedConv && (
-        <div style={{
-          padding: 'var(--space-3) var(--space-4)',
-          borderBottom: '1px solid var(--color-border-subtle)',
-          display: 'flex', alignItems: 'center', gap: 'var(--space-3)',
-          flexShrink: 0,
-        }}>
+        <div className={styles.chatHeader}>
           {isMobile && (
             <button className="btn btn-ghost btn-icon" onClick={() => setShowMobileList(true)} aria-label="Back">
               <ArrowLeft size={18} />
             </button>
           )}
-          <div style={{
-            width: 36, height: 36, borderRadius: 10,
-            background: `${(TYPE_CONFIG[selectedConv.type] || TYPE_CONFIG.other).color}15`,
-            color: (TYPE_CONFIG[selectedConv.type] || TYPE_CONFIG.other).color,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-          }}>
+          <div
+            className={styles.chatHeaderIcon}
+            style={{
+              background: `${(TYPE_CONFIG[selectedConv.type] || TYPE_CONFIG.other).color}15`,
+              color: (TYPE_CONFIG[selectedConv.type] || TYPE_CONFIG.other).color,
+            }}
+          >
             {(() => { const Icon = (TYPE_CONFIG[selectedConv.type] || TYPE_CONFIG.other).icon; return <Icon size={16} /> })()}
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {selectedConv.subject}
-            </div>
-            <div style={{ fontSize: 10, color: 'var(--color-text-muted)' }}>
+          <div className={styles.chatHeaderInfo}>
+            <div className={styles.chatHeaderSubject}>{selectedConv.subject}</div>
+            <div className={styles.chatHeaderMeta}>
               {selectedConv.display_name || selectedConv.user_email} &middot; {(TYPE_CONFIG[selectedConv.type] || TYPE_CONFIG.other).label}
             </div>
           </div>
-          <span style={{
-            fontSize: 9, padding: '2px 8px', borderRadius: 'var(--radius-full)',
-            background: `${STATUS_STYLES[selectedConv.status]?.bg || 'rgba(156,163,175,0.12)'}`,
-            color: STATUS_STYLES[selectedConv.status]?.color || '#9ca3af',
-            fontWeight: 700, textTransform: 'uppercase',
-          }}>
+          <span
+            className={styles.chatStatus}
+            style={{
+              background: `${STATUS_STYLES[selectedConv.status]?.bg || 'rgba(156,163,175,0.12)'}`,
+              color: STATUS_STYLES[selectedConv.status]?.color || '#9ca3af',
+            }}
+          >
             {selectedConv.status === 'in_review' ? 'In Review' : selectedConv.status}
           </span>
         </div>
       )}
 
-      {/* Messages */}
-      <div style={{
-        flex: 1, overflowY: 'auto', padding: 'var(--space-3) var(--space-4)',
-        display: 'flex', flexDirection: 'column', gap: 'var(--space-2)',
-      }}>
-        {messages.length === 0 ? (
-          <div style={{
-            flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)',
-          }}>
-            No messages yet. Start the conversation.
-          </div>
-        ) : (
-          messages.map((msg) => {
+      <div className={styles.messagesArea}>
+        {(() => {
+          const displayMessages = messages.length > 0 ? messages
+            : selectedConv
+              ? [
+                  {
+                    id: `${selectedConv.id}-original`,
+                    feedback_id: selectedConv.id,
+                    sender_id: selectedConv.user_id,
+                    sender_role: selectedConv.user_role,
+                    message: selectedConv.message,
+                    attachment_url: null,
+                    attachment_name: null,
+                    created_at: selectedConv.created_at,
+                    sender_name: selectedConv.display_name || selectedConv.user_email,
+                  },
+                  ...(selectedConv.admin_reply && selectedConv.replied_by
+                    ? [{
+                        id: `${selectedConv.id}-legacy`,
+                        feedback_id: selectedConv.id,
+                        sender_id: selectedConv.replied_by,
+                        sender_role: 'super_admin' as const,
+                        message: selectedConv.admin_reply,
+                        attachment_url: null,
+                        attachment_name: null,
+                        created_at: selectedConv.replied_at || selectedConv.created_at,
+                        sender_name: 'Admin',
+                      }]
+                    : []),
+                ]
+              : []
+
+          if (displayMessages.length === 0) {
+            return <div className={styles.emptyMessages}>No messages yet. Start the conversation.</div>
+          }
+
+          return displayMessages.map((msg) => {
             const isMe = msg.sender_id === user?.id
             const isAdmin = msg.sender_role === 'super_admin'
             return (
-              <div key={msg.id} style={{
-                display: 'flex', flexDirection: 'column',
-                alignItems: isMe ? 'flex-end' : 'flex-start',
-                maxWidth: '80%', alignSelf: isMe ? 'flex-end' : 'flex-start',
-              }}>
-                {!isMe && (
-                  <div style={{ fontSize: 10, color: 'var(--color-text-muted)', marginBottom: 2, marginLeft: 2 }}>
-                    {isAdmin ? 'Admin' : (msg.sender_name || 'User')}
-                  </div>
-                )}
-                <div style={{
-                  padding: 'var(--space-2) var(--space-3)',
-                  borderRadius: 16,
-                  borderBottomRightRadius: isMe ? 4 : 16,
-                  borderBottomLeftRadius: isMe ? 16 : 4,
-                  background: isMe
-                    ? 'linear-gradient(135deg, var(--color-accent) 0%, #b8860b 100%)'
-                    : 'var(--color-surface-1)',
-                  color: isMe ? '#000' : 'var(--color-text-primary)',
-                  fontSize: 'var(--text-sm)',
-                  lineHeight: 1.6,
-                  wordBreak: 'break-word',
-                  border: isMe ? 'none' : '1px solid var(--color-border-subtle)',
-                }}>
+              <div key={msg.id} className={`${styles.msgRow} ${isMe ? styles.msgRowEnd : styles.msgRowStart}`}>
+                {!isMe && <div className={styles.msgSender}>{isAdmin ? 'Admin' : (msg.sender_name || 'User')}</div>}
+                <div className={`${styles.msgBubble} ${isMe ? styles.msgBubbleMe : styles.msgBubbleOther}`}>
                   {msg.message}
                   {msg.attachment_url && (
-                    <div style={{ marginTop: 'var(--space-1)' }}>
+                    <div className={styles.msgAttachment}>
                       {msg.attachment_url.match(/\.(png|jpg|jpeg|gif|webp)$/i) ? (
                         <img
-                          src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/media/${msg.attachment_url}`}
+                          src={storageUrl(msg.attachment_url)}
                           alt="attachment"
-                          style={{ maxWidth: 200, maxHeight: 150, borderRadius: 8, objectFit: 'cover' }}
+                          className={styles.msgImage}
                           loading="lazy"
                         />
                       ) : (
                         <a
-                          href={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/media/${msg.attachment_url}`}
+                          href={storageUrl(msg.attachment_url)}
                           target="_blank"
                           rel="noopener noreferrer"
-                          style={{ color: isMe ? '#000' : 'var(--color-accent)', textDecoration: 'underline', fontSize: 'var(--text-xs)' }}
+                          className={`${styles.msgFileLink} ${isMe ? styles.msgFileLinkMe : ''}`}
                         >
                           <FileText size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} />
                           {msg.attachment_name || 'Attachment'}
@@ -329,71 +324,59 @@ export function FeedbackChat({ mode = 'user', initialFeedbackId }: { mode: 'admi
                     </div>
                   )}
                 </div>
-                <div style={{ fontSize: 9, color: 'var(--color-text-muted)', marginTop: 1, marginLeft: 2 }}>
-                  {timeAgo(msg.created_at)}
-                </div>
+                <div className={styles.msgTime}>{timeAgo(msg.created_at)}</div>
               </div>
             )
           })
-        )}
+        })()}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <div style={{
-        padding: 'var(--space-3) var(--space-4)',
-        borderTop: '1px solid var(--color-border-subtle)',
-        flexShrink: 0,
-      }}>
+      <div className={styles.inputArea}>
         {attachment && (
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-            padding: 'var(--space-2) var(--space-3)', marginBottom: 'var(--space-2)',
-            background: 'var(--color-surface-1)', borderRadius: 'var(--radius-md)',
-          }}>
+          <div className={styles.attachPreview}>
             {attachment.preview ? (
-              <img src={attachment.preview} alt="preview" style={{ width: 32, height: 32, borderRadius: 6, objectFit: 'cover' }} />
+              <img src={attachment.preview} alt="preview" className={styles.attachPreviewImg} />
             ) : (
               <FileText size={16} style={{ color: 'var(--color-text-muted)' }} />
             )}
-            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {attachment.file.name}
-            </span>
-            <button className="btn btn-ghost btn-icon" onClick={() => { setAttachment(null); if (fileInputRef.current) fileInputRef.current.value = '' }} style={{ width: 24, height: 24 }}>
+            <span className={styles.attachPreviewName}>{attachment.file.name}</span>
+            <button
+              className={`btn btn-ghost btn-icon ${styles.attachPreviewRemove}`}
+              onClick={() => { setAttachment(null); if (fileInputRef.current) fileInputRef.current.value = '' }}
+            >
               <X size={14} />
             </button>
           </div>
         )}
-        <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'flex-end' }}>
-          <button className="btn btn-ghost btn-icon" onClick={() => fileInputRef.current?.click()} disabled={sending || uploading} style={{ flexShrink: 0 }} title="Attach file">
+        <div className={styles.inputRow}>
+          <button
+            className={`btn btn-ghost btn-icon ${styles.attachBtn}`}
+            onClick={() => fileInputRef.current?.click()}
+            disabled={sending || uploading}
+            title="Attach file"
+          >
             <Paperclip size={18} />
           </button>
           <input
             ref={fileInputRef}
             type="file"
             accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
-            style={{ display: 'none' }}
+            className={styles.fileInput}
             onChange={handleAttach}
           />
           <textarea
-            className="input"
+            className={styles.chatInput}
             placeholder="Type a message..."
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyDown={handleKeyDown}
             rows={1}
-            style={{
-              flex: 1, minHeight: 40, maxHeight: 120, resize: 'none',
-              borderRadius: 12, padding: 'var(--space-2) var(--space-3)',
-              fontFamily: 'inherit', fontSize: 'var(--text-sm)',
-              lineHeight: 1.5,
-            }}
           />
           <button
-            className="btn btn-primary"
+            className={`btn btn-primary ${styles.sendBtn}`}
             onClick={handleSend}
             disabled={sending || uploading || (!newMessage.trim() && !attachment)}
-            style={{ flexShrink: 0, height: 40, width: 40, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
             {sending || uploading ? <Loader2 size={16} className="spin" /> : <Send size={16} />}
           </button>
@@ -403,39 +386,19 @@ export function FeedbackChat({ mode = 'user', initialFeedbackId }: { mode: 'admi
   )
 
   return (
-    <div style={{
-      display: 'flex', height: 'calc(100vh - 200px)', minHeight: 500,
-      background: 'var(--color-surface-2)', borderRadius: 20,
-      border: '1px solid rgba(255,255,255,0.05)',
-      overflow: 'hidden',
-      boxShadow: '0 10px 25px -10px rgba(0,0,0,0.2)',
-    }}>
-      {/* Conversation list */}
+    <div className={styles.splitPanel}>
       {(!isMobile || showMobileList) && (
-        <div style={{
-          width: isMobile ? '100%' : 320,
-          flexShrink: 0,
-          borderRight: isMobile ? 'none' : '1px solid var(--color-border-subtle)',
-          display: 'flex', flexDirection: 'column',
-          overflow: 'hidden',
-        }}>
-          <div style={{
-            padding: 'var(--space-3) var(--space-4)',
-            borderBottom: '1px solid var(--color-border-subtle)',
-            fontSize: 'var(--text-sm)', fontWeight: 700,
-            color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em',
-          }}>
+        <div className={`${styles.conversationPanel} ${isMobile ? styles.conversationPanelFull : ''}`}>
+          <div className={styles.conversationHeader}>
             Conversations ({conversations.length})
           </div>
-          <div style={{ flex: 1, overflowY: 'auto' }}>
+          <div className={styles.conversationList}>
             {loading ? (
-              <div style={{ padding: 'var(--space-4)' }}>
-                {[1,2,3].map(i => <div key={i} className="skeleton skeleton-card" style={{ height: 64, marginBottom: 8 }} />)}
+              <div className={styles.loadingArea}>
+                {[1,2,3].map(i => <div key={i} className={`skeleton skeleton-card ${styles.skeletonItem}`} />)}
               </div>
             ) : conversations.length === 0 ? (
-              <div style={{ padding: 'var(--space-4)', textAlign: 'center', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
-                No conversations yet
-              </div>
+              <div className={styles.emptyConv}>No conversations yet</div>
             ) : (
               conversations.map((conv) => {
                 const config = TYPE_CONFIG[conv.type] || TYPE_CONFIG.other
@@ -444,42 +407,18 @@ export function FeedbackChat({ mode = 'user', initialFeedbackId }: { mode: 'admi
                 return (
                   <div
                     key={conv.id}
+                    className={`${styles.convItem} ${isSelected ? styles.convItemSelected : ''}`}
                     onClick={() => { setSelectedId(conv.id); if (isMobile) setShowMobileList(false) }}
-                    style={{
-                      padding: 'var(--space-2) var(--space-4)',
-                      cursor: 'pointer',
-                      display: 'flex', gap: 'var(--space-2)',
-                      background: isSelected ? 'var(--color-accent-muted)' : 'transparent',
-                      borderLeft: `3px solid ${isSelected ? 'var(--color-accent)' : 'transparent'}`,
-                      transition: 'all 0.15s',
-                    }}
                   >
-                    <div style={{
-                      width: 36, height: 36, borderRadius: 10,
-                      background: `${config.color}15`, color: config.color,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                    }}>
+                    <div className={styles.convIcon} style={{ background: `${config.color}15`, color: config.color }}>
                       <Icon size={14} />
                     </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 1 }}>
-                        <span style={{
-                          fontSize: 'var(--text-xs)', fontWeight: 600,
-                          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                          color: 'var(--color-text-primary)',
-                        }}>
-                          {conv.subject}
-                        </span>
-                        <span style={{ fontSize: 9, color: 'var(--color-text-muted)', flexShrink: 0, marginLeft: 4 }}>
-                          {timeAgo(conv.last_message_at || conv.created_at)}
-                        </span>
+                    <div className={styles.convBody}>
+                      <div className={styles.convRow}>
+                        <span className={styles.convSubject}>{conv.subject}</span>
+                        <span className={styles.convTime}>{timeAgo(conv.last_message_at || conv.created_at)}</span>
                       </div>
-                      <div style={{
-                        fontSize: 10, color: 'var(--color-text-muted)',
-                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                      }}>
-                        {conv.display_name || conv.user_email}
-                      </div>
+                      <div className={styles.convEmail}>{conv.display_name || conv.user_email}</div>
                     </div>
                   </div>
                 )
@@ -489,16 +428,11 @@ export function FeedbackChat({ mode = 'user', initialFeedbackId }: { mode: 'admi
         </div>
       )}
 
-      {/* Chat area */}
       {(!isMobile || !showMobileList) && (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        <div className={styles.chatPanel}>
           {selectedId ? chatView : (
-            <div style={{
-              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexDirection: 'column', gap: 'var(--space-2)',
-              color: 'var(--color-text-muted)',
-            }}>
-              <MessageSquare size={32} style={{ opacity: 0.3 }} />
+            <div className={styles.emptyChat}>
+              <MessageSquare size={32} className={styles.emptyChatIcon} />
               <div style={{ fontSize: 'var(--text-sm)' }}>Select a conversation</div>
             </div>
           )}

@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/auth.store'
 import { getNotifications, markAsRead, markAllAsRead, navigateFromNotification } from '@/lib/notifications'
 import { PageHero } from '@/components/shared/PageHero'
 import type { Notification } from '@/types'
+import styles from './NotificationsPage.module.css'
 
 type TabKey = 'all' | 'unread' | 'replies'
 
@@ -96,27 +97,16 @@ export function NotificationsPage() {
         subtitle={`${unreadCount} unread · ${notifications.length} total`}
         actions={
           <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap', alignItems: 'center' }}>
-            <div style={{
-              display: 'flex', gap: 1,
-              background: 'var(--color-surface-1)', borderRadius: 'var(--radius-md)',
-              padding: 2, overflow: 'hidden',
-            }}>
+            <div className={styles.tabBar}>
               {TABS.map((t) => (
                 <button
                   key={t.key}
                   onClick={() => setTab(t.key)}
-                  style={{
-                    padding: '4px 12px', border: 'none', cursor: 'pointer',
-                    borderRadius: 'var(--radius-sm)',
-                    background: tab === t.key ? 'var(--color-accent)' : 'transparent',
-                    color: tab === t.key ? '#000' : 'var(--color-text-muted)',
-                    fontSize: 'var(--text-xs)', fontWeight: 600,
-                    fontFamily: 'inherit', transition: 'all 0.15s',
-                  }}
+                  className={`${styles.tab} ${tab === t.key ? styles.tabActive : ''}`}
                 >
                   {t.label}
                   {t.key === 'unread' && unreadCount > 0 && (
-                    <span style={{ marginLeft: 4, opacity: 0.7 }}>({unreadCount})</span>
+                    <span className={styles.tabCount}>({unreadCount})</span>
                   )}
                 </button>
               ))}
@@ -134,15 +124,13 @@ export function NotificationsPage() {
         }
       />
 
-      {/* Search */}
-      <div style={{ marginBottom: 'var(--space-3)', position: 'relative' }}>
-        <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
+      <div className={styles.searchWrapper}>
+        <Search size={14} className={styles.searchIcon} />
         <input
-          className="input"
+          className={`input ${styles.searchInput}`}
           placeholder="Search notifications..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={{ paddingLeft: 36, borderRadius: 12 }}
         />
       </div>
 
@@ -153,7 +141,7 @@ export function NotificationsPage() {
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="empty-state" style={{ marginTop: 'var(--space-8)' }}>
+        <div className={`empty-state ${styles.emptyState}`}>
           <div className="empty-state__icon">
             {tab === 'replies' ? <Reply size={32} /> : <Inbox size={32} />}
           </div>
@@ -164,15 +152,9 @@ export function NotificationsPage() {
         </div>
       ) : (
         <>
-          {/* Bulk actions */}
           {selected.size > 0 && (
-            <div style={{
-              padding: 'var(--space-2) var(--space-3)', marginBottom: 'var(--space-2)',
-              background: 'var(--color-accent-muted)', borderRadius: 12,
-              display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-              fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)',
-            }}>
-              <span style={{ fontWeight: 600 }}>{selected.size} selected</span>
+            <div className={styles.bulkBar}>
+              <span className={styles.bulkCount}>{selected.size} selected</span>
               <button className="btn btn-ghost btn-sm" onClick={handleBulkMarkRead}>
                 <MailOpen size={12} /> Mark Read
               </button>
@@ -182,104 +164,57 @@ export function NotificationsPage() {
             </div>
           )}
 
-          <div style={{ borderRadius: 16, overflow: 'hidden', border: '1px solid var(--color-border-subtle)' }}>
-            {/* Column headers */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '36px 1fr auto',
-              gap: 'var(--space-2)',
-              padding: 'var(--space-2) var(--space-3)',
-              background: 'var(--color-surface-1)',
-              borderBottom: '1px solid var(--color-border-subtle)',
-              fontSize: 10, fontWeight: 700, color: 'var(--color-text-muted)',
-              textTransform: 'uppercase', letterSpacing: '0.04em',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className={styles.inbox}>
+            <div className={styles.inboxHeader}>
+              <div className={styles.checkboxCell}>
                 <input
                   type="checkbox"
+                  className={styles.checkbox}
                   checked={selectAll && filtered.length > 0}
                   onChange={toggleSelectAll}
-                  style={{ cursor: 'pointer', accentColor: 'var(--color-accent)' }}
                 />
               </div>
               <div>Subject</div>
               <div style={{ paddingRight: 4 }}>Date</div>
             </div>
 
-            {/* Rows */}
             {filtered.map((n) => {
               const isFeedbackReply = n.type === 'feedback_reply'
               return (
                 <div
                   key={n.id}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '36px 1fr auto',
-                    gap: 'var(--space-2)',
-                    padding: 'var(--space-2) var(--space-3)',
-                    borderBottom: '1px solid var(--color-border-subtle)',
-                    background: n.is_read ? 'var(--color-surface-2)' : 'var(--color-accent-muted)',
-                    cursor: 'pointer',
-                    transition: 'background 0.1s',
-                    alignItems: 'center',
-                  }}
-                  onClick={(e) => {
-                    if ((e.target as HTMLElement).closest('input[type="checkbox"]')) return
-                  }}
+                  className={`${styles.row} ${n.is_read ? styles.rowRead : styles.rowUnread}`}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div className={styles.checkboxCell}>
                     <input
                       type="checkbox"
+                      className={styles.checkbox}
                       checked={selected.has(n.id)}
                       onChange={() => toggleSelect(n.id)}
-                      style={{ cursor: 'pointer', accentColor: 'var(--color-accent)' }}
+                      onClick={(e) => e.stopPropagation()}
                     />
                   </div>
-                  <div
-                    style={{ minWidth: 0, cursor: 'pointer' }}
-                    onClick={() => handleClick(n)}
-                  >
-                    <div style={{
-                      display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 1,
-                    }}>
-                      {isFeedbackReply && (
-                        <Reply size={12} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
-                      )}
-                      <span style={{
-                        fontSize: 'var(--text-sm)',
-                        fontWeight: n.is_read ? 400 : 700,
-                        color: n.is_read ? 'var(--color-text-secondary)' : 'var(--color-text-primary)',
-                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                      }}>
-                        {isFeedbackReply && !n.is_read ? (
-                          <span style={{ color: 'var(--color-accent)' }}>{n.title}</span>
-                        ) : (
-                          n.title
-                        )}
+                  <div className={styles.rowContent} onClick={() => handleClick(n)}>
+                    <div className={styles.rowTitleRow}>
+                      {isFeedbackReply && <Reply size={12} className={styles.replyIcon} />}
+                      <span className={`${styles.rowSubject} ${
+                        isFeedbackReply && !n.is_read
+                          ? styles.rowSubjectGold
+                          : n.is_read
+                            ? styles.rowSubjectNormal
+                            : styles.rowSubjectBold
+                      }`}>
+                        {n.title}
                       </span>
-                      {!n.is_read && (
-                        <span style={{
-                          width: 6, height: 6, borderRadius: '50%',
-                          background: isFeedbackReply ? 'var(--color-accent)' : 'var(--color-accent)',
-                          flexShrink: 0,
-                        }} />
-                      )}
+                      {!n.is_read && <span className={styles.rowDot} />}
                     </div>
                     {n.body && (
-                      <div style={{
-                        fontSize: 'var(--text-xs)',
-                        color: isFeedbackReply ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
-                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                        lineHeight: 1.4,
-                      }}>
+                      <div className={`${styles.rowSnippet} ${isFeedbackReply ? styles.rowSnippetGold : ''}`}>
                         {n.body}
                       </div>
                     )}
                   </div>
-                  <div style={{
-                    fontSize: 10, color: 'var(--color-text-muted)',
-                    whiteSpace: 'nowrap', flexShrink: 0, paddingRight: 4,
-                  }}>
+                  <div className={styles.rowDate}>
                     {new Date(n.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                   </div>
                 </div>

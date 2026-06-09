@@ -9,7 +9,7 @@ export function FeedbackManagementPage() {
   if (role !== 'super_admin') return null
 
   return (
-    <div>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
       <PageHero
         icon={MessageSquare}
         title="Feedback"

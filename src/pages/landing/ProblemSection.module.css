@@ -211,4 +211,13 @@
   .headline {
     font-size: clamp(2rem, 8vw, 2.75rem);
   }
+
+  .stepDesc {
+    font-size: clamp(1rem, 1vw, 1rem);
+  }
+
+  .stepTitle {
+    font-size: clamp(2rem, 2vw, 2rem);
+  }
+
 }

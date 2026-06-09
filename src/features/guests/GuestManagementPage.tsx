@@ -1,10 +1,11 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useResolvedEventId } from '@/hooks/useResolvedEventId'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
 import {
   Users, Plus, X, Upload, Check, UserCheck,
-  LayoutGrid, Star, List, User,
+  LayoutGrid, Star, List, User, ChevronLeft,
+  Trash2, Save,
 } from 'lucide-react'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { Tabs } from '@/components/ui/Tabs'
@@ -36,6 +37,17 @@ export function GuestManagementPage() {
   const [csvPreview, setCsvPreview] = useState<Record<string, string>[]>([])
   const [showTableForm, setShowTableForm] = useState(false)
   const [tableForm, setTableForm] = useState({ table_name: '', capacity: 8 })
+  const [selectedGuest, setSelectedGuest] = useState<(Guest & { table_name?: string }) | null>(null)
+  const [editGuest, setEditGuest] = useState<Partial<Guest> | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+  const [showDetail, setShowDetail] = useState(false)
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   useEffect(() => {
     if (!eventId) return
@@ -139,6 +151,48 @@ export function GuestManagementPage() {
 
   const getTableOccupancy = (tableId: string) => guests.filter(g => g.table_id === tableId).length
 
+  const handleSelectGuest = useCallback((guest: Guest & { table_name?: string }) => {
+    setSelectedGuest(guest)
+    setEditGuest({ ...guest })
+    setShowDetail(true)
+  }, [])
+
+  const handleSaveGuest = async () => {
+    if (!editGuest || !selectedGuest || !eventId) return
+    setSaving(true)
+    const { error } = await supabase.from('guests').update({
+      first_name: editGuest.first_name,
+      last_name: editGuest.last_name,
+      phone: editGuest.phone,
+      email: editGuest.email,
+      rsvp_status: editGuest.rsvp_status,
+      table_id: editGuest.table_id,
+      is_vip: editGuest.is_vip,
+      plus_one: editGuest.plus_one,
+      group_name: editGuest.group_name,
+      notes: editGuest.notes,
+      checked_in: editGuest.checked_in,
+      checked_in_at: editGuest.checked_in ? (selectedGuest.checked_in ? selectedGuest.checked_in_at : new Date().toISOString()) : null,
+    }).eq('id', selectedGuest.id)
+    setSaving(false)
+    if (error) { showToast({ type: 'error', title: 'Failed to save', body: error.message }); return }
+    showToast({ type: 'success', title: 'Guest updated' })
+    setGuests(guests.map(g => g.id === selectedGuest.id ? { ...g, ...editGuest } as Guest : g))
+    setSelectedGuest({ ...selectedGuest, ...editGuest } as Guest & { table_name?: string })
+  }
+
+  const handleDeleteGuest = async () => {
+    if (!selectedGuest) return
+    if (!confirm(`Delete ${selectedGuest.first_name} ${selectedGuest.last_name || ''}?`)) return
+    const { error } = await supabase.from('guests').delete().eq('id', selectedGuest.id)
+    if (error) { showToast({ type: 'error', title: 'Failed to delete', body: error.message }); return }
+    showToast({ type: 'success', title: 'Guest deleted' })
+    setGuests(guests.filter(g => g.id !== selectedGuest.id))
+    setSelectedGuest(null)
+    setEditGuest(null)
+    setShowDetail(false)
+  }
+
   const RSVPSummary = () => (
     <div className={styles.rsvpBar}>
       <div className={styles.rsvpStat}><span className={styles.rsvpNum}>{rsvpCounts.total}</span> Total</div>
@@ -200,62 +254,160 @@ export function GuestManagementPage() {
       <RSVPSummary />
 
       {tab === 'list' && (
-        <>
-          {filteredGuests.length === 0 ? (
-            <div className={styles.tableCard}>
-              <div style={{ textAlign: 'center', padding: 'var(--space-8) var(--space-4)', color: 'var(--color-text-muted)' }}>
-                <Users size={24} style={{ marginBottom: 'var(--space-2)', opacity: 0.4 }} />
-                <div style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>No guests found</div>
-                <div style={{ fontSize: 'var(--text-xs)', marginTop: 4 }}>Add guests manually or import via CSV</div>
-              </div>
+        <div className={styles.guestSplitPanel}>
+          {/* Left panel: guest list */}
+          <div className={`${styles.guestListPanel} ${showDetail && isMobile ? styles.guestListPanelFull : ''}`} style={{ display: showDetail && isMobile ? 'none' : 'flex' }}>
+            <div className={styles.guestListHeader}>
+              <span>{filteredGuests.length} of {guests.length} guests</span>
             </div>
-          ) : (
-            <div className={styles.tableCard}>
-              <div className={styles.tableHeader}>
-                <div className={styles.colName}>Name</div>
-                <div className={styles.colPhone}>Phone</div>
-                <div className={styles.colRsvp}>RSVP</div>
-                <div className={styles.colGroup}>Group</div>
-                <div className={styles.colTable}>Table</div>
-                <div className={styles.colCheckin}>Check-In</div>
-              </div>
-              <div className={styles.tableBody}>
-                {filteredGuests.map((g) => (
-                  <div key={g.id} className={styles.tableRow}>
-                    <div className={styles.colName}>
-                      <span className={styles.nameCell}>
-                        {g.is_vip && <Star size={12} className={styles.vipStar} />}
-                        {g.first_name} {g.last_name || ''}
-                      </span>
+            <div className={styles.guestListScroll}>
+              {filteredGuests.length === 0 ? (
+                <div className={styles.guestDetailEmpty}>
+                  <Users size={28} className={styles.guestDetailEmptyIcon} />
+                  <div style={{ fontSize: 'var(--text-sm)' }}>No guests found</div>
+                </div>
+              ) : filteredGuests.map((g) => {
+                const initial = (g.first_name || '?').charAt(0).toUpperCase()
+                const isSelected = selectedGuest?.id === g.id
+                return (
+                  <div
+                    key={g.id}
+                    className={`${styles.guestListItem} ${isSelected ? styles.guestListItemSelected : ''}`}
+                    onClick={() => handleSelectGuest(g)}
+                  >
+                    <div className={styles.guestListAvatar} style={{ background: g.checked_in ? 'var(--color-success)' : 'var(--color-surface-3)', color: g.checked_in ? '#fff' : undefined }}>
+                      {initial}
                     </div>
-                    <div className={`${styles.colPhone} ${styles.cellMuted}`}>{g.phone || '-'}</div>
-                    <div className={styles.colRsvp}>
-                      <span className={`badge badge-${g.rsvp_status === 'confirmed' ? 'green' : g.rsvp_status === 'declined' ? 'red' : g.rsvp_status === 'maybe' ? 'yellow' : 'grey'}`}>
-                        <span className="badge-dot" />
-                        {g.rsvp_status}
-                      </span>
-                    </div>
-                    <div className={`${styles.colGroup} ${styles.cellMuted}`}>{g.group_name || '-'}</div>
-                    <div className={`${styles.colTable} ${styles.cellMuted}`}>{g.table_id ? tables.find(t => t.id === g.table_id)?.table_name || '-' : '-'}</div>
-                    <div className={styles.colCheckin}>
-                      <button
-                        className={`btn btn-sm ${g.checked_in ? 'btn-primary' : 'btn-secondary'}`}
-                        style={{ borderRadius: 'var(--radius-sm)' }}
-                        onClick={() => handleCheckin(g.id)}
-                      >
-                        {g.checked_in ? <Check size={12} /> : <UserCheck size={12} />}
-                        {g.checked_in ? ' In' : ' Out'}
-                      </button>
+                    <div className={styles.guestListInfo}>
+                      <div className={styles.guestListRow}>
+                        <span className={styles.guestListName}>
+                          {g.is_vip && <Star size={10} className={styles.vipStar} />}
+                          {g.first_name} {g.last_name || ''}
+                        </span>
+                        <span className={`badge badge-${g.rsvp_status === 'confirmed' ? 'green' : g.rsvp_status === 'declined' ? 'red' : g.rsvp_status === 'maybe' ? 'yellow' : 'grey'}`} style={{ fontSize: 9, padding: '1px 6px' }}>
+                          {g.rsvp_status}
+                        </span>
+                      </div>
+                      <div className={styles.guestListMeta}>{g.phone || g.email || '-'}</div>
                     </div>
                   </div>
-                ))}
-              </div>
-              <div className={styles.tableFooter}>
-                <span>Showing {filteredGuests.length} of {guests.length} guests</span>
-              </div>
+                )
+              })}
             </div>
-          )}
-        </>
+          </div>
+
+          {/* Right panel: guest detail */}
+          <div className={styles.guestDetailPanel} style={{ display: !showDetail && isMobile ? 'none' : 'flex' }}>
+            {selectedGuest && editGuest ? (
+              <>
+                <div className={styles.guestDetailHeader}>
+                  {isMobile && (
+                    <button className={styles.guestDetailBack} onClick={() => setShowDetail(false)}>
+                      <ChevronLeft size={18} />
+                    </button>
+                  )}
+                  <div className={styles.guestDetailName}>{selectedGuest.first_name} {selectedGuest.last_name || ''}</div>
+                  <span className={`badge badge-${selectedGuest.rsvp_status === 'confirmed' ? 'green' : selectedGuest.rsvp_status === 'declined' ? 'red' : selectedGuest.rsvp_status === 'maybe' ? 'yellow' : 'grey'}`}>
+                    {selectedGuest.rsvp_status}
+                  </span>
+                </div>
+                <div className={styles.guestDetailScroll}>
+                  <div className={styles.guestDetailRow}>
+                    <div className={styles.guestDetailField}>
+                      <label className={styles.guestDetailLabel}>First Name</label>
+                      <input className="input" value={editGuest.first_name || ''} onChange={(e) => setEditGuest({ ...editGuest, first_name: e.target.value })} />
+                    </div>
+                    <div className={styles.guestDetailField}>
+                      <label className={styles.guestDetailLabel}>Last Name</label>
+                      <input className="input" value={editGuest.last_name || ''} onChange={(e) => setEditGuest({ ...editGuest, last_name: e.target.value })} />
+                    </div>
+                  </div>
+                  <div className={styles.guestDetailRow}>
+                    <div className={styles.guestDetailField}>
+                      <label className={styles.guestDetailLabel}>Phone</label>
+                      <input className="input" value={editGuest.phone || ''} onChange={(e) => setEditGuest({ ...editGuest, phone: e.target.value })} />
+                    </div>
+                    <div className={styles.guestDetailField}>
+                      <label className={styles.guestDetailLabel}>Email</label>
+                      <input className="input" value={editGuest.email || ''} onChange={(e) => setEditGuest({ ...editGuest, email: e.target.value })} />
+                    </div>
+                  </div>
+                  <div className={styles.guestDetailRow}>
+                    <div className={styles.guestDetailField}>
+                      <label className={styles.guestDetailLabel}>RSVP Status</label>
+                      <select className="input" value={editGuest.rsvp_status || 'pending'} onChange={(e) => setEditGuest({ ...editGuest, rsvp_status: e.target.value as RSVP })}>
+                        <option value="pending">Pending</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="declined">Declined</option>
+                        <option value="maybe">Maybe</option>
+                      </select>
+                    </div>
+                    <div className={styles.guestDetailField}>
+                      <label className={styles.guestDetailLabel}>Group</label>
+                      <input className="input" value={editGuest.group_name || ''} onChange={(e) => setEditGuest({ ...editGuest, group_name: e.target.value })} />
+                    </div>
+                  </div>
+                  <div className={styles.guestDetailRow}>
+                    <div className={styles.guestDetailField}>
+                      <label className={styles.guestDetailLabel}>Table Assignment</label>
+                      <select className="input" value={editGuest.table_id || ''} onChange={(e) => setEditGuest({ ...editGuest, table_id: e.target.value || null })}>
+                        <option value="">— No table —</option>
+                        {tables.map((t) => (
+                          <option key={t.id} value={t.id}>{t.table_name} (cap. {t.capacity})</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className={styles.guestDetailField}>
+                      <label className={styles.guestDetailLabel}>Notes</label>
+                      <input className="input" value={editGuest.notes || ''} onChange={(e) => setEditGuest({ ...editGuest, notes: e.target.value })} />
+                    </div>
+                  </div>
+                  <div className={styles.guestDetailCheckRow}>
+                    <Checkbox
+                      checked={editGuest.is_vip || false}
+                      onChange={(e) => setEditGuest({ ...editGuest, is_vip: e.target.checked })}
+                    />
+                    <span style={{ fontSize: 'var(--text-sm)', flex: 1 }}>VIP Guest</span>
+                    <Checkbox
+                      checked={editGuest.plus_one || false}
+                      onChange={(e) => setEditGuest({ ...editGuest, plus_one: e.target.checked })}
+                    />
+                    <span style={{ fontSize: 'var(--text-sm)' }}>Plus One</span>
+                  </div>
+                  <div className={styles.guestDetailCheckRow}>
+                    <button
+                      className={`btn btn-sm ${editGuest.checked_in ? 'btn-primary' : 'btn-secondary'}`}
+                      style={{ borderRadius: 'var(--radius-sm)' }}
+                      onClick={() => setEditGuest({ ...editGuest, checked_in: !editGuest.checked_in })}
+                    >
+                      {editGuest.checked_in ? <Check size={14} /> : <UserCheck size={14} />}
+                      {editGuest.checked_in ? ' Checked In' : ' Mark Checked In'}
+                    </button>
+                    {editGuest.checked_in && (
+                      <span className={styles.guestDetailNote}>
+                        Checked in at {new Date(selectedGuest.checked_in_at || '').toLocaleString()}
+                      </span>
+                    )}
+                  </div>
+                  <div className={styles.guestDetailActions}>
+                    <button className="btn btn-primary" style={{ borderRadius: 'var(--radius-sm)' }} onClick={handleSaveGuest} disabled={saving}>
+                      <Save size={14} /> {saving ? 'Saving...' : 'Save'}
+                    </button>
+                    <button className="btn btn-ghost btn-icon" style={{ color: 'var(--color-error)' }} onClick={handleDeleteGuest}>
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className={styles.guestDetailEmpty}>
+                <Users size={40} className={styles.guestDetailEmptyIcon} />
+                <div style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>Select a guest</div>
+                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>Choose a guest from the list to view and edit details</div>
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       {tab === 'checkin' && (
