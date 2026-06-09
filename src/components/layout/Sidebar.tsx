@@ -133,6 +133,16 @@ export function Sidebar() {
                 <span>Analytics</span>
               </NavLink>
               <NavLink
+                to="/admin/manage"
+                className={({ isActive }) =>
+                  `${styles.navItem} ${isActive ? styles.active : ''}`
+                }
+                onClick={() => setSidebarOpen(false)}
+              >
+                <ListChecks size={20} />
+                <span>Manage</span>
+              </NavLink>
+              <NavLink
                 to="/admin/feedback"
                 className={({ isActive }) =>
                   `${styles.navItem} ${isActive ? styles.active : ''}`

@@ -44,6 +44,8 @@ const HelpPage = lazy(() => import('@/pages/settings/HelpPage').then(m => ({ def
 const MyTasksPage = lazy(() => import('@/pages/team/MyTasksPage').then(m => ({ default: m.MyTasksPage })))
 const FeedbackManagementPage = lazy(() => import('@/pages/admin/FeedbackManagementPage').then(m => ({ default: m.FeedbackManagementPage })))
 const SuperAdminTeamPage = lazy(() => import('@/pages/admin/SuperAdminTeamPage').then(m => ({ default: m.SuperAdminTeamPage })))
+const AdminManagePage = lazy(() => import('@/pages/admin/AdminManagePage').then(m => ({ default: m.AdminManagePage })))
+const AnalyticsPage = lazy(() => import('@/pages/admin/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })))
 
 const AftermathPage = lazy(() => import('@/features/aftermath/AftermathPage').then(m => ({ default: m.AftermathPage })))
 import { PremiumModalContainer } from '@/components/ui/PremiumModal'
@@ -401,6 +403,16 @@ export function App() {
           <Route path="/admin/team" element={
             <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
               <RoleGuard allowedRole="super_admin"><SuperAdminTeamPage /></RoleGuard>
+            </Suspense>
+          } />
+          <Route path="/admin/manage" element={
+            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
+              <RoleGuard allowedRole="super_admin"><AdminManagePage /></RoleGuard>
+            </Suspense>
+          } />
+          <Route path="/admin/analytics" element={
+            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
+              <RoleGuard allowedRole="super_admin"><AnalyticsPage /></RoleGuard>
             </Suspense>
           } />
         </Route>
