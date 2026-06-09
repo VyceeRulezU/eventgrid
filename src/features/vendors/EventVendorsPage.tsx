@@ -297,7 +297,7 @@ function AddEventVendorModal({ eventId, orgId, onClose, onSaved }: {
         <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 520 }}>
           <div className="modal-card-header">
             <div className="modal-card-title">Add Vendor to Event</div>
-            <button className="modal-card-close" onClick={onClose} disabled={saving}><X size={20} /></button>
+            <button className="modal-card-close" onClick={onClose} disabled={saving} data-tooltip="Close"><X size={20} /></button>
           </div>
           <div className="modal-card-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
             {loading ? (
@@ -338,7 +338,7 @@ function AddEventVendorModal({ eventId, orgId, onClose, onSaved }: {
       <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 520 }}>
         <div className="modal-card-header">
           <div className="modal-card-title">{form.vendor_id ? 'Assign from Directory' : 'New Vendor'}</div>
-          <button className="modal-card-close" onClick={onClose} disabled={saving}><X size={20} /></button>
+          <button className="modal-card-close" onClick={onClose} disabled={saving} data-tooltip="Close"><X size={20} /></button>
         </div>
         <div className="modal-card-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
           {orgId && !form.vendor_id && (
@@ -420,7 +420,7 @@ function EditEventVendorModal({ vendor, onClose, onSaved }: {
       <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 520 }}>
         <div className="modal-card-header">
           <div className="modal-card-title">Edit Vendor</div>
-          <button className="modal-card-close" onClick={onClose} disabled={saving}><X size={20} /></button>
+          <button className="modal-card-close" onClick={onClose} disabled={saving} data-tooltip="Close"><X size={20} /></button>
         </div>
         <div className="modal-card-body">
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>

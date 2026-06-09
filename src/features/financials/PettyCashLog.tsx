@@ -121,7 +121,7 @@ export function PettyCashLog({ eventId, onTotalChange }: PettyCashLogProps) {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
                 <span style={{ fontWeight: 600, color: 'var(--color-error)' }}>{formatNaira(e.amount)}</span>
-                <button className="btn btn-ghost btn-icon" onClick={() => handleDelete(e.id)} style={{ width: 24, height: 24, color: 'var(--color-text-muted)' }}>
+                <button className="btn btn-ghost btn-icon" onClick={() => handleDelete(e.id)} style={{ width: 24, height: 24, color: 'var(--color-text-muted)' }} data-tooltip="Delete entry">
                   <Trash2 size={12} />
                 </button>
               </div>

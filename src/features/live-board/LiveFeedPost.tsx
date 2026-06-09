@@ -89,7 +89,7 @@ export function LiveFeedPost({ post, eventId, displayName, avatarUrl }: LiveFeed
       {lightboxIdx !== null && (
         <div className={styles.lightboxOverlay} onClick={() => setLightboxIdx(null)}>
           <div className={styles.lightboxContent} onClick={(e) => e.stopPropagation()}>
-            <button className={styles.lightboxClose} onClick={() => setLightboxIdx(null)}>
+            <button className={styles.lightboxClose} onClick={() => setLightboxIdx(null)} data-tooltip="Close">
               <X size={20} />
             </button>
             {photos.length > 1 && (
@@ -97,12 +97,14 @@ export function LiveFeedPost({ post, eventId, displayName, avatarUrl }: LiveFeed
                 <button
                   className={`${styles.lightboxNav} ${styles.lightboxPrev}`}
                   onClick={() => setLightboxIdx((prev) => prev === null ? 0 : (prev - 1 + photos.length) % photos.length)}
+                  data-tooltip="Previous"
                 >
                   <ChevronLeft size={24} />
                 </button>
                 <button
                   className={`${styles.lightboxNav} ${styles.lightboxNext}`}
                   onClick={() => setLightboxIdx((prev) => prev === null ? 0 : (prev + 1) % photos.length)}
+                  data-tooltip="Next"
                 >
                   <ChevronRight size={24} />
                 </button>

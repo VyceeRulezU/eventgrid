@@ -98,7 +98,7 @@ export function BudgetAllocations({ eventId }: BudgetAllocationsProps) {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                       <input className="input" type="number" min={0} value={editValue || ''} onChange={e => setEditValue(Number(e.target.value))} style={{ width: 100, minHeight: 28, fontSize: 'var(--text-xs)' }} autoFocus />
                       <button className="btn btn-primary btn-sm" onClick={() => saveAllocation(row.category)} style={{ minHeight: 28, padding: '0 8px', fontSize: 'var(--text-xs)' }}>Set</button>
-                      <button className="btn btn-ghost btn-sm" onClick={() => setEditingCat(null)} style={{ minHeight: 28, padding: '0 8px' }}><X size={14} /></button>
+                      <button className="btn btn-ghost btn-sm" onClick={() => setEditingCat(null)} style={{ minHeight: 28, padding: '0 8px' }} data-tooltip="Cancel"><X size={14} /></button>
                     </div>
                   ) : (
                     <>
@@ -108,7 +108,7 @@ export function BudgetAllocations({ eventId }: BudgetAllocationsProps) {
                       <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: variance >= 0 ? 'var(--color-success)' : 'var(--color-error)' }}>
                         {variance >= 0 ? '+' : ''}{formatNaira(variance)}
                       </span>
-                      <button className="btn btn-ghost btn-icon" onClick={() => { setEditingCat(row.category); setEditValue(row.allocated / 100) }} style={{ width: 24, height: 24 }}>
+                      <button className="btn btn-ghost btn-icon" onClick={() => { setEditingCat(row.category); setEditValue(row.allocated / 100) }} style={{ width: 24, height: 24 }} data-tooltip="Edit allocation">
                         <Pencil size={12} />
                       </button>
                     </>

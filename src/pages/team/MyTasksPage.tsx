@@ -337,6 +337,7 @@ export function MyTasksPage() {
                                       className={`btn btn-primary btn-sm ${styles.sendBtn}`}
                                       onClick={() => handleSendUpdate(task.id)}
                                       disabled={sendingId === task.id || (!(newMessages[task.id] || '').trim() && taskPhotos.length === 0)}
+                                      data-tooltip="Send update"
                                     >
                                       <Send size={14} />
                                     </button>

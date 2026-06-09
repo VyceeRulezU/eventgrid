@@ -69,13 +69,13 @@ export function CalendarModal({ open, value, onChange, onClose }: CalendarModalP
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
-          <button className={styles.navBtn} onClick={prevMonth} type="button">
+          <button className={styles.navBtn} onClick={prevMonth} type="button" data-tooltip="Previous month">
             <ChevronLeft size={18} />
           </button>
           <div className={styles.headerLabel}>
             {MONTHS[viewMonth]} {viewYear}
           </div>
-          <button className={styles.navBtn} onClick={nextMonth} type="button">
+          <button className={styles.navBtn} onClick={nextMonth} type="button" data-tooltip="Next month">
             <ChevronRight size={18} />
           </button>
         </div>

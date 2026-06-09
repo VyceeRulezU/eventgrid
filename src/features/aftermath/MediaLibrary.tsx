@@ -134,7 +134,7 @@ export function MediaLibrary({ eventId }: { eventId: string }) {
 
       {lightboxIndex !== null && filtered[lightboxIndex] && (
         <div className={styles.lightbox} onClick={() => setLightboxIndex(null)}>
-          <button className={styles.lightboxClose} onClick={() => setLightboxIndex(null)}>
+          <button className={styles.lightboxClose} onClick={() => setLightboxIndex(null)} data-tooltip="Close">
             <X size={24} />
           </button>
 
@@ -143,6 +143,7 @@ export function MediaLibrary({ eventId }: { eventId: string }) {
               className={styles.lightboxNav}
               style={{ left: 16 }}
               onClick={(e) => { e.stopPropagation(); setLightboxIndex(lightboxIndex - 1) }}
+              data-tooltip="Previous"
             >
               <ChevronLeft size={24} />
             </button>
@@ -153,6 +154,7 @@ export function MediaLibrary({ eventId }: { eventId: string }) {
               className={styles.lightboxNav}
               style={{ right: 16 }}
               onClick={(e) => { e.stopPropagation(); setLightboxIndex(lightboxIndex + 1) }}
+              data-tooltip="Next"
             >
               <ChevronRight size={24} />
             </button>

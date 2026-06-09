@@ -506,7 +506,7 @@ export function GuestManagementPage() {
       {showAdd && (
         <div className={styles.overlay} onClick={() => setShowAdd(false)}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}><h3>Add Guest</h3><button className={styles.closeBtn} onClick={() => setShowAdd(false)}><X size={18} /></button></div>
+            <div className={styles.modalHeader}><h3>Add Guest</h3><button className={styles.closeBtn} onClick={() => setShowAdd(false)} data-tooltip="Close"><X size={18} /></button></div>
             <div className={styles.modalBody}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)', marginBottom: 'var(--space-3)' }}>
                 <div className="input-wrapper"><label className="input-label">First Name *</label><input className="input" value={newGuest.first_name} onChange={(e) => setNewGuest({ ...newGuest, first_name: e.target.value })} /></div>
@@ -534,7 +534,7 @@ export function GuestManagementPage() {
       {showCSV && (
         <div className={styles.overlay} onClick={() => setShowCSV(false)}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}><h3>Import CSV</h3><button className={styles.closeBtn} onClick={() => setShowCSV(false)}><X size={18} /></button></div>
+            <div className={styles.modalHeader}><h3>Import CSV</h3><button className={styles.closeBtn} onClick={() => setShowCSV(false)} data-tooltip="Close"><X size={18} /></button></div>
             <div className={styles.modalBody}>
               <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-3)' }}>CSV headers: first_name, last_name, phone, email, group_name</p>
               <input type="file" accept=".csv" onChange={handleCSVUpload} className="input" style={{ marginBottom: 'var(--space-3)' }} />
@@ -555,7 +555,7 @@ export function GuestManagementPage() {
       {showTableForm && (
         <div className={styles.overlay} onClick={() => setShowTableForm(false)}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}><h3>Add Table</h3><button className={styles.closeBtn} onClick={() => setShowTableForm(false)}><X size={18} /></button></div>
+            <div className={styles.modalHeader}><h3>Add Table</h3><button className={styles.closeBtn} onClick={() => setShowTableForm(false)} data-tooltip="Close"><X size={18} /></button></div>
             <div className={styles.modalBody}>
               <div className="input-wrapper" style={{ marginBottom: 'var(--space-3)' }}><label className="input-label">Table Name</label><input className="input" value={tableForm.table_name} onChange={(e) => setTableForm({ ...tableForm, table_name: e.target.value })} placeholder="e.g. Table 1" /></div>
               <div className="input-wrapper" style={{ marginBottom: 'var(--space-4)' }}><label className="input-label">Capacity</label><input className="input" type="number" min={1} value={tableForm.capacity} onChange={(e) => setTableForm({ ...tableForm, capacity: Number(e.target.value) })} /></div>

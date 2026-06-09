@@ -84,7 +84,7 @@ export function CreateTaskModal({ eventId, members, phases, onCreated, onCancel 
       <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ overflow: 'visible' }}>
         <div className="modal-card-header">
           <h3 className="modal-card-title">New Task</h3>
-          <button className="modal-card-close" onClick={onCancel} aria-label="Close">
+          <button className="modal-card-close" onClick={onCancel} aria-label="Close" data-tooltip="Close">
             <X size={18} />
           </button>
         </div>

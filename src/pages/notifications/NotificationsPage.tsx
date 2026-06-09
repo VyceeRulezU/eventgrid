@@ -117,7 +117,7 @@ export function NotificationsPage() {
                 Mark All Read
               </button>
             )}
-            <button className="btn btn-ghost btn-sm btn-icon" onClick={() => { setLoading(true); user && getNotifications(user.id, 200).then((d) => { setNotifications(d); setLoading(false) }) }}>
+            <button className="btn btn-ghost btn-sm btn-icon" onClick={() => { setLoading(true); user && getNotifications(user.id, 200).then((d) => { setNotifications(d); setLoading(false) }) }} data-tooltip="Refresh">
               <RefreshCw size={14} />
             </button>
           </div>

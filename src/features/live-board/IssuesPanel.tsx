@@ -278,7 +278,7 @@ export function IssuesPanel({ eventId }: IssuesPanelProps) {
                           <button className="btn btn-primary btn-sm" style={{ minHeight: 28, fontSize: 'var(--text-xs)', borderRadius: 'var(--radius-sm)' }} onClick={() => handleResolve(issue)} disabled={saving || !resolutionText.trim()}>
                             Done
                           </button>
-                          <button className="btn btn-ghost btn-sm" style={{ minHeight: 28, padding: '0 var(--space-1)', fontSize: 'var(--text-xs)', borderRadius: 'var(--radius-sm)' }} onClick={() => { setResolvingId(null); setResolutionText('') }}>
+                          <button className="btn btn-ghost btn-sm" style={{ minHeight: 28, padding: '0 var(--space-1)', fontSize: 'var(--text-xs)', borderRadius: 'var(--radius-sm)' }} onClick={() => { setResolvingId(null); setResolutionText('') }} data-tooltip="Cancel">
                             <CircleX size={14} />
                           </button>
                         </div>
@@ -297,6 +297,7 @@ export function IssuesPanel({ eventId }: IssuesPanelProps) {
                             className={`btn btn-ghost btn-sm ${styles.actionBtn}`}
                             style={{ color: 'var(--color-error)' }}
                             onClick={() => handleDeleteIssue(issue.id)}
+                            data-tooltip="Delete issue"
                           >
                             <Trash2 size={12} />
                           </button>
