@@ -93,7 +93,7 @@ Deno.serve(async (req) => {
       .update({
         status: 'active',
         payment_status: 'paid',
-        activated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
         // Save the reference for audits
         ...(provider === 'paystack' ? { paystack_ref: reference } : {})
       })
