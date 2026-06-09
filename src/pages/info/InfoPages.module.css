@@ -1,0 +1,496 @@
+.pageWrapper {
+  background-color: #0b0b0c;
+  color: #e5e7eb;
+  min-height: 100vh;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 24px;
+  box-sizing: border-box;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: #d4a017;
+  margin-bottom: 8px;
+  display: block;
+}
+
+/* ── Metrics Section ── */
+.metricsSection {
+  padding: 80px 0;
+  background-color: #0b0b0c;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 48px;
+  text-align: center;
+}
+
+.metricItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.metricVal {
+  font-size: clamp(36px, 6vw, 64px);
+  font-weight: 800;
+  color: #d4a017;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #d4a017 0%, #b8860b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.metricLbl {
+  font-size: 14px;
+  color: #9ca3af;
+  line-height: 1.5;
+  max-width: 280px;
+}
+
+/* ── Content Section (About split) ── */
+.contentSection {
+  padding: 100px 0;
+  background-color: #0e0e10;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.splitGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 64px;
+}
+
+.textBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.textBlock .title {
+  font-size: clamp(22px, 3.5vw, 30px);
+  font-weight: 800;
+  color: #f9fafb;
+  margin: 0;
+  line-height: 1.25;
+}
+
+.desc {
+  font-size: 15px;
+  line-height: 1.65;
+  color: #9ca3af;
+  margin: 0;
+}
+
+/* ── Blog Posts Section ── */
+.postsSection {
+  padding: 100px 0;
+  background-color: #0e0e10;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.postsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+}
+
+.postCard {
+  background-color: #121214;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.25s ease;
+}
+
+.postCard:hover {
+  transform: translateY(-4px);
+  border-color: rgba(212, 160, 23, 0.2);
+  background-color: #161619;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+}
+
+.postImgWrap {
+  position: relative;
+  height: 200px;
+  width: 100%;
+}
+
+.postImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.postCat {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background-color: rgba(11, 11, 12, 0.85);
+  border: 1px solid rgba(212, 160, 23, 0.3);
+  color: #d4a017;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+.postBody {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex-grow: 1;
+}
+
+.postMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.metaDot {
+  color: #d4a017;
+}
+
+.postTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f9fafb;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.postExcerpt {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #9ca3af;
+  margin: 0;
+}
+
+/* ── Careers Section ── */
+.rolesSection {
+  padding: 100px 0;
+  background-color: #0e0e10;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.sectionTitle {
+  font-size: clamp(24px, 4vw, 36px);
+  font-weight: 800;
+  color: #f9fafb;
+  text-align: center;
+  margin: 0 0 16px 0;
+}
+
+.sectionSubtitle {
+  font-size: 16px;
+  color: #9ca3af;
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto 64px auto;
+  line-height: 1.6;
+}
+
+.rolesList {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.roleCard {
+  background-color: #121214;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 24px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  transition: all 0.2s ease;
+}
+
+.roleCard:hover {
+  border-color: rgba(212, 160, 23, 0.2);
+  background-color: #161619;
+}
+
+.roleDept {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #d4a017;
+  text-transform: uppercase;
+}
+
+.roleTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 4px 0 8px 0;
+}
+
+.roleMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.applyBtn {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #e5e7eb;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.applyBtn:hover {
+  background: #d4a017;
+  color: #0b0b0c;
+  border-color: #d4a017;
+}
+
+/* ── Press & Media Assets Section ── */
+.assetsSection {
+  padding: 100px 0;
+  background-color: #0e0e10;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.cardsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 32px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.card {
+  background-color: #121214;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  border-color: rgba(212, 160, 23, 0.2);
+  background-color: #161619;
+}
+
+.iconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background-color: rgba(212, 160, 23, 0.08);
+  border: 1px solid rgba(212, 160, 23, 0.15);
+  color: #d4a017;
+}
+
+.icon {
+  color: #d4a017;
+}
+
+.cardTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f9fafb;
+  margin: 0;
+}
+
+.cardDesc {
+  font-size: 14px;
+  color: #9ca3af;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.downloadBtn {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.downloadBtn:hover {
+  background-color: #d4a017;
+  color: #0b0b0c;
+  border-color: #d4a017;
+}
+
+/* ── FAQ Section ── */
+.faqSection {
+  padding: 100px 0;
+  background-color: #0e0e10;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.faqCategories {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 60px;
+}
+
+.faqCategoryBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.faqCategoryTitle {
+  font-size: 22px;
+  font-weight: 800;
+  color: #f9fafb;
+  margin: 0;
+  border-left: 3px solid #d4a017;
+  padding-left: 12px;
+}
+
+.faqList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.faqCard {
+  background-color: #121214;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.faqCardOpen {
+  border-color: rgba(212, 160, 23, 0.2);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.faqTrigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.faqQuestion {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  transition: color 0.15s ease;
+}
+
+.faqTrigger:hover .faqQuestion {
+  color: #d4a017;
+}
+
+.faqChevron {
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.faqContent {
+  padding: 0 24px 20px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.faqAnswer {
+  font-size: 14px;
+  line-height: 1.65;
+  color: #9ca3af;
+  margin: 0;
+  padding-top: 16px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 992px) {
+  .postsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .metricsGrid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  
+  .splitGrid {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+  
+  .postsGrid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  
+  .roleCard {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 24px;
+  }
+  
+  .applyBtn {
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+  }
+  
+  .cardsGrid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}

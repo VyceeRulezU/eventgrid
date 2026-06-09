@@ -34,6 +34,25 @@ import { VendorDirectoryPage } from '@/features/vendors/VendorDirectoryPage'
 import { TeamPage } from '@/features/team/TeamPage'
 import { TaskBoard } from '@/features/team/TaskBoard'
 import { LiveFeedPage } from '@/features/live-board/LiveFeedPage'
+import { CoordinatorsLandingPage } from '@/pages/roles/CoordinatorsLandingPage'
+import { VendorsLandingPage } from '@/pages/roles/VendorsLandingPage'
+import { PipelineLandingPage } from '@/pages/features/PipelineLandingPage'
+import { LiveBoardLandingPage } from '@/pages/features/LiveBoardLandingPage'
+import { ClientPortalLandingPage } from '@/pages/features/ClientPortalLandingPage'
+import { VendorTrackerLandingPage } from '@/pages/features/VendorTrackerLandingPage'
+import { AftermathReportsLandingPage } from '@/pages/features/AftermathReportsLandingPage'
+import { AboutPage } from '@/pages/info/AboutPage'
+import { BlogPage } from '@/pages/info/BlogPage'
+import { CareersPage } from '@/pages/info/CareersPage'
+import { PressPage } from '@/pages/info/PressPage'
+import { ContactPage } from '@/pages/info/ContactPage'
+import { FAQPage } from '@/pages/info/FAQPage'
+import { PricingPage } from '@/pages/info/PricingPage'
+import { PrivacyPage } from '@/pages/info/PrivacyPage'
+import { TermsPage } from '@/pages/info/TermsPage'
+import { CookiesPage } from '@/pages/info/CookiesPage'
+import { SecurityPage } from '@/pages/info/SecurityPage'
+import { ScrollToTop } from '@/components/shared/ScrollToTop'
 
 const GuestManagementPage = lazy(() => import('@/features/guests/GuestManagementPage').then(m => ({ default: m.GuestManagementPage })))
 const FinancialsPage = lazy(() => import('@/features/financials/FinancialsPage').then(m => ({ default: m.FinancialsPage })))
@@ -309,12 +328,31 @@ export function App() {
       <SpeedInsights />
       <Sentry.ErrorBoundary fallback={<ErrorFallback />}>
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<AuthGate />} />
           <Route path="/home" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
+          <Route path="/pricing" element={<PricingPage />} />
+          <Route path="/coordinators" element={<CoordinatorsLandingPage />} />
+          <Route path="/vendors-landing" element={<VendorsLandingPage />} />
+          <Route path="/features/pipeline" element={<PipelineLandingPage />} />
+          <Route path="/features/live-board" element={<LiveBoardLandingPage />} />
+          <Route path="/features/client-portal" element={<ClientPortalLandingPage />} />
+          <Route path="/features/vendor-tracker" element={<VendorTrackerLandingPage />} />
+          <Route path="/features/aftermath-reports" element={<AftermathReportsLandingPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/blog" element={<BlogPage />} />
+          <Route path="/careers" element={<CareersPage />} />
+          <Route path="/press" element={<PressPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/faq" element={<FAQPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/cookies" element={<CookiesPage />} />
+          <Route path="/security" element={<SecurityPage />} />
         <Route path="/portal/:token" element={
           <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
             <ClientPortalPage />

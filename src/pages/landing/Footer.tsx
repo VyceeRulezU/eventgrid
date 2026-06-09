@@ -1,27 +1,27 @@
-import { Link } from 'react-router-dom'
-import { Instagram, Twitter, Linkedin, ArrowUpRight } from 'lucide-react'
+import { Link, useLocation } from 'react-router-dom'
+import { Instagram, Twitter, Linkedin } from 'lucide-react'
 import styles from './Footer.module.css'
 
 const NAV_COLS = [
   {
     title: 'Product',
     links: [
-      { label: 'Features', href: '#features', internal: false },
-      { label: 'How It Works', href: '#how-it-works', internal: false },
-      { label: 'For Planners', href: '#spotlight-a', internal: false },
-      { label: 'For Coordinators', href: '#spotlight-b', internal: false },
-      { label: 'For Vendors', href: '#roles', internal: false },
-      { label: 'Pricing', href: '#pricing', internal: false },
+      { label: 'Features', href: '/home#features', internal: true },
+      { label: 'How It Works', href: '/home#how-it-works', internal: true },
+      { label: 'For Planners', href: '/home#spotlight-a', internal: true },
+      { label: 'For Coordinators', href: '/coordinators', internal: true },
+      { label: 'For Vendors', href: '/vendors-landing', internal: true },
+      { label: 'Pricing', href: '/pricing', internal: true },
     ],
   },
   {
     title: 'Platform',
     links: [
-      { label: 'Event Pipeline', href: '#features', internal: false },
-      { label: 'Live Board', href: '#spotlight-b', internal: false },
-      { label: 'Client Portal', href: '#spotlight-c', internal: false },
-      { label: 'Vendor Tracker', href: '#features', internal: false },
-      { label: 'Aftermath Reports', href: '#spotlight-d', internal: false },
+      { label: 'Event Pipeline', href: '/features/pipeline', internal: true },
+      { label: 'Live Board', href: '/features/live-board', internal: true },
+      { label: 'Client Portal', href: '/features/client-portal', internal: true },
+      { label: 'Vendor Tracker', href: '/features/vendor-tracker', internal: true },
+      { label: 'Aftermath Reports', href: '/features/aftermath-reports', internal: true },
     ],
   },
   {
@@ -45,10 +45,18 @@ const LEGAL_LINKS = [
 ]
 
 export default function Footer() {
-  const scrollTo = (e: React.MouseEvent, href: string) => {
-    if (href.startsWith('#')) {
-      e.preventDefault()
-      document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' })
+  const location = useLocation()
+
+  const handleLinkClick = (e: React.MouseEvent, href: string) => {
+    if (href.startsWith('/home#')) {
+      const hash = href.substring(5) // Extract '#features' etc
+      if (location.pathname === '/home') {
+        e.preventDefault()
+        const target = document.querySelector(hash)
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth' })
+        }
+      }
     }
   }
 
@@ -57,29 +65,6 @@ export default function Footer() {
 
       {/* ── Gold accent rule ── */}
       <div className={styles.accentRule} aria-hidden />
-
-      {/* ── CTA banner ── */}
-      <div className={styles.ctaBanner}>
-        <div className={styles.container}>
-          <div className={styles.ctaBannerInner}>
-            <div className={styles.ctaBannerText}>
-              <p className={styles.ctaBannerEyebrow}>Ready to run better events?</p>
-              <h2 className={styles.ctaBannerHeadline}>
-                The platform built for<br />Nigerian event professionals.
-              </h2>
-            </div>
-            <div className={styles.ctaBannerActions}>
-              <Link to="/register" className={styles.ctaPrimary}>
-                Get started free
-                <ArrowUpRight size={16} />
-              </Link>
-              <a href="mailto:hello@eventgrid.ng" className={styles.ctaSecondary}>
-                hello@eventgrid.ng
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* ── Nav + Tagline block ── */}
       <div className={styles.container}>
@@ -92,19 +77,13 @@ export default function Footer() {
                 <ul className={styles.linksList}>
                   {col.links.map((link) => (
                     <li key={link.label}>
-                      {link.internal ? (
-                        <Link to={link.href} className={styles.navLink}>
-                          {link.label}
-                        </Link>
-                      ) : (
-                        <a
-                          href={link.href}
-                          onClick={(e) => scrollTo(e, link.href)}
-                          className={styles.navLink}
-                        >
-                          {link.label}
-                        </a>
-                      )}
+                      <Link
+                        to={link.href}
+                        onClick={(e) => handleLinkClick(e, link.href)}
+                        className={styles.navLink}
+                      >
+                        {link.label}
+                      </Link>
                     </li>
                   ))}
                 </ul>

@@ -1,14 +1,20 @@
 import { useState, useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import styles from './Navbar.module.css'
 
-const NAV_LINKS = [
-  { label: 'Features',        href: '#features' },
-  { label: 'How It Works',    href: '#how-it-works' },
-  { label: 'Pricing',         href: '#pricing' },
-  { label: 'For Coordinators', href: '#coordinators' },
+interface NavLinkItem {
+  label: string
+  href: string
+  isHash: boolean
+}
+
+const NAV_LINKS: NavLinkItem[] = [
+  { label: 'Features',         href: '#features', isHash: true },
+  { label: 'How It Works',     href: '#how-it-works', isHash: true },
+  { label: 'Pricing',          href: '/pricing', isHash: false },
+  { label: 'For Coordinators',  href: '/coordinators', isHash: false },
 ]
 
 export default function Navbar() {
@@ -18,6 +24,8 @@ export default function Navbar() {
   const user = useAuthStore((s) => s.user)
   const role = useAuthStore((s) => s.role)
   const profile = useAuthStore((s) => s.profile)
+  const location = useLocation()
+  const navigate = useNavigate()
   const isLoggedIn = !!user
   const displayName = profile?.display_name || user?.user_metadata?.display_name || ''
   const avatarLetter = displayName ? displayName.charAt(0).toUpperCase() : (user?.email?.charAt(0).toUpperCase() || 'U')
@@ -29,6 +37,19 @@ export default function Navbar() {
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  /* ── Hash routing smooth scroller ── */
+  useEffect(() => {
+    if (location.pathname === '/home' && location.hash) {
+      const target = document.querySelector(location.hash)
+      if (target) {
+        const timer = setTimeout(() => {
+          target.scrollIntoView({ behavior: 'smooth' })
+        }, 100)
+        return () => clearTimeout(timer)
+      }
+    }
+  }, [location])
 
   /* ── Close menu on outside click ── */
   useEffect(() => {
@@ -53,11 +74,19 @@ export default function Navbar() {
     }
   }, [menuOpen])
 
-  const handleNavClick = (href: string) => {
+  const handleNavClick = (link: NavLinkItem) => {
     setMenuOpen(false)
-    const target = document.querySelector(href)
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth' })
+    if (link.isHash) {
+      if (location.pathname === '/home') {
+        const target = document.querySelector(link.href)
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth' })
+        }
+      } else {
+        navigate(`/home${link.href}`)
+      }
+    } else {
+      navigate(link.href)
     }
   }
 
@@ -77,7 +106,7 @@ export default function Navbar() {
             <button
               key={link.href}
               className={styles.navLink}
-              onClick={() => handleNavClick(link.href)}
+              onClick={() => handleNavClick(link)}
             >
               {link.label}
             </button>
@@ -127,7 +156,7 @@ export default function Navbar() {
               <button
                 key={link.href}
                 className={styles.mobileNavLink}
-                onClick={() => handleNavClick(link.href)}
+                onClick={() => handleNavClick(link)}
               >
                 {link.label}
               </button>

@@ -1,0 +1,166 @@
+.pageWrapper {
+  background-color: #0b0b0c;
+  color: #e5e7eb;
+  min-height: 100vh;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 24px;
+  box-sizing: border-box;
+}
+
+/* ── Metrics Section ── */
+.metricsSection {
+  padding: 80px 0;
+  background-color: #0b0b0c;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 48px;
+  text-align: center;
+}
+
+.metricItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.metricVal {
+  font-size: clamp(36px, 6vw, 64px);
+  font-weight: 800;
+  color: #d4a017;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #d4a017 0%, #b8860b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.metricLbl {
+  font-size: 14px;
+  color: #9ca3af;
+  line-height: 1.5;
+  max-width: 280px;
+}
+
+/* ── Features Section ── */
+.featuresSection {
+  padding: 100px 0;
+  background-color: #0e0e10;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.sectionTitle {
+  font-size: clamp(24px, 4vw, 36px);
+  font-weight: 800;
+  color: #f9fafb;
+  text-align: center;
+  margin: 0 0 16px 0;
+  letter-spacing: -0.01em;
+}
+
+.sectionSubtitle {
+  font-size: 16px;
+  color: #9ca3af;
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto 64px auto;
+  line-height: 1.6;
+}
+
+.cardsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.card {
+  background-color: #121214;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 32px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(212, 160, 23, 0.2);
+  background-color: #161619;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4),
+              0 0 20px rgba(212, 160, 23, 0.03);
+}
+
+.iconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background-color: rgba(212, 160, 23, 0.08);
+  border: 1px solid rgba(212, 160, 23, 0.15);
+  color: #d4a017;
+}
+
+.icon {
+  color: #d4a017;
+}
+
+.cardTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f9fafb;
+  margin: 0;
+}
+
+.cardDesc {
+  font-size: 14px;
+  color: #9ca3af;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* ── Responsive ── */
+@media (max-width: 992px) {
+  .metricsGrid {
+    gap: 32px;
+  }
+}
+
+@media (max-width: 768px) {
+  .metricsSection {
+    padding: 60px 0;
+  }
+  
+  .metricsGrid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  
+  .featuresSection {
+    padding: 70px 0;
+  }
+  
+  .cardsGrid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .card {
+    padding: 24px;
+  }
+}

@@ -9,6 +9,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  background-image: var(--hero-bg), linear-gradient(135deg, #1a1f2e 0%, #2a1f3d 50%, #1a2a3d 100%);
 }
 
 .heroOverlay {

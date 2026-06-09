@@ -23,9 +23,7 @@ export function PageHero({ icon: Icon, title, subtitle, breadcrumbs, actions, ba
   const navigate = useNavigate()
 
   return (
-    <div className={styles.hero} style={{
-      backgroundImage: `url(${backgroundImage || corporateImg}), linear-gradient(135deg, #1a1f2e 0%, #2a1f3d 50%, #1a2a3d 100%)`,
-    }}>
+    <div className={styles.hero} style={{ '--hero-bg': `url(${backgroundImage || corporateImg})` } as React.CSSProperties}>
       <div className={styles.heroOverlay} />
 
       {breadcrumbs && breadcrumbs.length > 0 && (

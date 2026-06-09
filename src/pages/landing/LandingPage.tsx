@@ -11,7 +11,7 @@ import FeatureSpotlightC from '@/pages/landing/FeatureSpotlightC'
 import FeatureSpotlightD from '@/pages/landing/FeatureSpotlightD'
 import RoleSection from '@/pages/landing/RoleSection'
 import TestimonialsSection from '@/pages/landing/TestimonialsSection'
-import CTASection from '@/pages/landing/CTASection'
+import { LandingCTA } from '@/components/shared/LandingCTA'
 import Footer from '@/pages/landing/Footer'
 import BackToTop from '@/components/shared/BackToTop'
 import styles from './LandingPage.module.css'
@@ -56,7 +56,18 @@ export function LandingPage() {
         {/* DARK ZONE: Testimonials + CTA + Footer share the same bg */}
         <div className={styles.darkZone}>
           <TestimonialsSection />
-          <CTASection />
+          <LandingCTA
+            eyebrow="Start today. Pay per event."
+            title="No more chaos. Just coordinated events."
+            description="Works for planners, coordinators, and their entire team. First activation takes 5 minutes. Nigerian Naira pricing."
+            primaryText="Create your first event"
+            primaryHref="/register"
+            secondaryText="See how it works"
+            secondaryHref="#how-it-works"
+            secondaryOnClick={() => {
+              document.querySelector('#how-it-works')?.scrollIntoView({ behavior: 'smooth' })
+            }}
+          />
           <Footer />
         </div>
       </main>
