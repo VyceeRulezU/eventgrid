@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
+import { useAuthStore } from '@/store/auth.store'
 import styles from './Navbar.module.css'
 
 const NAV_LINKS = [
@@ -14,6 +15,12 @@ export default function Navbar() {
   const [scrolled, setScrolled]     = useState(false)
   const [menuOpen, setMenuOpen]     = useState(false)
   const menuRef                      = useRef<HTMLDivElement>(null)
+  const user = useAuthStore((s) => s.user)
+  const role = useAuthStore((s) => s.role)
+  const profile = useAuthStore((s) => s.profile)
+  const isLoggedIn = !!user
+  const displayName = profile?.display_name || user?.user_metadata?.display_name || ''
+  const avatarLetter = displayName ? displayName.charAt(0).toUpperCase() : (user?.email?.charAt(0).toUpperCase() || 'U')
 
   /* ── Scroll detection ── */
   useEffect(() => {
@@ -78,12 +85,21 @@ export default function Navbar() {
 
         {/* Desktop CTA buttons */}
         <div className={styles.desktopCta}>
-          <Link to="/login" className="btn btn-ghost" id="navbar-login-btn">
-            Log In
-          </Link>
-          <Link to="/register" className="btn btn-primary" id="navbar-get-started-btn">
-            Try It Free
-          </Link>
+          {isLoggedIn ? (
+            <Link to={`/dashboard/${role || 'planner'}`} className={styles.userLink} id="navbar-user-link">
+              <span className={styles.navAvatar}>{avatarLetter}</span>
+              <span className={styles.navUserName}>{displayName}</span>
+            </Link>
+          ) : (
+            <>
+              <Link to="/login" className="btn btn-ghost" id="navbar-login-btn">
+                Log In
+              </Link>
+              <Link to="/register" className="btn btn-primary" id="navbar-get-started-btn">
+                Try It Free
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Hamburger (mobile) */}
@@ -113,24 +129,38 @@ export default function Navbar() {
             ))}
           </nav>
           <div className={styles.mobileCta}>
-            <Link
-              to="/login"
-              className="btn btn-ghost"
-              onClick={() => setMenuOpen(false)}
-              style={{ width: '100%' }}
-              id="mobile-login-btn"
-            >
-              Log In
-            </Link>
-            <Link
-              to="/register"
-              className="btn btn-primary"
-              onClick={() => setMenuOpen(false)}
-              style={{ width: '100%' }}
-              id="mobile-get-started-btn"
-            >
-              Try It Free
-            </Link>
+            {isLoggedIn ? (
+              <Link
+                to={`/dashboard/${role || 'planner'}`}
+                className={styles.userLink}
+                onClick={() => setMenuOpen(false)}
+                style={{ justifyContent: 'center', width: '100%' }}
+              >
+                <span className={styles.navAvatar}>{avatarLetter}</span>
+                <span className={styles.navUserName}>{displayName}</span>
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="btn btn-ghost"
+                  onClick={() => setMenuOpen(false)}
+                  style={{ width: '100%' }}
+                  id="mobile-login-btn"
+                >
+                  Log In
+                </Link>
+                <Link
+                  to="/register"
+                  className="btn btn-primary"
+                  onClick={() => setMenuOpen(false)}
+                  style={{ width: '100%' }}
+                  id="mobile-get-started-btn"
+                >
+                  Try It Free
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}

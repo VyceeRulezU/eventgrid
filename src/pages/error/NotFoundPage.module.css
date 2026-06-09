@@ -12,8 +12,8 @@
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(212, 160, 23, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(212, 160, 23, 0.025) 1px, transparent 1px);
+    linear-gradient(rgba(212, 160, 23, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212, 160, 23, 0.07) 1px, transparent 1px);
   background-size: 60px 60px;
   background-position: center;
   pointer-events: none;
@@ -29,7 +29,8 @@
 }
 
 .content {
-  flex: 1;
+  min-height: 100vh;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -37,7 +38,7 @@
   text-align: center;
   position: relative;
   z-index: 2;
-  padding: calc(var(--space-20) + var(--space-4)) var(--space-6);
+  padding: calc(var(--space-20) + var(--space-4)) var(--space-6) var(--space-10);
   max-width: 580px;
   margin: 0 auto;
 }
@@ -57,9 +58,11 @@
   box-shadow: 0 0 50px rgba(0, 0, 0, 0.4);
 }
 
-.radarGridCircle {
+.radarOuterRing {
   position: absolute;
-  border: 1px dashed rgba(212, 160, 23, 0.06);
+  width: 90%;
+  height: 90%;
+  border: 1px solid rgba(212, 160, 23, 0.08);
   border-radius: var(--radius-full);
 }
 
@@ -84,9 +87,9 @@
   top: 0;
   left: 50%;
   transform-origin: bottom left;
-  background: linear-gradient(45deg, rgba(212, 160, 23, 0.1) 0%, transparent 100%);
+  background: linear-gradient(45deg, rgba(212, 160, 23, 0.08) 0%, transparent 100%);
   border-top-right-radius: 100%;
-  animation: radarRotate 6s linear infinite;
+  animation: radarRotate 4s linear infinite;
   pointer-events: none;
 }
 
@@ -98,18 +101,8 @@
   background-color: var(--color-accent);
   box-shadow: 0 0 12px var(--color-accent);
   animation: pulsePointGlow 2s ease-in-out infinite;
-  /* Shift slightly from the center to represent a real coordinate coordinate point */
   top: calc(50% - 30px);
   left: calc(50% + 20px);
-}
-
-.compassLabel {
-  position: absolute;
-  font-size: 9px;
-  font-weight: var(--weight-bold);
-  color: rgba(212, 160, 23, 0.35);
-  user-select: none;
-  letter-spacing: 0.5px;
 }
 
 /* ── Info Badge ── */
@@ -117,7 +110,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-1_5) var(--space-4);
+  padding: var(--space-2) var(--space-5);
   border-radius: var(--radius-full);
   background: rgba(212, 160, 23, 0.06);
   border: 1px solid rgba(212, 160, 23, 0.18);
@@ -141,8 +134,8 @@
 
 /* ── Typography & Actions ── */
 .headline {
-  font-size: clamp(2rem, 6vw, 3rem);
-  font-weight: var(--weight-extrabold);
+  font-size: clamp(2rem, 6vw, 4.5rem);
+  font-weight: 300;
   color: #ffffff;
   letter-spacing: -0.8px;
   margin: 0 0 var(--space-3);
@@ -163,58 +156,7 @@
   align-items: center;
 }
 
-.primaryBtn {
-  background: var(--color-accent);
-  color: var(--color-text-inverse);
-  border: none;
-  border-radius: var(--radius-md);
-  padding: var(--space-2_5) var(--space-6);
-  font-family: var(--font-base);
-  font-size: var(--text-sm);
-  font-weight: var(--weight-bold);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  transition: all var(--transition-fast);
-  box-shadow: 0 4px 12px rgba(212, 160, 23, 0.2);
-}
 
-.primaryBtn:hover {
-  background: var(--color-accent-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(212, 160, 23, 0.3);
-}
-
-.primaryBtn:active {
-  transform: translateY(0);
-}
-
-.secondaryBtn {
-  background: rgba(255, 255, 255, 0.04);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--radius-md);
-  padding: var(--space-2_5) var(--space-6);
-  font-family: var(--font-base);
-  font-size: var(--text-sm);
-  font-weight: var(--weight-semibold);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  transition: all var(--transition-fast);
-}
-
-.secondaryBtn:hover {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.15);
-  transform: translateY(-1px);
-}
-
-.secondaryBtn:active {
-  transform: translateY(0);
-}
 
 /* ── Keyframes ── */
 @keyframes radarRotate {
@@ -260,8 +202,7 @@
     gap: var(--space-3);
   }
   
-  .primaryBtn,
-  .secondaryBtn {
+  .actions :global(.btn) {
     width: 100%;
     justify-content: center;
   }

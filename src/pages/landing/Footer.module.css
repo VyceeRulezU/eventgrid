@@ -7,7 +7,6 @@
 .footer {
   background-color: #080808;
   width: 100%;
-  overflow: hidden;
   position: relative;
 }
 
@@ -313,7 +312,6 @@
   position: relative;
   z-index: 1;
   padding: 120px 0 0 0;
-  overflow: hidden;
   line-height: 1;
 }
 

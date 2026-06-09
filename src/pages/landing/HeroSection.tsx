@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import { LayoutDashboard } from 'lucide-react'
+import { useAuthStore } from '@/store/auth.store'
 import styles from './HeroSection.module.css'
 
 const SLIDES = [
@@ -12,6 +14,9 @@ const SLIDES = [
 
 export default function HeroSection() {
   const [currentSlide, setCurrentSlide] = useState(0)
+  const user = useAuthStore((s) => s.user)
+  const role = useAuthStore((s) => s.role)
+  const isLoggedIn = !!user
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -63,9 +68,16 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3, ease: 'easeOut' }}
             >
-              <Link to="/register" className={styles.btnGold}>
-                Try It Free
-              </Link>
+              {isLoggedIn ? (
+                <Link to={`/dashboard/${role || 'planner'}`} className={styles.btnGold}>
+                  <LayoutDashboard size={20} />
+                  Continue to Dashboard
+                </Link>
+              ) : (
+                <Link to="/register" className={styles.btnGold}>
+                  Try It Free
+                </Link>
+              )}
             </motion.div>
           </motion.div>
 
