@@ -24,6 +24,7 @@ export function DropdownMenu({ trigger, items, onSelect, align = 'start', classN
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
   const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({})
 
   const updatePosition = useCallback(() => {
@@ -41,7 +42,10 @@ export function DropdownMenu({ trigger, items, onSelect, align = 'start', classN
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
+      const target = e.target as Node
+      const insideWrapper = ref.current?.contains(target)
+      const insideMenu = menuRef.current?.contains(target)
+      if (!insideWrapper && !insideMenu) {
         setOpen(false)
       }
     }
@@ -74,7 +78,7 @@ export function DropdownMenu({ trigger, items, onSelect, align = 'start', classN
         <ChevronDown size={14} className={`${styles.chevron} ${open ? styles.chevronOpen : ''}`} />
       </button>
       {open && createPortal(
-        <div className={`${styles.menu} ${align === 'end' ? styles.menuEndPortal : ''}`} style={menuStyle} onClick={updatePosition}>
+        <div ref={menuRef} className={`${styles.menu} ${align === 'end' ? styles.menuEndPortal : ''}`} style={menuStyle}>
           {items.map((item) => (
             <button
               key={item.value}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, Link } from 'react-router-dom'
 import { Users, Plus, Pencil, Tag, Star, Trash2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
@@ -30,11 +30,13 @@ export function VendorsPage() {
   const [searchParams] = useSearchParams()
   const eventId = searchParams.get('event')
   const user = useAuthStore((s) => s.user)
+  const profile = useAuthStore((s) => s.profile)
   const org = useAuthStore((s) => s.org)
   const role = useAuthStore((s) => s.role)
   const showNotification = useUIStore((s) => s.showNotification)
   const showModal = useUIStore((s) => s.showModal)
 
+  const orgId = org?.id || profile?.org_id
   const [vendors, setVendors] = useState<Vendor[]>([])
   const [loading, setLoading] = useState(true)
   const [events, setEvents] = useState<{ id: string; name: string }[]>([])
@@ -47,9 +49,7 @@ export function VendorsPage() {
   const availableTypes = [...new Set([...DEFAULT_TYPES, ...vendors.map((v) => v.category)])]
 
   useEffect(() => {
-    if (!user || !org) { setLoading(false); return }
-
-    const orgId = org.id
+    if (!user || !orgId) { setLoading(false); return }
 
     async function load() {
       const { data: evts } = await supabase
@@ -85,7 +85,7 @@ export function VendorsPage() {
     }
 
     load()
-  }, [user, org])
+  }, [user, orgId])
 
   const handleEdit = (vendor: Vendor) => {
     setEditingVendor(vendor)
@@ -115,6 +115,24 @@ export function VendorsPage() {
   }
 
 
+
+  if (!orgId && !loading) {
+    return (
+      <div className={styles.page}>
+        <PageHero icon={Users} title="Vendors" subtitle="Manage your vendor directory" />
+        <div className="empty-state">
+          <div className="empty-state__icon"><Users size={24} /></div>
+          <div className="empty-state__title">Complete your onboarding first</div>
+          <div className="empty-state__description">
+            You need to set up your organization before you can manage vendors. Please complete your profile setup.
+          </div>
+          <Link to="/settings" className="btn btn-primary" style={{ marginTop: 'var(--space-4)', minHeight: 40 }}>
+            Go to Settings
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   if (loading) {
     return (
@@ -209,17 +227,17 @@ export function VendorsPage() {
         }
       />
 
-      {showAddType && org && (
+      {showAddType && orgId && (
         <AddTypeModal
-          orgId={org.id}
+          orgId={orgId}
           onClose={() => setShowAddType(false)}
           onSaved={handleAdd}
         />
       )}
 
-      {showAddVendor && org && (
+      {showAddVendor && orgId && (
         <AddVendorModal
-          orgId={org.id}
+          orgId={orgId}
           availableTypes={availableTypes}
           defaultCategory={DEFAULT_TYPES[0]}
           onClose={() => setShowAddVendor(false)}
