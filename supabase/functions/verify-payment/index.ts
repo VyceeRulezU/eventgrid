@@ -123,7 +123,7 @@ Deno.serve(async (req) => {
         const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
         try {
-          await fetch(functionUrl, {
+          const emailRes = await fetch(functionUrl, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${serviceKey}`,
@@ -140,6 +140,13 @@ Deno.serve(async (req) => {
               }
             })
           })
+
+          if (!emailRes.ok) {
+            const errText = await emailRes.text()
+            console.error(`onboarding-emails returned status ${emailRes.status}:`, errText)
+          } else {
+            console.log('onboarding-emails triggered successfully.')
+          }
         } catch (emailErr) {
           console.error('Failed to trigger onboarding email:', emailErr)
         }
