@@ -288,9 +288,7 @@ export function AdminManagePage() {
   const totalPages = Math.ceil(totalItems / PAGE_SIZE)
   const pageData = currentData.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
-  const allSelected = pageData.length > 0 && (activeTab === 'events'
-    ? pageData.every((e: EventRow) => selectedIds.has(e.id))
-    : pageData.every((p: PersonRow) => selectedIds.has(p.id)))
+  const allSelected = pageData.length > 0 && pageData.every(item => selectedIds.has(item.id))
 
   function toggleSelectAll() {
     if (allSelected) {
