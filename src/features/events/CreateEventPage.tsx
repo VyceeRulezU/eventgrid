@@ -164,7 +164,18 @@ export function CreateEventPage() {
       })
 
       if (verifyErr || (data && data.error)) {
-        const errMsg = verifyErr?.message || data?.error || 'Payment verification failed'
+        let errMsg = verifyErr?.message || data?.error || 'Payment verification failed'
+        if (verifyErr && 'context' in verifyErr && verifyErr.context) {
+          try {
+            const res = verifyErr.context as Response
+            const body = await res.clone().json()
+            if (body && body.error) {
+              errMsg = body.error
+            }
+          } catch (e) {
+            console.error('Failed to parse verification error:', e)
+          }
+        }
         showToast({ type: 'error', title: 'Verification failed', body: errMsg })
         setPaying(false)
         setPaymentStatus('failed')
