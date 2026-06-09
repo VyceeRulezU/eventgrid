@@ -109,6 +109,12 @@
   padding: var(--space-3) 0;
 }
 
+@media (max-width: 767px) {
+  .nav {
+    padding: var(--space-1) 0 0;
+  }
+}
+
 .category {
   padding: 0 var(--space-2);
   margin-bottom: var(--space-1);
@@ -193,6 +199,12 @@
   flex-direction: column;
   gap: 2px;
   flex-shrink: 0;
+}
+
+@media (max-width: 767px) {
+  .footer {
+    padding: var(--space-1) var(--space-2);
+  }
 }
 
 .onboardingBanner {

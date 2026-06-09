@@ -23,6 +23,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
   transition: background-color var(--transition-base), color var(--transition-base);
   overflow-y: auto;
+  overflow-x: hidden;
+  caret-color: transparent;
+}
+
+input, textarea, select, [contenteditable="true"] {
+  caret-color: auto;
 }
 
 #root {
