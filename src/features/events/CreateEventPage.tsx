@@ -28,7 +28,6 @@ const STEPS = ['Event Details', 'Activation', 'Payment']
 export function CreateEventPage() {
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
-  const profile = useAuthStore((s) => s.profile)
   const org = useAuthStore((s) => s.org)
   const showToast = useUIStore((s) => s.showToast)
   const [step, setStep] = useState<'details' | 'activate' | 'payment'>('details')
@@ -152,43 +151,27 @@ export function CreateEventPage() {
     setStep('payment')
   }
 
-  const handlePaymentSuccess = async (provider: 'paystack' | 'flutterwave') => {
+  const handlePaymentSuccess = async (provider: 'paystack' | 'flutterwave', reference: string) => {
     paySucceededRef.current = true
-    setPaying(false)
+    setPaying(true)
     if (createdEventId) {
-      const { data: updatedEvent, error: updateErr } = await supabase
-        .from('events')
-        .update({ status: 'active', payment_status: 'paid' })
-        .eq('id', createdEventId)
-        .neq('payment_status', 'paid')
-        .select('id, name, created_by')
-        .maybeSingle()
+      const { data, error: verifyErr } = await supabase.functions.invoke('verify-payment', {
+        body: {
+          provider,
+          reference,
+          event_id: createdEventId
+        }
+      })
 
-      if (updateErr) {
-        showToast({ type: 'error', title: 'Payment recorded', body: 'Payment succeeded but DB update failed: ' + updateErr.message })
+      if (verifyErr || (data && data.error)) {
+        const errMsg = verifyErr?.message || data?.error || 'Payment verification failed'
+        showToast({ type: 'error', title: 'Verification failed', body: errMsg })
+        setPaying(false)
+        setPaymentStatus('failed')
         return
       }
-
-      if (updatedEvent && user) {
-        const amountStr = `₦${(getEventPrice('standard') / 100).toLocaleString()}`
-        const methodLabel = provider === 'paystack' ? 'Paystack' : 'Flutterwave'
-        
-        await supabase.functions.invoke('onboarding-emails', {
-          body: {
-            type: 'payment',
-            email: user.email,
-            first_name: profile?.display_name || user.user_metadata?.display_name || 'there',
-            meta: {
-              amount: amountStr,
-              event_name: updatedEvent.name,
-              payment_method: methodLabel
-            }
-          }
-        }).catch(err => {
-          console.error('Error invoking payment notification:', err)
-        })
-      }
     }
+    setPaying(false)
     setPaymentStatus('success')
     showToast({ type: 'success', title: 'Payment successful!', body: 'Your event is now live.' })
   }
@@ -211,7 +194,7 @@ export function CreateEventPage() {
         email: user.email || '',
         amount: getEventPrice('standard'),
         metadata: { event_id: createdEventId },
-        onSuccess: () => handlePaymentSuccess('paystack'),
+        onSuccess: (reference) => handlePaymentSuccess('paystack', reference),
         onClose: handlePaymentCancel,
       })
     } catch {
@@ -234,7 +217,7 @@ export function CreateEventPage() {
         email: user.email || '',
         amount: getEventPrice('standard'),
         metadata: { event_id: createdEventId },
-        onSuccess: () => handlePaymentSuccess('flutterwave'),
+        onSuccess: (reference) => handlePaymentSuccess('flutterwave', reference),
         onClose: handlePaymentCancel,
       })
     } catch {

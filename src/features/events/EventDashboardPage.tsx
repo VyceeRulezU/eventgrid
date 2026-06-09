@@ -107,7 +107,6 @@ export function EventDashboardPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
-  const profile = useAuthStore((s) => s.profile)
   const role = useAuthStore((s) => s.role)
   const { activeEvent, setActiveEvent, phases, setPhases } = useEventStore()
   const showNotification = useUIStore((s) => s.showNotification)
@@ -349,41 +348,22 @@ export function EventDashboardPage() {
         amount: getEventPrice('standard'),
         metadata: { event_id: activeEvent.id },
 
-        onSuccess: async () => {
+        onSuccess: async (reference: string) => {
           paySucceededRef.current = true
 
-          const { data: updatedEvent, error: updateErr } = await supabase
-            .from('events')
-            .update({ status: 'active', payment_status: 'paid' })
-            .eq('id', activeEvent.id)
-            .neq('payment_status', 'paid')
-            .select('id, name, created_by')
-            .maybeSingle()
+          const { data, error: verifyErr } = await supabase.functions.invoke('verify-payment', {
+            body: {
+              provider,
+              reference,
+              event_id: activeEvent.id
+            }
+          })
 
-          if (updateErr) {
-            showNotification({ variant: 'error', title: 'Payment received but activation failed', message: updateErr.message })
+          if (verifyErr || (data && data.error)) {
+            const errMsg = verifyErr?.message || data?.error || 'Payment verification failed'
+            showNotification({ variant: 'error', title: 'Verification failed', message: errMsg })
             setPayStatus('failed')
             return
-          }
-
-          if (updatedEvent && user) {
-            const amountStr = `₦${(getEventPrice('standard') / 100).toLocaleString()}`
-            const methodLabel = provider === 'paystack' ? 'Paystack' : 'Flutterwave'
-            
-            await supabase.functions.invoke('onboarding-emails', {
-              body: {
-                type: 'payment',
-                email: user.email,
-                first_name: profile?.display_name || user.user_metadata?.display_name || 'there',
-                meta: {
-                  amount: amountStr,
-                  event_name: updatedEvent.name,
-                  payment_method: methodLabel
-                }
-              }
-            }).catch(err => {
-              console.error('Error invoking payment notification:', err)
-            })
           }
 
           setActiveEvent({ ...currentEvent, status: 'active', payment_status: 'paid' } as Event)
