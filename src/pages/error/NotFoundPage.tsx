@@ -13,7 +13,7 @@ export default function NotFoundPage() {
   const role = useAuthStore((s) => s.role)
 
   const dashboardRole = role || (user?.user_metadata?.role as string) || 'planner'
-  const dashboardLink = user ? `/dashboard/${dashboardRole}` : '/home'
+  const dashboardLink = user ? (dashboardRole === 'super_admin' ? '/admin' : `/dashboard/${dashboardRole}`) : '/home'
 
   const description = pathname.startsWith('/events')
     ? 'This event page does not exist or the event may have been removed.'

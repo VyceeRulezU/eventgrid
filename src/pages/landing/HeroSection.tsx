@@ -69,7 +69,7 @@ export default function HeroSection() {
               transition={{ duration: 0.8, delay: 0.3, ease: 'easeOut' }}
             >
               {isLoggedIn ? (
-                <Link to={`/dashboard/${role || 'planner'}`} className={styles.btnGold}>
+                <Link to={role === 'super_admin' ? '/admin' : `/dashboard/${role || 'planner'}`} className={styles.btnGold}>
                   <LayoutDashboard size={20} />
                   Continue to Dashboard
                 </Link>

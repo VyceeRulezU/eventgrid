@@ -86,7 +86,7 @@ export default function Navbar() {
         {/* Desktop CTA buttons */}
         <div className={styles.desktopCta}>
           {isLoggedIn ? (
-            <Link to={`/dashboard/${role || 'planner'}`} className={styles.userLink} id="navbar-user-link">
+            <Link to={role === 'super_admin' ? '/admin' : `/dashboard/${role || 'planner'}`} className={styles.userLink} id="navbar-user-link">
               <span className={styles.navAvatar}>{avatarLetter}</span>
               <span className={styles.navUserName}>{displayName}</span>
             </Link>
@@ -131,7 +131,7 @@ export default function Navbar() {
           <div className={styles.mobileCta}>
             {isLoggedIn ? (
               <Link
-                to={`/dashboard/${role || 'planner'}`}
+                to={role === 'super_admin' ? '/admin' : `/dashboard/${role}`}
                 className={styles.userLink}
                 onClick={() => setMenuOpen(false)}
                 style={{ justifyContent: 'center', width: '100%' }}
