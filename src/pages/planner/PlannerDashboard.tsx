@@ -13,6 +13,7 @@ import { sendInvite } from '@/lib/edgeFunctions'
 import { Pagination } from '@/components/ui/Pagination'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { SEO } from '@/components/shared/SEO'
+import { MyFeedback } from '@/components/shared/MyFeedback'
 import type { Event, EventPhase, Task } from '@/types'
 import styles from './PlannerDashboard.module.css'
 
@@ -925,6 +926,10 @@ export function PlannerDashboard() {
             </div>
           </>
         )}
+      </div>
+
+      <div style={{ marginTop: 'var(--space-6)' }}>
+        <MyFeedback />
       </div>
 
       {showInviteClient && (

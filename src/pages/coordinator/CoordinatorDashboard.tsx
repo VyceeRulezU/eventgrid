@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { Pagination } from '@/components/ui/Pagination'
 import { SEO } from '@/components/shared/SEO'
+import { MyFeedback } from '@/components/shared/MyFeedback'
 import type { Event, EventPhase, Task } from '@/types'
 import styles from './CoordinatorDashboard.module.css'
 
@@ -716,6 +717,10 @@ export function CoordinatorDashboard() {
             </div>
           </>
         )}
+      </div>
+
+      <div style={{ marginTop: 'var(--space-6)' }}>
+        <MyFeedback />
       </div>
     </div>
   )

@@ -250,6 +250,22 @@ export interface EventActivity {
   created_at: string
 }
 
+export interface Feedback {
+  id: string
+  user_id: string
+  user_email: string
+  user_role: string
+  type: string
+  subject: string
+  message: string
+  status: 'open' | 'in_review' | 'resolved' | 'closed'
+  admin_reply: string | null
+  replied_by: string | null
+  replied_at: string | null
+  created_at: string
+  updated_at: string
+}
+
 export interface Notification {
   id: string
   user_id: string
