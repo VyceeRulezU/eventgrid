@@ -152,47 +152,7 @@ export function Sidebar() {
                 <Users size={20} />
                 <span>Admin Team</span>
               </NavLink>
-              <span className={styles.categoryLabel} style={{ marginTop: 'var(--space-2)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>View as</span>
-              <NavLink
-                to="/dashboard/planner"
-                className={({ isActive }) =>
-                  `${styles.navItem} ${isActive ? styles.active : ''}`
-                }
-                onClick={() => setSidebarOpen(false)}
-              >
-                <LayoutDashboard size={20} />
-                <span>Planner</span>
-              </NavLink>
-              <NavLink
-                to="/dashboard/coordinator"
-                className={({ isActive }) =>
-                  `${styles.navItem} ${isActive ? styles.active : ''}`
-                }
-                onClick={() => setSidebarOpen(false)}
-              >
-                <Calendar size={20} />
-                <span>Coordinator</span>
-              </NavLink>
-              <NavLink
-                to="/dashboard/vendor"
-                className={({ isActive }) =>
-                  `${styles.navItem} ${isActive ? styles.active : ''}`
-                }
-                onClick={() => setSidebarOpen(false)}
-              >
-                <Users size={20} />
-                <span>Vendor</span>
-              </NavLink>
-              <NavLink
-                to="/dashboard/client"
-                className={({ isActive }) =>
-                  `${styles.navItem} ${isActive ? styles.active : ''}`
-                }
-                onClick={() => setSidebarOpen(false)}
-              >
-                <Users size={20} />
-                <span>Client</span>
-              </NavLink>
+
             </div>
           )}
         </nav>

@@ -39,7 +39,6 @@ const FinancialsPage = lazy(() => import('@/features/financials/FinancialsPage')
 const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage').then(m => ({ default: m.SettingsPage })))
 const ClientPortalPage = lazy(() => import('@/features/client-portal/ClientPortalPage').then(m => ({ default: m.ClientPortalPage })))
 const SuperAdminDashboard = lazy(() => import('@/pages/admin/SuperAdminDashboard').then(m => ({ default: m.SuperAdminDashboard })))
-const AnalyticsPage = lazy(() => import('@/pages/admin/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })))
 const HelpPage = lazy(() => import('@/pages/settings/HelpPage').then(m => ({ default: m.HelpPage })))
 const MyTasksPage = lazy(() => import('@/pages/team/MyTasksPage').then(m => ({ default: m.MyTasksPage })))
 const FeedbackManagementPage = lazy(() => import('@/pages/admin/FeedbackManagementPage').then(m => ({ default: m.FeedbackManagementPage })))
@@ -393,7 +392,7 @@ export function App() {
           } />
           <Route path="/admin" element={
             <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
-              <RoleGuard allowedRole="super_admin"><AnalyticsPage /></RoleGuard>
+              <RoleGuard allowedRole="super_admin"><SuperAdminDashboard /></RoleGuard>
             </Suspense>
           } />
           <Route path="/admin/feedback" element={

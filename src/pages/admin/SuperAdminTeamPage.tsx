@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Users, UserPlus, X, Mail, Shield, ShieldCheck, Eye, Headset } from 'lucide-react'
+import { PageHero } from '@/components/shared/PageHero'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -78,7 +79,7 @@ export function SuperAdminTeamPage() {
   if (loading) {
     return (
       <div className={styles.page}>
-        <div className={styles.header}><h2 className={styles.headerTitle}>Admin Team</h2></div>
+        <PageHero icon={Shield} title="Admin Team" subtitle="Loading..." />
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 200, gap: 'var(--space-4)' }}>
           <img src="/EventGrid-favicon.svg" alt="Loading" style={{ width: 48, height: 48, opacity: 0.5 }} />
           <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>Loading admin team...</div>
@@ -89,19 +90,17 @@ export function SuperAdminTeamPage() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.header}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 2 }}>
-            <Shield size={20} style={{ color: 'var(--color-accent)' }} />
-            <h2 className={styles.headerTitle}>Admin Team</h2>
-          </div>
-          <p className={styles.headerDesc}>{members.length} admin{members.length !== 1 ? 's' : ''} with platform access</p>
-        </div>
-        <button className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => setShowInvite(true)}>
-          <UserPlus size={14} />
-          Invite Admin
-        </button>
-      </div>
+      <PageHero
+        icon={Shield}
+        title="Admin Team"
+        subtitle="Manage platform administrators"
+        backTo="/admin"
+        actions={
+          <button className="btn btn-accent btn-sm" onClick={() => setShowInvite(true)}>
+            <UserPlus size={14} /> Invite Admin
+          </button>
+        }
+      />
 
       <div className={styles.tableCard}>
         <div className={styles.tableScroll}>

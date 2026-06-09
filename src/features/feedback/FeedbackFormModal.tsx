@@ -51,6 +51,24 @@ export function FeedbackFormModal({ open, onClose }: FeedbackFormModalProps) {
     }
 
     showNotification({ variant: 'success', title: 'Submitted', message: 'Your feedback has been sent to the admin team.' })
+
+    // Notify all super admins about new feedback
+    const { data: superAdmins } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('is_super_admin', true)
+
+    if (superAdmins) {
+      for (const sa of superAdmins) {
+        await supabase.from('notifications').insert({
+          user_id: sa.id,
+          type: 'feedback_reply',
+          title: `New feedback: ${subject.trim()}`,
+          body: message.trim().substring(0, 200),
+        })
+      }
+    }
+
     setSubject('')
     setMessage('')
     setType('suggestion')

@@ -187,7 +187,7 @@ export function VendorDirectoryPage() {
 
   const handleDelete = async (id: string) => {
     const vendor = vendors.find(v => v.id === id)
-    if (vendor && vendor.org_id !== org?.id) {
+    if (role !== 'super_admin' && vendor && vendor.org_id !== org?.id) {
       showNotification({ variant: 'warning', title: 'Permission denied', message: 'You can only delete vendors from your own organization.' })
       return
     }
@@ -326,11 +326,13 @@ export function VendorDirectoryPage() {
                     {vendor.category}
                   </span>
                 </div>
-                {vendor.org_id === org?.id && (
+                {(vendor.org_id === org?.id || role === 'super_admin') && (
                   <div style={{ display: 'flex', gap: 'var(--space-1)' }}>
-                    <button className="btn btn-ghost btn-sm btn-icon" onClick={() => openEdit(vendor)} aria-label="Edit" style={{ width: 32, minHeight: 32 }}>
-                      <Pencil size={12} />
-                    </button>
+                    {vendor.org_id === org?.id && (
+                      <button className="btn btn-ghost btn-sm btn-icon" onClick={() => openEdit(vendor)} aria-label="Edit" style={{ width: 32, minHeight: 32 }}>
+                        <Pencil size={12} />
+                      </button>
+                    )}
                     {role === 'super_admin' && (
                       <button className="btn btn-ghost btn-sm btn-icon" onClick={() => handleDelete(vendor.id)} aria-label="Delete" style={{ width: 32, minHeight: 32, color: 'var(--color-error)' }}>
                         <Trash2 size={12} />

@@ -4,6 +4,7 @@ import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { createNotification } from '@/lib/notifications'
 import { MessageSquare, AlertCircle, Lightbulb, Bug, Sparkles, Send, CheckCircle, RefreshCw, Clock } from 'lucide-react'
+import { PageHero } from '@/components/shared/PageHero'
 
 interface Feedback {
   id: string
@@ -117,32 +118,28 @@ export function FeedbackManagementPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-6)', flexWrap: 'wrap', gap: 'var(--space-3)' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 2 }}>
-            <MessageSquare size={20} style={{ color: 'var(--color-accent)' }} />
-            <h2 style={{ margin: 0 }}>User Feedback</h2>
+      <PageHero
+        icon={MessageSquare}
+        title="Feedback"
+        subtitle="User submissions and inquiries"
+        backTo="/admin"
+        actions={
+          <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+            {filterTabs.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setFilter(tab.key)}
+                className={`btn btn-sm ${filter === tab.key ? 'btn-primary' : 'btn-ghost'}`}
+              >
+                {tab.label}
+              </button>
+            ))}
+            <button className="btn btn-ghost btn-sm btn-icon" onClick={loadFeedback} aria-label="Refresh">
+              <RefreshCw size={16} />
+            </button>
           </div>
-          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', margin: 0 }}>
-            Complaints, suggestions, and reports from users
-          </p>
-        </div>
-        <button className="btn btn-ghost btn-sm btn-icon" onClick={loadFeedback} aria-label="Refresh">
-          <RefreshCw size={16} />
-        </button>
-      </div>
-
-      <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-4)', flexWrap: 'wrap' }}>
-        {filterTabs.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setFilter(tab.key)}
-            className={`btn btn-sm ${filter === tab.key ? 'btn-primary' : 'btn-ghost'}`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+        }
+      />
 
       {loading ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
