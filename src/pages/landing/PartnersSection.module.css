@@ -87,7 +87,7 @@
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  gap: 2.5rem 3.5rem;
+  gap: 1rem 3.5rem;
   max-width: 960px;
   width: 100%;
 }
@@ -98,7 +98,8 @@
   justify-content: center;
   opacity: 0.6;
   transition: opacity var(--transition-base), transform var(--transition-base), filter var(--transition-base);
-  height: 44px;
+  height: 6rem;
+  width: 10rem;
   user-select: none;
 }
 
@@ -108,12 +109,17 @@
   filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.25));
 }
 
-.partnerImg {
-  max-height: 36px;
+.logoWrapper :global(img),
+.logoWrapper :global(svg) {
+  max-height: 100%;
+  max-width: 100%;
+  height: auto;
   width: auto;
-  max-width: 160px;
   display: block;
   object-fit: contain;
+}
+
+.partnerImg {
   filter: brightness(0) invert(1);
 }
 

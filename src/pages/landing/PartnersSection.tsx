@@ -1,5 +1,3 @@
-import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
 import styles from './PartnersSection.module.css'
 
 interface Partner {
@@ -10,6 +8,10 @@ interface Partner {
 
 // ── Curated Prestigious Event Planners (Default Fallbacks) ──
 const DEFAULT_PARTNERS: Partner[] = [
+  {
+    name: 'Talk Events',
+    isDefault: true,
+  },
   {
     name: 'Zapphaire Events',
     isDefault: true,
@@ -37,34 +39,7 @@ const DEFAULT_PARTNERS: Partner[] = [
 ]
 
 export default function PartnersSection() {
-  const [dbPartners, setDbPartners] = useState<Partner[]>([])
-
-  useEffect(() => {
-    async function loadPartners() {
-      try {
-        // Query the app's database service to fetch active event planners/organisations
-        const { data, error } = await supabase
-          .from('organizations')
-          .select('name, logo_url')
-          .limit(10)
-
-        if (error) throw error
-
-        if (data && data.length > 0) {
-          const filtered = data
-            .map(d => ({ name: d.name, logo_url: d.logo_url }))
-            .filter(p => !p.name.toLowerCase().includes('nali'))
-          setDbPartners(filtered)
-        }
-      } catch (err) {
-        console.warn('Could not load database organizations, using default partners.', err)
-      }
-    }
-    loadPartners()
-  }, [])
-
-  // Combine default planners and any online registered planners from database
-  const allPartners = [...DEFAULT_PARTNERS, ...dbPartners].slice(0, 10)
+  const allPartners = DEFAULT_PARTNERS
 
   return (
     <section className={styles.section} aria-label="Our Partners">
@@ -98,6 +73,8 @@ export default function PartnersSection() {
 // ── Inline SVGs for Curated Planners (styled to render white on dark theme) ──
 function renderDefaultLogoSVG(name: string) {
   switch (name) {
+    case 'Talk Events':
+      return <img src="/talk%20events.svg" alt="Talk Events Logo" className={styles.partnerImg} />
     case 'Zapphaire Events':
       return (
         <svg width="195" height="42" viewBox="0 0 150 32" fill="none" xmlns="http://www.w3.org/2000/svg">
