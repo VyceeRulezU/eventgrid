@@ -21,6 +21,7 @@ export default function Navbar() {
   const isLoggedIn = !!user
   const displayName = profile?.display_name || user?.user_metadata?.display_name || ''
   const avatarLetter = displayName ? displayName.charAt(0).toUpperCase() : (user?.email?.charAt(0).toUpperCase() || 'U')
+  const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url || null
 
   /* ── Scroll detection ── */
   useEffect(() => {
@@ -87,7 +88,11 @@ export default function Navbar() {
         <div className={styles.desktopCta}>
           {isLoggedIn ? (
             <Link to={role === 'super_admin' ? '/admin' : `/dashboard/${role || 'planner'}`} className={styles.userLink} id="navbar-user-link">
-              <span className={styles.navAvatar}>{avatarLetter}</span>
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="" className={styles.navAvatarImg} />
+              ) : (
+                <span className={styles.navAvatar}>{avatarLetter}</span>
+              )}
               <span className={styles.navUserName}>{displayName}</span>
             </Link>
           ) : (
