@@ -349,6 +349,7 @@ export function App() {
                 <MyTasksPage />
               </Suspense>
             } />
+            <Route path="/dashboard/team_member" element={<Navigate to="/dashboard/my-tasks" replace />} />
 
             <Route path="/events" element={<EventsListPage />} />
             <Route path="/events/new" element={<CreateEventPage />} />
