@@ -25,6 +25,7 @@ export function MyFeedback({ limit = 5 }: { limit?: number }) {
   const navigate = useNavigate()
   const [items, setItems] = useState<Feedback[]>([])
   const [loading, setLoading] = useState(true)
+  const [expanded, setExpanded] = useState<string | null>(null)
 
   useEffect(() => {
     if (!user) return
@@ -66,46 +67,79 @@ export function MyFeedback({ limit = 5 }: { limit?: number }) {
           const config = TYPE_CONFIG[fb.type] || TYPE_CONFIG.other
           const Icon = config.icon
           const st = STATUS_STYLES[fb.status] || STATUS_STYLES.closed
+          const isExpanded = expanded === fb.id
           return (
-            <div
-              key={fb.id}
-              className="card"
-              style={{
-                padding: 'var(--space-3) var(--space-4)',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 'var(--space-3)',
-              }}
-              onClick={() => navigate('/notifications')}
-              onKeyDown={(e) => e.key === 'Enter' && navigate('/notifications')}
-              role="button"
-              tabIndex={0}
-            >
-              <div style={{
-                width: 36, height: 36, borderRadius: 'var(--radius-md)',
-                background: `${config.color}15`, color: config.color,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-              }}>
-                <Icon size={16} />
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {fb.subject}
+            <div key={fb.id} className="card" style={{ padding: 0, overflow: 'hidden' }}>
+              <div
+                style={{
+                  padding: 'var(--space-3) var(--space-4)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 'var(--space-3)',
+                }}
+                onClick={() => setExpanded(isExpanded ? null : fb.id)}
+                onKeyDown={(e) => e.key === 'Enter' && setExpanded(isExpanded ? null : fb.id)}
+                role="button"
+                tabIndex={0}
+              >
+                <div style={{
+                  width: 36, height: 36, borderRadius: 'var(--radius-md)',
+                  background: `${config.color}15`, color: config.color,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                }}>
+                  <Icon size={16} />
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
-                  <span className="badge" style={{
-                    fontSize: 9, padding: '1px 6px', borderRadius: 'var(--radius-full)',
-                    background: st.bg, color: st.color, fontWeight: 600, textTransform: 'capitalize',
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {fb.subject}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                    <span className="badge" style={{
+                      fontSize: 9, padding: '1px 6px', borderRadius: 'var(--radius-full)',
+                      background: st.bg, color: st.color, fontWeight: 600, textTransform: 'capitalize',
+                    }}>
+                      {fb.status}
+                    </span>
+                    {fb.admin_reply && <CheckCircle size={11} style={{ color: 'var(--color-info)' }} />}
+                    <Clock size={11} />
+                    <span>{new Date(fb.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
+                  </div>
+                </div>
+                <ChevronRight size={14} style={{ color: 'var(--color-text-muted)', flexShrink: 0, transform: isExpanded ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s' }} />
+              </div>
+              {isExpanded && (
+                <div style={{ padding: '0 var(--space-4) var(--space-3) var(--space-4)', borderTop: '1px solid var(--color-border-subtle)' }}>
+                  <div style={{
+                    padding: 'var(--space-2) var(--space-3)', marginTop: 'var(--space-2)',
+                    background: 'var(--color-surface-1)', borderRadius: 'var(--radius-md)',
+                    fontSize: 'var(--text-xs)', lineHeight: 1.6, color: 'var(--color-text-secondary)',
+                    whiteSpace: 'pre-wrap',
                   }}>
-                    {fb.status}
-                  </span>
-                  {fb.admin_reply && <CheckCircle size={11} style={{ color: 'var(--color-info)' }} />}
-                  <Clock size={11} />
-                  <span>{new Date(fb.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
+                    {fb.message}
+                  </div>
+                  {fb.admin_reply && (
+                    <div style={{
+                      marginTop: 'var(--space-2)', padding: 'var(--space-2) var(--space-3)',
+                      background: 'var(--color-accent-muted)', borderRadius: 'var(--radius-md)',
+                      border: '1px solid var(--color-accent-border)',
+                    }}>
+                      <div style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--color-accent)', marginBottom: 2 }}>
+                        <CheckCircle size={11} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+                        Admin Response
+                      </div>
+                      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                        {fb.admin_reply}
+                      </div>
+                      {fb.replied_at && (
+                        <div style={{ fontSize: 10, color: 'var(--color-text-muted)', marginTop: 2 }}>
+                          {new Date(fb.replied_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-              </div>
-              <ChevronRight size={14} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
+              )}
             </div>
           )
         })}

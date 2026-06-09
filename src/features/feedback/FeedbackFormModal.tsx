@@ -36,7 +36,7 @@ export function FeedbackFormModal({ open, onClose }: FeedbackFormModalProps) {
 
     const { error } = await supabase.from('feedback').insert({
       user_id: user.id,
-      user_email: user.email,
+      user_email: user.email || user.user_metadata?.email || 'unknown@eventgrid.ng',
       user_role: role || 'unknown',
       type,
       subject: subject.trim(),
@@ -46,6 +46,7 @@ export function FeedbackFormModal({ open, onClose }: FeedbackFormModalProps) {
     setSending(false)
 
     if (error) {
+      console.error('[Feedback] insert error:', error)
       showNotification({ variant: 'error', title: 'Failed to submit', message: error.message })
       return
     }

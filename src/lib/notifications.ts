@@ -20,7 +20,7 @@ export function navigateFromNotification(n: Notification, navigate: NavigateFunc
   }
   switch (n.type) {
     case 'feedback_reply':
-      navigate('/admin/feedback')
+      navigate('/notifications')
       return
   }
 }
