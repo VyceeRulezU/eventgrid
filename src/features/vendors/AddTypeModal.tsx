@@ -54,7 +54,7 @@ export function AddTypeModal({ orgId, onClose, onSaved }: AddTypeModalProps) {
       <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 420 }}>
         <div className="modal-card-header">
           <div className="modal-card-title">Add Vendor Type</div>
-          <button className="modal-card-close" onClick={onClose} disabled={saving}><X size={20} /></button>
+          <button className="modal-card-close" onClick={onClose} disabled={saving} data-tooltip="Close"><X size={20} /></button>
         </div>
         <div className="modal-card-body">
           <label className="label">Category Name</label>

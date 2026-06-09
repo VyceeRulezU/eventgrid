@@ -136,7 +136,7 @@ export function GeneratePortalModal({ eventId, onClose }: GeneratePortalModalPro
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
           <h3 className={styles.title}>Client Portal Access</h3>
-          <button className={styles.closeBtn} onClick={onClose}><X size={18} /></button>
+          <button className={styles.closeBtn} onClick={onClose} data-tooltip="Close"><X size={18} /></button>
         </div>
 
         {checking ? (

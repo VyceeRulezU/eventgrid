@@ -81,7 +81,7 @@ export function FeedbackFormModal({ open, onClose }: FeedbackFormModalProps) {
       <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 520 }}>
         <div className="modal-card-header">
           <div className="modal-card-title">Send Feedback</div>
-          <button className="modal-card-close" onClick={onClose} disabled={sending}><X size={20} /></button>
+          <button className="modal-card-close" onClick={onClose} disabled={sending} data-tooltip="Close"><X size={20} /></button>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="modal-card-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>

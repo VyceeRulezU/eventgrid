@@ -80,3 +80,38 @@ img, video {
   background-color: var(--color-accent-muted);
   color: var(--color-text-primary);
 }
+
+/* ── CSS-only tooltips ── */
+[data-tooltip] {
+  position: relative;
+}
+
+[data-tooltip]::before {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  background: #1a1a2e;
+  color: #e2e8f0;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 9999;
+}
+
+[data-tooltip]:hover::before {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-8px);
+}
+
+[data-tooltip]:not(:hover)::before {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-4px);
+}

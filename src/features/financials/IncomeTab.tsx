@@ -243,8 +243,8 @@ export function IncomeTab({ eventId, refreshKey, onUpdate }: IncomeTabProps) {
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: 4 }}>
-                        <button className="btn btn-ghost btn-icon" onClick={() => openEdit(p)} title="Edit"><Pencil size={14} /></button>
-                        <button className="btn btn-ghost btn-icon" onClick={() => handleDelete(p.id)} title="Delete" style={{ color: 'var(--color-error)' }}><Trash2 size={14} /></button>
+                        <button className="btn btn-ghost btn-icon" onClick={() => openEdit(p)} data-tooltip="Edit"><Pencil size={14} /></button>
+                        <button className="btn btn-ghost btn-icon" onClick={() => handleDelete(p.id)} data-tooltip="Delete" style={{ color: 'var(--color-error)' }}><Trash2 size={14} /></button>
                       </div>
                     </td>
                   </tr>

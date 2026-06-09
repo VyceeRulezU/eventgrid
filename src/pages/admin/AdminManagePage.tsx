@@ -151,7 +151,7 @@ function PersonModal({
                 <div className={styles.modalMeta}>{roleLabel}</div>
               </div>
             </div>
-            <button className={styles.closeBtn} onClick={onClose}><X size={18} /></button>
+            <button className={styles.closeBtn} onClick={onClose} data-tooltip="Close"><X size={18} /></button>
           </div>
           <div className={styles.modalBody}>
             {[1,2,3].map(i => <div key={i} className="skeleton skeleton-card" style={{ height: 48, marginBottom: 'var(--space-2)' }} />)}
@@ -174,7 +174,7 @@ function PersonModal({
               </div>
             </div>
           </div>
-          <button className={styles.closeBtn} onClick={onClose}><X size={18} /></button>
+          <button className={styles.closeBtn} onClick={onClose} data-tooltip="Close"><X size={18} /></button>
         </div>
 
         <div className={styles.modalBody}>
@@ -367,7 +367,7 @@ export function AdminManagePage() {
                     <button
                       className={styles.iconBtn}
                       onClick={(e) => { e.stopPropagation(); setSelectedPerson(p) }}
-                      title="View details"
+                      data-tooltip="View details"
                     >
                       <Eye size={16} />
                     </button>
@@ -449,7 +449,7 @@ export function AdminManagePage() {
                     <button
                       className={styles.iconBtn}
                       onClick={() => navigate(`/events/${e.id}`)}
-                      title="Open event"
+                      data-tooltip="Open event"
                     >
                       <ExternalLink size={16} />
                     </button>

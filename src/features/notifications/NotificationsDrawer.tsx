@@ -89,11 +89,11 @@ export function NotificationsDrawer() {
           </div>
           <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
             {unreadCount > 0 && (
-              <button className="btn btn-ghost btn-icon" onClick={handleMarkAllRead} title="Mark all as read">
+              <button className="btn btn-ghost btn-icon" onClick={handleMarkAllRead} data-tooltip="Mark all as read">
                 <CheckCheck size={18} />
               </button>
             )}
-            <button className="btn btn-ghost btn-icon" onClick={() => setDrawerOpen(false)}>
+            <button className="btn btn-ghost btn-icon" onClick={() => setDrawerOpen(false)} data-tooltip="Close">
               <X size={18} />
             </button>
           </div>

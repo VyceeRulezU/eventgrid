@@ -18,9 +18,11 @@ declare global {
       tx_ref: string
       amount: number
       currency: string
-      email: string
-      phone_number?: string
-      name?: string
+      customer: {
+        email: string
+        phone_number?: string
+        name?: string
+      }
       meta?: Record<string, unknown>
       callback: (response: { transaction_id: string; tx_ref: string; status: string }) => void
       onclose: () => void
@@ -49,9 +51,11 @@ export function initFlutterwavePayment(config: FlutterwaveConfig): void {
     tx_ref: config.tx_ref,
     amount: config.amount,
     currency: config.currency,
-    email: config.email,
-    phone_number: config.phone_number,
-    name: config.name,
+    customer: {
+      email: config.email,
+      phone_number: config.phone_number,
+      name: config.name,
+    },
     meta: config.meta as Record<string, unknown>,
     callback: (response) => {
       if (response.status === 'successful' || response.status === 'completed') {

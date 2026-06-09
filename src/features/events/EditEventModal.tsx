@@ -112,7 +112,7 @@ export function EditEventModal({ event, onClose, onSaved }: EditEventModalProps)
       <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 560 }}>
         <div className="modal-card-header">
           <div className="modal-card-title">Edit Event</div>
-          <button className="modal-card-close" onClick={onClose} disabled={saving}>
+          <button className="modal-card-close" onClick={onClose} disabled={saving} data-tooltip="Close">
             <X size={20} />
           </button>
         </div>

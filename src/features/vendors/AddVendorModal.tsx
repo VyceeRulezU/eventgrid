@@ -80,7 +80,7 @@ export function AddVendorModal({ orgId, availableTypes, defaultCategory, onClose
       <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 520 }}>
         <div className="modal-card-header">
           <div className="modal-card-title">Add Vendor</div>
-          <button className="modal-card-close" onClick={onClose} disabled={saving}><X size={20} /></button>
+          <button className="modal-card-close" onClick={onClose} disabled={saving} data-tooltip="Close"><X size={20} /></button>
         </div>
         <div className="modal-card-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
