@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { Calendar, Users, MapPin, Building, ExternalLink } from 'lucide-react'
+import { MyFeedback } from '@/components/shared/MyFeedback'
 
 interface GuestEvent {
   id: string
@@ -126,6 +127,9 @@ export function ClientDashboard() {
           <ExternalLink size={16} />
           Browse All Vendors
         </Link>
+      </div>
+      <div style={{ marginTop: 'var(--space-6)' }}>
+        <MyFeedback />
       </div>
     </div>
   )
