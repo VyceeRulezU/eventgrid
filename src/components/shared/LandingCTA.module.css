@@ -105,7 +105,7 @@
 .headline {
   font-family: var(--font-base);
   font-size: clamp(2rem, 4vw, 3.5rem);
-  font-weight: 100;
+  font-weight: 300;
   color: #ffffff;
   line-height: 1.1;
   letter-spacing: -0.03em;

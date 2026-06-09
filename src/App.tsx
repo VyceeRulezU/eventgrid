@@ -36,6 +36,7 @@ import { TaskBoard } from '@/features/team/TaskBoard'
 import { LiveFeedPage } from '@/features/live-board/LiveFeedPage'
 import { CoordinatorsLandingPage } from '@/pages/roles/CoordinatorsLandingPage'
 import { VendorsLandingPage } from '@/pages/roles/VendorsLandingPage'
+import { PlannersLandingPage } from '@/pages/roles/PlannersLandingPage'
 import { PipelineLandingPage } from '@/pages/features/PipelineLandingPage'
 import { LiveBoardLandingPage } from '@/pages/features/LiveBoardLandingPage'
 import { ClientPortalLandingPage } from '@/pages/features/ClientPortalLandingPage'
@@ -337,6 +338,7 @@ export function App() {
         <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/pricing" element={<PricingPage />} />
           <Route path="/coordinators" element={<CoordinatorsLandingPage />} />
+          <Route path="/planners" element={<PlannersLandingPage />} />
           <Route path="/vendors-landing" element={<VendorsLandingPage />} />
           <Route path="/features/pipeline" element={<PipelineLandingPage />} />
           <Route path="/features/live-board" element={<LiveBoardLandingPage />} />

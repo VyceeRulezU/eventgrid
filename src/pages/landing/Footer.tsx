@@ -8,7 +8,7 @@ const NAV_COLS = [
     links: [
       { label: 'Features', href: '/home#features', internal: true },
       { label: 'How It Works', href: '/home#how-it-works', internal: true },
-      { label: 'For Planners', href: '/home#spotlight-a', internal: true },
+      { label: 'For Planners', href: '/planners', internal: true },
       { label: 'For Coordinators', href: '/coordinators', internal: true },
       { label: 'For Vendors', href: '/vendors-landing', internal: true },
       { label: 'Pricing', href: '/pricing', internal: true },

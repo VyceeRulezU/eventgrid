@@ -85,7 +85,7 @@
 
 .textBlock .title {
   font-size: clamp(22px, 3.5vw, 30px);
-  font-weight: 800;
+  font-weight: 300;
   color: #f9fafb;
   margin: 0;
   line-height: 1.25;
@@ -175,7 +175,7 @@
 
 .postTitle {
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 300;
   color: #f9fafb;
   margin: 0;
   line-height: 1.4;
@@ -197,7 +197,7 @@
 
 .sectionTitle {
   font-size: clamp(24px, 4vw, 36px);
-  font-weight: 800;
+  font-weight: 300;
   color: #f9fafb;
   text-align: center;
   margin: 0 0 16px 0;
@@ -247,7 +247,7 @@
 
 .roleTitle {
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 300;
   color: #ffffff;
   margin: 4px 0 8px 0;
 }
@@ -328,7 +328,7 @@
 
 .cardTitle {
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 300;
   color: #f9fafb;
   margin: 0;
 }
@@ -385,7 +385,7 @@
 
 .faqCategoryTitle {
   font-size: 22px;
-  font-weight: 800;
+  font-weight: 300;
   color: #f9fafb;
   margin: 0;
   border-left: 3px solid #d4a017;
@@ -426,7 +426,7 @@
 
 .faqQuestion {
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 300;
   color: #ffffff;
   transition: color 0.15s ease;
 }
