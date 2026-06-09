@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect, type ReactNode } from 'react'
+import { useState, useRef, useEffect, useCallback, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { ChevronDown } from 'lucide-react'
 import styles from './DropdownMenu.module.css'
 
@@ -22,6 +23,21 @@ interface DropdownMenuProps {
 export function DropdownMenu({ trigger, items, onSelect, align = 'start', className, disabled }: DropdownMenuProps) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({})
+
+  const updatePosition = useCallback(() => {
+    if (!triggerRef.current) return
+    const rect = triggerRef.current.getBoundingClientRect()
+    setMenuStyle({
+      position: 'fixed',
+      top: rect.bottom + 4,
+      left: align === 'end' ? rect.right : rect.left,
+      transform: align === 'end' ? 'translateX(-100%)' : 'none',
+      minWidth: rect.width,
+      zIndex: 9999,
+    })
+  }, [align])
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -33,14 +49,32 @@ export function DropdownMenu({ trigger, items, onSelect, align = 'start', classN
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  useEffect(() => {
+    if (open) {
+      updatePosition()
+      window.addEventListener('scroll', updatePosition, true)
+      window.addEventListener('resize', updatePosition)
+      return () => {
+        window.removeEventListener('scroll', updatePosition, true)
+        window.removeEventListener('resize', updatePosition)
+      }
+    }
+  }, [open, updatePosition])
+
   return (
     <div className={`${styles.wrapper} ${className || ''}`} ref={ref}>
-      <button className={styles.trigger} onClick={() => !disabled && setOpen(!open)} disabled={disabled} type="button">
+      <button
+        ref={triggerRef}
+        className={styles.trigger}
+        onClick={() => { if (!disabled) { setOpen(!open); if (!open) setTimeout(updatePosition, 0) } }}
+        disabled={disabled}
+        type="button"
+      >
         {trigger}
         <ChevronDown size={14} className={`${styles.chevron} ${open ? styles.chevronOpen : ''}`} />
       </button>
-      {open && (
-        <div className={`${styles.menu} ${align === 'end' ? styles.menuEnd : ''}`}>
+      {open && createPortal(
+        <div className={`${styles.menu} ${align === 'end' ? styles.menuEndPortal : ''}`} style={menuStyle} onClick={updatePosition}>
           {items.map((item) => (
             <button
               key={item.value}
@@ -56,7 +90,8 @@ export function DropdownMenu({ trigger, items, onSelect, align = 'start', classN
               {item.label}
             </button>
           ))}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

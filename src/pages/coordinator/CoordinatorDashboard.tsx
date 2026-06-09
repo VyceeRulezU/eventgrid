@@ -157,7 +157,10 @@ export function CoordinatorDashboard() {
 
       const eventIds = (accessData || []).map(a => a.event_id)
 
-      const orConditions = [`coordinator_id.eq.${userId}`]
+      const orConditions = [
+        `coordinator_id.eq.${userId}`,
+        `created_by.eq.${userId}`,
+      ]
       if (org?.id) {
         orConditions.push(`org_id.eq.${org.id}`)
       }

@@ -48,7 +48,7 @@
 
 .metricVal {
   font-size: clamp(36px, 6vw, 64px);
-  font-weight: 800;
+  font-weight: 300;
   color: #d4a017;
   line-height: 1;
   letter-spacing: -0.02em;

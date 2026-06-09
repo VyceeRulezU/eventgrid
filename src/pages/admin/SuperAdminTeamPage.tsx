@@ -96,7 +96,7 @@ export function SuperAdminTeamPage() {
         subtitle="Manage platform administrators"
         backTo="/admin"
         actions={
-          <button className="btn btn-accent btn-sm" onClick={() => setShowInvite(true)}>
+          <button className="btn btn-primary btn-sm" onClick={() => setShowInvite(true)}>
             <UserPlus size={14} /> Invite Admin
           </button>
         }
@@ -190,7 +190,7 @@ export function SuperAdminTeamPage() {
                   autoFocus
                 />
               </div>
-              <div className="input-wrapper">
+              <div className="input-wrapper" style={{ overflow: 'visible' }}>
                 <label className="input-label">Admin Role</label>
                 <DropdownMenu
                   trigger={

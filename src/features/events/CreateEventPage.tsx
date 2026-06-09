@@ -9,6 +9,39 @@ import { generateSlug } from '@/lib/slug'
 import { CalendarModal } from '@/components/ui/CalendarModal'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 
+async function ensureOwnOrg(userId: string, displayName: string): Promise<{ id: string; name: string; logo_url: string | null } | null> {
+  const { data: ownedOrgs } = await supabase
+    .from('organizations')
+    .select('id, name, logo_url')
+    .eq('owner_id', userId)
+    .limit(1)
+
+  if (ownedOrgs && ownedOrgs.length > 0) {
+    return ownedOrgs[0]
+  }
+
+  const { data: newOrg, error: orgErr } = await supabase
+    .rpc('create_org', {
+      p_name: `${displayName || 'User'}'s Events`,
+      p_owner_id: userId,
+      p_city: 'Lagos, Lagos',
+      p_logo_url: null,
+    })
+
+  if (orgErr || !newOrg) {
+    return null
+  }
+
+  const orgData = newOrg as { id: string; name: string; logo_url: string | null }
+
+  await supabase
+    .from('profiles')
+    .update({ org_id: orgData.id })
+    .eq('id', userId)
+
+  return orgData
+}
+
 const eventTypes = [
   { value: 'Wedding', label: 'Wedding' },
   { value: 'Corporate Event', label: 'Corporate Event' },
@@ -28,7 +61,9 @@ const STEPS = ['Event Details', 'Activation', 'Payment']
 export function CreateEventPage() {
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
+  const profile = useAuthStore((s) => s.profile)
   const org = useAuthStore((s) => s.org)
+  const setOrg = useAuthStore((s) => s.setOrg)
   const showToast = useUIStore((s) => s.showToast)
   const [step, setStep] = useState<'details' | 'activate' | 'payment'>('details')
   const [saving, setSaving] = useState(false)
@@ -71,16 +106,24 @@ export function CreateEventPage() {
       showToast({ type: 'error', title: 'Not authenticated' })
       return
     }
-    if (!org) {
-      showToast({ type: 'warning', title: 'Organization not set up', body: 'Please complete onboarding first' })
-      return
+
+    let activeOrg = org
+    if (!activeOrg) {
+      const owned = await ensureOwnOrg(user.id, profile?.display_name || '')
+      if (!owned) {
+        showToast({ type: 'warning', title: 'Organization not set up', body: 'Please complete onboarding first' })
+        return
+      }
+      activeOrg = owned
+      setOrg(owned)
     }
+
     setSaving(true)
 
     const { data, error } = await supabase
       .from('events')
       .insert({
-        org_id: org.id,
+        org_id: activeOrg.id,
         created_by: user.id,
         name: form.name,
         event_type: form.eventType,
@@ -113,16 +156,24 @@ export function CreateEventPage() {
       showToast({ type: 'error', title: 'Not authenticated' })
       return
     }
-    if (!org) {
-      showToast({ type: 'warning', title: 'Organization not set up', body: 'Please complete onboarding first' })
-      return
+
+    let activeOrg = org
+    if (!activeOrg) {
+      const owned = await ensureOwnOrg(user.id, profile?.display_name || '')
+      if (!owned) {
+        showToast({ type: 'warning', title: 'Organization not set up', body: 'Please complete onboarding first' })
+        return
+      }
+      activeOrg = owned
+      setOrg(owned)
     }
+
     setSaving(true)
 
     const { data, error } = await supabase
       .from('events')
       .insert({
-        org_id: org.id,
+        org_id: activeOrg.id,
         created_by: user.id,
         name: form.name,
         event_type: form.eventType,
