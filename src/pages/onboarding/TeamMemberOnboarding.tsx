@@ -22,6 +22,7 @@ export function TeamMemberOnboarding() {
   const [searchParams] = useSearchParams()
 
   const eventId = searchParams.get('event_id')
+  const inviteRole = searchParams.get('role') || 'team_member'
 
   useEffect(() => {
     if (!eventId) {
@@ -75,7 +76,7 @@ export function TeamMemberOnboarding() {
       .upsert({
         event_id: eventId,
         user_id: user.id,
-        role: 'team_member',
+        role: inviteRole,
         accepted_at: new Date().toISOString()
       }, { onConflict: 'event_id,user_id' })
 
@@ -107,7 +108,7 @@ export function TeamMemberOnboarding() {
       .update({
         display_name: name,
         phone: phone || null,
-        role: 'team_member',
+        role: inviteRole,
         org_id: evtData?.org_id || null,
       })
       .eq('id', user.id)
@@ -124,14 +125,14 @@ export function TeamMemberOnboarding() {
         ...profile,
         display_name: name,
         phone: phone || null,
-        role: 'team_member'
+        role: inviteRole
       })
     }
 
     // 3. Mark onboarding completed in Auth metadata
     const { error: authErr } = await supabase.auth.updateUser({
       data: {
-        role: 'team_member',
+        role: inviteRole,
         onboarding_completed: true,
         joined_event_id: eventId
       }

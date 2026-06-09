@@ -11,6 +11,7 @@ interface BaseInviteParams {
 
 interface TeamInviteParams extends BaseInviteParams {
   type: 'team_member'
+  role?: string
 }
 
 interface VendorInviteParams extends BaseInviteParams {

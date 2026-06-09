@@ -238,10 +238,10 @@ Deno.serve(async (req) => {
       event_id,
       invited_by_name,
       invited_by,
+      role,           // team role for team_member invites
       org_id,         // coordinator_invite specific
       org_name,       // coordinator_invite specific
       // admin_monitor specific
-      role,
       // vendor-specific
       vendor_name,
       service_name,
@@ -413,7 +413,8 @@ Deno.serve(async (req) => {
               </p>`)
 
     } else if (type === 'team_member') {
-      const redirectUrl = `${APP_URL}/onboarding/team-member?event_id=${event_id}`;
+      const teamRole = role || 'team_member'
+      const redirectUrl = `${APP_URL}/onboarding/team-member?event_id=${event_id}&role=${teamRole}`;
       let linkData: any
       let linkError: any
 
@@ -434,7 +435,7 @@ Deno.serve(async (req) => {
           type: 'invite',
           email,
           options: {
-            data: { role: 'team_member', event_id },
+            data: { role: teamRole, event_id },
             redirectTo: redirectUrl,
           },
         })
@@ -507,11 +508,12 @@ Deno.serve(async (req) => {
     }
 
     if (type === 'team_member' && event_id) {
+      const teamRole = role || 'team_member'
       await supabaseAdmin.from('invitations').upsert({
         event_id,
         email,
         invited_by: invited_by || null,
-        role: 'team_member',
+        role: teamRole,
         status: 'pending',
       }, { onConflict: 'event_id,email' }).maybeSingle()
     }

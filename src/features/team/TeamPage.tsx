@@ -39,7 +39,12 @@ interface PendingInvitation {
   created_at: string
 }
 
-const ROLES = ['team', 'coordinator', 'planner', 'vendor']
+const ROLES = [
+  { value: 'team_member', label: 'Team Member' },
+  { value: 'coordinator', label: 'Coordinator' },
+  { value: 'vendor', label: 'Vendor' },
+  { value: 'client', label: 'Client' },
+]
 
 const REPORT_STATUS_OPTS = [
   { value: 'all_good', label: '✅ All Good' },
@@ -83,11 +88,14 @@ export function TeamPage() {
   const [loading, setLoading] = useState(true)
   const [showInvite, setShowInvite] = useState(false)
   const [inviteEmail, setInviteEmail] = useState('')
-  const [inviteRole, setInviteRole] = useState('team')
+  const [inviteRole, setInviteRole] = useState('team_member')
   const [inviting, setInviting] = useState(false)
   const [addingExisting, setAddingExisting] = useState<string | null>(null)
   const [existingCandidates, setExistingCandidates] = useState<(Profile & { event_name?: string })[]>([])
-  const [showExistingDirectory, setShowExistingDirectory] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<Profile[]>([])
+  const [searching, setSearching] = useState(false)
+  const [showEmailForm, setShowEmailForm] = useState(false)
   const [taskCounts, setTaskCounts] = useState<Record<string, number>>({})
   const [pendingInvitations, setPendingInvitations] = useState<PendingInvitation[]>([])
 
@@ -150,34 +158,6 @@ export function TeamPage() {
       }
     }
     setTaskCounts(counts)
-
-    /* ── Fetch existing team members from other events in same org ── */
-    if (eventData?.org_id) {
-      const { data: orgEvents } = await supabase
-        .from('events')
-        .select('id')
-        .eq('org_id', eventData.org_id)
-      if (orgEvents && orgEvents.length > 0) {
-        const eventIds = orgEvents.map((e: { id: string }) => e.id)
-        const existingIds = new Set((membersData ?? []).map((m: TeamMemberRow) => m.user_id).filter(Boolean))
-        const { data: candidates } = await supabase
-          .from('event_access')
-          .select('user_id, profiles!event_access_user_id_fkey(id, email, display_name, phone, avatar_url)')
-          .in('event_id', eventIds)
-          .neq('event_id', eventId)
-          .eq('role', 'team_member')
-          .not('accepted_at', 'is', null)
-        if (candidates) {
-          const unique = new Map<string, Profile>()
-          for (const c of candidates as any[]) {
-            if (!existingIds.has(c.user_id) && c.profiles) {
-              unique.set(c.user_id, c.profiles as Profile)
-            }
-          }
-          setExistingCandidates(Array.from(unique.values()))
-        }
-      }
-    }
 
     setLoading(false)
   }
@@ -243,6 +223,7 @@ export function TeamPage() {
 
     const { success, error } = await sendInvite({
       type: 'team_member',
+      role: inviteRole,
       event_id: eventId,
       email: inviteEmail.trim(),
       invited_by_name: user.user_metadata?.full_name || user.email || 'A coordinator',
@@ -257,8 +238,11 @@ export function TeamPage() {
 
     showNotification({ variant: 'success', title: 'Invite sent', message: `An invitation has been sent to ${inviteEmail.trim()}` })
     setInviteEmail('')
-    setInviteRole('team')
+    setInviteRole('team_member')
     setShowInvite(false)
+    setSearchQuery('')
+    setSearchResults([])
+    setShowEmailForm(false)
     setInviting(false)
   }
 
@@ -267,15 +251,34 @@ export function TeamPage() {
     setAddingExisting(userId)
     const { error } = await supabase
       .from('event_access')
-      .upsert({ event_id: eventId, user_id: userId, role: 'team_member', accepted_at: new Date().toISOString() }, { onConflict: 'event_id,user_id' })
+      .upsert({ event_id: eventId, user_id: userId, role: inviteRole, accepted_at: new Date().toISOString() }, { onConflict: 'event_id,user_id' })
     if (error) {
       showNotification({ variant: 'error', title: 'Failed to add member', message: error.message })
     } else {
       showNotification({ variant: 'success', title: 'Member added', message: 'Team member has been added to this event.' })
       setShowInvite(false)
+      setSearchQuery('')
+      setSearchResults([])
+      setShowEmailForm(false)
       loadData()
     }
     setAddingExisting(null)
+  }
+
+  async function handleSearch(query: string) {
+    setSearchQuery(query)
+    if (!query.trim()) { setSearchResults([]); return }
+    setSearching(true)
+    const existingIds = new Set(members.map(m => m.user_id).filter(Boolean))
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, email, display_name, phone, avatar_url')
+      .or(`email.ilike.%${query}%,display_name.ilike.%${query}%`)
+      .limit(20)
+    if (data) {
+      setSearchResults(data.filter(p => !existingIds.has(p.id)) as Profile[])
+    }
+    setSearching(false)
   }
 
   if (loading) {
@@ -552,73 +555,18 @@ export function TeamPage() {
 
       {/* ── Invite / Add modal ── */}
       {showInvite && (
-        <div className={styles.overlay} onClick={() => setShowInvite(false)}>
+        <div className={styles.overlay} onClick={() => { setShowInvite(false); setSearchQuery(''); setSearchResults([]); setShowEmailForm(false) }}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <h3 className={styles.modalTitle}>
-                {showExistingDirectory ? 'Add Team Member' : 'Invite New Member'}
+                {showEmailForm ? 'Invite by Email' : 'Add Team Member'}
               </h3>
-              <button type="button" className={styles.modalClose} onClick={() => setShowInvite(false)} aria-label="Close">
+              <button type="button" className={styles.modalClose} onClick={() => { setShowInvite(false); setSearchQuery(''); setSearchResults([]); setShowEmailForm(false) }} aria-label="Close">
                 <X size={18} />
               </button>
             </div>
             <div className={styles.modalBody}>
-              {showExistingDirectory ? (
-                <>
-                  {existingCandidates.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: 'var(--space-8) var(--space-4)', color: 'var(--color-text-muted)' }}>
-                      <Users size={32} style={{ marginBottom: 'var(--space-3)', opacity: 0.4 }} />
-                      <div style={{ fontSize: 'var(--text-sm)', fontWeight: 500, marginBottom: 'var(--space-1)' }}>No existing team members found</div>
-                      <div style={{ fontSize: 'var(--text-xs)' }}>All team members from your other events are already part of this one.</div>
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', maxHeight: 340, overflowY: 'auto' }}>
-                      {existingCandidates.map((candidate) => (
-                        <div
-                          key={candidate.id}
-                          style={{
-                            display: 'flex', alignItems: 'center', gap: 'var(--space-3)',
-                            padding: 'var(--space-3)', borderRadius: 'var(--radius-md)',
-                            border: '1px solid var(--color-border-subtle)',
-                            background: 'var(--color-surface-3)',
-                          }}
-                        >
-                          <div style={{
-                            width: 34, height: 34, borderRadius: 'var(--radius-full)',
-                            background: 'var(--color-accent-muted)', color: 'var(--color-accent)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 'var(--text-sm)', fontWeight: 700, flexShrink: 0,
-                          }}>
-                            {(candidate.display_name || candidate.email || '?')[0].toUpperCase()}
-                          </div>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>{candidate.display_name || 'Unnamed'}</div>
-                            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>{candidate.email}</div>
-                          </div>
-                          <button
-                            className="btn btn-primary btn-sm"
-                            style={{ borderRadius: 'var(--radius-sm)', flexShrink: 0, whiteSpace: 'nowrap' }}
-                            onClick={() => handleAddExisting(candidate.id)}
-                            disabled={addingExisting === candidate.id}
-                          >
-                            {addingExisting === candidate.id ? 'Adding...' : <><Plus size={12} /> Add</>}
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  <div style={{ marginTop: 'var(--space-4)', paddingTop: 'var(--space-3)', borderTop: '1px solid var(--color-border-subtle)' }}>
-                    <button
-                      className="btn btn-ghost btn-sm"
-                      style={{ width: '100%', justifyContent: 'center', gap: 'var(--space-2)' }}
-                      onClick={() => { setShowExistingDirectory(false); setInviteEmail('') }}
-                    >
-                      <Mail size={14} />
-                      Invite new member via email
-                    </button>
-                  </div>
-                </>
-              ) : (
+              {showEmailForm ? (
                 <>
                   <div className="input-wrapper">
                     <label className="input-label">Email Address</label>
@@ -635,8 +583,8 @@ export function TeamPage() {
                   <div className="input-wrapper">
                     <label className="input-label">Role</label>
                     <DropdownMenu
-                      trigger={inviteRole.charAt(0).toUpperCase() + inviteRole.slice(1)}
-                      items={ROLES.map((r) => ({ label: r.charAt(0).toUpperCase() + r.slice(1), value: r }))}
+                      trigger={ROLES.find(r => r.value === inviteRole)?.label || inviteRole}
+                      items={ROLES.map((r) => ({ label: r.label, value: r.value }))}
                       onSelect={(item) => setInviteRole(item.value)}
                     />
                   </div>
@@ -645,9 +593,94 @@ export function TeamPage() {
                       <Mail size={14} />
                       {inviting ? 'Inviting...' : 'Send Invite'}
                     </button>
-                    <button className="btn btn-ghost btn-sm" onClick={() => setShowExistingDirectory(true)}>Back</button>
-                    <button className="btn btn-ghost btn-sm" onClick={() => setShowInvite(false)}>Cancel</button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => setShowEmailForm(false)}>Back</button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => { setShowInvite(false); setSearchQuery(''); setSearchResults([]); setShowEmailForm(false) }}>Cancel</button>
                   </div>
+                </>
+              ) : (
+                <>
+                  <div className="input-wrapper">
+                    <label className="input-label">Search registered users</label>
+                    <input
+                      className="input"
+                      type="text"
+                      placeholder="Search by name or email..."
+                      value={searchQuery}
+                      onChange={(e) => handleSearch(e.target.value)}
+                      autoFocus
+                    />
+                  </div>
+
+                  {searching && (
+                    <div style={{ textAlign: 'center', padding: 'var(--space-4)', color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)' }}>Searching...</div>
+                  )}
+
+                  {!searching && searchQuery.trim() && searchResults.length === 0 && (
+                    <div style={{ textAlign: 'center', padding: 'var(--space-6) var(--space-4)', color: 'var(--color-text-muted)' }}>
+                      <Users size={28} style={{ marginBottom: 'var(--space-2)', opacity: 0.4 }} />
+                      <div style={{ fontSize: 'var(--text-sm)', fontWeight: 500, marginBottom: 'var(--space-1)' }}>No users found</div>
+                      <div style={{ fontSize: 'var(--text-xs)', marginBottom: 'var(--space-3)' }}>No registered user matches your search.</div>
+                      <button className="btn btn-ghost btn-sm" onClick={() => { setShowEmailForm(true); setInviteEmail(searchQuery) }}>
+                        <Mail size={14} />
+                        Send invite to "{searchQuery}"
+                      </button>
+                    </div>
+                  )}
+
+                  {!searching && searchResults.length > 0 && (
+                    <>
+                      <div className="input-wrapper" style={{ marginTop: 'var(--space-3)' }}>
+                        <label className="input-label">Role for new members</label>
+                        <DropdownMenu
+                          trigger={ROLES.find(r => r.value === inviteRole)?.label || inviteRole}
+                          items={ROLES.map((r) => ({ label: r.label, value: r.value }))}
+                          onSelect={(item) => setInviteRole(item.value)}
+                        />
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', maxHeight: 300, overflowY: 'auto', marginTop: 'var(--space-2)' }}>
+                        {searchResults.map((candidate) => (
+                          <div
+                            key={candidate.id}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: 'var(--space-3)',
+                              padding: 'var(--space-3)', borderRadius: 'var(--radius-md)',
+                              border: '1px solid var(--color-border-subtle)',
+                              background: 'var(--color-surface-3)',
+                            }}
+                          >
+                            <div style={{
+                              width: 34, height: 34, borderRadius: 'var(--radius-full)',
+                              background: 'var(--color-accent-muted)', color: 'var(--color-accent)',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontSize: 'var(--text-sm)', fontWeight: 700, flexShrink: 0,
+                            }}>
+                              {(candidate.display_name || candidate.email || '?')[0].toUpperCase()}
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>{candidate.display_name || 'Unnamed'}</div>
+                              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>{candidate.email}</div>
+                            </div>
+                            <button
+                              className="btn btn-primary btn-sm"
+                              style={{ borderRadius: 'var(--radius-sm)', flexShrink: 0, whiteSpace: 'nowrap' }}
+                              onClick={() => handleAddExisting(candidate.id)}
+                              disabled={addingExisting === candidate.id}
+                            >
+                              {addingExisting === candidate.id ? 'Adding...' : <><Plus size={12} /> Add</>}
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  {!searchQuery.trim() && (
+                    <div style={{ textAlign: 'center', padding: 'var(--space-8) var(--space-4)', color: 'var(--color-text-muted)' }}>
+                      <Users size={32} style={{ marginBottom: 'var(--space-3)', opacity: 0.4 }} />
+                      <div style={{ fontSize: 'var(--text-sm)', fontWeight: 500, marginBottom: 'var(--space-1)' }}>Find a registered user</div>
+                      <div style={{ fontSize: 'var(--text-xs)' }}>Search by name or email to add them directly — no invite needed.</div>
+                    </div>
+                  )}
                 </>
               )}
             </div>
