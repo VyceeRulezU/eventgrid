@@ -182,6 +182,7 @@ export function SuperAdminDashboard() {
     if (role !== 'super_admin') { setLoading(false); return }
 
     async function load() {
+      try {
       const now = new Date()
       const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString()
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
@@ -223,6 +224,10 @@ export function SuperAdminDashboard() {
         supabase.from('guests').select('id', { count: 'exact', head: true }),
         supabase.from('storage.objects').select('size'),
       ])
+
+      console.log('[SAD] plannerCount', plannerCount, 'coordinatorCount', coordinatorCount, 'tEventCount', tEventCount, 'aEventCount', aEventCount)
+      console.log('[SAD] allEventsData count:', allEventsData?.length, 'allPaymentsData count:', allPaymentsData?.length, 'liveEventsRaw count:', liveEventsRaw?.length)
+      console.log('[SAD] profilesForSignups count:', profilesForSignups?.length, 'recentPaymentsRaw count:', recentPaymentsRaw?.length, 'recentEventsRaw count:', recentEventsRaw?.length)
 
       setTotalPlanners(plannerCount || 0)
       setTotalCoordinators(coordinatorCount || 0)
@@ -418,6 +423,10 @@ export function SuperAdminDashboard() {
       })
 
       setLoading(false)
+      } catch (err) {
+        console.error('[SuperAdminDashboard] load error:', err)
+        setLoading(false)
+      }
     }
 
     load()
