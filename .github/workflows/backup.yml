@@ -13,7 +13,7 @@ jobs:
 
       - name: Dump database
         run: |
-          IPV4=$(getent ahosts "db.${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co" | grep STREAM | head -1 | awk '{print $1}')
+          IPV4=$(getent ahosts "db.${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co" | awk '{if ($1 !~ /:/) print $1}' | head -1)
           if [ -z "$IPV4" ]; then
             echo "Could not resolve IPv4 address"
             exit 1
