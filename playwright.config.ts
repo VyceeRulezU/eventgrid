@@ -6,6 +6,7 @@ export default defineConfig({
   retries: 1,
   workers: 1,
   timeout: 30000,
+  reporter: [['html', { open: 'never' }], ['list']],
   use: {
     baseURL: 'http://localhost:4173',
     headless: true,
