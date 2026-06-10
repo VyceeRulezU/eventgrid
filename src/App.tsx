@@ -292,6 +292,13 @@ export function App() {
     }
 
     if (profile) {
+      if (!profile.display_name) {
+        const name = user?.user_metadata?.display_name || user?.email?.split('@')[0] || null
+        if (name) {
+          await supabase.from('profiles').update({ display_name: name }).eq('id', userId)
+          profile.display_name = name
+        }
+      }
       setProfile(profile)
       if (profile.org_id) {
         try {
