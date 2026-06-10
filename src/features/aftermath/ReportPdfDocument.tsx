@@ -1,8 +1,20 @@
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
+import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer'
 import type { ReportData, VendorRating } from './EventReportBuilder'
 
+try {
+  Font.register({
+    family: 'Plus Jakarta Sans',
+    fonts: [
+      { src: 'https://fonts.gstatic.com/s/plusjakartasans/v8/LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko20yw.ttf', fontWeight: 400 },
+      { src: 'https://fonts.gstatic.com/s/plusjakartasans/v8/LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko70y4.ttf', fontWeight: 700 },
+    ],
+  })
+} catch { /* fallback to Helvetica */ }
+
+const FONT = 'Plus Jakarta Sans'
+
 const styles = StyleSheet.create({
-  page: { padding: 40, fontSize: 11, fontFamily: 'Helvetica' },
+  page: { padding: 40, fontSize: 11, fontFamily: FONT, color: '#1a1a1a', backgroundColor: '#ffffff' },
   title: { fontSize: 20, fontWeight: 'bold', marginBottom: 4, color: '#1a1a1a' },
   subtitle: { fontSize: 10, color: '#666', marginBottom: 20 },
   section: { marginBottom: 16 },
@@ -14,22 +26,25 @@ const styles = StyleSheet.create({
   phaseItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 2 },
   phaseDot: { width: 10, height: 10, borderRadius: 5, marginRight: 6 },
   ratingStar: { color: '#D4A017', fontSize: 10 },
+  headerMeta: { fontSize: 9, color: '#888', marginBottom: 16 },
 })
 
 interface PdfDocProps {
   data: ReportData
   vendorRatings: VendorRating[]
   type: 'internal' | 'client'
+  plannerName?: string
 }
 
-export function ReportPdfDocument({ data, vendorRatings, type }: PdfDocProps) {
+export function ReportPdfDocument({ data, vendorRatings, type, plannerName }: PdfDocProps) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <Text style={styles.title}>{data.event?.name || 'Event Report'}</Text>
-        <Text style={styles.subtitle}>
+        <Text style={styles.title}>EventGrid: {data.event?.name || 'Event Report'}</Text>
+        <Text style={styles.headerMeta}>
           {type === 'internal' ? 'Internal Report' : 'Client Report'} &middot;{' '}
           {data.event?.event_date ? new Date(data.event.event_date).toLocaleDateString('en-GB') : ''}
+          {plannerName ? ` &middot; Prepared by ${plannerName}` : ''}
         </Text>
 
         <View style={styles.section}>

@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
-import { FileText, Users, CircleDollarSign, Building, Star } from 'lucide-react'
+import { FileText, Users, CircleDollarSign, Building, Star, X } from 'lucide-react'
+import { BlobProvider } from '@react-pdf/renderer'
 import { ReportPdfDocument } from './ReportPdfDocument'
 import type { Event, EventPhase, Issue } from '@/types'
 import styles from './Aftermath.module.css'
@@ -35,8 +36,7 @@ export function EventReportBuilder({ eventId }: { eventId: string }) {
   const [data, setData] = useState<ReportData | null>(null)
   const [loading, setLoading] = useState(true)
   const [vendorRatings, setVendorRatings] = useState<VendorRating[]>([])
-  const [generatingInternal, setGeneratingInternal] = useState(false)
-  const [generatingClient, setGeneratingClient] = useState(false)
+  const [showPreview, setShowPreview] = useState<'internal' | 'client' | null>(null)
 
   useEffect(() => {
     if (!user) return
@@ -96,26 +96,7 @@ export function EventReportBuilder({ eventId }: { eventId: string }) {
 
   const handleGenerate = async (type: 'internal' | 'client') => {
     if (!data?.event) return
-
-    const setLoadingState = type === 'internal' ? setGeneratingInternal : setGeneratingClient
-    setLoadingState(true)
-
-    try {
-      const { pdf } = await import('@react-pdf/renderer')
-      const blob = await pdf(
-        <ReportPdfDocument data={data} vendorRatings={vendorRatings} type={type} />
-      ).toBlob()
-      const url = URL.createObjectURL(blob)
-      window.open(url, '_blank')
-    } catch {
-      showToast({
-        type: 'error',
-        title: 'PDF Generation Error',
-        body: 'Could not generate the report. Check console for details.',
-      })
-    }
-
-    setLoadingState(false)
+    setShowPreview(type)
   }
 
   if (loading) {
@@ -239,23 +220,74 @@ export function EventReportBuilder({ eventId }: { eventId: string }) {
           className="btn btn-primary"
           style={{ borderRadius: 'var(--radius-sm)' }}
           onClick={() => handleGenerate('internal')}
-          disabled={generatingInternal}
+          disabled={showPreview !== null}
         >
           <FileText size={16} />
-          {generatingInternal ? 'Generating...' : 'Generate Internal Report'}
+          Generate Internal Report
         </button>
         {role === 'planner' && (
           <button
             className="btn btn-secondary"
             style={{ borderRadius: 'var(--radius-sm)' }}
             onClick={() => handleGenerate('client')}
-            disabled={generatingClient}
+            disabled={showPreview !== null}
           >
             <FileText size={16} />
-            {generatingClient ? 'Generating...' : 'Generate Client Report'}
+            Generate Client Report
           </button>
         )}
       </div>
+
+      {showPreview && data?.event && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 1000,
+          background: 'rgba(0,0,0,0.6)', display: 'flex',
+          alignItems: 'center', justifyContent: 'center', padding: 'var(--space-4)',
+        }} onClick={() => setShowPreview(null)}>
+          <div style={{
+            background: '#fff', borderRadius: 12, width: '100%', maxWidth: 900,
+            height: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: 'var(--space-3) var(--space-4)', borderBottom: '1px solid #e5e7eb',
+            }}>
+              <span style={{ fontWeight: 600, color: '#111', fontSize: 14 }}>
+                {showPreview === 'internal' ? 'Internal Report' : 'Client Report'} &middot; {data.event.name}
+              </span>
+              <button
+                className="btn btn-ghost btn-icon"
+                style={{ width: 32, height: 32, borderRadius: 8 }}
+                onClick={() => setShowPreview(null)}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div style={{ flex: 1 }}>
+              <BlobProvider
+                document={
+                  <ReportPdfDocument
+                    data={data}
+                    vendorRatings={vendorRatings}
+                    type={showPreview}
+                    plannerName={user?.user_metadata?.display_name || user?.email || ''}
+                  />
+                }
+              >
+                {({ url, loading }) =>
+                  loading ? (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#666', fontSize: 13 }}>
+                      Generating PDF...
+                    </div>
+                  ) : (
+                    <iframe src={url || ''} style={{ width: '100%', height: '100%', border: 'none' }} title="Report PDF" />
+                  )
+                }
+              </BlobProvider>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

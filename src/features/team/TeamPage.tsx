@@ -274,13 +274,9 @@ export function TeamPage() {
     setSearching(true)
     const existingIds = new Set(members.map(m => m.user_id).filter(Boolean))
     try {
-      const { data } = await supabase
-        .from('profiles')
-        .select('id, email, display_name, phone, avatar_url')
-        .or(`email.ilike.%${query}%,display_name.ilike.%${query}%`)
-        .limit(20)
+      const { data } = await supabase.rpc('search_profiles', { search_query: query })
       if (data) {
-        setSearchResults(data.filter(p => !existingIds.has(p.id)) as Profile[])
+        setSearchResults((data as Profile[]).filter(p => !existingIds.has(p.id)))
       }
     } catch (err) {
       console.error('Failed to search users:', err)

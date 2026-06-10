@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
-import { FileText, Users, CircleDollarSign, Building, Star, CheckCircle } from 'lucide-react'
+import { FileText, Users, CircleDollarSign, Building, Star, CheckCircle, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { useResolvedEventId } from '@/hooks/useResolvedEventId'
 import { PageHero } from '@/components/shared/PageHero'
+import { BlobProvider } from '@react-pdf/renderer'
 import { ReportPdfDocument } from './ReportPdfDocument'
 import type { Event, EventPhase, Issue } from '@/types'
 import type { VendorRating, ReportData } from './EventReportBuilder'
@@ -21,7 +22,7 @@ export function CompletedEventReport() {
   const [data, setData] = useState<ReportData | null>(null)
   const [loading, setLoading] = useState(true)
   const [vendorRatings, setVendorRatings] = useState<VendorRating[]>([])
-  const [generating, setGenerating] = useState(false)
+  const [showPreview, setShowPreview] = useState(false)
 
   useEffect(() => {
     if (!user || !eventId) return
@@ -69,17 +70,7 @@ export function CompletedEventReport() {
 
   const handleGenerate = async () => {
     if (!data?.event) return
-    setGenerating(true)
-    try {
-      const { pdf } = await import('@react-pdf/renderer')
-      const blob = await pdf(
-        <ReportPdfDocument data={data} vendorRatings={vendorRatings} type="internal" />
-      ).toBlob()
-      window.open(URL.createObjectURL(blob), '_blank')
-    } catch {
-      showToast({ type: 'error', title: 'PDF Error', body: 'Could not generate the report.' })
-    }
-    setGenerating(false)
+    setShowPreview(true)
   }
 
   if (idLoading || loading) {
@@ -105,8 +96,8 @@ export function CompletedEventReport() {
         subtitle={`${data.event.name} · ${data.event.event_type}`}
         backTo={`/events/${paramId}`}
         actions={
-          <button className="btn btn-primary btn-sm" onClick={handleGenerate} disabled={generating}>
-            <FileText size={14} /> {generating ? 'Generating...' : 'Download PDF Report'}
+          <button className="btn btn-primary btn-sm" onClick={handleGenerate} disabled={showPreview}>
+            <FileText size={14} /> View Report
           </button>
         }
       />
@@ -168,6 +159,57 @@ export function CompletedEventReport() {
           ))}
         </div>
       </div>
+
+      {showPreview && data?.event && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 1000,
+          background: 'rgba(0,0,0,0.6)', display: 'flex',
+          alignItems: 'center', justifyContent: 'center', padding: 'var(--space-4)',
+        }} onClick={() => setShowPreview(false)}>
+          <div style={{
+            background: '#fff', borderRadius: 12, width: '100%', maxWidth: 900,
+            height: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: 'var(--space-3) var(--space-4)', borderBottom: '1px solid #e5e7eb',
+            }}>
+              <span style={{ fontWeight: 600, color: '#111', fontSize: 14 }}>
+                Event Report &middot; {data.event.name}
+              </span>
+              <button
+                className="btn btn-ghost btn-icon"
+                style={{ width: 32, height: 32, borderRadius: 8 }}
+                onClick={() => setShowPreview(false)}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div style={{ flex: 1 }}>
+              <BlobProvider
+                document={
+                  <ReportPdfDocument
+                    data={data}
+                    vendorRatings={vendorRatings}
+                    type="internal"
+                    plannerName={user?.user_metadata?.display_name || user?.email || ''}
+                  />
+                }
+              >
+                {({ url, loading }) =>
+                  loading ? (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#666', fontSize: 13 }}>
+                      Generating PDF...
+                    </div>
+                  ) : (
+                    <iframe src={url || ''} style={{ width: '100%', height: '100%', border: 'none' }} title="Report PDF" />
+                  )
+                }
+              </BlobProvider>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

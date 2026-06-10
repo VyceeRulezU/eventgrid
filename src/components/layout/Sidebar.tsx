@@ -218,10 +218,12 @@ export function Sidebar() {
               </span>
             )}
           </NavLink>
-          <button className={styles.navItem} onClick={() => { setSidebarOpen(false); setShowFeedbackForm(true) }}>
-            <Send size={20} />
-            <span>Send Feedback</span>
-          </button>
+          {role !== 'super_admin' && (
+            <button className={styles.navItem} onClick={() => { setSidebarOpen(false); setShowFeedbackForm(true) }}>
+              <Send size={20} />
+              <span>Send Feedback</span>
+            </button>
+          )}
           <NavLink
             to="/settings"
             className={({ isActive }) =>
