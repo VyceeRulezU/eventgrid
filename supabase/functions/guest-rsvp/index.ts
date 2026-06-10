@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
 
       const { data: guests, error: guestErr } = await supabaseAdmin
         .from('guests')
-        .select('id, first_name, last_name, rsvp_status')
+        .select('id, first_name, last_name, rsvp_status, notes')
         .eq('event_id', event_id)
         .eq('email', email)
         .limit(1)

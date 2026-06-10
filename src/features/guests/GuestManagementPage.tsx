@@ -6,7 +6,7 @@ import { useAuthStore } from '@/store/auth.store'
 import {
   Users, Plus, X, Upload, Check, UserCheck,
   LayoutGrid, Star, List, User, ChevronLeft,
-  Trash2, Save,
+  Trash2, Save, RefreshCw,
 } from 'lucide-react'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { Tabs } from '@/components/ui/Tabs'
@@ -52,7 +52,7 @@ export function GuestManagementPage() {
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
-  useEffect(() => {
+  const loadGuests = useCallback(() => {
     if (!eventId) return
     setLoading(true)
     Promise.all([
@@ -66,6 +66,10 @@ export function GuestManagementPage() {
       setLoading(false)
     })
   }, [eventId])
+
+  useEffect(() => {
+    loadGuests()
+  }, [loadGuests])
 
   const filteredGuests = useMemo(() => {
     const base = tab === 'checkin' ? checkinSearched : listSearched
@@ -251,6 +255,7 @@ export function GuestManagementPage() {
 
       <div className={styles.toolbar} style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', flexWrap: 'wrap', marginBottom: 'var(--space-3)' }}>
         <SearchBar value={listSearch} onChange={setListSearch} placeholder="Search name or phone..." containerStyle={{ maxWidth: 260 }} />
+        <button className="btn btn-ghost btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={loadGuests} title="Refresh"><RefreshCw size={14} /></button>
         <div className={styles.filterSelect}>
           <DropdownMenu
             trigger={rsvpFilter === 'all' ? 'All RSVP' : rsvpFilter.charAt(0).toUpperCase() + rsvpFilter.slice(1)}

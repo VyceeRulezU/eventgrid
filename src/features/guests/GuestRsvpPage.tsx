@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
 import { Check, X, HelpCircle } from 'lucide-react'
 
 interface GuestInfo {
@@ -91,41 +90,67 @@ export function GuestRsvpPage() {
   const handleRsvp = async (rsvpStatus: string) => {
     if (!guest) return
     setSubmitting(true)
-    const { data, error: fnErr } = await supabase.functions.invoke('guest-rsvp', {
-      body: {
-        action: 'rsvp',
-        guest_id: guest.id,
-        rsvp_status: rsvpStatus,
-        rsvp_note: rsvpNote || null,
-      },
-    })
-    setSubmitting(false)
-    if (fnErr || data?.error) {
-      setError(data?.error || 'Failed to submit RSVP')
-      return
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/guest-rsvp`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'rsvp',
+            guest_id: guest.id,
+            rsvp_status: rsvpStatus,
+            rsvp_note: rsvpNote || null,
+          }),
+        }
+      )
+      const text = await res.text()
+      let body: Record<string, unknown>
+      try { body = JSON.parse(text) } catch { body = {} }
+      if (!res.ok || body?.error) {
+        setError(String(body?.error || text || `HTTP ${res.status}`))
+        setSubmitting(false)
+        return
+      }
+      setSelectedRsvp(rsvpStatus)
+      setGuest({ ...guest, rsvp_status: rsvpStatus, notes: rsvpNote })
+    } catch (e) {
+      setError('Network error: ' + (e instanceof Error ? e.message : String(e)))
     }
-    setSelectedRsvp(rsvpStatus)
-    setGuest({ ...guest, rsvp_status: rsvpStatus, notes: rsvpNote })
+    setSubmitting(false)
   }
 
   const handleSaveNote = async () => {
     if (!guest) return
     setSubmitting(true)
-    const { data, error: fnErr } = await supabase.functions.invoke('guest-rsvp', {
-      body: {
-        action: 'rsvp',
-        guest_id: guest.id,
-        rsvp_status: guest.rsvp_status,
-        rsvp_note: rsvpNote || null,
-      },
-    })
-    setSubmitting(false)
-    if (fnErr || data?.error) {
-      setError(data?.error || 'Failed to save note')
-      return
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/guest-rsvp`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'rsvp',
+            guest_id: guest.id,
+            rsvp_status: guest.rsvp_status,
+            rsvp_note: rsvpNote || null,
+          }),
+        }
+      )
+      const text = await res.text()
+      let body: Record<string, unknown>
+      try { body = JSON.parse(text) } catch { body = {} }
+      if (!res.ok || body?.error) {
+        setError(String(body?.error || text || `HTTP ${res.status}`))
+        setSubmitting(false)
+        return
+      }
+      setError('')
+      setGuest({ ...guest, notes: rsvpNote })
+    } catch (e) {
+      setError('Network error: ' + (e instanceof Error ? e.message : String(e)))
     }
-    setError('')
-    setGuest({ ...guest, notes: rsvpNote })
+    setSubmitting(false)
   }
 
   if (status === 'loading') {
