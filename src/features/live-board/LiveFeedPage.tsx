@@ -6,7 +6,7 @@ import { useLiveFeedStore } from '@/store/liveFeed.store'
 import { PostForm } from './PostForm'
 import { LiveFeedPost } from './LiveFeedPost'
 import { IssuesPanel } from './IssuesPanel'
-import { ArrowLeft, LayoutDashboard, Clock, Radio, MessageSquare } from 'lucide-react'
+import { ArrowLeft, LayoutDashboard, Radio, MessageSquare } from 'lucide-react'
 import { PageHero } from '@/components/shared/PageHero'
 import type { LiveFeedPost as LiveFeedPostType, Issue } from '@/types'
 import type { RealtimeChannel } from '@supabase/supabase-js'
@@ -29,6 +29,13 @@ export function LiveFeedPage() {
 
   const channelRef = useRef<RealtimeChannel | null>(null)
   const profileRef = useRef<Record<string, ProfileInfo>>({})
+  const timelineRef = useRef<HTMLDivElement>(null)
+
+  const scrollToBottom = () => {
+    requestAnimationFrame(() => {
+      timelineRef.current?.scrollTo({ top: timelineRef.current.scrollHeight, behavior: 'smooth' })
+    })
+  }
 
   async function ensureProfiles(userIds: string[]) {
     const unique = [...new Set(userIds)]
@@ -56,7 +63,7 @@ export function LiveFeedPage() {
       setError(null)
 
       const [postsRes, issuesRes] = await Promise.all([
-        supabase.from('live_feed_posts').select('*').eq('event_id', eventId).order('created_at', { ascending: false }),
+        supabase.from('live_feed_posts').select('*').eq('event_id', eventId).order('created_at', { ascending: true }),
         supabase.from('issues').select('*').eq('event_id', eventId),
       ])
 
@@ -86,6 +93,7 @@ export function LiveFeedPage() {
       await ensureProfiles(userIds)
 
       setLoading(false)
+      scrollToBottom()
     }
 
     loadData()
@@ -123,7 +131,10 @@ export function LiveFeedPage() {
     }
   }, [eventId])
 
-  const programTime = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+  useEffect(() => {
+    scrollToBottom()
+  }, [posts.length])
+
   const openIssues = issues.filter((i) => !i.resolved_at).length
 
   if (loading) {
@@ -162,10 +173,6 @@ export function LiveFeedPage() {
         backTo={`/events/${paramId}`}
         actions={
           <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
-            <div className={styles.clockBadge}>
-              <Clock size={16} className={styles.clockIcon} />
-              {programTime}
-            </div>
             <button
               className={`btn btn-ghost btn-sm ${styles.issuesToggleBtn}`}
               style={{ borderRadius: 'var(--radius-sm)', position: 'relative' }}
@@ -179,23 +186,21 @@ export function LiveFeedPage() {
         }
       />
 
-      <div className={styles.feedLayout}>
+      <div className={`${styles.feedLayout} ${!showIssues ? styles.feedLayoutFull : ''}`}>
         <div className={styles.feedMain}>
-          <PostForm eventId={eventId!} />
-
-          {posts.length === 0 ? (
-            <div className="empty-state" style={{ padding: 'var(--space-8) var(--space-4)' }}>
-              <div className="empty-state__icon">
-                <Radio size={20} />
+          <div className={styles.feedTimeline} ref={timelineRef}>
+            {posts.length === 0 ? (
+              <div className="empty-state" style={{ padding: 'var(--space-10) var(--space-4)' }}>
+                <div className="empty-state__icon">
+                  <Radio size={20} />
+                </div>
+                <div className="empty-state__title">No updates yet</div>
+                <div className="empty-state__description">
+                  Post the first update to start the live feed
+                </div>
               </div>
-              <div className="empty-state__title">No updates yet</div>
-              <div className="empty-state__description">
-                Post the first update to start the live feed
-              </div>
-            </div>
-          ) : (
-            <div className={styles.feedTimeline}>
-              {posts.map((post) => (
+            ) : (
+              posts.map((post) => (
                 <LiveFeedPost
                   key={post.id}
                   post={post}
@@ -203,9 +208,11 @@ export function LiveFeedPage() {
                   displayName={profileMap[post.user_id]?.display_name}
                   avatarUrl={profileMap[post.user_id]?.avatar_url}
                 />
-              ))}
-            </div>
-          )}
+              ))
+            )}
+          </div>
+
+          <PostForm eventId={eventId!} />
         </div>
 
         {showIssues && (

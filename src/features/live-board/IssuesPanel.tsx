@@ -45,16 +45,7 @@ export function IssuesPanel({ eventId }: IssuesPanelProps) {
     return true
   })
 
-  const allSelected = filtered.length > 0 && filtered.every((i) => selected.has(i.id))
   const someSelected = selected.size > 0
-
-  const toggleAll = () => {
-    if (allSelected) {
-      setSelected(new Set())
-    } else {
-      setSelected(new Set(filtered.map((i) => i.id)))
-    }
-  }
 
   const toggleOne = (id: string) => {
     const next = new Set(selected)
@@ -211,60 +202,47 @@ export function IssuesPanel({ eventId }: IssuesPanelProps) {
           </div>
         </div>
       ) : (
-        <div className={styles.issuesScroll}>
-          <table className={styles.issuesTable}>
-            <thead className={styles.issuesThead}>
-              <tr>
-                <th className={styles.issuesThCheck}>
-                  <Checkbox checked={allSelected} onChange={toggleAll} aria-label="Select all issues" />
-                </th>
-                  <th className={styles.issuesTh}>Issue</th>
-                  <th className={styles.issuesTh}>Severity</th>
-                <th className={styles.issuesTh}>Raised</th>
-                <th className={styles.issuesThActions}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((issue) => {
-                const cfg = severityConfig[issue.severity] || severityConfig.low
-                const isResolving = resolvingId === issue.id
-                return (
-                  <tr key={issue.id} className={styles.issuesTr}>
-                    <td className={styles.issuesTdCheck}>
-                      <Checkbox
-                        checked={selected.has(issue.id)}
-                        onChange={() => toggleOne(issue.id)}
-                        aria-label={`Select ${issue.title}`}
-                      />
-                    </td>
-                    <td className={styles.issuesTd}>
-                      <div className={styles.issueCellTitle}>{issue.title}</div>
-                      {issue.description && (
-                        <div className={styles.issueCellDesc}>{issue.description}</div>
-                      )}
-                    </td>
-                    <td className={styles.issuesTd}>
+        <div className={styles.issuesList}>
+          {filtered.map((issue) => {
+            const cfg = severityConfig[issue.severity] || severityConfig.low
+            const isResolving = resolvingId === issue.id
+            return (
+              <div key={issue.id} className={styles.issueCard}>
+                <div className={styles.issueCardTop}>
+                  <div className={styles.issueCardCheck}>
+                    <Checkbox
+                      checked={selected.has(issue.id)}
+                      onChange={() => toggleOne(issue.id)}
+                      aria-label={`Select ${issue.title}`}
+                    />
+                  </div>
+                  <div className={styles.issueCardContent}>
+                    <div className={styles.issueCardTitleRow}>
+                      <span className={styles.issueCardTitle}>{issue.title}</span>
                       <span className={`${cfg.badgeClass} ${styles.severityBadge}`}>
                         {issue.severity}
                       </span>
-                    </td>
-                    <td className={styles.issuesTd}>
-                      <span className={styles.issueCellMeta}>
-                        <User size={12} />
+                    </div>
+                    {issue.description && (
+                      <div className={styles.issueCardDesc}>{issue.description}</div>
+                    )}
+                    <div className={styles.issueCardMeta}>
+                      <span className={styles.issueCardMetaItem}>
+                        <User size={11} />
                         {issue.raised_by ? issue.raised_by.slice(0, 6) : '?'}
                       </span>
-                      <span className={styles.issueCellMeta} style={{ marginLeft: 8 }}>
-                        <Clock size={12} />
+                      <span className={styles.issueCardMetaItem}>
+                        <Clock size={11} />
                         {new Date(issue.raised_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
                       </span>
                       {issue.resolved_at && (
-                        <span className="badge badge-green" style={{ fontSize: 'var(--text-xs)', marginLeft: 8 }}>
-                          <span className="badge-dot" />
+                        <span className={styles.resolvedTag}>
+                          <CheckCircle size={10} />
                           Done
                         </span>
                       )}
-                    </td>
-                    <td className={`${styles.issuesTd} ${styles.issuesTdActions}`}>
+                    </div>
+                    <div className={styles.issueCardActions}>
                       {isResolving ? (
                         <div className={styles.resolveRow}>
                           <input
@@ -286,7 +264,8 @@ export function IssuesPanel({ eventId }: IssuesPanelProps) {
                         <div className={styles.resolveRow}>
                           {!issue.resolved_at && (
                             <button
-                              className={`btn btn-ghost btn-sm ${styles.actionBtn}`}
+                              className="btn btn-ghost btn-sm"
+                              style={{ minHeight: 28, padding: '0 var(--space-2)', fontSize: 'var(--text-xs)', borderRadius: 'var(--radius-sm)' }}
                               onClick={() => setResolvingId(issue.id)}
                             >
                               <CheckCircle size={12} />
@@ -294,21 +273,21 @@ export function IssuesPanel({ eventId }: IssuesPanelProps) {
                             </button>
                           )}
                           <button
-                            className={`btn btn-ghost btn-sm ${styles.actionBtn}`}
-                            style={{ color: 'var(--color-error)' }}
+                            className="btn btn-ghost btn-sm"
+                            style={{ minHeight: 28, padding: '0 var(--space-2)', fontSize: 'var(--text-xs)', borderRadius: 'var(--radius-sm)', color: 'var(--color-error)' }}
                             onClick={() => handleDeleteIssue(issue.id)}
-                            data-tooltip="Delete issue"
+                            data-tooltip="Delete"
                           >
                             <Trash2 size={12} />
                           </button>
                         </div>
                       )}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
         </div>
       )}
     </div>

@@ -42,7 +42,7 @@ export function LiveFeedPost({ post, eventId, displayName, avatarUrl }: LiveFeed
             <img src={avatarUrl} alt="" className={styles.feedPostAvatarImg} />
           ) : (
             <div className={styles.feedPostAvatarPlaceholder}>
-              <User size={16} />
+              <User size={18} />
             </div>
           )}
         </div>

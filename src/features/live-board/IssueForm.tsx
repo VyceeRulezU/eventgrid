@@ -92,11 +92,7 @@ export function IssueForm({ eventId, onClose }: IssueFormProps) {
           {severities.map((s) => (
             <button
               key={s.value}
-              className={`btn btn-sm ${styles.severityBtn}`}
-              style={{
-                backgroundColor: severity === s.value ? 'var(--color-surface-3)' : 'transparent',
-                borderColor: severity === s.value ? 'var(--color-border-focus)' : 'var(--color-border)',
-              }}
+              className={`${styles.severityBtn} ${severity === s.value ? styles.severityBtnActive : ''}`}
               onClick={() => setSeverity(s.value)}
             >
               <span className={s.badgeClass} style={{ padding: '1px var(--space-1)' }}>

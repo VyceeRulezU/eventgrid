@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/auth.store'
 import { useLiveFeedStore } from '@/store/liveFeed.store'
 import { useUIStore } from '@/store/ui.store'
 import { compressImage } from '@/lib/compressImage'
-import { Send, Paperclip, X, MapPin } from 'lucide-react'
+import { Send, Paperclip, X, MapPin, User } from 'lucide-react'
 import type { LiveFeedPost } from '@/types'
 import styles from './LiveBoardPage.module.css'
 
@@ -14,6 +14,7 @@ interface PostFormProps {
 
 export function PostForm({ eventId }: PostFormProps) {
   const user = useAuthStore((s) => s.user)
+  const profile = useAuthStore((s) => s.profile)
   const addPost = useLiveFeedStore((s) => s.addPost)
   const showNotification = useUIStore((s) => s.showNotification)
 
@@ -108,36 +109,43 @@ export function PostForm({ eventId }: PostFormProps) {
 
   return (
     <div className={styles.postForm}>
-      <div className={styles.postFormInputRow}>
-        <textarea
-          className={`input ${styles.postFormInput}`}
-          placeholder="Share an update..."
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault()
-              handleSubmit()
-            }
-          }}
-        />
+      <div className={styles.postFormHeader}>
+        {profile?.avatar_url ? (
+          <img src={profile.avatar_url} alt="" className={styles.postFormAvatar} />
+        ) : (
+          <div className={styles.postFormAvatarPlaceholder}>
+            <User size={16} />
+          </div>
+        )}
+        <span className={styles.postFormName}>
+          {profile?.display_name || 'Share an update...'}
+        </span>
       </div>
 
       {previews.length > 0 && (
-        <div className={styles.postFormPreviews}>
-          {previews.map((p, i) => (
-            <div key={i} className={styles.postFormPreviewItem}>
-              <img src={p} alt="" className={styles.postFormPreviewImg} />
-              <button className={styles.postFormPreviewRemove} onClick={() => removeFile(i)}>
-                <X size={12} />
-              </button>
-            </div>
-          ))}
+        <div className={styles.postFormPreviewsWrap}>
+          <div className={styles.postFormPreviews}>
+            {previews.map((p, i) => (
+              <div key={i} className={styles.postFormPreviewItem}>
+                <img src={p} alt="" className={styles.postFormPreviewImg} />
+                <button className={styles.postFormPreviewRemove} onClick={() => removeFile(i)}>
+                  <X size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
-      <div className={styles.postFormActions}>
-        <div className={styles.postFormLeft}>
+      <div className={styles.postFormFooter}>
+        <textarea
+          className={styles.postFormInput}
+          placeholder="What's happening?"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+        />
+        <div className={styles.postFormActionsRow}>
+          <div className={styles.postFormLeft}>
           <label className={styles.postFormAttachBtn}>
             <Paperclip size={16} />
             <input type="file" accept="image/*" multiple ref={fileRef} style={{ display: 'none' }} onChange={handleFileSelect} />
@@ -160,6 +168,7 @@ export function PostForm({ eventId }: PostFormProps) {
           <Send size={14} />
           {sending ? 'Posting...' : 'Post'}
         </button>
+        </div>
       </div>
     </div>
   )
