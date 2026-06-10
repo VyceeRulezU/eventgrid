@@ -252,21 +252,35 @@ export function GuestRsvpPage() {
                   <HelpCircle size={16} /> Maybe
                 </button>
               </div>
-
-              <div style={{ color: '#9CA3AF', fontSize: 11, marginBottom: 8 }}>Leave a note (optional)</div>
-              <textarea
-                value={rsvpNote}
-                onChange={(e) => setRsvpNote(e.target.value)}
-                disabled={submitting}
-                placeholder="e.g. Looking forward to it! I'll bring a guest."
-                rows={3}
-                style={{
-                  width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #2a3a4e',
-                  backgroundColor: '#0B1120', color: '#F9FAFB', fontSize: 13, resize: 'vertical',
-                  fontFamily: 'inherit', boxSizing: 'border-box',
-                }}
-              />
             </>
+          )}
+
+          <div style={{ color: '#9CA3AF', fontSize: 11, marginBottom: 8 }}>Leave a note (optional)</div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+            <textarea
+              value={rsvpNote}
+              onChange={(e) => setRsvpNote(e.target.value)}
+              disabled={submitting}
+              placeholder="e.g. Looking forward to it! I'll bring a guest."
+              rows={3}
+              style={{
+                flex: 1, padding: '10px 14px', borderRadius: 8, border: '1px solid #2a3a4e',
+                backgroundColor: '#0B1120', color: '#F9FAFB', fontSize: 13, resize: 'vertical',
+                fontFamily: 'inherit', boxSizing: 'border-box',
+              }}
+            />
+            <button
+              onClick={handleSaveNote}
+              disabled={submitting || !rsvpNote.trim()}
+              style={{
+                padding: '10px 16px', border: 'none', borderRadius: 8, cursor: 'pointer',
+                backgroundColor: '#D4A017', color: '#111827', fontSize: 12, fontWeight: 400, whiteSpace: 'nowrap',
+                opacity: (submitting || !rsvpNote.trim()) ? 0.5 : 1,
+              }}
+            >
+              Save
+            </button>
+          </div>
           )}
 
           {error && (
