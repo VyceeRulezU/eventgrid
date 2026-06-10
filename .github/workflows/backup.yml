@@ -13,9 +13,12 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y postgresql-client
 
       - name: Dump database
+        env:
+          SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
         run: |
+          PROJECT_REF=$(echo "$SUPABASE_URL" | sed -E 's|https?://([^.]+)\..*|\1|')
           pg_dump \
-            --dbname="postgresql://postgres:${{ secrets.SUPABASE_DB_PASSWORD }}@db.${{ vars.SUPABASE_PROJECT_REF }}.supabase.co:5432/postgres" \
+            --dbname="postgresql://postgres:${{ secrets.SUPABASE_DB_PASSWORD }}@db.${PROJECT_REF}.supabase.co:5432/postgres" \
             --no-owner \
             -f backup.sql
 
