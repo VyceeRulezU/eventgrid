@@ -106,7 +106,26 @@ export function GuestRsvpPage() {
     }
     setSelectedRsvp(rsvpStatus)
     setGuest({ ...guest, rsvp_status: rsvpStatus, notes: rsvpNote })
-    setStatus('done')
+  }
+
+  const handleSaveNote = async () => {
+    if (!guest) return
+    setSubmitting(true)
+    const { data, error: fnErr } = await supabase.functions.invoke('guest-rsvp', {
+      body: {
+        action: 'rsvp',
+        guest_id: guest.id,
+        rsvp_status: guest.rsvp_status,
+        rsvp_note: rsvpNote || null,
+      },
+    })
+    setSubmitting(false)
+    if (fnErr || data?.error) {
+      setError(data?.error || 'Failed to save note')
+      return
+    }
+    setError('')
+    setGuest({ ...guest, notes: rsvpNote })
   }
 
   if (status === 'loading') {
@@ -128,38 +147,13 @@ export function GuestRsvpPage() {
     )
   }
 
-  if (status === 'done') {
-    const labels: Record<string, string> = { confirmed: 'Accepted', declined: 'Declined', maybe: 'Maybe' }
-    const icons: Record<string, React.ReactNode> = {
-      confirmed: <Check size={28} />,
-      declined: <X size={28} />,
-      maybe: <HelpCircle size={28} />,
-    }
-    return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#0B1120', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-        <div style={{ backgroundColor: '#1a2432', border: '1px solid #2a3a4e', borderRadius: 16, maxWidth: 420, width: '100%', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
-          <div style={{
-            backgroundImage: `url('${HERO_URL}')`, backgroundSize: 'cover', backgroundPosition: 'center',
-            padding: '44px 32px', textAlign: 'center',
-            background: 'linear-gradient(135deg, rgba(11,17,32,0.95) 0%, rgba(11,17,32,0.75) 50%, rgba(11,17,32,0.6) 100%), ' +
-              `url('${HERO_URL}') center/cover no-repeat`,
-          }}>
-            <table cellPadding={0} cellSpacing={0} style={{ margin: '0 auto 14px' }}><tbody><tr><td style={{ width: 44, height: 3, backgroundColor: '#D4A017', borderRadius: 2 }} /></tr></tbody></table>
-            <img src={LOGO_URL} alt="EventGrid" style={{ maxWidth: 160, height: 'auto', display: 'block', margin: '0 auto' }} />
-          </div>
-          <div style={{ padding: '32px 32px 40px', textAlign: 'center' }}>
-            <div style={{ color: '#D4A017', marginBottom: 12 }}>{icons[selectedRsvp || 'confirmed']}</div>
-            <div style={{ color: '#F9FAFB', fontSize: 20, fontWeight: 300, marginBottom: 6 }}>
-              {labels[selectedRsvp || 'confirmed']}
-            </div>
-            <div style={{ color: '#9CA3AF', fontSize: 13, lineHeight: 1.6 }}>
-              Your response for <strong style={{ color: '#D4A017', fontWeight: 300 }}>{event?.name}</strong> has been recorded.
-            </div>
-          </div>
-        </div>
-      </div>
-    )
+  const doneLabels: Record<string, string> = { confirmed: 'Accepted', declined: 'Declined', maybe: 'Maybe' }
+  const doneIcons: Record<string, React.ReactNode> = {
+    confirmed: <Check size={28} />,
+    declined: <X size={28} />,
+    maybe: <HelpCircle size={28} />,
   }
+  const isDone = selectedRsvp !== null
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0B1120', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
@@ -200,61 +194,80 @@ export function GuestRsvpPage() {
           </div>
 
           <div style={{ color: '#9CA3AF', fontSize: 11, marginBottom: 14, textTransform: 'uppercase', letterSpacing: 0.5, textAlign: 'center' }}>
-            Will you attend?
+            {isDone ? 'Your response' : 'Will you attend?'}
           </div>
 
-          <div style={{ display: 'flex', gap: 8, marginBottom: 24, flexWrap: 'wrap' }}>
-            <button
-              onClick={() => handleRsvp('confirmed')}
-              disabled={submitting}
-              style={{
-                flex: '1 1 120px', padding: '10px 12px', border: 'none', borderRadius: 10, cursor: 'pointer',
-                backgroundColor: '#22c55e', color: '#fff', fontSize: 13, fontWeight: 400,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-                opacity: submitting ? 0.5 : 1,
-              }}
-            >
-              <Check size={16} /> Accept
-            </button>
-            <button
-              onClick={() => handleRsvp('declined')}
-              disabled={submitting}
-              style={{
-                flex: '1 1 120px', padding: '10px 12px', border: 'none', borderRadius: 10, cursor: 'pointer',
-                backgroundColor: '#ef4444', color: '#fff', fontSize: 13, fontWeight: 400,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-                opacity: submitting ? 0.5 : 1,
-              }}
-            >
-              <X size={16} /> Decline
-            </button>
-            <button
-              onClick={() => handleRsvp('maybe')}
-              disabled={submitting}
-              style={{
-                flex: '1 1 120px', padding: '10px 12px', border: 'none', borderRadius: 10, cursor: 'pointer',
-                backgroundColor: '#D4A017', color: '#111827', fontSize: 13, fontWeight: 400,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-                opacity: submitting ? 0.5 : 1,
-              }}
-            >
-              <HelpCircle size={16} /> Maybe
-            </button>
-          </div>
+          {isDone ? (
+            <div style={{ textAlign: 'center', padding: '8px 0 4px' }}>
+              <div style={{ color: '#D4A017', marginBottom: 8 }}>{doneIcons[selectedRsvp || 'confirmed']}</div>
+              <div style={{ color: '#F9FAFB', fontSize: 18, fontWeight: 300, marginBottom: 4 }}>
+                {doneLabels[selectedRsvp || 'confirmed']}
+              </div>
+              <div style={{ color: '#9CA3AF', fontSize: 12, lineHeight: 1.5 }}>
+                Your response for <strong style={{ color: '#D4A017', fontWeight: 300 }}>{event?.name}</strong> has been recorded.
+              </div>
+              {rsvpNote && (
+                <div style={{ color: '#6B7280', fontSize: 11, marginTop: 10, fontStyle: 'italic', borderTop: '1px solid #2a3a4e', paddingTop: 10 }}>
+                  "{rsvpNote}"
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 24, flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => handleRsvp('confirmed')}
+                  disabled={submitting}
+                  style={{
+                    flex: '1 1 120px', padding: '10px 12px', border: 'none', borderRadius: 10, cursor: 'pointer',
+                    backgroundColor: '#22c55e', color: '#fff', fontSize: 13, fontWeight: 400,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                    opacity: submitting ? 0.5 : 1,
+                  }}
+                >
+                  <Check size={16} /> Accept
+                </button>
+                <button
+                  onClick={() => handleRsvp('declined')}
+                  disabled={submitting}
+                  style={{
+                    flex: '1 1 120px', padding: '10px 12px', border: 'none', borderRadius: 10, cursor: 'pointer',
+                    backgroundColor: '#ef4444', color: '#fff', fontSize: 13, fontWeight: 400,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                    opacity: submitting ? 0.5 : 1,
+                  }}
+                >
+                  <X size={16} /> Decline
+                </button>
+                <button
+                  onClick={() => handleRsvp('maybe')}
+                  disabled={submitting}
+                  style={{
+                    flex: '1 1 120px', padding: '10px 12px', border: 'none', borderRadius: 10, cursor: 'pointer',
+                    backgroundColor: '#D4A017', color: '#111827', fontSize: 13, fontWeight: 400,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                    opacity: submitting ? 0.5 : 1,
+                  }}
+                >
+                  <HelpCircle size={16} /> Maybe
+                </button>
+              </div>
 
-          <div style={{ color: '#9CA3AF', fontSize: 11, marginBottom: 8 }}>Leave a note (optional)</div>
-          <textarea
-            value={rsvpNote}
-            onChange={(e) => setRsvpNote(e.target.value)}
-            disabled={submitting}
-            placeholder="e.g. Looking forward to it! I'll bring a guest."
-            rows={3}
-            style={{
-              width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #2a3a4e',
-              backgroundColor: '#0B1120', color: '#F9FAFB', fontSize: 13, resize: 'vertical',
-              fontFamily: 'inherit', boxSizing: 'border-box',
-            }}
-          />
+              <div style={{ color: '#9CA3AF', fontSize: 11, marginBottom: 8 }}>Leave a note (optional)</div>
+              <textarea
+                value={rsvpNote}
+                onChange={(e) => setRsvpNote(e.target.value)}
+                disabled={submitting}
+                placeholder="e.g. Looking forward to it! I'll bring a guest."
+                rows={3}
+                style={{
+                  width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #2a3a4e',
+                  backgroundColor: '#0B1120', color: '#F9FAFB', fontSize: 13, resize: 'vertical',
+                  fontFamily: 'inherit', boxSizing: 'border-box',
+                }}
+              />
+            </>
+          )}
 
           {error && (
             <div style={{ marginTop: 12, fontSize: 12, color: '#ef4444', textAlign: 'center' }}>
