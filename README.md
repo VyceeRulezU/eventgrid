@@ -1,5 +1,7 @@
 # EventGrid
 
+[![CI](https://github.com/app-eventgrid/eventgrid/actions/workflows/ci.yml/badge.svg)](https://github.com/app-eventgrid/eventgrid/actions/workflows/ci.yml)
+
 A multi-role SaaS platform for the event industry in Nigeria. Replaces WhatsApp threads, Excel sheets, and phone-call confirmations with one unified platform covering the full event lifecycle — from first client inquiry through to post-event analysis.
 
 ## Tech Stack
