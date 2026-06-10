@@ -90,6 +90,7 @@ export function TeamMemberOnboarding() {
     const profileUpdates: Record<string, unknown> = {}
     if (updateRole) profileUpdates.role = inviteRole
     if (updateOrgId) profileUpdates.org_id = evtData?.org_id || null
+    if (!profile?.display_name) profileUpdates.display_name = user?.user_metadata?.display_name || user?.email?.split('@')[0] || null
     if (Object.keys(profileUpdates).length > 0) {
       await supabase.from('profiles').update(profileUpdates).eq('id', user.id)
     }

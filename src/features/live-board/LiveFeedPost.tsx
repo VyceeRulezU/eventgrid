@@ -32,7 +32,7 @@ export function LiveFeedPost({ post, eventId, displayName, avatarUrl }: LiveFeed
     return `${days}d ago`
   })()
 
-  const authorName = displayName || 'Team Member'
+  const authorName = displayName || 'User'
 
   return (
     <>
