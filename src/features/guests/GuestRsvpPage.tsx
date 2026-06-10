@@ -281,7 +281,6 @@ export function GuestRsvpPage() {
               Save
             </button>
           </div>
-          )}
 
           {error && (
             <div style={{ marginTop: 12, fontSize: 12, color: '#ef4444', textAlign: 'center' }}>
