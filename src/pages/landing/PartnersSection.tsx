@@ -13,6 +13,10 @@ const DEFAULT_PARTNERS: Partner[] = [
     isDefault: true,
   },
   {
+    name: 'QV',
+    isDefault: true,
+  },
+  {
     name: 'Zapphaire Events',
     isDefault: true,
   },
@@ -75,6 +79,8 @@ function renderDefaultLogoSVG(name: string) {
   switch (name) {
     case 'Talk Events':
       return <img src="/talk%20events.svg" alt="Talk Events Logo" className={styles.partnerImg} />
+    case 'QV':
+      return <img src="/qv-logo-white.png" alt="QV Logo" className={styles.partnerImg} />
     case 'Zapphaire Events':
       return (
         <svg width="195" height="42" viewBox="0 0 150 32" fill="none" xmlns="http://www.w3.org/2000/svg">
