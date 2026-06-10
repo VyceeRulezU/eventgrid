@@ -82,19 +82,23 @@ export function TeamMemberOnboarding() {
       .eq('id', eventId)
       .single()
 
-    await supabase
-      .from('profiles')
-      .update({
-        role: inviteRole,
-        org_id: evtData?.org_id || null,
-      })
-      .eq('id', user.id)
+    const higherRoles = ['super_admin', 'planner', 'coordinator']
+    const currentRole = profile?.role
+    const updateRole = !currentRole || !higherRoles.includes(currentRole)
+    const updateOrgId = !profile?.org_id
+
+    const profileUpdates: Record<string, unknown> = {}
+    if (updateRole) profileUpdates.role = inviteRole
+    if (updateOrgId) profileUpdates.org_id = evtData?.org_id || null
+    if (Object.keys(profileUpdates).length > 0) {
+      await supabase.from('profiles').update(profileUpdates).eq('id', user.id)
+    }
 
     if (profile) {
       setProfile({
         ...profile,
-        role: inviteRole as import('@/types').UserRole,
-        org_id: evtData?.org_id || null,
+        ...(updateRole ? { role: inviteRole as import('@/types').UserRole } : {}),
+        ...(updateOrgId ? { org_id: evtData?.org_id || null } : {}),
       })
     }
 

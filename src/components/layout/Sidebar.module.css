@@ -207,78 +207,62 @@
   }
 }
 
-.onboardingBanner {
+.upgradeBanner {
   display: none;
   flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-4) var(--space-3);
-  margin: 0 var(--space-2) var(--space-3);
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  border: 1px solid rgba(212, 160, 23, 0.25);
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-3);
+  margin: 0 var(--space-2) var(--space-2);
+  background: linear-gradient(135deg, rgba(212, 160, 23, 0.08) 0%, rgba(212, 160, 23, 0.02) 100%);
+  border: 1px solid rgba(212, 160, 23, 0.2);
   border-radius: var(--radius-xl);
-  position: relative;
-  overflow: hidden;
-}
-
-.onboardingBanner::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -50%;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle, rgba(212, 160, 23, 0.06) 0%, transparent 70%);
-  pointer-events: none;
 }
 
 @media (min-width: 1024px) {
-  .onboardingBanner { display: flex; }
+  .upgradeBanner { display: flex; }
 }
 
-.bannerIcon {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-full);
-  background: rgba(212, 160, 23, 0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #d4a017;
-  flex-shrink: 0;
-}
-
-.onboardingBannerTitle {
-  font-size: var(--text-sm);
-  font-weight: 700;
-  color: #e8e8e8;
-}
-
-.onboardingBannerText {
+.upgradeBannerTitle {
   font-size: var(--text-xs);
-  color: rgba(255, 255, 255, 0.55);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.upgradeBannerText {
+  font-size: 10px;
+  color: var(--color-text-muted);
   line-height: 1.4;
   margin: 0;
 }
 
-.onboardingBannerBtn {
+.upgradeBannerActions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.upgradeBannerBtn {
+  flex: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-1);
-  padding: var(--space-2) var(--space-3);
-  background: linear-gradient(135deg, #d4a017, #b8860b);
-  color: #fff;
-  border: none;
+  padding: var(--space-1) var(--space-2);
+  background: rgba(212, 160, 23, 0.15);
+  color: var(--color-accent);
+  border: 1px solid rgba(212, 160, 23, 0.25);
   border-radius: var(--radius-md);
-  font-size: var(--text-xs);
+  font-size: 10px;
   font-weight: 700;
   cursor: pointer;
-  transition: opacity var(--transition-fast), transform var(--transition-fast);
+  transition: all var(--transition-fast);
   font-family: var(--font-base);
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
 }
 
-.onboardingBannerBtn:hover {
-  opacity: 0.95;
-  transform: translateY(-1px);
+.upgradeBannerBtn:hover {
+  background: var(--color-accent);
+  color: #fff;
+  border-color: var(--color-accent);
 }
+
+

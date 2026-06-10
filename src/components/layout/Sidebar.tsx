@@ -26,7 +26,6 @@ type NavCategory = {
 
 export function Sidebar() {
   const role = useAuthStore((s) => s.role)
-  const org = useAuthStore((s) => s.org)
   const clearAuth = useAuthStore((s) => s.clearAuth)
   const { sidebarOpen, setSidebarOpen } = useUIStore()
   const activeEvent = useEventStore((s) => s.activeEvent)
@@ -167,25 +166,23 @@ export function Sidebar() {
           )}
         </nav>
 
-        <div className={styles.footer}>
-          {role !== 'super_admin' && !org && (
-            <div className={styles.onboardingBanner}>
-              <div className={styles.onboardingBannerTitle}>Finish setting up</div>
-              <div className={styles.onboardingBannerText}>Complete onboarding to unlock all features</div>
-              <button
-                className={styles.onboardingBannerBtn}
-                onClick={() => {
-                  const path = role === 'coordinator' ? '/onboarding/coordinator'
-                    : role === 'team_member' ? '/onboarding/team-member'
-                    : '/onboarding/planner'
-                  navigate(path);
-                  setSidebarOpen(false)
-                }}
-              >
-                Complete Onboarding
+        {role === 'team_member' && (
+          <div className={styles.upgradeBanner}>
+            <div className={styles.upgradeBannerTitle}>Want more capabilities?</div>
+            <div className={styles.upgradeBannerText}>Upgrade to run your own events.</div>
+            <div className={styles.upgradeBannerActions}>
+              <button className={styles.upgradeBannerBtn} onClick={() => { navigate('/onboarding/planner'); setSidebarOpen(false) }}>
+                Planner
+              </button>
+              <button className={styles.upgradeBannerBtn} onClick={() => { navigate('/onboarding/coordinator'); setSidebarOpen(false) }}>
+                Coordinator
               </button>
             </div>
-          )}
+          </div>
+        )}
+
+        <div className={styles.footer}>
+
           <button className={styles.navItem} id="sidebar-back-to-site" onClick={() => navigate('/home')}>
             <ArrowLeft size={20} />
             <span>Back to site</span>
