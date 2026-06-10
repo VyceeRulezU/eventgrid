@@ -8,7 +8,7 @@ interface GuestInfo {
   first_name: string
   last_name: string | null
   rsvp_status: string
-  rsvp_note: string | null
+  notes: string | null
 }
 
 interface EventInfo {
@@ -72,7 +72,7 @@ export function GuestRsvpPage() {
         }
         setGuest(body.guest as GuestInfo)
         setEvent(body.event as EventInfo)
-        setRsvpNote((body.guest as GuestInfo)?.rsvp_note || '')
+        setRsvpNote((body.guest as GuestInfo)?.notes || '')
         if ((body.guest as GuestInfo)?.rsvp_status !== 'pending') {
           setSelectedRsvp((body.guest as GuestInfo).rsvp_status)
         }
@@ -102,7 +102,7 @@ export function GuestRsvpPage() {
       return
     }
     setSelectedRsvp(rsvpStatus)
-    setGuest({ ...guest, rsvp_status: rsvpStatus, rsvp_note: rsvpNote })
+    setGuest({ ...guest, rsvp_status: rsvpStatus, notes: rsvpNote })
     setStatus('done')
   }
 

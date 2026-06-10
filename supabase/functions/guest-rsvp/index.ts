@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
 
       const { data: guest, error: guestErr } = await supabaseAdmin
         .from('guests')
-        .select('id, first_name, last_name, rsvp_status, rsvp_note')
+        .select('id, first_name, last_name, rsvp_status')
         .eq('event_id', event_id)
         .eq('email', email)
         .maybeSingle()
@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
 
       const update: Record<string, unknown> = { rsvp_status }
       if (typeof rsvp_note === 'string') {
-        update.rsvp_note = rsvp_note || null
+        update.notes = rsvp_note || null
       }
 
       const { error: updateErr } = await supabaseAdmin
