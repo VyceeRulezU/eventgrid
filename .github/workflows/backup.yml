@@ -14,11 +14,10 @@ jobs:
 
       - name: Dump database
         env:
-          SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
         run: |
-          PROJECT_REF=$(echo "$SUPABASE_URL" | sed -E 's|https?://([^.]+)\..*|\1|')
           pg_dump \
-            --dbname="postgresql://postgres:${{ secrets.SUPABASE_DB_PASSWORD }}@db.${PROJECT_REF}.supabase.co:5432/postgres" \
+            --dbname="postgresql://postgres:${{ secrets.SUPABASE_DB_PASSWORD }}@db.${SUPABASE_PROJECT_REF}.supabase.co:5432/postgres" \
             --no-owner \
             -f backup.sql
 
