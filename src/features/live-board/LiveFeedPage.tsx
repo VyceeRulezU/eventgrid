@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useResolvedEventId } from '@/hooks/useResolvedEventId'
 import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/store/auth.store'
 import { useLiveFeedStore } from '@/store/liveFeed.store'
 import { PostForm } from './PostForm'
 import { LiveFeedPost } from './LiveFeedPost'
@@ -21,6 +22,7 @@ export function LiveFeedPage() {
   const { eventId, paramId } = useResolvedEventId()
   const navigate = useNavigate()
   const { posts, setPosts, addPost, issues, setIssues, addIssue } = useLiveFeedStore()
+  const currentUser = useAuthStore((s) => s.user)
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -39,13 +41,10 @@ export function LiveFeedPage() {
 
   async function ensureProfiles(userIds: string[]) {
     const unique = [...new Set(userIds)]
-    const missing = unique.filter((id) => !profileRef.current[id])
-    if (missing.length === 0) return
-
     const { data } = await supabase
       .from('profiles')
       .select('id, display_name, avatar_url')
-      .in('id', missing)
+      .in('id', unique)
 
     if (data) {
       data.forEach((p) => {
@@ -88,6 +87,7 @@ export function LiveFeedPage() {
         ...new Set([
           ...postsData.map((p) => p.user_id),
           ...issuesData.map((i) => i.raised_by).filter(Boolean),
+          ...(currentUser ? [currentUser.id] : []),
         ]),
       ]
       await ensureProfiles(userIds)
@@ -108,8 +108,8 @@ export function LiveFeedPage() {
       }, async (payload: any) => {
         if (payload.new) {
           const post = payload.new as LiveFeedPostType
-          addPost(post)
           await ensureProfiles([post.user_id])
+          addPost(post)
         }
       })
       .on('postgres_changes', {
