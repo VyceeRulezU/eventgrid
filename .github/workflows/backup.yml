@@ -18,7 +18,16 @@ jobs:
         run: supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF }} --password "${{ secrets.SUPABASE_DB_PASSWORD }}"
 
       - name: Dump database
-        run: supabase db dump -f backup.sql
+        run: |
+          IPV4=$(getent ahosts "db.${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co" | grep STREAM | head -1 | awk '{print $1}')
+          if [ -z "$IPV4" ]; then
+            echo "Could not resolve IPv4 address"
+            exit 1
+          fi
+          pg_dump \
+            --dbname="postgresql://postgres:${{ secrets.SUPABASE_DB_PASSWORD }}@${IPV4}:5432/postgres?sslmode=require" \
+            --no-owner \
+            -f backup.sql
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
