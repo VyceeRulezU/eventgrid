@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
-import { Check, X, HelpCircle, Send } from 'lucide-react'
+import { Check, X, HelpCircle } from 'lucide-react'
 
 interface GuestInfo {
   id: string
