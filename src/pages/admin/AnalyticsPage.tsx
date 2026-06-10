@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
-import { TrendingUp, Users, Calendar, Building, Activity, ArrowUp, ArrowDown } from 'lucide-react'
+import { TrendingUp, Users, Calendar, ArrowUp, ArrowDown } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 
 interface MonthlySnapshot {
@@ -104,10 +104,8 @@ export function AnalyticsPage() {
   )
 
   const metrics = [
-    { label: 'Total Users', value: totals.users, icon: Users, color: 'var(--color-accent)', growth: growthRate(snapshots, 'signups') },
-    { label: 'Total Events', value: totals.events, icon: Calendar, color: 'var(--color-info)', growth: growthRate(snapshots, 'events') },
-    { label: 'Organizations', value: totals.orgs, icon: Building, color: 'var(--color-success)', growth: growthRate(snapshots, 'orgs') },
-    { label: 'Vendors', value: totals.vendors, icon: Activity, color: 'var(--color-warning)', growth: growthRate(snapshots, 'vendors') },
+    { label: 'Total Users', value: totals.users, icon: Users, color: 'var(--color-accent)', growth: growthRate(snapshots, 'signups'), sub: `${totals.orgs} orgs` },
+    { label: 'Total Events', value: totals.events, icon: Calendar, color: 'var(--color-info)', growth: growthRate(snapshots, 'events'), sub: `${totals.vendors} vendors` },
   ]
 
   const chartData = snapshots.map(s => ({
@@ -160,11 +158,14 @@ export function AnalyticsPage() {
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', marginBottom: 2 }}>{m.label}</div>
-              <div style={{ fontSize: 'var(--text-title)', fontWeight: 700 }}>{m.value}</div>
+              <div style={{ fontSize: 'var(--text-title)', fontWeight: 700 }}>{m.value.toLocaleString()}</div>
               <div style={{ fontSize: 11, display: 'flex', alignItems: 'center', gap: 2, color: m.growth >= 0 ? 'var(--color-success)' : 'var(--color-error)', marginTop: 2 }}>
                 {m.growth >= 0 ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
                 {Math.abs(m.growth)}% this month
               </div>
+              {'sub' in m && m.sub && (
+                <div style={{ fontSize: 10, color: 'var(--color-text-muted)', marginTop: 1 }}>{m.sub}</div>
+              )}
             </div>
           </div>
         ))}

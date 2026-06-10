@@ -4,11 +4,13 @@ import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
 import { Sentry } from '@/lib/sentry'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import type { User } from '@supabase/supabase-js'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { useNotificationStore } from '@/store/notification.store'
 import { getUnreadCount, subscribeToNotifications } from '@/lib/notifications'
+import type { Profile, UserRole } from '@/types'
 import { AuthGuard } from '@/components/layout/AuthGuard'
 import { RoleGuard } from '@/components/layout/RoleGuard'
 import { AppShell } from '@/components/layout/AppShell'
@@ -68,9 +70,23 @@ const AdminManagePage = lazy(() => import('@/pages/admin/AdminManagePage').then(
 const AnalyticsPage = lazy(() => import('@/pages/admin/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })))
 
 const AftermathPage = lazy(() => import('@/features/aftermath/AftermathPage').then(m => ({ default: m.AftermathPage })))
+const CompletedEventReport = lazy(() => import('@/features/aftermath/CompletedEventReport').then(m => ({ default: m.CompletedEventReport })))
 import { PremiumModalContainer } from '@/components/ui/PremiumModal'
 import { NotificationsDrawer } from '@/features/notifications/NotificationsDrawer'
 import { AlertTriangle, Terminal, ExternalLink, RefreshCw } from 'lucide-react'
+
+function withTimeout<T>(promise: PromiseLike<T>, timeoutMs: number, message: string) {
+  let timeoutId: number | null = null
+  const timeout = new Promise<never>((_, reject) => {
+    timeoutId = window.setTimeout(() => reject(new Error(message)), timeoutMs)
+  })
+
+  return Promise.race([promise, timeout]).finally(() => {
+    if (timeoutId !== null) {
+      window.clearTimeout(timeoutId)
+    }
+  }) as Promise<T>
+}
 
 function AuthGate() {
   const user = useAuthStore((s) => s.user)
@@ -210,18 +226,28 @@ VITE_SUPABASE_ANON_KEY=your-anon-key`}
   )
 }
 
-function ErrorFallback() {
+function ErrorFallback({ error }: { error?: Error }) {
   return (
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       minHeight: '100vh', background: '#111827', color: '#F9FAFB',
       fontFamily: "'Plus Jakarta Sans', sans-serif", padding: 24,
     }}>
-      <div style={{ textAlign: 'center', maxWidth: 420 }}>
+      <div style={{ textAlign: 'center', maxWidth: 480 }}>
         <h1 style={{ fontSize: 24, marginBottom: 8 }}>Something went wrong</h1>
         <p style={{ color: '#9CA3AF', fontSize: 14, lineHeight: 1.6, marginBottom: 24 }}>
           An unexpected error occurred. The team has been notified.
         </p>
+        {error && (
+          <div style={{
+            background: '#1F2937', borderRadius: 8, padding: 16, marginBottom: 24,
+            textAlign: 'left', fontSize: 12, fontFamily: 'monospace',
+            color: '#FCA5A5', overflowX: 'auto', maxHeight: 160, overflowY: 'auto',
+          }}>
+            <div style={{ color: '#9CA3AF', marginBottom: 4 }}>Error details:</div>
+            {error.message || error.toString()}
+          </div>
+        )}
         <button
           onClick={() => window.location.reload()}
           style={{
@@ -244,23 +270,64 @@ export function App() {
   const setLoading = useAuthStore((s) => s.setLoading)
   const setTheme = useUIStore((s) => s.setTheme)
 
-  async function loadProfile(userId: string) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
+  async function loadProfile(userId: string, user?: User) {
+    let profile: Profile | null = null
+    let error: unknown = null
+
+    try {
+      const result = await withTimeout(
+        supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single(),
+        8000,
+        'Profile request timed out.'
+      )
+      profile = result.data
+      error = result.error
+    } catch (err) {
+      error = err
+    }
+
     if (profile) {
       setProfile(profile)
       if (profile.org_id) {
-        const { data: org } = await supabase
-          .from('organizations')
-          .select('id, name, logo_url')
-          .eq('id', profile.org_id)
-          .single()
-        if (org) setOrg(org)
+        try {
+          const { data: org } = await withTimeout(
+            supabase
+              .from('organizations')
+              .select('id, name, logo_url')
+              .eq('id', profile.org_id)
+              .single(),
+            8000,
+            'Organization request timed out.'
+          )
+          if (org) setOrg(org)
+        } catch (err) {
+          console.warn('Unable to load organization:', err instanceof Error ? err.message : err)
+        }
       }
+      return
     }
+
+    if (error) {
+      console.warn('Unable to load profile:', error instanceof Error ? error.message : error)
+    }
+
+    const fallbackProfile: Profile = {
+      id: userId,
+      email: user?.email || '',
+      display_name: (user?.user_metadata?.display_name as string) || null,
+      phone: (user?.user_metadata?.phone as string) || null,
+      avatar_url: null,
+      role: (user?.user_metadata?.role as UserRole) || 'planner',
+      org_id: null,
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+    setProfile(fallbackProfile)
   }
 
   useEffect(() => {
@@ -273,21 +340,46 @@ export function App() {
       return
     }
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session?.user) {
-        setUser(session.user)
-        await loadProfile(session.user.id)
+    let isMounted = true
+
+    async function initializeAuth() {
+      try {
+        const { data: { session } } = await withTimeout(
+          supabase.auth.getSession(),
+          8000,
+          'Session request timed out.'
+        )
+        if (!isMounted) return
+
+        if (session?.user) {
+          setUser(session.user)
+          await loadProfile(session.user.id, session.user)
+        } else {
+          setUser(null)
+          setProfile(null)
+          setOrg(null)
+        }
+      } catch (err) {
+        console.warn('Unable to initialize auth:', err instanceof Error ? err.message : err)
+        if (isMounted) {
+          setUser(null)
+          setProfile(null)
+          setOrg(null)
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false)
+        }
       }
-      setLoading(false)
-    }).catch(() => {
-      setLoading(false)
-    })
+    }
+
+    initializeAuth()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         setUser(session.user)
         if (_event !== 'INITIAL_SESSION') {
-          loadProfile(session.user.id)
+          loadProfile(session.user.id, session.user)
           getUnreadCount(session.user.id).then(useNotificationStore.getState().setUnreadCount)
           setLoading(false)
         }
@@ -301,7 +393,10 @@ export function App() {
       }
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      isMounted = false
+      subscription.unsubscribe()
+    }
   }, [setUser, setProfile, setOrg, setLoading, setTheme])
 
   const user = useAuthStore((s) => s.user)
@@ -327,7 +422,7 @@ export function App() {
     <>
       <Analytics />
       <SpeedInsights />
-      <Sentry.ErrorBoundary fallback={<ErrorFallback />}>
+      <Sentry.ErrorBoundary fallback={({ error }) => <ErrorFallback error={error} />}>
       <BrowserRouter>
         <ScrollToTop />
         <Routes>
@@ -406,6 +501,11 @@ export function App() {
           <Route path="/events/:id/aftermath" element={
             <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
               <AftermathPage />
+            </Suspense>
+          } />
+          <Route path="/events/:id/report" element={
+            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
+              <CompletedEventReport />
             </Suspense>
           } />
           <Route path="/financials" element={

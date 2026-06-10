@@ -56,37 +56,50 @@ export function LoginPage() {
     return () => clearInterval(timer)
   }, [])
 
+  async function authRequestWithTimeout<T>(promise: Promise<T>, timeoutMs = 15000) {
+    let timeoutId: number | null = null
+    const timeout = new Promise<never>((_, reject) => {
+      timeoutId = window.setTimeout(() => {
+        reject(new Error('Authentication request timed out. Check your network and Supabase configuration.'))
+      }, timeoutMs)
+    })
+
+    try {
+      return await Promise.race([promise, timeout]) as T
+    } finally {
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId)
+      }
+    }
+  }
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
-    if (magicLinkMode) {
-      const { error } = await supabase.auth.signInWithOtp({ email })
-      if (error) {
-        showToast({ type: 'error', title: 'Magic link failed', body: error.message })
-        setLoading(false)
+    try {
+      if (magicLinkMode) {
+        const { error } = await authRequestWithTimeout(supabase.auth.signInWithOtp({ email }))
+        if (error) throw error
+
+        showToast({ type: 'success', title: 'Magic link sent', body: 'Check your email for the login link.' })
         return
       }
-      showToast({ type: 'success', title: 'Magic link sent', body: 'Check your email for the login link.' })
+
+      const { data, error } = await authRequestWithTimeout(supabase.auth.signInWithPassword({ email, password }))
+      if (error) throw error
+
+      if (data.user) {
+        setUser(data.user)
+        const role = data.user.user_metadata?.role
+        navigate(role ? `/dashboard/${role}` : '/')
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unable to sign in. Please try again.'
+      showToast({ type: 'error', title: 'Login failed', body: message })
+    } finally {
       setLoading(false)
-      return
     }
-
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-
-    if (error) {
-      showToast({ type: 'error', title: 'Login failed', body: error.message })
-      setLoading(false)
-      return
-    }
-
-    if (data.user) {
-      setUser(data.user)
-      const role = data.user.user_metadata?.role
-      navigate(role ? `/dashboard/${role}` : '/')
-    }
-
-    setLoading(false)
   }
 
   const handleOAuth = async (provider: 'google' | 'apple') => {

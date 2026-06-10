@@ -77,36 +77,55 @@ export function RegisterPage() {
     return () => clearInterval(timer)
   }, [])
 
+  async function authRequestWithTimeout<T>(promise: Promise<T>, timeoutMs = 15000) {
+    let timeoutId: number | null = null
+    const timeout = new Promise<never>((_, reject) => {
+      timeoutId = window.setTimeout(() => {
+        reject(new Error('Authentication request timed out. Check your network and Supabase configuration.'))
+      }, timeoutMs)
+    })
+
+    try {
+      return await Promise.race([promise, timeout]) as T
+    } finally {
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId)
+      }
+    }
+  }
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
-    const metadata: Record<string, any> = { display_name: name, role, phone }
-    if (isSuperAdminInvite) {
-      metadata.is_super_admin = true
-    }
+    try {
+      const metadata: Record<string, any> = { display_name: name, role, phone }
+      if (isSuperAdminInvite) {
+        metadata.is_super_admin = true
+      }
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: metadata,
-        emailRedirectTo: import.meta.env.VITE_APP_URL,
-      },
-    })
+      const { error } = await authRequestWithTimeout(supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: metadata,
+          emailRedirectTo: import.meta.env.VITE_APP_URL,
+        },
+      }))
 
-    if (error) {
-      showToast({ type: 'error', title: 'Registration failed', body: error.message })
+      if (error) throw error
+
+      if (role === 'client') {
+        navigate('/dashboard/client')
+      } else {
+        navigate('/verify-email')
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unable to register. Please try again.'
+      showToast({ type: 'error', title: 'Registration failed', body: message })
+    } finally {
       setLoading(false)
-      return
     }
-
-    if (role === 'client') {
-      navigate('/dashboard/client')
-    } else {
-      navigate('/verify-email')
-    }
-    setLoading(false)
   }
 
   const handleOAuth = async (provider: 'google' | 'apple') => {

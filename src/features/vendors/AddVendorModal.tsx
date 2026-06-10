@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { X } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { X, Search, Plus } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
@@ -8,6 +8,7 @@ interface AddVendorModalProps {
   orgId: string
   availableTypes: string[]
   defaultCategory: string
+  existingVendors?: import('@/types').Vendor[]
   onClose: () => void
   onSaved: (vendor: import('@/types').Vendor) => void
 }
@@ -21,9 +22,13 @@ const RATINGS = [
   { value: '5', label: '5 Stars' },
 ]
 
-export function AddVendorModal({ orgId, availableTypes, defaultCategory, onClose, onSaved }: AddVendorModalProps) {
+export function AddVendorModal({ orgId, availableTypes, defaultCategory, existingVendors = [], onClose, onSaved }: AddVendorModalProps) {
   const showNotification = useUIStore((s) => s.showNotification)
+  const [mode, setMode] = useState<'search' | 'create'>('search')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<import('@/types').Vendor[]>([])
   const [saving, setSaving] = useState(false)
+  const searchRef = useRef<HTMLInputElement>(null)
   const [form, setForm] = useState({
     category: defaultCategory,
     name: '',
@@ -35,10 +40,34 @@ export function AddVendorModal({ orgId, availableTypes, defaultCategory, onClose
     notes: '',
   })
 
+  useEffect(() => {
+    if (searchQuery.trim().length < 1) { setSearchResults([]); return }
+    const q = searchQuery.trim().toLowerCase()
+    const results = existingVendors.filter(
+      (v) =>
+        v.name?.toLowerCase().includes(q) ||
+        v.email?.toLowerCase().includes(q) ||
+        v.contact_name?.toLowerCase().includes(q) ||
+        v.phone?.includes(q)
+    )
+    setSearchResults(results.slice(0, 10))
+  }, [searchQuery, existingVendors])
+
+  const handleCreateNew = () => {
+    setForm(f => ({ ...f, name: searchQuery }))
+    setMode('create')
+    setSearchResults([])
+  }
+
+  const handleSelectExisting = (vendor: import('@/types').Vendor) => {
+    onSaved(vendor)
+    showNotification({ variant: 'success', title: `"${vendor.name}" added` })
+    onClose()
+  }
+
   const handleSave = async () => {
     if (!form.name.trim()) return
     setSaving(true)
-
     const { data, error } = await supabase
       .from('vendors')
       .insert({
@@ -54,14 +83,11 @@ export function AddVendorModal({ orgId, availableTypes, defaultCategory, onClose
       })
       .select()
       .single()
-
     setSaving(false)
-
     if (error) {
       showNotification({ variant: 'error', title: 'Failed to add vendor', message: error.message })
       return
     }
-
     onSaved(data as unknown as import('@/types').Vendor)
     showNotification({ variant: 'success', title: `"${form.name.trim()}" added` })
     onClose()
@@ -79,60 +105,138 @@ export function AddVendorModal({ orgId, availableTypes, defaultCategory, onClose
     <div className="overlay" onClick={() => !saving && onClose()}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 520 }}>
         <div className="modal-card-header">
-          <div className="modal-card-title">Add Vendor</div>
+          <div className="modal-card-title">{mode === 'search' ? 'Add Vendor' : 'Create New Vendor'}</div>
           <button className="modal-card-close" onClick={onClose} disabled={saving} data-tooltip="Close"><X size={20} /></button>
         </div>
         <div className="modal-card-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
-            <div>
-              <label className="label">Category</label>
-              <DropdownMenu
-                trigger={form.category}
-                items={availableTypes.map((t) => ({ label: t, value: t }))}
-                onSelect={(item) => setForm({ ...form, category: item.value })}
-                disabled={saving}
-              />
-            </div>
-            <div>
-              <label className="label">Rating</label>
-              <DropdownMenu
-                trigger={RATINGS.find((r) => r.value === form.rating)?.label || 'No rating'}
-                items={RATINGS}
-                onSelect={(item) => setForm({ ...form, rating: item.value })}
-                disabled={saving}
-              />
-            </div>
-            <div style={{ gridColumn: '1 / -1' }}>
-              <label className="label">Vendor Name</label>
-              <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} disabled={saving} placeholder="Vendor name" />
-            </div>
-            <div>
-              <label className="label">Contact Name</label>
-              <input className="input" value={form.contact_name} onChange={(e) => setForm({ ...form, contact_name: e.target.value })} disabled={saving} placeholder="Contact person" />
-            </div>
-            <div>
-              <label className="label">Phone</label>
-              <input className="input" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} disabled={saving} placeholder="Phone number" />
-            </div>
-            <div>
-              <label className="label">Email</label>
-              <input className="input" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} disabled={saving} placeholder="Email address" />
-            </div>
-            <div>
-              <label className="label">Instagram</label>
-              <input className="input" value={form.instagram} onChange={(e) => setForm({ ...form, instagram: e.target.value })} disabled={saving} placeholder="@handle" />
-            </div>
-            <div style={{ gridColumn: '1 / -1' }}>
-              <label className="label">Notes</label>
-              <textarea className="input" rows={3} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} disabled={saving} style={{ resize: 'vertical' }} placeholder="Optional notes..." />
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-5)' }}>
-            <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleSave} disabled={saving || !form.name.trim()}>
-              {saving ? 'Saving...' : 'Save Vendor'}
-            </button>
-            <button className="btn btn-ghost" onClick={onClose} disabled={saving}>Cancel</button>
-          </div>
+          {mode === 'search' ? (
+            <>
+              <div className="input-wrapper">
+                <label className="label">Search existing vendors</label>
+                <div style={{ position: 'relative' }}>
+                  <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)', pointerEvents: 'none' }} />
+                  <input
+                    ref={searchRef}
+                    className="input"
+                    style={{ paddingLeft: 36 }}
+                    placeholder="Search by name, email, or contact..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    autoFocus
+                  />
+                </div>
+              </div>
+
+              {searchQuery.trim().length >= 1 && searchResults.length === 0 && (
+                <div style={{ textAlign: 'center', padding: 'var(--space-6) var(--space-4)', color: 'var(--color-text-muted)' }}>
+                  <div style={{ fontSize: 'var(--text-sm)', fontWeight: 500, marginBottom: 'var(--space-2)' }}>No vendors found</div>
+                  <div style={{ fontSize: 'var(--text-xs)', marginBottom: 'var(--space-3)' }}>No existing vendor matches your search.</div>
+                  <button className="btn btn-primary btn-sm" onClick={handleCreateNew}>
+                    <Plus size={14} /> Create "{searchQuery}"
+                  </button>
+                </div>
+              )}
+
+              {searchResults.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', marginTop: 'var(--space-2)' }}>
+                  {searchResults.map((vendor) => (
+                    <div
+                      key={vendor.id}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 'var(--space-3)',
+                        padding: 'var(--space-3)', borderRadius: 'var(--radius-md)',
+                        border: '1px solid var(--color-border-subtle)',
+                        background: 'var(--color-surface-3)', cursor: 'pointer',
+                      }}
+                      onClick={() => handleSelectExisting(vendor)}
+                    >
+                      <div style={{
+                        width: 34, height: 34, borderRadius: 'var(--radius-full)',
+                        background: 'var(--color-accent-muted)', color: 'var(--color-accent)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 'var(--text-sm)', fontWeight: 700, flexShrink: 0,
+                      }}>
+                        {(vendor.name || '?')[0].toUpperCase()}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>{vendor.name}</div>
+                        <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                          {vendor.category}{vendor.email ? ` · ${vendor.email}` : ''}{vendor.phone ? ` · ${vendor.phone}` : ''}
+                        </div>
+                      </div>
+                      <button className="btn btn-primary btn-sm" onClick={(e) => { e.stopPropagation(); handleSelectExisting(vendor) }}>
+                        <Plus size={12} /> Add
+                      </button>
+                    </div>
+                  ))}
+                  <button className="btn btn-ghost btn-sm" style={{ alignSelf: 'center', marginTop: 'var(--space-2)' }} onClick={handleCreateNew}>
+                    <Plus size={14} /> Create new vendor instead
+                  </button>
+                </div>
+              )}
+
+              {!searchQuery.trim() && (
+                <div style={{ textAlign: 'center', padding: 'var(--space-6) var(--space-4)', color: 'var(--color-text-muted)' }}>
+                  <div style={{ fontSize: 'var(--text-sm)', fontWeight: 500, marginBottom: 'var(--space-1)' }}>Search or create</div>
+                  <div style={{ fontSize: 'var(--text-xs)' }}>Search for an existing vendor or type a name to create one.</div>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
+                <div>
+                  <label className="label">Category</label>
+                  <DropdownMenu
+                    trigger={form.category}
+                    items={availableTypes.map((t) => ({ label: t, value: t }))}
+                    onSelect={(item) => setForm({ ...form, category: item.value })}
+                    disabled={saving}
+                  />
+                </div>
+                <div>
+                  <label className="label">Rating</label>
+                  <DropdownMenu
+                    trigger={RATINGS.find((r) => r.value === form.rating)?.label || 'No rating'}
+                    items={RATINGS}
+                    onSelect={(item) => setForm({ ...form, rating: item.value })}
+                    disabled={saving}
+                  />
+                </div>
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label className="label">Vendor Name</label>
+                  <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} disabled={saving} placeholder="Vendor name" />
+                </div>
+                <div>
+                  <label className="label">Contact Name</label>
+                  <input className="input" value={form.contact_name} onChange={(e) => setForm({ ...form, contact_name: e.target.value })} disabled={saving} placeholder="Contact person" />
+                </div>
+                <div>
+                  <label className="label">Phone</label>
+                  <input className="input" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} disabled={saving} placeholder="Phone number" />
+                </div>
+                <div>
+                  <label className="label">Email</label>
+                  <input className="input" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} disabled={saving} placeholder="Email address" />
+                </div>
+                <div>
+                  <label className="label">Instagram</label>
+                  <input className="input" value={form.instagram} onChange={(e) => setForm({ ...form, instagram: e.target.value })} disabled={saving} placeholder="@handle" />
+                </div>
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label className="label">Notes</label>
+                  <textarea className="input" rows={3} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} disabled={saving} style={{ resize: 'vertical' }} placeholder="Optional notes..." />
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-5)' }}>
+                <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleSave} disabled={saving || !form.name.trim()}>
+                  {saving ? 'Saving...' : 'Save Vendor'}
+                </button>
+                <button className="btn btn-ghost" onClick={() => setMode('search')} disabled={saving}>Back to Search</button>
+                <button className="btn btn-ghost" onClick={onClose} disabled={saving}>Cancel</button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

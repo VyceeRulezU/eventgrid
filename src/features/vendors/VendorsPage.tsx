@@ -201,7 +201,7 @@ export function VendorsPage() {
         subtitle={`${vendors.length} vendor${vendors.length !== 1 ? 's' : ''} in your organisation`}
         actions={
           <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            <span className="desktop-only" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
               <div className={styles.eventFilterLabel}>Event filter</div>
               <div className={styles.eventFilterWrap}>
                 <DropdownMenu
@@ -214,11 +214,13 @@ export function VendorsPage() {
                 onSelect={(item) => { window.location.href = `/vendors?event=${item.value}` }}
               />
               </div>
-            </div>
-            <button className="btn btn-secondary btn-sm" onClick={() => setShowAddType(true)} style={{ borderRadius: 'var(--radius-sm)' }}>
-              <Tag size={14} />
-              Add Type
-            </button>
+            </span>
+            <span className="desktop-only">
+              <button className="btn btn-secondary btn-sm" onClick={() => setShowAddType(true)} style={{ borderRadius: 'var(--radius-sm)' }}>
+                <Tag size={14} />
+                Add Type
+              </button>
+            </span>
             <button className="btn btn-primary btn-sm" onClick={() => setShowAddVendor(true)} style={{ borderRadius: 'var(--radius-sm)' }}>
               <Plus size={14} />
               Add Vendor
@@ -240,6 +242,7 @@ export function VendorsPage() {
           orgId={orgId}
           availableTypes={availableTypes}
           defaultCategory={DEFAULT_TYPES[0]}
+          existingVendors={vendors}
           onClose={() => setShowAddVendor(false)}
           onSaved={handleAdd}
         />

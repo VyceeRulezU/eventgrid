@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { Sparkles, ChevronRight, Star } from 'lucide-react'
+import { Sparkles, ChevronRight, Check } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -8,12 +8,10 @@ import { SEO } from '@/components/shared/SEO'
 import styles from './Onboarding.module.css'
 
 export function TeamMemberOnboarding() {
-  const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState(false)
   const [initializing, setInitializing] = useState(true)
   const [eventName, setEventName] = useState('')
-  
+
   const user = useAuthStore((s) => s.user)
   const profile = useAuthStore((s) => s.profile)
   const setProfile = useAuthStore((s) => s.setProfile)
@@ -32,45 +30,29 @@ export function TeamMemberOnboarding() {
     }
 
     async function init() {
-      // 1. Fetch event name
-      const { data: eventData, error: eventErr } = await supabase
+      const { data: eventData } = await supabase
         .from('events')
         .select('name')
         .eq('id', eventId)
         .single()
 
-      if (eventErr || !eventData) {
+      if (!eventData) {
         showToast({ type: 'error', title: 'Event Not Found', body: 'This event may have been deleted.' })
         setInitializing(false)
         return
       }
 
       setEventName(eventData.name)
-
-      // 2. Pre-fill display name and phone from current profile
-      if (profile) {
-        setName(profile.display_name || '')
-        setPhone(profile.phone || '')
-      }
-
       setInitializing(false)
     }
 
-    if (user) {
-      init()
-    }
-  }, [eventId, user, profile])
+    if (user) init()
+  }, [eventId, user])
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    navigate('/login')
-  }
-
-  const handleSubmit = async () => {
+  const handleAccept = async () => {
     if (!user || !eventId) return
     setLoading(true)
 
-    // 1. Create or verify event access record
     const { error: accessErr } = await supabase
       .from('event_access')
       .upsert({
@@ -81,12 +63,11 @@ export function TeamMemberOnboarding() {
       }, { onConflict: 'event_id,user_id' })
 
     if (accessErr) {
-      showToast({ type: 'error', title: 'Permission Grant Failed', body: accessErr.message })
+      showToast({ type: 'error', title: 'Failed to join', body: accessErr.message })
       setLoading(false)
       return
     }
 
-    // 1b. Mark invitation as accepted
     if (user.email) {
       await supabase
         .from('invitations')
@@ -95,79 +76,45 @@ export function TeamMemberOnboarding() {
         .eq('email', user.email)
     }
 
-    // 2. Get the event's org_id
     const { data: evtData } = await supabase
       .from('events')
       .select('org_id')
       .eq('id', eventId)
       .single()
 
-    // 3. Update profiles role and details
-    const { error: profileErr } = await supabase
+    await supabase
       .from('profiles')
       .update({
-        display_name: name,
-        phone: phone || null,
         role: inviteRole,
         org_id: evtData?.org_id || null,
       })
       .eq('id', user.id)
 
-    if (profileErr) {
-      showToast({ type: 'error', title: 'Profile update failed', body: profileErr.message })
-      setLoading(false)
-      return
-    }
-
-    // Update local profile state
     if (profile) {
       setProfile({
         ...profile,
-        display_name: name,
-        phone: phone || null,
-        role: inviteRole as import('@/types').UserRole
+        role: inviteRole as import('@/types').UserRole,
+        org_id: evtData?.org_id || null,
       })
     }
 
-    // 3. Mark onboarding completed in Auth metadata
-    const { error: authErr } = await supabase.auth.updateUser({
-      data: {
-        role: inviteRole,
-        onboarding_completed: true,
-        joined_event_id: eventId
-      }
-    })
-
-    if (authErr) {
-      showToast({ type: 'error', title: 'Session sync failed', body: authErr.message })
-    }
-
-    showToast({ type: 'success', title: 'Access granted!', body: `You've joined the team for ${eventName}.` })
+    showToast({ type: 'success', title: 'Joined!', body: `You've joined the team for ${eventName}.` })
     navigate('/dashboard/my-tasks')
     setLoading(false)
-  }
-
-  const handleNext = () => {
-    if (!name.trim()) {
-      showToast({ type: 'error', title: 'Display Name Required', body: 'Please enter your display name.' })
-      return
-    }
-    handleSubmit()
   }
 
   if (initializing) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', gap: 'var(--space-4)' }}>
         <img src="/EventGrid-favicon.svg" alt="Loading" style={{ width: 56, height: 56, opacity: 0.5 }} />
-        <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>Initializing team invitation...</div>
+        <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>Loading invitation...</div>
       </div>
     )
   }
 
   return (
     <div className={styles.container}>
-      <SEO title="Accept Team Invitation" description="Set up your profile and accept your invitation to join an event team on EventGrid." />
-      {/* ── Left panel ── */}
+      <SEO title="Accept Invitation" description="Join an event team on EventGrid." />
       <div className={styles.leftPanel}>
         <div className={styles.topBar}>
           <div className={styles.branding}>
@@ -175,41 +122,14 @@ export function TeamMemberOnboarding() {
               <img src="/EventGrid-logo-white.svg" alt="EventGrid Logo" className={styles.brandLogoImage} />
             </Link>
           </div>
-          <div className={styles.topRightActions}>
-            <button onClick={handleLogout} className={styles.logoutBtn} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.4)', fontSize: 'var(--text-xs)' }}>
-              Log Out
-            </button>
-          </div>
         </div>
-
         <div className={styles.leftContent}>
           <div className={styles.welcomeTag}>Team Collaboration</div>
-          <h1 className={styles.welcomeTitle}>You're invited to the team!</h1>
+          <h1 className={styles.welcomeTitle}>You're invited!</h1>
           <p className={styles.welcomeDesc}>
-            Join colleagues and coordinate event delivery in real-time. Setup takes less than a minute.
+            Join the team for <strong>{eventName}</strong> and start collaborating.
           </p>
         </div>
-
-        <div className={styles.leftTestimonial}>
-          <div className={styles.testimonialCard}>
-            <div className={styles.testimonialStars}>
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star key={i} size={12} fill="currentColor" />
-              ))}
-            </div>
-            <p className={styles.testimonialQuote}>
-              "Using EventGrid's task boards and live sheets keeps our team completely aligned on logistics on event day."
-            </p>
-            <div className={styles.testimonialUser}>
-              <img className={styles.testimonialAvatar} src="https://images.unsplash.com/photo-1594744803329-e58b31de8bf5?w=100&h=100&fit=crop&crop=face" alt="Amara Okoro" />
-              <div className={styles.testimonialDetails}>
-                <span className={styles.testimonialName}>Amara Okoro</span>
-                <span className={styles.testimonialRole}>Operations Lead, Nexus Events</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div className={styles.leftFooter}>
           <div className={styles.footerLinks}>
             <a href="#" className={styles.footerLink}>Terms</a>
@@ -217,69 +137,35 @@ export function TeamMemberOnboarding() {
           </div>
         </div>
       </div>
-
-      {/* ── Right panel ── */}
       <div className={styles.rightPanel}>
         <div className={styles.stepHeader}>
           <div className={styles.stepMeta}>
             <span className={styles.stepLabel}>Accept Invitation</span>
-            <div className={styles.stepper}>
-              <div className={`${styles.stepDot} ${styles.stepDotActive}`} />
-            </div>
           </div>
         </div>
-
         <div className={styles.stepContent}>
           <div className={styles.infoBox}>
             <Sparkles size={16} className={styles.infoIcon} />
             <p style={{ margin: 0 }}>
-              You are accepting an invite to collaborate on the event: <strong style={{ color: 'var(--color-accent)' }}>{eventName || 'Loading...'}</strong>
+              You've been invited to collaborate on: <strong style={{ color: 'var(--color-accent)' }}>{eventName}</strong>
             </p>
           </div>
-
-          <h2 className={styles.question}>Complete your profile to join</h2>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-            <div>
-              <label className={styles.formLabel} htmlFor="name">
-                Display Name / Full Name <span style={{ color: 'var(--color-error)' }}>*</span>
-              </label>
-              <input
-                id="name"
-                type="text"
-                className={styles.inputField}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Adebayo Benson"
-                required
-              />
+          <div style={{ marginTop: 'var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)' }}>
+              <Check size={18} style={{ color: 'var(--color-success)', flexShrink: 0 }} />
+              No onboarding required — just accept and start working
             </div>
-
-            <div>
-              <label className={styles.formLabel} htmlFor="phone">
-                Phone Number <span style={{ color: 'var(--color-text-muted)', fontWeight: 400 }}>(optional)</span>
-              </label>
-              <input
-                id="phone"
-                type="tel"
-                className={styles.inputField}
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="e.g. +234 800 000 0000"
-              />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)' }}>
+              <Check size={18} style={{ color: 'var(--color-success)', flexShrink: 0 }} />
+              Update your profile anytime in settings
             </div>
           </div>
         </div>
-
         <div className={styles.navRow}>
-          <button
-            onClick={handleNext}
-            className={styles.continueBtn}
-            disabled={loading || !name.trim()}
-          >
-            {loading ? 'Joining Team…' : (
+          <button onClick={handleAccept} className={styles.continueBtn} disabled={loading}>
+            {loading ? 'Joining…' : (
               <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                Accept Invite &amp; Launch <ChevronRight size={16} />
+                Accept &amp; Join <ChevronRight size={16} />
               </span>
             )}
           </button>

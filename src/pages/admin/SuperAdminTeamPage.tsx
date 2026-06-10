@@ -26,6 +26,7 @@ interface AdminMember {
 export function SuperAdminTeamPage() {
   const user = useAuthStore((s) => s.user)
   const profile = useAuthStore((s) => s.profile)
+  const role = useAuthStore((s) => s.role)
   const showNotification = useUIStore((s) => s.showNotification)
 
   const [members, setMembers] = useState<AdminMember[]>([])
@@ -96,9 +97,11 @@ export function SuperAdminTeamPage() {
         subtitle="Manage platform administrators"
         backTo="/admin"
         actions={
-          <button className="btn btn-primary btn-sm" onClick={() => setShowInvite(true)}>
-            <UserPlus size={14} /> Invite Admin
-          </button>
+          role === 'super_admin' ? (
+            <button className="btn btn-primary btn-sm" onClick={() => setShowInvite(true)}>
+              <UserPlus size={14} /> Invite Admin
+            </button>
+          ) : undefined
         }
       />
 
@@ -138,9 +141,9 @@ export function SuperAdminTeamPage() {
                     </div>
                   </td>
                   <td className={styles.td}>
-                    <span className="badge badge-yellow">
+                    <span className={`badge ${m.role === 'super_admin' ? 'badge-yellow' : m.role === 'monitor' ? 'badge-grey' : 'badge-blue'}`}>
                       <span className="badge-dot" />
-                      Super Admin
+                      {m.role === 'super_admin' ? 'Super Admin' : m.role === 'monitor' ? 'Monitor' : 'Support'}
                     </span>
                   </td>
                   <td className={styles.td}>

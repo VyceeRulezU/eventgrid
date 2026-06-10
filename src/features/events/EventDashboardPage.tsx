@@ -1194,6 +1194,15 @@ export function EventDashboardPage() {
                   <span className={styles.moduleDesc}>Debrief reports, issue review, and photo gallery</span>
                 </div>
               </Link>
+              {activeEvent?.status === 'completed' && (
+                <Link to={`/events/${id}/report`} className={styles.moduleCard}>
+                  <div className={styles.moduleIcon}><FileText size={18} /></div>
+                  <div className={styles.moduleInfo}>
+                    <span className={styles.moduleTitle}>Completed Event Report</span>
+                    <span className={styles.moduleDesc}>View-only summary with download options</span>
+                  </div>
+                </Link>
+              )}
             </div>
           </div>
         </div>

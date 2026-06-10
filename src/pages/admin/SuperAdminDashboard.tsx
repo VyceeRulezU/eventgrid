@@ -5,7 +5,7 @@ import { useUIStore } from '@/store/ui.store'
 import {
   Users, Calendar, DollarSign, TrendingUp, BarChart3,
   Activity, Database, HardDrive,
-  UserCheck, CreditCard, Zap, Shield, ExternalLink,
+  CreditCard, Zap, Shield, ExternalLink,
 } from 'lucide-react'
 import { PageHero } from '@/components/shared/PageHero'
 import {
@@ -163,12 +163,11 @@ export function SuperAdminDashboard() {
 
   const [loading, setLoading] = useState(true)
   const [totalPlanners, setTotalPlanners] = useState(0)
-  const [activePlanners, setActivePlanners] = useState(0)
+  const [totalCoordinators, setTotalCoordinators] = useState(0)
   const [totalEvents, setTotalEvents] = useState(0)
   const [activeEvents, setActiveEvents] = useState(0)
   const [revenueMtd, setRevenueMtd] = useState(0)
   const [revenueYtd, setRevenueYtd] = useState(0)
-  const [avgRevenue, setAvgRevenue] = useState(0)
   const [weeklyData, setWeeklyData] = useState<{ week: string; revenue: number; events: number }[]>([])
   const [eventsByType, setEventsByType] = useState<{ name: string; count: number }[]>([])
   const [revenueByMethod, setRevenueByMethod] = useState<{ name: string; value: number }[]>([])
@@ -192,10 +191,10 @@ export function SuperAdminDashboard() {
 
       const [
         { count: plannerCount },
+        { count: coordinatorCount },
         { count: tEventCount },
         { count: aEventCount },
         { count: userCount },
-        { data: recentCreatedEvents },
         { data: plannersData },
         { data: allEventsData },
         { data: allPaymentsData },
@@ -209,10 +208,10 @@ export function SuperAdminDashboard() {
         { data: storageObjects },
       ] = await Promise.all([
         supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'planner'),
+        supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'coordinator'),
         supabase.from('events').select('id', { count: 'exact', head: true }).is('deleted_at', null),
         supabase.from('events').select('id', { count: 'exact', head: true }).is('deleted_at', null).in('status', ['active', 'in_progress', 'completed']),
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
-        supabase.from('events').select('created_by').is('deleted_at', null).gte('created_at', thirtyDaysAgo),
         supabase.from('profiles').select('id, email, display_name').eq('role', 'planner'),
         supabase.from('events').select('id, name, event_type, status, created_at, created_by, current_phase, coordinator_id').is('deleted_at', null),
         supabase.from('client_payments').select('id, amount, payment_method, status, created_at, event_id, received_date').eq('status', 'received').eq('payment_type', 'incoming'),
@@ -227,11 +226,9 @@ export function SuperAdminDashboard() {
       ])
 
       setTotalPlanners(plannerCount || 0)
+      setTotalCoordinators(coordinatorCount || 0)
       setTotalEvents(tEventCount || 0)
       setActiveEvents(aEventCount || 0)
-
-      const activePlannerSet = new Set(recentCreatedEvents?.map(e => e.created_by) || [])
-      setActivePlanners(activePlannerSet.size)
 
       const payments = allPaymentsData || []
       const revenueTotal = payments.reduce((s, p) => s + (p.amount || 0), 0)
@@ -239,9 +236,6 @@ export function SuperAdminDashboard() {
       const revenueYtdVal = payments.filter(p => p.received_date && p.received_date >= startOfYear).reduce((s, p) => s + (p.amount || 0), 0)
       setRevenueMtd(revenueMtdVal)
       setRevenueYtd(revenueYtdVal)
-
-      const paidEventIds = new Set(payments.map(p => p.event_id))
-      setAvgRevenue(paidEventIds.size > 0 ? revenueTotal / paidEventIds.size : 0)
 
       const weeks = generateWeekKeys(90)
       const eventsByWeekMap: Record<string, number> = {}
@@ -489,12 +483,11 @@ export function SuperAdminDashboard() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
         <KpiCard icon={Users} label="Total Planners" value={totalPlanners} color="var(--color-accent)" />
-        <KpiCard icon={UserCheck} label="Active Planners" value={activePlanners} color="var(--color-success)" subtitle="Last 30 days" />
+        <KpiCard icon={Users} label="Total Coordinators" value={totalCoordinators} color="var(--color-info)" />
         <KpiCard icon={Calendar} label="Total Events" value={totalEvents} color="var(--color-info)" />
         <KpiCard icon={Zap} label="Active Events" value={activeEvents} color="var(--color-warning)" subtitle="In progress / active" />
         <KpiCard icon={CreditCard} label="Revenue (MTD)" value={toNaira(revenueMtd)} color="var(--color-success)" />
         <KpiCard icon={TrendingUp} label="Revenue (YTD)" value={toNaira(revenueYtd)} color="var(--color-accent)" />
-        <KpiCard icon={DollarSign} label="Avg / Event" value={toNaira(avgRevenue)} color="var(--color-info)" />
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>

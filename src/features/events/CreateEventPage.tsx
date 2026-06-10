@@ -20,24 +20,31 @@ async function ensureOwnOrg(userId: string, displayName: string): Promise<{ id: 
     return ownedOrgs[0]
   }
 
-  const { data: newOrg, error: orgErr } = await supabase
-    .rpc('create_org', {
-      p_name: `${displayName || 'User'}'s Events`,
-      p_owner_id: userId,
-      p_city: 'Lagos, Lagos',
-      p_logo_url: null,
-    })
-
-  if (orgErr || !newOrg) {
+  let newOrg: unknown
+  try {
+    const { data, error: orgErr } = await supabase
+      .rpc('create_org', {
+        p_name: `${displayName || 'User'}'s Events`,
+        p_owner_id: userId,
+        p_city: 'Lagos, Lagos',
+        p_logo_url: null,
+      })
+    if (orgErr || !data) return null
+    newOrg = data
+  } catch {
     return null
   }
 
   const orgData = newOrg as { id: string; name: string; logo_url: string | null }
 
-  await supabase
-    .from('profiles')
-    .update({ org_id: orgData.id })
-    .eq('id', userId)
+  try {
+    await supabase
+      .from('profiles')
+      .update({ org_id: orgData.id })
+      .eq('id', userId)
+  } catch {
+    // profile update is best-effort
+  }
 
   return orgData
 }
@@ -58,6 +65,46 @@ const eventTypes = [
 
 const STEPS = ['Event Details', 'Activation', 'Payment']
 
+function StepIndicator({ stepIndex }: { stepIndex: number }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-6)' }}>
+      {STEPS.map((label, i) => (
+        <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flex: i < STEPS.length - 1 ? 1 : undefined }}>
+          <div style={{
+            width: 28, height: 28, borderRadius: '50%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 'var(--text-xs)', fontWeight: 700,
+            background: i < stepIndex ? 'var(--color-success)' : i === stepIndex ? 'var(--color-accent)' : 'var(--color-surface-2)',
+            color: i <= stepIndex ? 'white' : 'var(--color-text-muted)',
+            transition: 'all 0.3s ease',
+          }}>
+            {i < stepIndex ? <Check size={14} /> : i + 1}
+          </div>
+          <span style={{
+            fontSize: 'var(--text-xs)', fontWeight: i === stepIndex ? 600 : 400,
+            color: i <= stepIndex ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
+          }}>
+            {label}
+          </span>
+          {i < STEPS.length - 1 && (
+            <div style={{ flex: 1, height: 2, background: i < stepIndex ? 'var(--color-success)' : 'var(--color-border-subtle)', borderRadius: 1, margin: '0 var(--space-2)' }} />
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+const DEFAULT_TEMPLATE = {
+  name: '',
+  eventType: '',
+  eventDate: '',
+  venueName: '',
+  venueAddress: '',
+  guestCount: 0,
+  budgetTotal: 0,
+}
+
 export function CreateEventPage() {
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
@@ -68,20 +115,44 @@ export function CreateEventPage() {
   const [step, setStep] = useState<'details' | 'activate' | 'payment'>('details')
   const [saving, setSaving] = useState(false)
   const [calendarOpen, setCalendarOpen] = useState(false)
-  const [form, setForm] = useState({
-    name: '',
-    eventType: '',
-    eventDate: '',
-    venueName: '',
-    venueAddress: '',
-    guestCount: 0,
-    budgetTotal: 0,
-  })
+  const [templateMode, setTemplateMode] = useState<'default' | 'copy'>('default')
+  const [existingEvents, setExistingEvents] = useState<{ id: string; name: string; event_type: string; event_date: string | null; venue_name: string | null; guest_count: number | null }[]>([])
+  const [form, setForm] = useState(DEFAULT_TEMPLATE)
   const [createdEventId, setCreatedEventId] = useState<string | null>(null)
   const [createdEventSlug, setCreatedEventSlug] = useState<string | null>(null)
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'success' | 'cancelled' | 'failed'>('idle')
   const [paying, setPaying] = useState(false)
   const paySucceededRef = useRef(false)
+
+  useEffect(() => {
+    if (!user || !org && !profile?.org_id) return
+    const orgId = org?.id || profile?.org_id
+    if (!orgId) return
+    supabase
+      .from('events')
+      .select('id, name, event_type, event_date, venue_name, guest_count')
+      .eq('org_id', orgId)
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false })
+      .limit(20)
+      .then(({ data }) => {
+        if (data) setExistingEvents(data as typeof existingEvents)
+      })
+  }, [user, org, profile])
+
+  const handleCopyTemplate = (eventId: string) => {
+    const evt = existingEvents.find(e => e.id === eventId)
+    if (!evt) return
+    setForm({
+      name: `${evt.name} (Copy)`,
+      eventType: evt.event_type || '',
+      eventDate: evt.event_date || '',
+      venueName: evt.venue_name || '',
+      venueAddress: '',
+      guestCount: evt.guest_count || 0,
+      budgetTotal: 0,
+    })
+  }
 
   const suggestedTier = form.guestCount <= 0 ? '' :
     form.guestCount <= 100 ? 'intimate' :
@@ -299,38 +370,10 @@ export function CreateEventPage() {
     }
   }
 
-  const StepIndicator = () => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-6)' }}>
-      {STEPS.map((label, i) => (
-        <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flex: i < STEPS.length - 1 ? 1 : undefined }}>
-          <div style={{
-            width: 28, height: 28, borderRadius: '50%',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 'var(--text-xs)', fontWeight: 700,
-            background: i < stepIndex ? 'var(--color-success)' : i === stepIndex ? 'var(--color-accent)' : 'var(--color-surface-2)',
-            color: i <= stepIndex ? 'white' : 'var(--color-text-muted)',
-            transition: 'all 0.3s ease',
-          }}>
-            {i < stepIndex ? <Check size={14} /> : i + 1}
-          </div>
-          <span style={{
-            fontSize: 'var(--text-xs)', fontWeight: i === stepIndex ? 600 : 400,
-            color: i <= stepIndex ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
-          }}>
-            {label}
-          </span>
-          {i < STEPS.length - 1 && (
-            <div style={{ flex: 1, height: 2, background: i < stepIndex ? 'var(--color-success)' : 'var(--color-border-subtle)', borderRadius: 1, margin: '0 var(--space-2)' }} />
-          )}
-        </div>
-      ))}
-    </div>
-  )
-
   if (step === 'details') {
     return (
       <div style={{ maxWidth: 600, margin: '0 auto' }}>
-        <StepIndicator />
+        <StepIndicator stepIndex={stepIndex} />
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-6)' }}>
           <button className="btn btn-ghost btn-icon" onClick={() => navigate('/events')} aria-label="Back">
@@ -339,7 +382,50 @@ export function CreateEventPage() {
           <h2>Create Event</h2>
         </div>
 
-        <div className="card">
+        <div className="card" style={{ marginBottom: 'var(--space-4)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-3)' }}>
+            <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              Template
+            </span>
+          </div>
+          <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap', marginBottom: 'var(--space-3)' }}>
+            <button
+              type="button"
+              className={`btn ${templateMode === 'default' ? 'btn-primary' : 'btn-ghost'} btn-sm`}
+              onClick={() => { setTemplateMode('default'); setForm(DEFAULT_TEMPLATE) }}
+            >
+              Default
+            </button>
+            <button
+              type="button"
+              className={`btn ${templateMode === 'copy' ? 'btn-primary' : 'btn-ghost'} btn-sm`}
+              onClick={() => setTemplateMode('copy')}
+            >
+              Copy from existing event
+            </button>
+          </div>
+          {templateMode === 'copy' && existingEvents.length > 0 && (
+            <div className="input-wrapper">
+              <label className="input-label">Select event to copy</label>
+              <DropdownMenu
+                trigger={
+                  <span style={{ color: 'var(--color-text-primary)' }}>
+                    {form.name || 'Choose an event...'}
+                  </span>
+                }
+                items={existingEvents.map(e => ({ label: `${e.name} (${e.event_type || 'N/A'})`, value: e.id }))}
+                onSelect={(item) => handleCopyTemplate(item.value)}
+              />
+            </div>
+          )}
+          {templateMode === 'copy' && existingEvents.length === 0 && (
+            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+              No existing events found to copy from.
+            </div>
+          )}
+        </div>
+
+      <div className="card">
           <div className="input-wrapper">
             <label className="input-label">Event Name <span className="required">*</span></label>
             <input
@@ -414,7 +500,7 @@ export function CreateEventPage() {
   if (step === 'activate') {
     return (
       <div style={{ maxWidth: 700, margin: '0 auto' }}>
-        <StepIndicator />
+        <StepIndicator stepIndex={stepIndex} />
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-5)' }}>
           <button className="btn btn-ghost btn-icon" onClick={() => setStep('details')} aria-label="Back">
@@ -492,7 +578,7 @@ export function CreateEventPage() {
 
   return (
     <div style={{ maxWidth: 560, margin: '0 auto' }}>
-      <StepIndicator />
+      <StepIndicator stepIndex={stepIndex} />
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-5)' }}>
         <button className="btn btn-ghost btn-icon" onClick={() => setStep('activate')} aria-label="Back">

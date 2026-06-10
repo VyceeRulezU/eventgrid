@@ -1,10 +1,11 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
+import { useUIStore } from '@/store/ui.store'
 import { useNavigate } from 'react-router-dom'
 import { Tabs } from '@/components/ui/Tabs'
 import { Checkbox } from '@/components/ui/Checkbox'
-import { Calendar, Users, Building, Eye, ExternalLink, X } from 'lucide-react'
+import { Calendar, Users, Building, Eye, ExternalLink, Pencil, Trash2, X } from 'lucide-react'
 import styles from './AdminManagePage.module.css'
 
 interface PersonRow {
@@ -27,6 +28,7 @@ interface EventRow {
   guest_count: number | null
   creator_name: string
   creator_email: string
+  creator_role: string
   org_name: string
 }
 
@@ -94,6 +96,7 @@ function PersonModal({
         guest_count: e.guest_count,
         creator_name: person.display_name || person.email,
         creator_email: person.email,
+        creator_role: '',
         org_name: orgMap.get(e.org_id) || 'Unknown',
       })))
       setLoading(false)
@@ -172,6 +175,16 @@ function PersonModal({
               <div className={styles.modalMeta}>
                 {person.email} · {person.event_count} event{person.event_count !== 1 ? 's' : ''}
               </div>
+              {person.phone && (
+                <div className={styles.modalMeta} style={{ marginTop: 2 }}>
+                  📞 {person.phone}
+                </div>
+              )}
+              {person.org_name && (
+                <div className={styles.modalMeta} style={{ marginTop: 2 }}>
+                  🏢 {person.org_name}
+                </div>
+              )}
             </div>
           </div>
           <button className={styles.closeBtn} onClick={onClose} data-tooltip="Close"><X size={18} /></button>
@@ -210,6 +223,7 @@ export function AdminManagePage() {
   const [page, setPage] = useState(0)
   const [selectedPerson, setSelectedPerson] = useState<PersonRow | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [eventFilter, setEventFilter] = useState<string>('all')
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -270,6 +284,7 @@ export function AdminManagePage() {
         guest_count: e.guest_count,
         creator_name: cp?.display_name || cp?.email || 'Unknown',
         creator_email: cp?.email || '',
+        creator_role: cp?.role || 'unknown',
         org_name: orgName,
       }
     })
@@ -283,7 +298,64 @@ export function AdminManagePage() {
     loadData()
   }, [loadData, role])
 
-  const currentData = activeTab === 'planners' ? planners : activeTab === 'coordinators' ? coordinators : events
+  const showModal = useUIStore((s) => s.showModal)
+  const showNotification = useUIStore((s) => s.showNotification)
+
+  const handleDeletePerson = async (person: PersonRow, label: string) => {
+    showModal({
+      variant: 'confirm',
+      title: `Delete ${label}?`,
+      message: `Are you sure you want to delete ${person.display_name || person.email}? This will deactivate their account.`,
+      actions: [
+        { label: 'Cancel', variant: 'secondary' as const, onClick: () => {} },
+        {
+          label: 'Delete',
+          variant: 'danger' as const,
+          onClick: async () => {
+            const { error } = await supabase
+              .from('profiles')
+              .update({ is_active: false })
+              .eq('id', person.id)
+            if (error) {
+              showNotification({ variant: 'error', title: 'Delete failed', message: error.message })
+            } else {
+              showNotification({ variant: 'success', title: 'Deleted', message: `${person.display_name || person.email} has been deactivated.` })
+              loadData()
+            }
+          },
+        },
+      ],
+    })
+  }
+
+  const handleEditPerson = (person: PersonRow) => {
+    setEditingPerson({ ...person })
+  }
+
+  const [editingPerson, setEditingPerson] = useState<PersonRow | null>(null)
+
+  const handleEditSave = async () => {
+    if (!editingPerson) return
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        display_name: editingPerson.display_name,
+        phone: editingPerson.phone,
+      })
+      .eq('id', editingPerson.id)
+    if (error) {
+      showNotification({ variant: 'error', title: 'Update failed', message: error.message })
+    } else {
+      showNotification({ variant: 'success', title: 'Updated' })
+      setEditingPerson(null)
+      loadData()
+    }
+  }
+
+  const filteredEvents = activeTab === 'events' && eventFilter !== 'all'
+    ? events.filter(e => e.creator_role === eventFilter)
+    : events
+  const currentData = activeTab === 'planners' ? planners : activeTab === 'coordinators' ? coordinators : filteredEvents
   const totalItems = currentData.length
   const totalPages = Math.ceil(totalItems / PAGE_SIZE)
   const pageData = currentData.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
@@ -370,6 +442,22 @@ export function AdminManagePage() {
                       data-tooltip="View details"
                     >
                       <Eye size={16} />
+                    </button>
+                    <button
+                      className={styles.iconBtn}
+                      onClick={(e) => { e.stopPropagation(); handleEditPerson(p) }}
+                      data-tooltip="Edit"
+                      style={{ marginLeft: 4 }}
+                    >
+                      <Pencil size={16} />
+                    </button>
+                    <button
+                      className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
+                      onClick={(e) => { e.stopPropagation(); handleDeletePerson(p, label) }}
+                      data-tooltip="Delete"
+                      style={{ marginLeft: 4 }}
+                    >
+                      <Trash2 size={16} />
                     </button>
                   </td>
                 </tr>
@@ -506,7 +594,20 @@ export function AdminManagePage() {
       ) : activeTab === 'coordinators' ? (
         renderPersonTable(coordinators, 'coordinators')
       ) : (
-        renderEventsTable()
+        <>
+          <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-3)', flexWrap: 'wrap' }}>
+            {['all', 'planner', 'coordinator'].map(filter => (
+              <button
+                key={filter}
+                className={`btn ${eventFilter === filter ? 'btn-primary' : 'btn-ghost'} btn-sm`}
+                onClick={() => { setEventFilter(filter); setPage(0) }}
+              >
+                {filter === 'all' ? 'All' : filter === 'planner' ? 'Planners' : 'Coordinators'}
+              </button>
+            ))}
+          </div>
+          {renderEventsTable()}
+        </>
       )}
 
       {selectedPerson && (
@@ -515,6 +616,48 @@ export function AdminManagePage() {
           roleLabel={activeTab === 'planners' ? 'Planner' : 'Coordinator'}
           onClose={() => setSelectedPerson(null)}
         />
+      )}
+
+      {editingPerson && (
+        <div className={styles.overlay} onClick={() => setEditingPerson(null)}>
+          <div className={styles.modal} onClick={e => e.stopPropagation()} style={{ maxWidth: 480, height: 'auto' }}>
+            <div className={styles.modalHeader}>
+              <div className={styles.modalHeaderLeft}>
+                <ModalAvatar name={editingPerson.display_name} url={editingPerson.avatar_url} />
+                <div>
+                  <div className={styles.modalName}>Edit {activeTab === 'planners' ? 'Planner' : 'Coordinator'}</div>
+                </div>
+              </div>
+              <button className={styles.closeBtn} onClick={() => setEditingPerson(null)} data-tooltip="Close"><X size={18} /></button>
+            </div>
+            <div className={styles.modalBody}>
+              <div className="input-wrapper" style={{ marginBottom: 'var(--space-3)' }}>
+                <label className="input-label">Display Name</label>
+                <input
+                  className="input"
+                  value={editingPerson.display_name || ''}
+                  onChange={(e) => setEditingPerson({ ...editingPerson, display_name: e.target.value })}
+                />
+              </div>
+              <div className="input-wrapper" style={{ marginBottom: 'var(--space-3)' }}>
+                <label className="input-label">Phone</label>
+                <input
+                  className="input"
+                  value={editingPerson.phone || ''}
+                  onChange={(e) => setEditingPerson({ ...editingPerson, phone: e.target.value })}
+                />
+              </div>
+              <div className="input-wrapper" style={{ marginBottom: 'var(--space-3)' }}>
+                <label className="input-label">Email (read-only)</label>
+                <input className="input" value={editingPerson.email} disabled />
+              </div>
+              <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-4)' }}>
+                <button className="btn btn-primary" onClick={handleEditSave}>Save Changes</button>
+                <button className="btn btn-ghost" onClick={() => setEditingPerson(null)}>Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

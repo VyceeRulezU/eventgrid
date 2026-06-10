@@ -662,3 +662,8 @@
   to { transform: rotate(360deg); }
 }
 
+/* ── Responsive utilities ── */
+@media (max-width: 768px) {
+  .desktop-only { display: none !important; }
+}
+
