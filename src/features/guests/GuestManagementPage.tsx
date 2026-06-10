@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useResolvedEventId } from '@/hooks/useResolvedEventId'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
+import { useAuthStore } from '@/store/auth.store'
 import {
   Users, Plus, X, Upload, Check, UserCheck,
   LayoutGrid, Star, List, User, ChevronLeft,
@@ -9,7 +10,7 @@ import {
 } from 'lucide-react'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { Tabs } from '@/components/ui/Tabs'
-import { sendGuestNotification } from '@/lib/email'
+import { sendInvite } from '@/lib/edgeFunctions'
 import type { Guest, SeatingTable } from '@/types'
 import { Checkbox } from '@/components/ui/Checkbox'
 import { PageHero } from '@/components/shared/PageHero'
@@ -22,6 +23,8 @@ type RSVP = 'pending' | 'confirmed' | 'declined' | 'maybe'
 export function GuestManagementPage() {
   const { eventId } = useResolvedEventId()
   const showToast = useUIStore((s) => s.showToast)
+  const user = useAuthStore((s) => s.user)
+  const profile = useAuthStore((s) => s.profile)
 
   const [guests, setGuests] = useState<(Guest & { table_name?: string })[]>([])
   const [tables, setTables] = useState<SeatingTable[]>([])
@@ -76,8 +79,15 @@ export function GuestManagementPage() {
     if (!newGuest.first_name.trim() || !eventId) { showToast({ type: 'warning', title: 'First name is required' }); return }
     const { error } = await supabase.from('guests').insert({ event_id: eventId, ...newGuest, rsvp_status: 'pending' })
     if (error) { showToast({ type: 'error', title: 'Failed to add guest', body: error.message }); return }
-    if (newGuest.email && eventName) {
-      sendGuestNotification(newGuest.email, eventName, `Hi ${newGuest.first_name}, you've been added as a guest.`).catch(() => {})
+    if (newGuest.email && eventName && eventId) {
+      const invitedByName = profile?.display_name || user?.user_metadata?.display_name || user?.email || 'A planner'
+      sendInvite({
+        type: 'guest_invite',
+        event_id: eventId,
+        email: newGuest.email,
+        invited_by_name: invitedByName,
+        guest_name: newGuest.first_name,
+      }).catch(() => {})
     }
     showToast({ type: 'success', title: 'Guest added' })
     setShowAdd(false)
@@ -125,10 +135,17 @@ export function GuestManagementPage() {
     if (rows.length === 0) { showToast({ type: 'warning', title: 'No valid rows found' }); return }
     const { error } = await supabase.from('guests').insert(rows as any)
     if (error) { showToast({ type: 'error', title: 'Import failed', body: error.message }); return }
-    if (eventName) {
+    if (eventName && eventId) {
+      const invitedByName = profile?.display_name || user?.user_metadata?.display_name || user?.email || 'A planner'
       for (const row of rows) {
         if (row.email) {
-          sendGuestNotification(row.email, eventName, `Hi ${row.first_name}, you've been added as a guest.`).catch(() => {})
+          sendInvite({
+            type: 'guest_invite',
+            event_id: eventId,
+            email: row.email,
+            invited_by_name: invitedByName,
+            guest_name: row.first_name,
+          }).catch(() => {})
         }
       }
     }

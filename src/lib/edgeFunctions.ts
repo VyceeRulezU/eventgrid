@@ -43,12 +43,18 @@ interface AdminInviteParams {
   role?: 'super_admin' | 'monitor' | 'admin_support'
 }
 
+interface GuestInviteParams extends BaseInviteParams {
+  type: 'guest_invite'
+  guest_name: string
+}
+
 export type SendInviteParams =
   | TeamInviteParams
   | VendorInviteParams
   | ClientPortalInviteParams
   | CoordinatorInviteParams
   | AdminInviteParams
+  | GuestInviteParams
 
 
 // ── Edge Function Caller ─────────────────────────────────────────────────────

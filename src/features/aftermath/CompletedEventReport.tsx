@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
+import { pdf } from '@react-pdf/renderer'
 import { FileText, Users, CircleDollarSign, Building, Star, CheckCircle, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { useResolvedEventId } from '@/hooks/useResolvedEventId'
 import { PageHero } from '@/components/shared/PageHero'
-import { BlobProvider } from '@react-pdf/renderer'
 import { ReportPdfDocument } from './ReportPdfDocument'
 import type { Event, EventPhase, Issue } from '@/types'
 import type { VendorRating, ReportData } from './EventReportBuilder'
@@ -23,6 +23,8 @@ export function CompletedEventReport() {
   const [loading, setLoading] = useState(true)
   const [vendorRatings, setVendorRatings] = useState<VendorRating[]>([])
   const [showPreview, setShowPreview] = useState(false)
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null)
+  const [generating, setGenerating] = useState(false)
 
   useEffect(() => {
     if (!user || !eventId) return
@@ -70,7 +72,24 @@ export function CompletedEventReport() {
 
   const handleGenerate = async () => {
     if (!data?.event) return
-    setShowPreview(true)
+    setGenerating(true)
+    try {
+      const plannerName = user?.user_metadata?.display_name || user?.email || ''
+      const blob = await pdf(
+        <ReportPdfDocument data={data} vendorRatings={vendorRatings} type="internal" plannerName={plannerName} />
+      ).toBlob()
+      setPdfUrl(URL.createObjectURL(blob))
+      setShowPreview(true)
+    } catch (e) {
+      console.error('[PDF] generation error:', e)
+      showToast({ type: 'error', title: 'PDF Error', body: e instanceof Error ? e.message : 'Could not generate the report.' })
+    }
+    setGenerating(false)
+  }
+
+  const closePreview = () => {
+    if (pdfUrl) { URL.revokeObjectURL(pdfUrl); setPdfUrl(null) }
+    setShowPreview(false)
   }
 
   if (idLoading || loading) {
@@ -165,7 +184,7 @@ export function CompletedEventReport() {
           position: 'fixed', inset: 0, zIndex: 1000,
           background: 'rgba(0,0,0,0.6)', display: 'flex',
           alignItems: 'center', justifyContent: 'center', padding: 'var(--space-4)',
-        }} onClick={() => setShowPreview(false)}>
+        }} onClick={closePreview}>
           <div style={{
             background: '#fff', borderRadius: 12, width: '100%', maxWidth: 900,
             height: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
@@ -179,33 +198,20 @@ export function CompletedEventReport() {
               </span>
               <button
                 className="btn btn-ghost btn-icon"
-                style={{ width: 32, height: 32, borderRadius: 8 }}
-                onClick={() => setShowPreview(false)}
+                style={{ width: 32, height: 32, borderRadius: 16 }}
+                onClick={closePreview}
               >
                 <X size={18} />
               </button>
             </div>
             <div style={{ flex: 1 }}>
-              <BlobProvider
-                document={
-                  <ReportPdfDocument
-                    data={data}
-                    vendorRatings={vendorRatings}
-                    type="internal"
-                    plannerName={user?.user_metadata?.display_name || user?.email || ''}
-                  />
-                }
-              >
-                {({ url, loading }) =>
-                  loading ? (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#666', fontSize: 13 }}>
-                      Generating PDF...
-                    </div>
-                  ) : (
-                    <iframe src={url || ''} style={{ width: '100%', height: '100%', border: 'none' }} title="Report PDF" />
-                  )
-                }
-              </BlobProvider>
+              {generating ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#666', fontSize: 13 }}>
+                  Generating PDF...
+                </div>
+              ) : pdfUrl ? (
+                <embed src={pdfUrl} type="application/pdf" style={{ width: '100%', height: '100%' }} />
+              ) : null}
             </div>
           </div>
         </div>

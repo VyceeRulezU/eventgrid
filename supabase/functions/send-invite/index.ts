@@ -152,6 +152,40 @@ function vendorInviteEmail(opts: {
   }
 }
 
+function guestInviteEmail(opts: {
+  eventName: string
+  guestName: string
+  appUrl: string
+}): { subject: string; html: string } {
+  return {
+    subject: `You're invited to ${opts.eventName}`,
+    html: emailShell('Guest Invitation', `
+              <h1 style="margin:0 0 12px;font-size:24px;font-weight:700;color:#F9FAFB;line-height:1.3;letter-spacing:-0.02em;">
+                You're invited!
+              </h1>
+              <p style="margin:0 0 20px;font-size:15px;color:#9CA3AF;line-height:1.6;">
+                Hi <strong style="color:#F9FAFB;">${opts.guestName}</strong>,<br/>
+                You have been added as a guest for <strong style="color:#D4A017;">${opts.eventName}</strong>.
+              </p>
+              <p style="margin:0 0 28px;font-size:14px;color:#9CA3AF;line-height:1.6;">
+                Stay tuned for updates and details about the event. We look forward to having you!
+              </p>
+              <table cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+                <tr>
+                  <td style="background-color:#D4A017;border-radius:10px;">
+                    <a href="${opts.appUrl}" class="button"
+                       style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:700;color:#111827;text-decoration:none;border-radius:10px;box-shadow:0 4px 12px rgba(212,160,23,0.25);">
+                      View Event Details &rarr;
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:0;font-size:12px;color:#6B7280;">
+                <a href="${opts.appUrl}" style="color:#D4A017;">${opts.appUrl}</a>
+              </p>`),
+  }
+}
+
 function clientPortalEmail(opts: {
   plannerName: string
   eventName: string
@@ -233,7 +267,7 @@ Deno.serve(async (req) => {
 
   try {
     const {
-      type,           // 'team_member' | 'vendor' | 'client_portal' | 'coordinator_invite' | 'admin_monitor'
+      type,           // 'team_member' | 'vendor' | 'client_portal' | 'coordinator_invite' | 'admin_monitor' | 'guest_invite'
       email,
       event_id,
       invited_by_name,
@@ -249,6 +283,8 @@ Deno.serve(async (req) => {
       // client portal specific
       client_name,
       event_date,
+      // guest invite specific
+      guest_name,
     } = await req.json()
 
     if (!type || !email) {
@@ -467,6 +503,15 @@ Deno.serve(async (req) => {
         vendorName: vendor_name ?? 'Vendor',
         portalLink: link,
         serviceName: service_name ?? 'your service',
+      })
+      subject = template.subject
+      html = template.html
+
+    } else if (type === 'guest_invite') {
+      const template = guestInviteEmail({
+        eventName: event!.name,
+        guestName: guest_name ?? 'Guest',
+        appUrl: APP_URL,
       })
       subject = template.subject
       html = template.html
