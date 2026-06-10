@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
-import { Users, Plus, Pencil, Star, Trash2, Phone, Mail, Building, X } from 'lucide-react'
+import { LayoutGrid, List, Users, Plus, Pencil, Star, Trash2, Phone, Mail, Building, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -8,6 +8,7 @@ import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { useSearch } from '@/hooks/useSearch'
 import { SearchBar } from '@/components/shared/SearchBar'
 import type { Vendor } from '@/types'
+import styles from './VendorDirectoryPage.module.css'
 
 const DEFAULT_TYPES = [
   'Wedding planner', 'Venue', 'Decor', 'DJ/Sound/Konga',
@@ -32,6 +33,23 @@ export function VendorDirectoryPage() {
   const { query, setQuery, filtered: searched } = useSearch(vendors, ['name', 'category', 'contact_name', 'org_name'])
   const [showForm, setShowForm] = useState(false)
   const [editingVendor, setEditingVendor] = useState<Vendor | null>(null)
+  const [view, setView] = useState<'grid' | 'list'>('grid')
+  const [page, setPage] = useState(1)
+  const ITEMS_PER_PAGE = 15
+
+  const filtered = useMemo(() => {
+    if (!categoryFilter) return searched
+    return searched.filter((v) => v.category === categoryFilter)
+  }, [searched, categoryFilter])
+
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE)
+  const paginated = useMemo(() => {
+    const start = (page - 1) * ITEMS_PER_PAGE
+    return filtered.slice(start, start + ITEMS_PER_PAGE)
+  }, [filtered, page])
+
+  useEffect(() => { setPage(1) }, [filtered.length])
+
   const [form, setForm] = useState({
     category: DEFAULT_TYPES[0],
     name: '',
@@ -76,11 +94,6 @@ export function VendorDirectoryPage() {
   }, [user])
 
   const availableTypes = [...new Set([...DEFAULT_TYPES, ...vendors.map((v) => v.category)])]
-
-  const filtered = useMemo(() => {
-    if (!categoryFilter) return searched
-    return searched.filter((v) => v.category === categoryFilter)
-  }, [searched, categoryFilter])
 
   /* ══════════════════════════════════════════════
      Vendor form / CRUD — scoped to user's org
@@ -192,13 +205,14 @@ export function VendorDirectoryPage() {
       return
     }
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('vendors')
       .update({ deleted_at: new Date().toISOString() })
       .eq('id', id)
+      .select('id')
 
-    if (error) {
-      showNotification({ variant: 'error', title: 'Failed to delete', message: error.message })
+    if (error || !data || data.length === 0) {
+      showNotification({ variant: 'error', title: 'Failed to delete', message: error?.message || 'No rows were updated. You may not have permission to delete this vendor.' })
       return
     }
 
@@ -249,14 +263,37 @@ export function VendorDirectoryPage() {
         }
       />
 
-      <div style={{ display: 'flex', gap: 'var(--space-3)', marginBottom: 'var(--space-6)', flexWrap: 'wrap' }}>
-        <SearchBar value={query} onChange={setQuery} placeholder="Search vendors..." containerStyle={{ flex: 1, minWidth: 200, maxWidth: 320 }} />
-        <div style={{ minWidth: 180, maxWidth: 220 }}>
-          <DropdownMenu
-            trigger={categoryFilter || 'All Categories'}
-            items={[{ label: 'All Categories', value: '' }, ...availableTypes.map((t) => ({ label: t, value: t }))]}
-            onSelect={(item) => setCategoryFilter(item.value)}
-          />
+      <div className={styles.toolbar}>
+        <div className={styles.toolbarLeft}>
+          <SearchBar value={query} onChange={setQuery} placeholder="Search vendors..." containerStyle={{ flex: 1, minWidth: 200, maxWidth: 320 }} />
+          <div style={{ minWidth: 180, maxWidth: 220 }}>
+            <DropdownMenu
+              trigger={categoryFilter || 'All Categories'}
+              items={[{ label: 'All Categories', value: '' }, ...availableTypes.map((t) => ({ label: t, value: t }))]}
+              onSelect={(item) => setCategoryFilter(item.value)}
+            />
+          </div>
+        </div>
+        <div className={styles.toolbarRight}>
+          <span className={styles.pageInfo}>{filtered.length} vendor{filtered.length !== 1 ? 's' : ''}</span>
+          <div className={styles.viewToggle}>
+            <button
+              className={`${styles.viewToggleBtn} ${view === 'grid' ? styles.viewToggleBtnActive : ''}`}
+              onClick={() => setView('grid')}
+              aria-label="Grid view"
+              title="Grid view"
+            >
+              <LayoutGrid size={16} />
+            </button>
+            <button
+              className={`${styles.viewToggleBtn} ${view === 'list' ? styles.viewToggleBtnActive : ''}`}
+              onClick={() => setView('list')}
+              aria-label="List view"
+              title="List view"
+            >
+              <List size={16} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -314,81 +351,197 @@ export function VendorDirectoryPage() {
       )}
 
       {filtered.length > 0 ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 'var(--space-4)' }}>
-          {filtered.map((vendor) => (
-            <div key={vendor.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 600, fontSize: 'var(--text-base)', color: 'var(--color-text-primary)', marginBottom: 'var(--space-1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {vendor.name || 'Unnamed vendor'}
-                  </div>
-                  <span className="badge badge-medium" style={{ fontSize: 'var(--text-xs)' }}>
-                    {vendor.category}
-                  </span>
-                </div>
-                {(vendor.org_id === org?.id || role === 'super_admin') && (
-                  <div style={{ display: 'flex', gap: 'var(--space-1)' }}>
-                    {vendor.org_id === org?.id && (
-                      <button className="btn btn-ghost btn-sm btn-icon" onClick={() => openEdit(vendor)} aria-label="Edit" style={{ width: 32, minHeight: 32 }}>
-                        <Pencil size={12} />
-                      </button>
+        <>
+          {view === 'grid' ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 'var(--space-4)' }}>
+              {paginated.map((vendor) => (
+                <div key={vendor.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 600, fontSize: 'var(--text-base)', color: 'var(--color-text-primary)', marginBottom: 'var(--space-1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {vendor.name || 'Unnamed vendor'}
+                      </div>
+                      <span className="badge badge-medium" style={{ fontSize: 'var(--text-xs)' }}>
+                        {vendor.category}
+                      </span>
+                    </div>
+                    {(vendor.org_id === org?.id || role === 'super_admin') && (
+                      <div style={{ display: 'flex', gap: 'var(--space-1)' }}>
+                        {vendor.org_id === org?.id && (
+                          <button className="btn btn-ghost btn-sm btn-icon" onClick={() => openEdit(vendor)} aria-label="Edit" style={{ width: 32, minHeight: 32 }}>
+                            <Pencil size={12} />
+                          </button>
+                        )}
+                        {role === 'super_admin' && (
+                          <button className="btn btn-ghost btn-sm btn-icon" onClick={() => handleDelete(vendor.id)} aria-label="Delete" style={{ width: 32, minHeight: 32, color: 'var(--color-error)' }}>
+                            <Trash2 size={12} />
+                          </button>
+                        )}
+                      </div>
                     )}
-                    {role === 'super_admin' && (
-                      <button className="btn btn-ghost btn-sm btn-icon" onClick={() => handleDelete(vendor.id)} aria-label="Delete" style={{ width: 32, minHeight: 32, color: 'var(--color-error)' }}>
-                        <Trash2 size={12} />
-                      </button>
-                    )}
                   </div>
-                )}
-              </div>
 
-              {vendor.org_name && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', fontSize: 'var(--text-xs)', color: vendor.org_id === org?.id ? 'var(--color-accent)' : 'var(--color-text-muted)' }}>
-                  <Building size={11} />
-                  {vendor.org_name}
-                  {vendor.org_id === org?.id && (
-                    <span style={{ marginLeft: 4, padding: '1px 6px', borderRadius: 'var(--radius-full)', background: 'var(--color-accent-muted)', color: 'var(--color-accent)', fontSize: 10, fontWeight: 600 }}>
-                      yours
-                    </span>
+                  {vendor.org_name && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', fontSize: 'var(--text-xs)', color: vendor.org_id === org?.id ? 'var(--color-accent)' : 'var(--color-text-muted)' }}>
+                      <Building size={11} />
+                      {vendor.org_name}
+                      {vendor.org_id === org?.id && (
+                        <span style={{ marginLeft: 4, padding: '1px 6px', borderRadius: 'var(--radius-full)', background: 'var(--color-accent-muted)', color: 'var(--color-accent)', fontSize: 10, fontWeight: 600 }}>
+                          yours
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {vendor.rating ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                      {renderStars(vendor.rating)}
+                      <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>{vendor.rating}/5</span>
+                    </div>
+                  ) : null}
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                    {vendor.contact_name && (
+                      <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
+                        {vendor.contact_name}
+                      </div>
+                    )}
+                    {vendor.phone && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontSize: 'var(--text-sm)', color: 'var(--color-text-primary)' }}>
+                        <Phone size={12} style={{ color: 'var(--color-text-muted)' }} />
+                        {vendor.phone}
+                      </div>
+                    )}
+                    {vendor.email && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontSize: 'var(--text-sm)', color: 'var(--color-text-primary)' }}>
+                        <Mail size={12} style={{ color: 'var(--color-text-muted)' }} />
+                        {vendor.email}
+                      </div>
+                    )}
+                  </div>
+
+                  {vendor.notes && (
+                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', borderTop: '1px solid var(--color-border-subtle)', paddingTop: 'var(--space-2)' }}>
+                      {vendor.notes}
+                    </div>
                   )}
                 </div>
-              )}
-
-              {vendor.rating ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-                  {renderStars(vendor.rating)}
-                  <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>{vendor.rating}/5</span>
-                </div>
-              ) : null}
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-                {vendor.contact_name && (
-                  <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
-                    {vendor.contact_name}
-                  </div>
-                )}
-                {vendor.phone && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontSize: 'var(--text-sm)', color: 'var(--color-text-primary)' }}>
-                    <Phone size={12} style={{ color: 'var(--color-text-muted)' }} />
-                    {vendor.phone}
-                  </div>
-                )}
-                {vendor.email && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontSize: 'var(--text-sm)', color: 'var(--color-text-primary)' }}>
-                    <Mail size={12} style={{ color: 'var(--color-text-muted)' }} />
-                    {vendor.email}
-                  </div>
-                )}
+              ))}
+            </div>
+          ) : (
+            <div className={styles.tableCard}>
+              <div className={styles.tableScroll}>
+                <table className={styles.table}>
+                  <thead className={styles.thead}>
+                    <tr>
+                      <th className={styles.th}>Type</th>
+                      <th className={styles.th}>Name</th>
+                      <th className={styles.th}>Organization</th>
+                      <th className={styles.th}>Contact</th>
+                      <th className={styles.th}>Phone</th>
+                      <th className={styles.th}>Rating</th>
+                      <th className={`${styles.th} ${styles.thActions}`}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginated.map((vendor) => (
+                      <tr key={vendor.id} className={styles.tr}>
+                        <td className={styles.td}>
+                          <span className={`badge badge-medium ${styles.typeBadge}`}>
+                            {vendor.category}
+                          </span>
+                        </td>
+                        <td className={styles.td}>
+                          <span className={vendor.name ? styles.vendorName : styles.vendorNameMuted}>
+                            {vendor.name || 'Unnamed vendor'}
+                          </span>
+                        </td>
+                        <td className={styles.td}>
+                          <span className={vendor.org_id === org?.id ? styles.orgLabelYours : styles.orgLabel}>
+                            {vendor.org_name || '—'}
+                            {vendor.org_id === org?.id && ' (yours)'}
+                          </span>
+                        </td>
+                        <td className={styles.td}>
+                          <span className={styles.cellMuted}>{vendor.contact_name || '—'}</span>
+                        </td>
+                        <td className={styles.td}>
+                          <span className={styles.cellMuted}>{vendor.phone || '—'}</span>
+                        </td>
+                        <td className={styles.td}>
+                          {vendor.rating ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                              <Star size={12} style={{ color: 'var(--color-accent)', fill: 'var(--color-accent)' }} />
+                              <span style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>{vendor.rating}</span>
+                            </div>
+                          ) : (
+                            <span className={styles.cellMuted}>—</span>
+                          )}
+                        </td>
+                        <td className={`${styles.td} ${styles.tdActions}`}>
+                          <div className={styles.rowActions}>
+                            {vendor.org_id === org?.id && (
+                              <button
+                                type="button"
+                                className={styles.iconBtn}
+                                onClick={() => openEdit(vendor)}
+                                aria-label={`Edit ${vendor.name || vendor.category}`}
+                              >
+                                <Pencil size={13} />
+                              </button>
+                            )}
+                            {role === 'super_admin' && (
+                              <button
+                                type="button"
+                                className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
+                                onClick={() => handleDelete(vendor.id)}
+                                aria-label={`Delete ${vendor.name || vendor.category}`}
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
 
-              {vendor.notes && (
-                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', borderTop: '1px solid var(--color-border-subtle)', paddingTop: 'var(--space-2)' }}>
-                  {vendor.notes}
-                </div>
-              )}
+              <div className={styles.tableFooter}>
+                <span>Showing {paginated.length} of {filtered.length} vendors</span>
+              </div>
             </div>
-          ))}
-        </div>
+          )}
+
+          {totalPages > 1 && (
+            <div className={styles.pagination}>
+              <button
+                className={styles.pageBtn}
+                disabled={page <= 1}
+                onClick={() => setPage(page - 1)}
+              >
+                <ChevronLeft size={16} />
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <button
+                  key={p}
+                  className={`${styles.pageBtn} ${p === page ? styles.pageBtnActive : ''}`}
+                  onClick={() => setPage(p)}
+                >
+                  {p}
+                </button>
+              ))}
+              <button
+                className={styles.pageBtn}
+                disabled={page >= totalPages}
+                onClick={() => setPage(page + 1)}
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          )}
+        </>
       ) : (
         <div className="empty-state">
           <div className="empty-state__icon">

@@ -226,7 +226,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-key`}
   )
 }
 
-function ErrorFallback({ error }: { error?: Error }) {
+function ErrorFallback({ error }: { error?: unknown }) {
   return (
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -238,16 +238,16 @@ function ErrorFallback({ error }: { error?: Error }) {
         <p style={{ color: '#9CA3AF', fontSize: 14, lineHeight: 1.6, marginBottom: 24 }}>
           An unexpected error occurred. The team has been notified.
         </p>
-        {error && (
+        {error ? (
           <div style={{
             background: '#1F2937', borderRadius: 8, padding: 16, marginBottom: 24,
             textAlign: 'left', fontSize: 12, fontFamily: 'monospace',
             color: '#FCA5A5', overflowX: 'auto', maxHeight: 160, overflowY: 'auto',
           }}>
             <div style={{ color: '#9CA3AF', marginBottom: 4 }}>Error details:</div>
-            {error.message || error.toString()}
+            {String(error instanceof Error ? error.message : error)}
           </div>
-        )}
+        ) : null}
         <button
           onClick={() => window.location.reload()}
           style={{

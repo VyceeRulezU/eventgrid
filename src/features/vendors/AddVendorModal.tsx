@@ -22,13 +22,15 @@ const RATINGS = [
   { value: '5', label: '5 Stars' },
 ]
 
-export function AddVendorModal({ orgId, availableTypes, defaultCategory, existingVendors = [], onClose, onSaved }: AddVendorModalProps) {
+export function AddVendorModal({ orgId, availableTypes, defaultCategory, onClose, onSaved }: AddVendorModalProps) {
   const showNotification = useUIStore((s) => s.showNotification)
   const [mode, setMode] = useState<'search' | 'create'>('search')
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<import('@/types').Vendor[]>([])
+  const [searching, setSearching] = useState(false)
   const [saving, setSaving] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null)
   const [form, setForm] = useState({
     category: defaultCategory,
     name: '',
@@ -41,17 +43,23 @@ export function AddVendorModal({ orgId, availableTypes, defaultCategory, existin
   })
 
   useEffect(() => {
-    if (searchQuery.trim().length < 1) { setSearchResults([]); return }
-    const q = searchQuery.trim().toLowerCase()
-    const results = existingVendors.filter(
-      (v) =>
-        v.name?.toLowerCase().includes(q) ||
-        v.email?.toLowerCase().includes(q) ||
-        v.contact_name?.toLowerCase().includes(q) ||
-        v.phone?.includes(q)
-    )
-    setSearchResults(results.slice(0, 10))
-  }, [searchQuery, existingVendors])
+    if (searchQuery.trim().length < 1) { setSearchResults([]); setSearching(false); return }
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    setSearching(true)
+    debounceRef.current = setTimeout(async () => {
+      const q = searchQuery.trim()
+      const { data } = await supabase
+        .from('vendors')
+        .select('*')
+        .or(`name.ilike.%${q}%,email.ilike.%${q}%,contact_name.ilike.%${q}%,phone.ilike.%${q}%`)
+        .is('deleted_at', null)
+        .order('name', { ascending: true })
+        .limit(10)
+      setSearchResults((data || []) as unknown as import('@/types').Vendor[])
+      setSearching(false)
+    }, 300)
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
+  }, [searchQuery])
 
   const handleCreateNew = () => {
     setForm(f => ({ ...f, name: searchQuery }))
@@ -127,7 +135,13 @@ export function AddVendorModal({ orgId, availableTypes, defaultCategory, existin
                 </div>
               </div>
 
-              {searchQuery.trim().length >= 1 && searchResults.length === 0 && (
+              {searchQuery.trim().length >= 1 && searching && (
+                <div style={{ textAlign: 'center', padding: 'var(--space-6) var(--space-4)', color: 'var(--color-text-muted)' }}>
+                  <div style={{ fontSize: 'var(--text-sm)' }}>Searching vendors...</div>
+                </div>
+              )}
+
+              {searchQuery.trim().length >= 1 && !searching && searchResults.length === 0 && (
                 <div style={{ textAlign: 'center', padding: 'var(--space-6) var(--space-4)', color: 'var(--color-text-muted)' }}>
                   <div style={{ fontSize: 'var(--text-sm)', fontWeight: 500, marginBottom: 'var(--space-2)' }}>No vendors found</div>
                   <div style={{ fontSize: 'var(--text-xs)', marginBottom: 'var(--space-3)' }}>No existing vendor matches your search.</div>

@@ -100,13 +100,14 @@ export function VendorsPage() {
   }
 
   const handleDelete = async (id: string) => {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('vendors')
       .update({ deleted_at: new Date().toISOString() })
       .eq('id', id)
+      .select('id')
 
-    if (error) {
-      showNotification({ variant: 'error', title: 'Failed to delete', message: error.message })
+    if (error || !data || data.length === 0) {
+      showNotification({ variant: 'error', title: 'Failed to delete', message: error?.message || 'No rows were updated. You may not have permission to delete this vendor.' })
       return
     }
 
@@ -175,13 +176,14 @@ export function VendorsPage() {
           variant: 'danger' as const,
           onClick: async () => {
             const ids = [...selectedVendors]
-            const { error } = await supabase
+            const { data, error } = await supabase
               .from('vendors')
               .update({ deleted_at: new Date().toISOString() })
               .in('id', ids)
+              .select('id')
 
-            if (error) {
-              showNotification({ variant: 'error', title: 'Delete failed', message: error.message })
+            if (error || !data || data.length === 0) {
+              showNotification({ variant: 'error', title: 'Delete failed', message: error?.message || 'No rows were updated. You may not have permission to delete these vendors.' })
             } else {
               setVendors((prev) => prev.filter((v) => !ids.includes(v.id)))
               setSelectedVendors(new Set())
@@ -242,7 +244,6 @@ export function VendorsPage() {
           orgId={orgId}
           availableTypes={availableTypes}
           defaultCategory={DEFAULT_TYPES[0]}
-          existingVendors={vendors}
           onClose={() => setShowAddVendor(false)}
           onSaved={handleAdd}
         />

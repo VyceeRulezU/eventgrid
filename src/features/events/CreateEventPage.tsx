@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Calendar, ArrowLeft, Check, CreditCard, ShieldCheck } from 'lucide-react'
 import { supabase } from '@/lib/supabase'

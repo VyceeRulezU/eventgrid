@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import {
-  Users, Calendar, DollarSign, TrendingUp, BarChart3,
+  Users, Calendar, TrendingUp, BarChart3,
   Activity, Database, HardDrive,
   CreditCard, Zap, Shield, ExternalLink,
 } from 'lucide-react'
@@ -183,7 +183,6 @@ export function SuperAdminDashboard() {
 
     async function load() {
       const now = new Date()
-      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString()
       const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString()
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
       const startOfYear = new Date(now.getFullYear(), 0, 1).toISOString()
@@ -231,7 +230,6 @@ export function SuperAdminDashboard() {
       setActiveEvents(aEventCount || 0)
 
       const payments = allPaymentsData || []
-      const revenueTotal = payments.reduce((s, p) => s + (p.amount || 0), 0)
       const revenueMtdVal = payments.filter(p => p.received_date && p.received_date >= startOfMonth).reduce((s, p) => s + (p.amount || 0), 0)
       const revenueYtdVal = payments.filter(p => p.received_date && p.received_date >= startOfYear).reduce((s, p) => s + (p.amount || 0), 0)
       setRevenueMtd(revenueMtdVal)

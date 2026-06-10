@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Image, MessageSquare, FileText, LayoutDashboard, Users, CircleDollarSign, Building, Star } from 'lucide-react'
+import { Image, MessageSquare, FileText, LayoutDashboard, Users, Building, Star } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { PageHero } from '@/components/shared/PageHero'
 import { MediaLibrary } from './MediaLibrary'
