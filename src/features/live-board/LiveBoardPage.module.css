@@ -74,6 +74,16 @@
   flex-shrink: 0;
 }
 
+.hideMobile {
+  display: flex;
+}
+
+@media (max-width: 768px) {
+  .hideMobile {
+    display: none;
+  }
+}
+
 .issuesToggleBtn {
   position: relative;
 }

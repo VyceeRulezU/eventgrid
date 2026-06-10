@@ -6,7 +6,7 @@ import { useLiveFeedStore } from '@/store/liveFeed.store'
 import { PostForm } from './PostForm'
 import { LiveFeedPost } from './LiveFeedPost'
 import { IssuesPanel } from './IssuesPanel'
-import { ArrowLeft, LayoutDashboard, Radio, MessageSquare } from 'lucide-react'
+import { ArrowLeft, LayoutDashboard, Clock, Radio, MessageSquare } from 'lucide-react'
 import { PageHero } from '@/components/shared/PageHero'
 import type { LiveFeedPost as LiveFeedPostType, Issue } from '@/types'
 import type { RealtimeChannel } from '@supabase/supabase-js'
@@ -135,6 +135,7 @@ export function LiveFeedPage() {
     scrollToBottom()
   }, [posts.length])
 
+  const programTime = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
   const openIssues = issues.filter((i) => !i.resolved_at).length
 
   if (loading) {
@@ -173,6 +174,10 @@ export function LiveFeedPage() {
         backTo={`/events/${paramId}`}
         actions={
           <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
+            <div className={`${styles.clockBadge} ${styles.hideMobile}`}>
+              <Clock size={16} className={styles.clockIcon} />
+              {programTime}
+            </div>
             <button
               className={`btn btn-ghost btn-sm ${styles.issuesToggleBtn}`}
               style={{ borderRadius: 'var(--radius-sm)', position: 'relative' }}
