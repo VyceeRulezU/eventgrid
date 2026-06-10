@@ -14,6 +14,9 @@ export default defineConfig({
       generateScopedName: 'eg-[name]-[local]',
     },
   },
+  build: {
+    sourcemap: true,
+  },
   test: {
     globals: true,
     environment: 'jsdom',
