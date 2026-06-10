@@ -216,8 +216,8 @@ export function SuperAdminDashboard() {
         supabase.from('events').select('id, name, event_type, status, created_at, created_by, current_phase, coordinator_id').is('deleted_at', null),
         supabase.from('client_payments').select('id, amount, payment_method, status, created_at, event_id, received_date').eq('status', 'received').eq('payment_type', 'incoming'),
         supabase.from('events').select('id, name, event_type, status, current_phase, coordinator_id').is('deleted_at', null).not('status', 'eq', 'completed').not('status', 'eq', 'cancelled'),
-        supabase.from('client_payments').select('id, amount, payment_method, status, created_at, event_id, description').order('created_at', { ascending: false }).limit(15),
-        supabase.from('events').select('id, name, event_type, status, created_at, created_by').is('deleted_at', null).order('created_at', { ascending: false }).limit(15),
+        supabase.from('client_payments').select('id, amount, payment_method, status, created_at, event_id, description').order('created_at', { ascending: false }).limit(10),
+        supabase.from('events').select('id, name, event_type, status, created_at, created_by').is('deleted_at', null).order('created_at', { ascending: false }).limit(10),
         supabase.from('profiles').select('created_at').gte('created_at', twelveMonthsAgo).order('created_at'),
         supabase.from('organizations').select('id', { count: 'exact', head: true }),
         supabase.from('vendors').select('id', { count: 'exact', head: true }).is('deleted_at', null),
@@ -347,7 +347,7 @@ export function SuperAdminDashboard() {
       }
 
       setLiveEvents(
-        (liveEventsRaw || []).map(e => ({
+        (liveEventsRaw || []).slice(0, 10).map(e => ({
           id: e.id,
           name: e.name,
           type: e.event_type || 'N/A',
@@ -601,6 +601,7 @@ export function SuperAdminDashboard() {
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-3) var(--space-5)', borderBottom: '1px solid var(--color-border-subtle)' }}>
             <h3 style={{ margin: 0, fontSize: 'var(--text-sm)', fontWeight: 700 }}>Top 10 Planners</h3>
+            <a href="/planners" style={{ fontSize: 'var(--text-xs)', color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>View More →</a>
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--text-sm)' }}>
@@ -637,6 +638,7 @@ export function SuperAdminDashboard() {
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-3) var(--space-5)', borderBottom: '1px solid var(--color-border-subtle)' }}>
             <h3 style={{ margin: 0, fontSize: 'var(--text-sm)', fontWeight: 700 }}>Active Live Events</h3>
+            <a href="/events" style={{ fontSize: 'var(--text-xs)', color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>View More →</a>
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--text-sm)' }}>
@@ -682,6 +684,7 @@ export function SuperAdminDashboard() {
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-3) var(--space-5)', borderBottom: '1px solid var(--color-border-subtle)' }}>
             <h3 style={{ margin: 0, fontSize: 'var(--text-sm)', fontWeight: 700 }}>Recent Payments</h3>
+            <a href="/payments" style={{ fontSize: 'var(--text-xs)', color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>View More →</a>
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--text-sm)' }}>
@@ -727,6 +730,7 @@ export function SuperAdminDashboard() {
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-3) var(--space-5)', borderBottom: '1px solid var(--color-border-subtle)' }}>
             <h3 style={{ margin: 0, fontSize: 'var(--text-sm)', fontWeight: 700 }}>Recent Events</h3>
+            <a href="/events" style={{ fontSize: 'var(--text-xs)', color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>View More →</a>
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--text-sm)' }}>
