@@ -71,6 +71,7 @@ const AnalyticsPage = lazy(() => import('@/pages/admin/AnalyticsPage').then(m =>
 
 const AftermathPage = lazy(() => import('@/features/aftermath/AftermathPage').then(m => ({ default: m.AftermathPage })))
 const CompletedEventReport = lazy(() => import('@/features/aftermath/CompletedEventReport').then(m => ({ default: m.CompletedEventReport })))
+const GuestRsvpPage = lazy(() => import('@/features/guests/GuestRsvpPage').then(m => ({ default: m.GuestRsvpPage })))
 import { PremiumModalContainer } from '@/components/ui/PremiumModal'
 import { NotificationsDrawer } from '@/features/notifications/NotificationsDrawer'
 import { AlertTriangle, Terminal, ExternalLink, RefreshCw } from 'lucide-react'
@@ -456,6 +457,11 @@ export function App() {
           </Suspense>
         } />
 
+        <Route path="/rsvp" element={
+          <Suspense fallback={<div className="empty-state"><div className="empty-state__title">Loading...</div></div>}>
+            <GuestRsvpPage />
+          </Suspense>
+        } />
         <Route path="/onboarding/planner" element={
           <AuthGuard><PlannerOnboarding /></AuthGuard>
         } />

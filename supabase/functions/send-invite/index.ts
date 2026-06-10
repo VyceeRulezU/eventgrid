@@ -85,7 +85,7 @@ function teamInviteEmail(opts: {
   return {
     subject: `You've been invited to join the ${opts.eventName} team on EventGrid`,
     html: emailShell('Team Invitation', `
-              <h1 style="margin:0 0 12px;font-size:24px;font-weight:700;color:#F9FAFB;line-height:1.3;letter-spacing:-0.02em;">
+              <h1 style="margin:0 0 12px;font-size:24px;font-weight:300;color:#F9FAFB;line-height:1.3;letter-spacing:-0.02em;">
                 You're invited to the team!
               </h1>
               <p style="margin:0 0 20px;font-size:15px;color:#9CA3AF;line-height:1.6;">
@@ -100,7 +100,7 @@ function teamInviteEmail(opts: {
                 <tr>
                   <td style="background-color:#D4A017;border-radius:10px;">
                     <a href="${opts.inviteLink}" class="button"
-                       style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:700;color:#111827;text-decoration:none;border-radius:10px;box-shadow:0 4px 12px rgba(212,160,23,0.25);">
+                       style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:400;color:#111827;text-decoration:none;border-radius:10px;box-shadow:0 4px 12px rgba(212,160,23,0.25);">
                       Accept Invitation &rarr;
                     </a>
                   </td>
@@ -123,7 +123,7 @@ function vendorInviteEmail(opts: {
   return {
     subject: `Vendor confirmation for ${opts.eventName} — EventGrid`,
     html: emailShell('Vendor Confirmation', `
-              <h1 style="margin:0 0 12px;font-size:24px;font-weight:700;color:#F9FAFB;line-height:1.3;letter-spacing:-0.02em;">
+              <h1 style="margin:0 0 12px;font-size:24px;font-weight:300;color:#F9FAFB;line-height:1.3;letter-spacing:-0.02em;">
                 You've been booked for ${opts.eventName}
               </h1>
               <p style="margin:0 0 16px;font-size:15px;color:#9CA3AF;line-height:1.6;">
@@ -140,7 +140,7 @@ function vendorInviteEmail(opts: {
                 <tr>
                   <td style="background-color:#D4A017;border-radius:10px;">
                     <a href="${opts.portalLink}" class="button"
-                       style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:700;color:#111827;text-decoration:none;border-radius:10px;box-shadow:0 4px 12px rgba(212,160,23,0.25);">
+                       style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:400;color:#111827;text-decoration:none;border-radius:10px;box-shadow:0 4px 12px rgba(212,160,23,0.25);">
                       Open Vendor Portal &rarr;
                     </a>
                   </td>
@@ -156,11 +156,12 @@ function guestInviteEmail(opts: {
   eventName: string
   guestName: string
   appUrl: string
+  rsvpLink: string
 }): { subject: string; html: string } {
   return {
     subject: `You're invited to ${opts.eventName}`,
     html: emailShell('Guest Invitation', `
-              <h1 style="margin:0 0 12px;font-size:24px;font-weight:700;color:#F9FAFB;line-height:1.3;letter-spacing:-0.02em;">
+              <h1 style="margin:0 0 12px;font-size:24px;font-weight:300;color:#F9FAFB;line-height:1.3;letter-spacing:-0.02em;">
                 You're invited!
               </h1>
               <p style="margin:0 0 20px;font-size:15px;color:#9CA3AF;line-height:1.6;">
@@ -173,15 +174,15 @@ function guestInviteEmail(opts: {
               <table cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
                 <tr>
                   <td style="background-color:#D4A017;border-radius:10px;">
-                    <a href="${opts.appUrl}" class="button"
-                       style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:700;color:#111827;text-decoration:none;border-radius:10px;box-shadow:0 4px 12px rgba(212,160,23,0.25);">
-                      View Event Details &rarr;
+                    <a href="${opts.rsvpLink}" class="button"
+                       style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:400;color:#111827;text-decoration:none;border-radius:10px;box-shadow:0 4px 12px rgba(212,160,23,0.25);">
+                      RSVP Now &rarr;
                     </a>
                   </td>
                 </tr>
               </table>
               <p style="margin:0;font-size:12px;color:#6B7280;">
-                <a href="${opts.appUrl}" style="color:#D4A017;">${opts.appUrl}</a>
+                <a href="${opts.rsvpLink}" style="color:#D4A017;">${opts.rsvpLink}</a>
               </p>`),
   }
 }
@@ -196,7 +197,7 @@ function clientPortalEmail(opts: {
   return {
     subject: `Your event portal for ${opts.eventName} is ready`,
     html: emailShell('Client Portal', `
-              <h1 style="margin:0 0 12px;font-size:24px;font-weight:700;color:#F9FAFB;line-height:1.3;letter-spacing:-0.02em;">
+              <h1 style="margin:0 0 12px;font-size:24px;font-weight:300;color:#F9FAFB;line-height:1.3;letter-spacing:-0.02em;">
                 Your event is in great hands
               </h1>
               <p style="margin:0 0 16px;font-size:15px;color:#9CA3AF;line-height:1.6;">
@@ -212,7 +213,7 @@ function clientPortalEmail(opts: {
                 <tr>
                   <td style="background-color:#D4A017;border-radius:10px;">
                     <a href="${opts.portalLink}" class="button"
-                       style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:700;color:#111827;text-decoration:none;border-radius:10px;box-shadow:0 4px 12px rgba(212,160,23,0.25);">
+                       style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:400;color:#111827;text-decoration:none;border-radius:10px;box-shadow:0 4px 12px rgba(212,160,23,0.25);">
                       View My Event Portal &rarr;
                     </a>
                   </td>
@@ -355,7 +356,7 @@ Deno.serve(async (req) => {
       const inviteLink = `${APP_URL}/register?role=${adminRole}&invited_by=${encodeURIComponent(email)}`
       subject = `You've been invited as ${roleLabel} on EventGrid`
       html = emailShell(`${roleLabel} Invitation`, `
-              <h1 style="margin:0 0 12px;font-size:24px;font-weight:700;color:#F9FAFB;line-height:1.3;letter-spacing:-0.02em;">${roleLabel} Invitation</h1>
+              <h1 style="margin:0 0 12px;font-size:24px;font-weight:300;color:#F9FAFB;line-height:1.3;letter-spacing:-0.02em;">${roleLabel} Invitation</h1>
               <p style="margin:0 0 20px;font-size:15px;color:#9CA3AF;line-height:1.6;">
                 You've been invited to join EventGrid as a <strong style="color:#F9FAFB;">${roleLabel}</strong>. ${adminRole === 'super_admin' ? 'You will have full platform-wide access.' : adminRole === 'monitor' ? 'You will have read-only access to analytics and platform data.' : 'You will be able to manage feedback and platform users.'}
               </p>
@@ -363,7 +364,7 @@ Deno.serve(async (req) => {
                 <tr>
                   <td style="background-color:#D4A017;border-radius:10px;">
                     <a href="${inviteLink}" class="button"
-                       style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:700;color:#111827;text-decoration:none;border-radius:10px;box-shadow:0 4px 12px rgba(212,160,23,0.25);">
+                       style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:400;color:#111827;text-decoration:none;border-radius:10px;box-shadow:0 4px 12px rgba(212,160,23,0.25);">
                       Accept Invitation &rarr;
                     </a>
                   </td>
@@ -422,7 +423,7 @@ Deno.serve(async (req) => {
       const displayOrgName = org_name ?? 'an event planning team'
       subject = `You've been invited to join ${displayOrgName} on EventGrid`
       html = emailShell('Coordinator Invitation', `
-              <h1 style="margin:0 0 12px;font-size:24px;font-weight:700;color:#F9FAFB;line-height:1.3;letter-spacing:-0.02em;">
+              <h1 style="margin:0 0 12px;font-size:24px;font-weight:300;color:#F9FAFB;line-height:1.3;letter-spacing:-0.02em;">
                 You're invited as a Coordinator
               </h1>
               <p style="margin:0 0 20px;font-size:15px;color:#9CA3AF;line-height:1.6;">
@@ -437,7 +438,7 @@ Deno.serve(async (req) => {
                 <tr>
                   <td style="background-color:#D4A017;border-radius:10px;">
                     <a href="${linkData.properties.action_link}" class="button"
-                       style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:700;color:#111827;text-decoration:none;border-radius:10px;box-shadow:0 4px 12px rgba(212,160,23,0.25);">
+                       style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:400;color:#111827;text-decoration:none;border-radius:10px;box-shadow:0 4px 12px rgba(212,160,23,0.25);">
                       Accept Invitation &rarr;
                     </a>
                   </td>
@@ -508,10 +509,13 @@ Deno.serve(async (req) => {
       html = template.html
 
     } else if (type === 'guest_invite') {
+      const encodedEmail = encodeURIComponent(btoa(email))
+      const rsvpLink = `${APP_URL}/rsvp?e=${event_id}&g=${encodedEmail}`
       const template = guestInviteEmail({
         eventName: event!.name,
         guestName: guest_name ?? 'Guest',
         appUrl: APP_URL,
+        rsvpLink,
       })
       subject = template.subject
       html = template.html

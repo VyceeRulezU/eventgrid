@@ -237,26 +237,6 @@ export function GuestManagementPage() {
         icon={Users}
         title="Guests"
         subtitle={`${guests.length} guest${guests.length !== 1 ? 's' : ''} on this event`}
-        actions={
-            <div className={styles.toolbar} style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', flexWrap: 'wrap' }}>
-            <SearchBar value={listSearch} onChange={setListSearch} placeholder="Search name or phone..." containerStyle={{ maxWidth: 260 }} />
-            <div className={styles.filterSelect}>
-              <DropdownMenu
-                trigger={rsvpFilter === 'all' ? 'All RSVP' : rsvpFilter.charAt(0).toUpperCase() + rsvpFilter.slice(1)}
-                items={[
-                  { label: 'All RSVP', value: 'all' },
-                  { label: 'Confirmed', value: 'confirmed' },
-                  { label: 'Pending', value: 'pending' },
-                  { label: 'Declined', value: 'declined' },
-                  { label: 'Maybe', value: 'maybe' },
-                ]}
-                onSelect={(item) => setRsvpFilter(item.value as RSVP | 'all')}
-              />
-            </div>
-            <button className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => setShowAdd(true)}><Plus size={14} /> Add</button>
-            <button className="btn btn-secondary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => setShowCSV(true)}><Upload size={14} /> CSV</button>
-          </div>
-        }
       />
 
       <Tabs
@@ -268,6 +248,25 @@ export function GuestManagementPage() {
         activeTab={tab}
         onChange={(key) => setTab(key as 'list' | 'checkin' | 'seating')}
       />
+
+      <div className={styles.toolbar} style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', flexWrap: 'wrap', marginBottom: 'var(--space-3)' }}>
+        <SearchBar value={listSearch} onChange={setListSearch} placeholder="Search name or phone..." containerStyle={{ maxWidth: 260 }} />
+        <div className={styles.filterSelect}>
+          <DropdownMenu
+            trigger={rsvpFilter === 'all' ? 'All RSVP' : rsvpFilter.charAt(0).toUpperCase() + rsvpFilter.slice(1)}
+            items={[
+              { label: 'All RSVP', value: 'all' },
+              { label: 'Confirmed', value: 'confirmed' },
+              { label: 'Pending', value: 'pending' },
+              { label: 'Declined', value: 'declined' },
+              { label: 'Maybe', value: 'maybe' },
+            ]}
+            onSelect={(item) => setRsvpFilter(item.value as RSVP | 'all')}
+          />
+        </div>
+        <button className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => setShowAdd(true)}><Plus size={14} /> Add</button>
+        <button className="btn btn-secondary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => setShowCSV(true)}><Upload size={14} /> CSV</button>
+      </div>
 
       <RSVPSummary />
 

@@ -199,6 +199,7 @@ export interface Guest {
   checked_in: boolean
   checked_in_at: string | null
   notes: string | null
+  rsvp_note: string | null
   created_at: string
   updated_at: string
 }
