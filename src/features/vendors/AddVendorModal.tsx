@@ -29,6 +29,8 @@ export function AddVendorModal({ orgId, availableTypes, defaultCategory, onClose
   const [searchResults, setSearchResults] = useState<import('@/types').Vendor[]>([])
   const [searching, setSearching] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [addedIds, setAddedIds] = useState<Set<string>>(new Set())
+  const [bulkNote, setBulkNote] = useState('')
   const searchRef = useRef<HTMLInputElement>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(null)
   const [form, setForm] = useState({
@@ -69,8 +71,9 @@ export function AddVendorModal({ orgId, availableTypes, defaultCategory, onClose
 
   const handleSelectExisting = (vendor: import('@/types').Vendor) => {
     onSaved(vendor)
-    showNotification({ variant: 'success', title: `"${vendor.name}" added` })
-    onClose()
+    setAddedIds((prev) => new Set(prev).add(vendor.id))
+    setBulkNote(`"${vendor.name}" added`)
+    setTimeout(() => setBulkNote(''), 2000)
   }
 
   const handleSave = async () => {
@@ -135,6 +138,12 @@ export function AddVendorModal({ orgId, availableTypes, defaultCategory, onClose
                 </div>
               </div>
 
+              {bulkNote && (
+                <div style={{ padding: 'var(--space-2) var(--space-3)', background: 'var(--color-success-bg, var(--color-accent-muted))', borderRadius: 'var(--radius-md)', fontSize: 'var(--text-sm)', color: 'var(--color-accent)', fontWeight: 500, textAlign: 'center' }}>
+                  {bulkNote}
+                </div>
+              )}
+
               {searchQuery.trim().length >= 1 && searching && (
                 <div style={{ textAlign: 'center', padding: 'var(--space-6) var(--space-4)', color: 'var(--color-text-muted)' }}>
                   <div style={{ fontSize: 'var(--text-sm)' }}>Searching vendors...</div>
@@ -178,9 +187,15 @@ export function AddVendorModal({ orgId, availableTypes, defaultCategory, onClose
                           {vendor.category}{vendor.email ? ` · ${vendor.email}` : ''}{vendor.phone ? ` · ${vendor.phone}` : ''}
                         </div>
                       </div>
-                      <button className="btn btn-primary btn-sm" onClick={(e) => { e.stopPropagation(); handleSelectExisting(vendor) }}>
-                        <Plus size={12} /> Add
-                      </button>
+                      {addedIds.has(vendor.id) ? (
+                        <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-accent)', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                          Added
+                        </span>
+                      ) : (
+                        <button className="btn btn-primary btn-sm" onClick={(e) => { e.stopPropagation(); handleSelectExisting(vendor) }}>
+                          <Plus size={12} /> Add
+                        </button>
+                      )}
                     </div>
                   ))}
                   <button className="btn btn-ghost btn-sm" style={{ alignSelf: 'center', marginTop: 'var(--space-2)' }} onClick={handleCreateNew}>
