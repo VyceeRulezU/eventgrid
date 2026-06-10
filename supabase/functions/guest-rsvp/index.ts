@@ -33,40 +33,52 @@ Deno.serve(async (req) => {
         )
       }
 
-      const { data: guest, error: guestErr } = await supabaseAdmin
+      const { data: guests, error: guestErr } = await supabaseAdmin
         .from('guests')
         .select('id, first_name, last_name, rsvp_status')
         .eq('event_id', event_id)
         .eq('email', email)
-        .maybeSingle()
+        .limit(1)
 
       if (guestErr) {
         console.error('Guest lookup error:', guestErr)
         return new Response(
-          JSON.stringify({ error: 'Database error' }),
+          JSON.stringify({ error: `Database error: ${(guestErr as Error).message}` }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
 
-      if (!guest) {
+      if (!guests || guests.length === 0) {
         return new Response(
           JSON.stringify({ error: 'Guest not found' }),
           { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
 
-      const { data: event, error: eventErr } = await supabaseAdmin
-        .from('events')
-        .select('name, event_date, location, description')
-        .eq('id', event_id)
-        .single()
+      const guest = guests[0]
 
-      if (eventErr || !event) {
+      const { data: events, error: eventErr } = await supabaseAdmin
+        .from('events')
+        .select('name, event_date, venue_name, venue_address')
+        .eq('id', event_id)
+        .limit(1)
+
+      if (eventErr) {
+        console.error('Event lookup error:', eventErr)
         return new Response(
-          JSON.stringify({ error: 'Event not found' }),
+          JSON.stringify({ error: `Event query error: ${(eventErr as Error).message}` }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      if (!events || events.length === 0) {
+        return new Response(
+          JSON.stringify({ error: 'Event not found — it may have been deleted.' }),
           { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
+
+      const event = events[0]
 
       return new Response(
         JSON.stringify({ guest, event }),

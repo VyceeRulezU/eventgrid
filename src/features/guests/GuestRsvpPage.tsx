@@ -14,11 +14,19 @@ interface GuestInfo {
 interface EventInfo {
   name: string
   event_date: string | null
-  location: string | null
-  description: string | null
+  venue_name: string | null
 }
 
 type PageStatus = 'loading' | 'form' | 'done' | 'error'
+
+const APP_URL = import.meta.env.VITE_APP_URL || 'https://eventgrid.ng'
+const isProd = APP_URL.includes('eventgrid.ng')
+const HERO_URL = isProd
+  ? 'https://menmpyyrqevonepbpfai.supabase.co/storage/v1/object/public/org-assets/emails/corporate_event_hall.png'
+  : APP_URL + '/emails/corporate_event_hall.png'
+const LOGO_URL = isProd
+  ? 'https://menmpyyrqevonepbpfai.supabase.co/storage/v1/object/public/org-assets/EventGrid-logo-white.svg'
+  : APP_URL + '/EventGrid-logo-white.svg'
 
 export function GuestRsvpPage() {
   const [params] = useSearchParams()
@@ -48,9 +56,6 @@ export function GuestRsvpPage() {
       return
     }
 
-    console.log('[RSVP] eventId:', eventId, 'email:', email)
-    console.log('[RSVP] raw g param:', encodedEmail)
-
     ;(async () => {
       try {
         const res = await fetch(
@@ -62,7 +67,6 @@ export function GuestRsvpPage() {
           }
         )
         const text = await res.text()
-        console.log('[RSVP] raw response:', res.status, text)
         let body: Record<string, unknown>
         try { body = JSON.parse(text) } catch { body = {} }
         if (!res.ok || body?.error) {
@@ -78,7 +82,6 @@ export function GuestRsvpPage() {
         }
         setStatus('form')
       } catch (e) {
-        console.error('[RSVP] fetch error:', e)
         setError('Network error: ' + (e instanceof Error ? e.message : String(e)))
         setStatus('error')
       }
@@ -118,7 +121,7 @@ export function GuestRsvpPage() {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#0B1120', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
         <div style={{ backgroundColor: '#1a2432', border: '1px solid #2a3a4e', borderRadius: 16, padding: '40px 32px', maxWidth: 420, width: '100%', textAlign: 'center' }}>
-          <div style={{ color: '#F9FAFB', fontSize: 18, fontWeight: 600, marginBottom: 8 }}>Invitation not found</div>
+          <div style={{ color: '#F9FAFB', fontSize: 18, fontWeight: 300, marginBottom: 8 }}>Invitation not found</div>
           <div style={{ color: '#9CA3AF', fontSize: 13, lineHeight: 1.5 }}>{error || 'This link may be invalid or expired.'}</div>
         </div>
       </div>
@@ -128,19 +131,30 @@ export function GuestRsvpPage() {
   if (status === 'done') {
     const labels: Record<string, string> = { confirmed: 'Accepted', declined: 'Declined', maybe: 'Maybe' }
     const icons: Record<string, React.ReactNode> = {
-      confirmed: <Check size={20} />,
-      declined: <X size={20} />,
-      maybe: <HelpCircle size={20} />,
+      confirmed: <Check size={28} />,
+      declined: <X size={28} />,
+      maybe: <HelpCircle size={28} />,
     }
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#0B1120', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-        <div style={{ backgroundColor: '#1a2432', border: '1px solid #2a3a4e', borderRadius: 16, padding: '40px 32px', maxWidth: 420, width: '100%', textAlign: 'center' }}>
-          <div style={{ color: '#D4A017', marginBottom: 16 }}>{icons[selectedRsvp || 'confirmed']}</div>
-          <div style={{ color: '#F9FAFB', fontSize: 18, fontWeight: 600, marginBottom: 4 }}>
-            {labels[selectedRsvp || 'confirmed']}
+        <div style={{ backgroundColor: '#1a2432', border: '1px solid #2a3a4e', borderRadius: 16, maxWidth: 420, width: '100%', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
+          <div style={{
+            backgroundImage: `url('${HERO_URL}')`, backgroundSize: 'cover', backgroundPosition: 'center',
+            padding: '44px 32px', textAlign: 'center',
+            background: 'linear-gradient(135deg, rgba(11,17,32,0.95) 0%, rgba(11,17,32,0.75) 50%, rgba(11,17,32,0.6) 100%), ' +
+              `url('${HERO_URL}') center/cover no-repeat`,
+          }}>
+            <table cellPadding={0} cellSpacing={0} style={{ margin: '0 auto 14px' }}><tbody><tr><td style={{ width: 44, height: 3, backgroundColor: '#D4A017', borderRadius: 2 }} /></tr></tbody></table>
+            <img src={LOGO_URL} alt="EventGrid" style={{ maxWidth: 160, height: 'auto', display: 'block', margin: '0 auto' }} />
           </div>
-          <div style={{ color: '#9CA3AF', fontSize: 13, lineHeight: 1.5 }}>
-            Your response for <strong style={{ color: '#D4A017' }}>{event?.name}</strong> has been recorded.
+          <div style={{ padding: '32px 32px 40px', textAlign: 'center' }}>
+            <div style={{ color: '#D4A017', marginBottom: 12 }}>{icons[selectedRsvp || 'confirmed']}</div>
+            <div style={{ color: '#F9FAFB', fontSize: 20, fontWeight: 300, marginBottom: 6 }}>
+              {labels[selectedRsvp || 'confirmed']}
+            </div>
+            <div style={{ color: '#9CA3AF', fontSize: 13, lineHeight: 1.6 }}>
+              Your response for <strong style={{ color: '#D4A017', fontWeight: 300 }}>{event?.name}</strong> has been recorded.
+            </div>
           </div>
         </div>
       </div>
@@ -149,74 +163,86 @@ export function GuestRsvpPage() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0B1120', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <div style={{ backgroundColor: '#1a2432', border: '1px solid #2a3a4e', borderRadius: 16, maxWidth: 480, width: '100%', overflow: 'hidden' }}>
-        <div style={{ padding: '36px 32px 24px', textAlign: 'center', borderBottom: '1px solid #2a3a4e' }}>
-          <div style={{ width: 44, height: 3, backgroundColor: '#D4A017', borderRadius: 2, margin: '0 auto 16px' }} />
-          <div style={{ color: '#F9FAFB', fontSize: 20, fontWeight: 600, marginBottom: 4 }}>
-            You're invited!
-          </div>
-          <div style={{ color: '#9CA3AF', fontSize: 13, lineHeight: 1.5 }}>
-            {guest?.first_name ? `Hi ${guest.first_name},` : ''} you have been invited to
-          </div>
-          <div style={{ color: '#D4A017', fontSize: 18, fontWeight: 600, marginTop: 8 }}>
-            {event?.name || 'an event'}
-          </div>
-          {event?.event_date && (
-            <div style={{ color: '#6B7280', fontSize: 12, marginTop: 6 }}>
-              {new Date(event.event_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
-            </div>
-          )}
-          {event?.location && (
-            <div style={{ color: '#6B7280', fontSize: 12 }}>
-              {event.location}
-            </div>
-          )}
+      <div style={{ backgroundColor: '#1a2432', border: '1px solid #2a3a4e', borderRadius: 16, maxWidth: 480, width: '100%', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
+        <div style={{
+          backgroundImage: `url('${HERO_URL}')`, backgroundSize: 'cover', backgroundPosition: 'center',
+          padding: '44px 32px', textAlign: 'center',
+          background: 'linear-gradient(135deg, rgba(11,17,32,0.95) 0%, rgba(11,17,32,0.75) 50%, rgba(11,17,32,0.6) 100%), ' +
+            `url('${HERO_URL}') center/cover no-repeat`,
+        }}>
+          <table cellPadding={0} cellSpacing={0} style={{ margin: '0 auto 14px' }}><tbody><tr><td style={{ width: 44, height: 3, backgroundColor: '#D4A017', borderRadius: 2 }} /></tr></tbody></table>
+          <img src={LOGO_URL} alt="EventGrid" style={{ maxWidth: 160, height: 'auto', display: 'block', margin: '0 auto' }} />
         </div>
 
-        <div style={{ padding: '24px 32px' }}>
-          <div style={{ color: '#9CA3AF', fontSize: 12, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+        <div style={{ padding: '28px 28px 32px' }}>
+          <div style={{ color: '#F9FAFB', fontSize: 22, fontWeight: 300, marginBottom: 4, textAlign: 'center', letterSpacing: '-0.02em' }}>
+            You're invited!
+          </div>
+          {guest?.first_name && (
+            <div style={{ color: '#9CA3AF', fontSize: 14, textAlign: 'center', marginBottom: 2 }}>
+              Hi {guest.first_name},
+            </div>
+          )}
+          <div style={{ color: '#D4A017', fontSize: 16, fontWeight: 300, textAlign: 'center', marginBottom: 16 }}>
+            {event?.name || 'an event'}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginBottom: 20, flexWrap: 'wrap' }}>
+            {event?.event_date && (
+              <div style={{ color: '#6B7280', fontSize: 12, textAlign: 'center' }}>
+                {new Date(event.event_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+              </div>
+            )}
+            {event?.venue_name && (
+              <div style={{ color: '#6B7280', fontSize: 12, textAlign: 'center' }}>
+                {event.venue_name}
+              </div>
+            )}
+          </div>
+
+          <div style={{ color: '#9CA3AF', fontSize: 11, marginBottom: 14, textTransform: 'uppercase', letterSpacing: 0.5, textAlign: 'center' }}>
             Will you attend?
           </div>
-          <div style={{ display: 'flex', gap: 10, marginBottom: 24 }}>
+
+          <div style={{ display: 'flex', gap: 8, marginBottom: 24, flexWrap: 'wrap' }}>
             <button
               onClick={() => handleRsvp('confirmed')}
               disabled={submitting}
               style={{
-                flex: 1, padding: '12px 16px', border: 'none', borderRadius: 10, cursor: 'pointer',
-                backgroundColor: '#22c55e', color: '#fff', fontSize: 14, fontWeight: 600,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                flex: '1 1 120px', padding: '10px 12px', border: 'none', borderRadius: 10, cursor: 'pointer',
+                backgroundColor: '#22c55e', color: '#fff', fontSize: 13, fontWeight: 400,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
                 opacity: submitting ? 0.5 : 1,
               }}
             >
-              <Check size={18} /> Accept
+              <Check size={16} /> Accept
             </button>
             <button
               onClick={() => handleRsvp('declined')}
               disabled={submitting}
               style={{
-                flex: 1, padding: '12px 16px', border: 'none', borderRadius: 10, cursor: 'pointer',
-                backgroundColor: '#ef4444', color: '#fff', fontSize: 14, fontWeight: 600,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                flex: '1 1 120px', padding: '10px 12px', border: 'none', borderRadius: 10, cursor: 'pointer',
+                backgroundColor: '#ef4444', color: '#fff', fontSize: 13, fontWeight: 400,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
                 opacity: submitting ? 0.5 : 1,
               }}
             >
-              <X size={18} /> Decline
+              <X size={16} /> Decline
             </button>
             <button
               onClick={() => handleRsvp('maybe')}
               disabled={submitting}
               style={{
-                flex: 1, padding: '12px 16px', border: 'none', borderRadius: 10, cursor: 'pointer',
-                backgroundColor: '#D4A017', color: '#111827', fontSize: 14, fontWeight: 600,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                flex: '1 1 120px', padding: '10px 12px', border: 'none', borderRadius: 10, cursor: 'pointer',
+                backgroundColor: '#D4A017', color: '#111827', fontSize: 13, fontWeight: 400,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
                 opacity: submitting ? 0.5 : 1,
               }}
             >
-              <HelpCircle size={18} /> Maybe
+              <HelpCircle size={16} /> Maybe
             </button>
           </div>
 
-          <div style={{ color: '#9CA3AF', fontSize: 12, marginBottom: 8 }}>Leave a note (optional)</div>
+          <div style={{ color: '#9CA3AF', fontSize: 11, marginBottom: 8 }}>Leave a note (optional)</div>
           <textarea
             value={rsvpNote}
             onChange={(e) => setRsvpNote(e.target.value)}
