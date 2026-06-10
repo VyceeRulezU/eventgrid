@@ -9,23 +9,30 @@ jobs:
   backup:
     runs-on: ubuntu-latest
     steps:
-      - run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - uses: actions/checkout@v4
 
-      - name: Dump database
+      - name: Export all tables
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
-          IPV4=$(getent ahosts "db.${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co" | awk '{if ($1 !~ /:/) print $1}' | head -1)
-          if [ -z "$IPV4" ]; then
-            echo "Could not resolve IPv4 address"
-            exit 1
-          fi
-          pg_dump \
-            --dbname="postgresql://postgres:${{ secrets.SUPABASE_DB_PASSWORD }}@${IPV4}:5432/postgres?sslmode=require" \
-            --no-owner \
-            -f backup.sql
+          TABLES="events guests profiles vendors event_vendors seating_tables client_payments tasks feedbacks notifications phases"
+          mkdir -p backup
+          for table in $TABLES; do
+            echo "Exporting $table..."
+            curl -s "$SUPABASE_URL/rest/v1/$table" \
+              -H "apikey: $SERVICE_ROLE_KEY" \
+              -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
+              -H "Accept: application/json" \
+              -o "backup/${table}.json"
+          done
+
+      - name: Create archive
+        run: tar -czf backup.tar.gz backup/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: backup-${{ github.run_id }}-${{ github.run_attempt }}
-          path: backup.sql
+          path: backup.tar.gz
           retention-days: 30
