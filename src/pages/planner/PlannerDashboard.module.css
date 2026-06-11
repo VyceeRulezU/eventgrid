@@ -278,8 +278,7 @@
 }
 
 .tableHeadEvents {
-  grid-template-columns: minmax(160px, 2.2fr) 130px 100px 75px minmax(100px, 1.2fr) 95px minmax(120px, 1.3fr) 85px;
-  min-width: 960px;
+  display: flex;
 }
 
 .tableHeadActivity {
@@ -325,9 +324,30 @@
 }
 
 .tableRowEvents {
-  grid-template-columns: minmax(160px, 2.2fr) 130px 100px 75px minmax(100px, 1.2fr) 95px minmax(120px, 1.3fr) 85px;
-  min-width: 960px;
+  display: flex;
 }
+
+.tableHeadEvents > *,
+.tableRowEvents > * {
+  min-width: 0;
+}
+
+.tableHeadEvents > :nth-child(1),
+.tableRowEvents > :nth-child(1) { flex: 2.2; min-width: 140px; }
+.tableHeadEvents > :nth-child(2),
+.tableRowEvents > :nth-child(2) { flex: 1; min-width: 80px; }
+.tableHeadEvents > :nth-child(3),
+.tableRowEvents > :nth-child(3) { flex: 1; min-width: 80px; }
+.tableHeadEvents > :nth-child(4),
+.tableRowEvents > :nth-child(4) { flex: 0.7; min-width: 60px; text-align: center; }
+.tableHeadEvents > :nth-child(5),
+.tableRowEvents > :nth-child(5) { flex: 1.2; min-width: 90px; }
+.tableHeadEvents > :nth-child(6),
+.tableRowEvents > :nth-child(6) { flex: 0.8; min-width: 70px; text-align: center; }
+.tableHeadEvents > :nth-child(7),
+.tableRowEvents > :nth-child(7) { flex: 1.3; min-width: 100px; }
+.tableHeadEvents > :nth-child(8),
+.tableRowEvents > :nth-child(8) { flex: 0.7; min-width: 65px; text-align: center; }
 
 .tableRowClickable {
   cursor: pointer;
