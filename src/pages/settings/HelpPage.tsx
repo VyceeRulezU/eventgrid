@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ChevronRight, Search, Book, LayoutDashboard, DollarSign, Users, Calendar, Radio, ExternalLink, FileText, MessageSquare, Shield, ListChecks } from 'lucide-react'
+import { ChevronRight, Search, Book, LayoutDashboard, DollarSign, Users, Calendar, Radio, ExternalLink, FileText, MessageSquare, ListChecks } from 'lucide-react'
 import { PageHero } from '@/components/shared/PageHero'
 import { useSearch } from '@/hooks/useSearch'
 import { SearchBar } from '@/components/shared/SearchBar'
@@ -355,24 +355,6 @@ const TOPICS = [
           <li>A task is assigned to you</li>
           <li>Payment is confirmed</li>
           <li>Your client portal is accessed</li>
-        </ul>
-      </>
-    ),
-  },
-  {
-    id: 'admin',
-    icon: Shield,
-    label: 'Admin (Super Admin)',
-    content: (
-      <>
-        <h4>Super Admin Features</h4>
-        <p>If your email is in the <code>VITE_SUPER_ADMIN_EMAILS</code> list, you get additional admin panels:</p>
-        <ul>
-          <li><strong>Dashboard</strong> (<code>/admin</code>) — platform-wide stats, charts, and recent activity</li>
-          <li><strong>Analytics</strong> (<code>/admin</code> via sidebar) — 12-month detailed metrics</li>
-          <li><strong>Team</strong> (<code>/admin/team</code>) — manage admin users, invite new admins with roles (Super Admin, Monitor, Support)</li>
-          <li><strong>Feedback</strong> (<code>/admin/feedback</code>) — view and reply to user feedback</li>
-          <li><strong>Role Switcher</strong> — in the sidebar, switch your view to any role (planner, coordinator, vendor, client) to see the app as they do</li>
         </ul>
       </>
     ),

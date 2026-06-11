@@ -328,7 +328,30 @@ export function EventDashboardPage() {
       title: completing ? `"${phase.phase_name}" marked complete` : `"${phase.phase_name}" reopened`,
     })
     setTogglingPhase(null)
-    window.location.reload()
+
+    /* reload phases + task counts without full page reload or loading spinner */
+    const { data: phaseData } = await supabase
+      .from('event_phases')
+      .select('*')
+      .eq('event_id', phase.event_id)
+      .order('phase_number', { ascending: true })
+    if (phaseData) setPhases(phaseData as unknown as EventPhase[])
+
+    const { data: taskPhaseCounts } = await supabase
+      .from('tasks')
+      .select('phase_id, status')
+      .eq('event_id', phase.event_id)
+      .not('phase_id', 'is', null)
+    if (taskPhaseCounts) {
+      const counts: Record<string, { total: number; done: number }> = {}
+      for (const t of taskPhaseCounts) {
+        if (!t.phase_id) continue
+        if (!counts[t.phase_id]) counts[t.phase_id] = { total: 0, done: 0 }
+        counts[t.phase_id].total++
+        if (t.status === 'done') counts[t.phase_id].done++
+      }
+      setTaskCounts(counts)
+    }
   }
 
   const handleEventSaved = (updated: Partial<Event>) => {

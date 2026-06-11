@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { Users, Plus, X, Pencil, ExternalLink } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
@@ -291,6 +291,18 @@ function AddEventVendorModal({ eventId, orgId, onClose, onSaved }: {
     setStep('create')
   }
 
+  const [dirSearch, setDirSearch] = useState('')
+
+  const filteredDirectory = useMemo(() => {
+    if (!dirSearch.trim()) return directory
+    const q = dirSearch.toLowerCase()
+    return directory.filter((v) =>
+      v.name.toLowerCase().includes(q) ||
+      v.category.toLowerCase().includes(q) ||
+      (v.contact_name || '').toLowerCase().includes(q)
+    )
+  }, [directory, dirSearch])
+
   if (step === 'choose') {
     return (
       <div className="overlay" onClick={() => !saving && onClose()}>
@@ -299,7 +311,7 @@ function AddEventVendorModal({ eventId, orgId, onClose, onSaved }: {
             <div className="modal-card-title">Add Vendor to Event</div>
             <button className="modal-card-close" onClick={onClose} disabled={saving} data-tooltip="Close"><X size={20} /></button>
           </div>
-          <div className="modal-card-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+          <div className="modal-card-body" style={{ maxHeight: 480, overflowY: 'auto', minHeight: 0 }}>
             {loading ? (
               <div style={{ textAlign: 'center', padding: 'var(--space-8)' }}>
                 <img src="/EventGrid-favicon.svg" alt="Loading" style={{ width: 32, height: 32, opacity: 0.5 }} />
@@ -308,9 +320,18 @@ function AddEventVendorModal({ eventId, orgId, onClose, onSaved }: {
               <>
                 {directory.length > 0 && (
                   <>
+                    <div className="input-wrapper" style={{ marginBottom: 'var(--space-3)' }}>
+                      <label className="label">Search directory</label>
+                      <input
+                        className="input"
+                        placeholder="Search by name, category, or contact..."
+                        value={dirSearch}
+                        onChange={(e) => setDirSearch(e.target.value)}
+                      />
+                    </div>
                     <div className="label" style={{ marginBottom: 'var(--space-2)' }}>From Directory</div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', marginBottom: 'var(--space-4)' }}>
-                      {directory.map((v) => (
+                      {filteredDirectory.map((v) => (
                         <button key={v.id} className={styles.directoryItem} onClick={() => selectDirectoryVendor(v)}>
                           <div>
                             <div className={styles.vendorName}>{v.name}</div>
@@ -343,7 +364,7 @@ function AddEventVendorModal({ eventId, orgId, onClose, onSaved }: {
         <div className="modal-card-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
           {orgId && !form.vendor_id && (
             <button className="btn btn-ghost btn-sm" style={{ marginBottom: 'var(--space-3)' }} onClick={() => setStep('choose')}>
-              \u2190 Choose from directory
+              Choose from directory
             </button>
           )}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>

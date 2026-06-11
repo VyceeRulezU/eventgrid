@@ -419,6 +419,14 @@ export function SettingsPage() {
               <ExternalLink size={14} />
               Visit EventGrid website
             </a>
+            <a href="/terms" target="_blank" rel="noopener noreferrer" className={styles.externalLink}>
+              <ExternalLink size={14} />
+              Terms of Service
+            </a>
+            <a href="/privacy" target="_blank" rel="noopener noreferrer" className={styles.externalLink}>
+              <ExternalLink size={14} />
+              Privacy Policy
+            </a>
           </div>
         </div>
 

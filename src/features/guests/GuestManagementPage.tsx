@@ -220,6 +220,7 @@ export function GuestManagementPage() {
       <div className={styles.rsvpStat}><span className={styles.rsvpNum} style={{ color: 'var(--color-success)' }}>{rsvpCounts.confirmed}</span> Confirmed</div>
       <div className={styles.rsvpStat}><span className={styles.rsvpNum} style={{ color: 'var(--color-warning)' }}>{rsvpCounts.pending}</span> Pending</div>
       <div className={styles.rsvpStat}><span className={styles.rsvpNum} style={{ color: 'var(--color-error)' }}>{rsvpCounts.declined}</span> Declined</div>
+      <div className={styles.rsvpStat}><span className={styles.rsvpNum} style={{ color: 'var(--color-info)' }}>{rsvpCounts.maybe}</span> Maybe</div>
     </div>
   )
 
@@ -357,12 +358,16 @@ export function GuestManagementPage() {
                   <div className={styles.guestDetailRow}>
                     <div className={styles.guestDetailField}>
                       <label className={styles.guestDetailLabel}>RSVP Status</label>
-                      <select className="input" value={editGuest.rsvp_status || 'pending'} onChange={(e) => setEditGuest({ ...editGuest, rsvp_status: e.target.value as RSVP })}>
-                        <option value="pending">Pending</option>
-                        <option value="confirmed">Confirmed</option>
-                        <option value="declined">Declined</option>
-                        <option value="maybe">Maybe</option>
-                      </select>
+                      <DropdownMenu
+                        trigger={editGuest.rsvp_status ? editGuest.rsvp_status.charAt(0).toUpperCase() + editGuest.rsvp_status.slice(1) : 'Pending'}
+                        items={[
+                          { label: 'Pending', value: 'pending' },
+                          { label: 'Confirmed', value: 'confirmed' },
+                          { label: 'Declined', value: 'declined' },
+                          { label: 'Maybe', value: 'maybe' },
+                        ]}
+                        onSelect={(item) => setEditGuest({ ...editGuest, rsvp_status: item.value as RSVP })}
+                      />
                     </div>
                     <div className={styles.guestDetailField}>
                       <label className={styles.guestDetailLabel}>Group</label>
@@ -372,12 +377,14 @@ export function GuestManagementPage() {
                   <div className={styles.guestDetailRow}>
                     <div className={styles.guestDetailField}>
                       <label className={styles.guestDetailLabel}>Table Assignment</label>
-                      <select className="input" value={editGuest.table_id || ''} onChange={(e) => setEditGuest({ ...editGuest, table_id: e.target.value || null })}>
-                        <option value="">— No table —</option>
-                        {tables.map((t) => (
-                          <option key={t.id} value={t.id}>{t.table_name} (cap. {t.capacity})</option>
-                        ))}
-                      </select>
+                      <DropdownMenu
+                        trigger={editGuest.table_id ? tables.find((t) => t.id === editGuest.table_id)?.table_name || 'Select table' : '— No table —'}
+                        items={[
+                          { label: '— No table —', value: '' },
+                          ...tables.map((t) => ({ label: `${t.table_name} (cap. ${t.capacity})`, value: t.id })),
+                        ]}
+                        onSelect={(item) => setEditGuest({ ...editGuest, table_id: item.value || null })}
+                      />
                     </div>
                     <div className={styles.guestDetailField}>
                       <label className={styles.guestDetailLabel}>Notes</label>
