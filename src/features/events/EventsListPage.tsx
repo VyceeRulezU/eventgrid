@@ -11,7 +11,7 @@ import { useUIStore } from '@/store/ui.store'
 import { PhaseSegmentBar } from '@/components/shared/PhasePipeline'
 import { Checkbox } from '@/components/ui/Checkbox'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
-import { AdminPageHero } from '@/components/shared/AdminPageHero'
+import { PageHero } from '@/components/shared/PageHero'
 import type { Event, EventPhase } from '@/types'
 import styles from './EventsListPage.module.css'
 
@@ -155,7 +155,7 @@ export function EventsListPage() {
   if (loading) {
     return (
       <div className={styles.page}>
-        <AdminPageHero icon={Calendar} title="Events" />
+        <PageHero icon={Calendar} title="Events" />
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 200, gap: 'var(--space-4)' }}>
           <img src="/EventGrid-favicon.svg" alt="Loading" style={{ width: 48, height: 48, opacity: 0.5 }} />
           <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>Loading events...</div>
@@ -167,7 +167,7 @@ export function EventsListPage() {
   if (events.length === 0) {
     return (
       <div className={styles.page}>
-        <AdminPageHero
+        <PageHero
           icon={Calendar}
           title="Events"
           subtitle="Manage all your events in one place"
@@ -191,7 +191,7 @@ export function EventsListPage() {
 
   return (
     <div className={styles.page}>
-      <AdminPageHero
+      <PageHero
         icon={Calendar}
         title="Events"
         subtitle={`${events.length} event${events.length !== 1 ? 's' : ''}${org ? ' in your organisation' : ''}`}

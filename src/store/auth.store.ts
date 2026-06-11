@@ -29,7 +29,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
   })),
   setProfile: (profile) => set((state) => ({
     profile,
-    role: profile?.is_super_admin ? 'super_admin' as UserRole : (state.role || profile?.role || null),
+    role: profile?.is_super_admin ? 'super_admin' as UserRole : (profile?.role || state.role || null),
   })),
   setOrg: (org) => set({ org }),
   setLoading: (isLoading) => set({ isLoading }),

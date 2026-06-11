@@ -6,7 +6,7 @@ import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { compressImage } from '@/lib/compressImage'
 import { uploadFile } from '@/lib/storage'
-import { AdminPageHero } from '@/components/shared/AdminPageHero'
+import { PageHero } from '@/components/shared/PageHero'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import type { Task, TaskComment } from '@/types'
 import styles from './MyTasksPage.module.css'
@@ -192,7 +192,7 @@ export function MyTasksPage() {
 
   return (
     <div className={styles.page}>
-      <AdminPageHero
+      <PageHero
         icon={ListChecks}
         title="My Tasks"
         subtitle={`${tasks.length} task${tasks.length !== 1 ? 's' : ''} assigned to you`}

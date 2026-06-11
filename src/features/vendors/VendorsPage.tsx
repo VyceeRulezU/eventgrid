@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/Checkbox'
 import { EditVendorModal } from './EditVendorModal'
 import { AddVendorModal } from './AddVendorModal'
 import { AddTypeModal } from './AddTypeModal'
-import { AdminPageHero } from '@/components/shared/AdminPageHero'
+import { PageHero } from '@/components/shared/PageHero'
 import { useSearch } from '@/hooks/useSearch'
 import { SearchBar } from '@/components/shared/SearchBar'
 import type { Vendor } from '@/types'
@@ -120,7 +120,7 @@ export function VendorsPage() {
   if (!orgId && !loading) {
     return (
       <div className={styles.page}>
-        <AdminPageHero icon={Users} title="Vendors" subtitle="Manage your vendor directory" />
+        <PageHero icon={Users} title="Vendors" subtitle="Manage your vendor directory" />
         <div className="empty-state">
           <div className="empty-state__icon"><Users size={24} /></div>
           <div className="empty-state__title">Complete your onboarding first</div>
@@ -197,7 +197,7 @@ export function VendorsPage() {
 
   return (
     <div className={styles.page}>
-      <AdminPageHero
+      <PageHero
         icon={Users}
         title="Vendors"
         subtitle={`${vendors.length} vendor${vendors.length !== 1 ? 's' : ''} in your organisation`}
