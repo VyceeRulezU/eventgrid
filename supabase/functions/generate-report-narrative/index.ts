@@ -1,7 +1,7 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')!
-const GEMINI_MODEL = 'gemini-1.5-flash'
+const GEMINI_MODEL = 'gemini-2.0-flash'
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`
 
 const corsHeaders = {
@@ -135,7 +135,7 @@ Deno.serve(async (req) => {
       const errBody = await geminiRes.text()
       console.error('Gemini API error:', geminiRes.status, errBody)
       return new Response(
-        JSON.stringify({ error: `AI service error (${geminiRes.status})` }),
+        JSON.stringify({ error: `AI service error (${geminiRes.status})`, detail: errBody }),
         { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
