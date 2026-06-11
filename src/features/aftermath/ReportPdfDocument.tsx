@@ -1,5 +1,5 @@
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
-import type { ReportData, VendorRating, AiNarrative } from './EventReportBuilder'
+import type { ReportData, VendorRating } from './EventReportBuilder'
 
 const COLORS = {
   gold: '#D4A017',

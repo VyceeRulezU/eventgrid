@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { pdf } from '@react-pdf/renderer'
-import { FileText, Sparkles, Users, CircleDollarSign, Building, Star, CheckCircle, X } from 'lucide-react'
+import { Sparkles, Users, CircleDollarSign, Building, Star, CheckCircle, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
