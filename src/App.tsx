@@ -91,10 +91,11 @@ function withTimeout<T>(promise: PromiseLike<T>, timeoutMs: number, message: str
 
 function AuthGate() {
   const user = useAuthStore((s) => s.user)
+  const profile = useAuthStore((s) => s.profile)
   const role = useAuthStore((s) => s.role)
   const isLoading = useAuthStore((s) => s.isLoading)
 
-  if (isLoading) {
+  if (isLoading || (user && !profile)) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', gap: 'var(--space-4)' }}>
         <img src="/EventGrid-favicon.svg" alt="Loading" style={{ width: 56, height: 56, opacity: 0.5 }} />

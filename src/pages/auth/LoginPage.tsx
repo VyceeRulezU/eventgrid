@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Star, Mail, Key } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { SEO } from '@/components/shared/SEO'
 import styles from './Auth.module.css'
@@ -46,7 +45,6 @@ export function LoginPage() {
   const [currentSlide, setCurrentSlide] = useState(0)
   
   const navigate = useNavigate()
-  const setUser = useAuthStore((s) => s.setUser)
   const showToast = useUIStore((s) => s.showToast)
 
   useEffect(() => {
@@ -90,9 +88,7 @@ export function LoginPage() {
       if (error) throw error
 
       if (data.user) {
-        setUser(data.user)
-        const role = data.user.user_metadata?.role
-        navigate(role ? `/dashboard/${role}` : '/')
+        navigate('/', { replace: true })
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unable to sign in. Please try again.'

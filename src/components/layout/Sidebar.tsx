@@ -121,8 +121,7 @@ export function Sidebar() {
             <div className={styles.category}>
               <span className={styles.categoryLabel}>Admin</span>
               <NavLink
-                to="/admin"
-                end
+                to="/admin/analytics"
                 className={({ isActive }) =>
                   `${styles.navItem} ${isActive ? styles.active : ''}`
                 }

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Bell, CheckCheck, Search, Inbox, RefreshCw, Flag, Truck, Eye, MessageSquare, X } from 'lucide-react'
+import { Bell, CheckCheck, Search, RefreshCw, Flag, Truck, Eye, MessageSquare, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth.store'
 import { getNotifications, markAsRead, markAllAsRead, navigateFromNotification } from '@/lib/notifications'
@@ -66,7 +66,6 @@ export function NotificationsPage() {
   const [tab, setTab] = useState<TabKey>('all')
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<Set<string>>(new Set())
-  const [selectAll, setSelectAll] = useState(false)
   const [splitOpen, setSplitOpen] = useState(false)
   const [feedbackThreadId, setFeedbackThreadId] = useState<string | undefined>(undefined)
   const [activeNotifId, setActiveNotifId] = useState<string | undefined>(undefined)
@@ -119,7 +118,6 @@ export function NotificationsPage() {
     }
     setNotifications(notifications.map((n) => selected.has(n.id) ? { ...n, is_read: true, read_at: n.read_at || new Date().toISOString() } : n))
     setSelected(new Set())
-    setSelectAll(false)
   }
 
   const toggleSelect = (id: string, e?: React.MouseEvent) => {
@@ -130,16 +128,6 @@ export function NotificationsPage() {
       else next.add(id)
       return next
     })
-  }
-
-  const toggleSelectAll = () => {
-    if (selectAll) {
-      setSelected(new Set())
-      setSelectAll(false)
-    } else {
-      setSelected(new Set(filtered.map((n) => n.id)))
-      setSelectAll(true)
-    }
   }
 
   const hasSelection = selected.size > 0
@@ -164,7 +152,7 @@ export function NotificationsPage() {
           <button className="btn btn-ghost btn-sm" onClick={handleBulkMarkRead}>
             <Eye size={12} /> Mark Read
           </button>
-          <button className="btn btn-ghost btn-sm" onClick={() => { setSelected(new Set()); setSelectAll(false) }}>
+          <button className="btn btn-ghost btn-sm" onClick={() => { setSelected(new Set()) }}>
             Clear
           </button>
         </div>
