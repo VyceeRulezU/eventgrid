@@ -77,6 +77,9 @@ export function RegisterPage() {
     return () => clearInterval(timer)
   }, [])
 
+  const showModal = useUIStore((s) => s.showModal)
+  const dismissModal = useUIStore((s) => s.dismissModal)
+
   async function authRequestWithTimeout<T>(promise: Promise<T>, timeoutMs = 15000) {
     let timeoutId: number | null = null
     const timeout = new Promise<never>((_, reject) => {
@@ -99,6 +102,35 @@ export function RegisterPage() {
     setLoading(true)
 
     try {
+      const { data: existing } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email)
+        .maybeSingle()
+
+      if (existing) {
+        showModal({
+          variant: 'warning',
+          title: 'Account already exists',
+          message: 'An account with this email already exists. Please log in instead.',
+          actions: [
+            {
+              label: 'Login',
+              onClick: () => {
+                dismissModal()
+                navigate('/login')
+              },
+            },
+            {
+              label: 'Cancel',
+              variant: 'secondary',
+              onClick: () => dismissModal(),
+            },
+          ],
+        })
+        return
+      }
+
       const metadata: Record<string, any> = { display_name: name, role, phone }
       if (isSuperAdminInvite) {
         metadata.is_super_admin = true
