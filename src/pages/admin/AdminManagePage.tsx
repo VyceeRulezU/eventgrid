@@ -36,10 +36,13 @@ interface EventRow {
 interface PaymentRow {
   id: string
   created_at: string
-  amount: number
-  payment_method: string
-  status: string
   event_name: string
+  organization: string
+  creator_name: string
+  amount: number
+  payment_provider: string | null
+  paystack_ref: string | null
+  payment_status: string
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -222,6 +225,55 @@ function PersonModal({
   )
 }
 
+function PaymentDetailModal({ payment, onClose }: { payment: PaymentRow; onClose: () => void }) {
+  const method = payment.payment_provider
+    ? payment.payment_provider.charAt(0).toUpperCase() + payment.payment_provider.slice(1)
+    : '—'
+
+  return (
+    <div className={styles.overlay} onClick={onClose}>
+      <div className={styles.payModal} onClick={e => e.stopPropagation()}>
+        <button className={styles.payCloseBtn} onClick={onClose} data-tooltip="Close"><X size={18} /></button>
+
+        <div className={styles.payHero}>
+          <div className={styles.payAmount}>
+            {formatCurrency(payment.amount)}
+          </div>
+          <div className={styles.paySubtitle}>Event Subscription</div>
+          <span className={`${styles.statusBadge} ${styles.status_paid}`}>Paid</span>
+        </div>
+
+        <div className={styles.paySection}>
+          <div className={styles.paySectionTitle}>Details</div>
+          <div className={styles.payCard}>
+            <PayRow label="Event" value={payment.event_name} />
+            <PayRow label="Organization" value={payment.organization} />
+            <PayRow label="Created by" value={payment.creator_name} />
+            <PayRow label="Date" value={formatDate(payment.created_at)} last />
+          </div>
+        </div>
+
+        <div className={styles.paySection}>
+          <div className={styles.paySectionTitle}>Payment Info</div>
+          <div className={styles.payCard}>
+            <PayRow label="Method" value={method} />
+            <PayRow label="Reference" value={payment.paystack_ref || '—'} last />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function PayRow({ label, value, last }: { label: string; value: string; last?: boolean }) {
+  return (
+    <div className={`${styles.payRow} ${last ? styles.payRowLast : ''}`}>
+      <span className={styles.payLabel}>{label}</span>
+      <span className={styles.payValue}>{value}</span>
+    </div>
+  )
+}
+
 function formatCurrency(kobo: number): string {
   return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 2 }).format(kobo / 100)
 }
@@ -242,13 +294,14 @@ export function AdminManagePage() {
   const [page, setPage] = useState(0)
   const [selectedPerson, setSelectedPerson] = useState<PersonRow | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [selectedPayment, setSelectedPayment] = useState<PaymentRow | null>(null)
   const [eventFilter, setEventFilter] = useState<string>('all')
 
   const loadData = useCallback(async () => {
     setLoading(true)
 
     const [{ data: profiles }, { data: orgs }, { data: allEvents }] = await Promise.all([
-      supabase.from('profiles').select('id, display_name, email, phone, avatar_url, is_active, org_id, role, created_at').order('created_at', { ascending: false }),
+      supabase.from('profiles').select('id, display_name, email, phone, avatar_url, is_active, org_id, role, created_at').eq('is_active', true).order('created_at', { ascending: false }),
       supabase.from('organizations').select('id, name'),
       supabase.from('events').select('id, name, event_type, status, event_date, guest_count, created_at, created_by, org_id, coordinator_id').is('deleted_at', null).order('created_at', { ascending: false }),
     ])
@@ -318,25 +371,39 @@ export function AdminManagePage() {
   }, [loadData, role])
 
   const loadPayments = useCallback(async () => {
-    const { data: paymentsData } = await supabase
-      .from('client_payments')
-      .select('id, amount, payment_method, status, created_at, event_id, description')
+    const { data: paidEvents } = await supabase
+      .from('events')
+      .select('id, name, created_at, payment_status, paystack_ref, payment_provider, created_by, org_id')
+      .eq('payment_status', 'paid')
+      .is('deleted_at', null)
       .order('created_at', { ascending: false })
       .limit(100)
 
-    const eventIds = [...new Set((paymentsData || []).map(p => p.event_id).filter(Boolean))]
-    const { data: eventsData } = eventIds.length > 0
-      ? await supabase.from('events').select('id, name').in('id', eventIds)
-      : { data: [] }
-    const eventMap = new Map((eventsData || []).map(e => [e.id, e.name]))
+    const orgIds = [...new Set((paidEvents || []).map(e => e.org_id).filter(Boolean))]
+    const profileIds = [...new Set((paidEvents || []).map(e => e.created_by).filter(Boolean))]
 
-    setPayments((paymentsData || []).map(p => ({
-      id: p.id,
-      created_at: p.created_at,
-      amount: p.amount || 0,
-      payment_method: p.payment_method || 'N/A',
-      status: p.status,
-      event_name: p.event_id ? eventMap.get(p.event_id) || 'Unknown' : 'Unknown',
+    const [{ data: orgs }, { data: profiles }] = await Promise.all([
+      orgIds.length > 0
+        ? supabase.from('organizations').select('id, name').in('id', orgIds)
+        : { data: [] },
+      profileIds.length > 0
+        ? supabase.from('profiles').select('id, display_name, email').in('id', profileIds)
+        : { data: [] },
+    ])
+
+    const orgMap = new Map((orgs || []).map(o => [o.id, o.name]))
+    const profileMap = new Map((profiles || []).map(p => [p.id, p]))
+
+    setPayments((paidEvents || []).map(e => ({
+      id: e.id,
+      created_at: e.created_at,
+      event_name: e.name,
+      organization: orgMap.get(e.org_id) || 'Unknown',
+      creator_name: profileMap.get(e.created_by)?.display_name || profileMap.get(e.created_by)?.email || 'Unknown',
+      amount: 2000000,
+      payment_provider: e.payment_provider || null,
+      paystack_ref: e.paystack_ref || null,
+      payment_status: e.payment_status,
     })))
   }, [])
 
@@ -364,6 +431,33 @@ export function AdminManagePage() {
               showNotification({ variant: 'error', title: 'Delete failed', message: error.message })
             } else {
               showNotification({ variant: 'success', title: 'Deleted', message: `${person.display_name || person.email} has been deactivated.` })
+              loadData()
+            }
+          },
+        },
+      ],
+    })
+  }
+
+  const handleDeleteEvent = async (event: EventRow) => {
+    showModal({
+      variant: 'confirm',
+      title: 'Delete Event?',
+      message: `Are you sure you want to delete "${event.name}"? This action cannot be undone.`,
+      actions: [
+        { label: 'Cancel', variant: 'secondary' as const, onClick: () => {} },
+        {
+          label: 'Delete',
+          variant: 'danger' as const,
+          onClick: async () => {
+            const { error } = await supabase
+              .from('events')
+              .update({ deleted_at: new Date().toISOString() })
+              .eq('id', event.id)
+            if (error) {
+              showNotification({ variant: 'error', title: 'Delete failed', message: error.message })
+            } else {
+              showNotification({ variant: 'success', title: 'Deleted', message: `"${event.name}" has been deleted.` })
               loadData()
             }
           },
@@ -585,6 +679,14 @@ export function AdminManagePage() {
                     >
                       <ExternalLink size={16} />
                     </button>
+                    <button
+                      className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
+                      onClick={(ev) => { ev.stopPropagation(); handleDeleteEvent(e) }}
+                      data-tooltip="Delete event"
+                      style={{ marginLeft: 4 }}
+                    >
+                      <Trash2 size={16} />
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -615,15 +717,17 @@ export function AdminManagePage() {
               <tr>
                 <th className={styles.th}>Date</th>
                 <th className={styles.th}>Event</th>
+                <th className={styles.th}>Organization</th>
                 <th className={styles.th}>Amount</th>
                 <th className={styles.th}>Method</th>
                 <th className={styles.th}>Status</th>
+                <th className={`${styles.th} ${styles.thActions}`}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {data.length === 0 ? (
                 <tr>
-                  <td colSpan={5} style={{ textAlign: 'center', padding: 'var(--space-8)', color: 'var(--color-text-muted)' }}>
+                  <td colSpan={7} style={{ textAlign: 'center', padding: 'var(--space-8)', color: 'var(--color-text-muted)' }}>
                     <div className="empty-state"><div className="empty-state__title">No payments yet</div></div>
                   </td>
                 </tr>
@@ -632,13 +736,29 @@ export function AdminManagePage() {
                   <td className={styles.td} style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)', whiteSpace: 'nowrap' }}>
                     {formatDate(p.created_at)}
                   </td>
-                  <td className={styles.td} style={{ fontWeight: 600 }}>{p.event_name}</td>
-                  <td className={styles.td} style={{ fontWeight: 600, color: 'var(--color-accent)', whiteSpace: 'nowrap' }}>{formatCurrency(p.amount)}</td>
-                  <td className={styles.td} style={{ color: 'var(--color-text-secondary)' }}>{p.payment_method}</td>
                   <td className={styles.td}>
-                    <span className={`${styles.statusBadge} ${styles[`status_${p.status}`] || ''}`}>
-                      {p.status}
+                    <span className={styles.cellTruncate} style={{ fontWeight: 600 }}>{p.event_name}</span>
+                  </td>
+                  <td className={styles.td}>
+                    <span className={styles.cellTruncate}>{p.organization}</span>
+                  </td>
+                  <td className={styles.td} style={{ fontWeight: 600, color: 'var(--color-accent)', whiteSpace: 'nowrap' }}>{formatCurrency(p.amount)}</td>
+                  <td className={styles.td}>
+                    <span style={{ color: 'var(--color-text-secondary)' }}>{p.payment_provider ? p.payment_provider.charAt(0).toUpperCase() + p.payment_provider.slice(1) : '—'}</span>
+                  </td>
+                  <td className={styles.td}>
+                    <span className={`${styles.statusBadge} ${styles[`status_${p.payment_status}`] || ''}`}>
+                      {p.payment_status === 'paid' ? 'Paid' : p.payment_status}
                     </span>
+                  </td>
+                  <td className={`${styles.td} ${styles.actionsCell}`}>
+                    <button
+                      className={styles.iconBtn}
+                      onClick={() => setSelectedPayment(p)}
+                      data-tooltip="View details"
+                    >
+                      <Eye size={16} />
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -679,7 +799,7 @@ export function AdminManagePage() {
           { key: 'payments', label: 'Payments', icon: <CreditCard size={16} />, badge: payments.length },
         ]}
         activeTab={activeTab}
-        onChange={(k) => { setActiveTab(k); setPage(0); setSelectedPerson(null); setSelectedIds(new Set()); navigate(`/admin/manage?tab=${k}`, { replace: true }) }}
+        onChange={(k) => { setActiveTab(k); setPage(0); setSelectedPerson(null); setSelectedPayment(null); setSelectedIds(new Set()); navigate(`/admin/manage?tab=${k}`, { replace: true }) }}
       />
 
       {loading ? (
@@ -714,6 +834,13 @@ export function AdminManagePage() {
           person={selectedPerson}
           roleLabel={activeTab === 'planners' ? 'Planner' : 'Coordinator'}
           onClose={() => setSelectedPerson(null)}
+        />
+      )}
+
+      {selectedPayment && (
+        <PaymentDetailModal
+          payment={selectedPayment}
+          onClose={() => setSelectedPayment(null)}
         />
       )}
 
