@@ -114,6 +114,7 @@ export function CompletedEventReport() {
       setData(narrativeData)
     } catch (e) {
       console.warn('[AI] narrative generation failed, continuing without AI:', e)
+      showToast({ type: 'warning', title: 'AI Narrative Unavailable', body: e instanceof Error ? e.message : 'Could not generate AI narrative. Report will be generated without it.' })
     }
     setGeneratingAi(false)
 

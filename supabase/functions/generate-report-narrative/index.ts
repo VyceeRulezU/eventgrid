@@ -134,8 +134,11 @@ Deno.serve(async (req) => {
     if (!geminiRes.ok) {
       const errBody = await geminiRes.text()
       console.error('Gemini API error:', geminiRes.status, errBody)
+      const friendlyMessage = geminiRes.status === 429
+        ? 'Daily AI quota exceeded. The report will be generated without AI narrative. Try again later or upgrade your AI plan.'
+        : `AI service error (${geminiRes.status}). The report will be generated without AI narrative.`
       return new Response(
-        JSON.stringify({ error: `AI service error (${geminiRes.status})`, detail: errBody }),
+        JSON.stringify({ error: friendlyMessage, detail: errBody }),
         { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
