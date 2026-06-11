@@ -31,7 +31,7 @@ export async function uploadFile(
   path: string,
 ): Promise<{ url: string; storagePath: string }> {
   if (config.provider === 'r2' && config.r2.endpoint) {
-    return uploadToR2(file, path)
+    return uploadToR2(path, file)
   }
 
   return uploadToSupabase(bucket, file, path)

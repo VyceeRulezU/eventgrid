@@ -9,7 +9,7 @@ import {
   Calendar, Users, Wallet, AlertTriangle,
   ExternalLink, FileText, CheckCircle2, Circle,
   CreditCard, ShieldCheck, Radio, ListChecks, BarChart3,
-  Clock, ArrowRight, Zap, X, Pencil, Gift, Lock,
+  Clock, ArrowRight, Zap, X, Pencil, Gift,
 } from 'lucide-react'
 import { PageHero } from '@/components/shared/PageHero'
 import { ModuleLock } from '@/components/shared/ModuleLock'
@@ -108,6 +108,7 @@ export function EventDashboardPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
+  const profile = useAuthStore((s) => s.profile)
   const role = useAuthStore((s) => s.role)
   const { activeEvent, setActiveEvent, phases, setPhases } = useEventStore()
   const showNotification = useUIStore((s) => s.showNotification)

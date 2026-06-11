@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
-import { uploadFile, getFileUrl, getStorageProvider } from '@/lib/storage'
+import { uploadFile, getFileUrl } from '@/lib/storage'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import {
