@@ -130,7 +130,7 @@ function InviteClientModal({ events, onClose }: {
     setGenerating(true)
     const { data, error } = await supabase
       .from('client_portals')
-      .insert({ event_id: selectedEvent })
+      .insert({ event_id: selectedEvent, client_name: 'Client' })
       .select('access_token')
       .single()
 
