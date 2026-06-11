@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { pdf } from '@react-pdf/renderer'
-import { FileText, Users, CircleDollarSign, Building, Star, CheckCircle, X } from 'lucide-react'
+import { FileText, Sparkles, Users, CircleDollarSign, Building, Star, CheckCircle, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { useResolvedEventId } from '@/hooks/useResolvedEventId'
 import { PageHero } from '@/components/shared/PageHero'
 import { ReportPdfDocument } from './ReportPdfDocument'
+import { generateReportNarrative } from '@/lib/edgeFunctions'
 import type { Event, EventPhase, Issue } from '@/types'
 import type { VendorRating, ReportData } from './EventReportBuilder'
 import styles from './Aftermath.module.css'
@@ -25,6 +26,7 @@ export function CompletedEventReport() {
   const [showPreview, setShowPreview] = useState(false)
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
   const [generating, setGenerating] = useState(false)
+  const [generatingAi, setGeneratingAi] = useState(false)
 
   useEffect(() => {
     if (!user || !eventId) return
@@ -73,10 +75,52 @@ export function CompletedEventReport() {
   const handleGenerate = async () => {
     if (!data?.event) return
     setGenerating(true)
+    setGeneratingAi(true)
+
+    let narrativeData = data
+    try {
+      const phases = data.phases.map((p) => ({
+        phase_number: p.phase_number,
+        phase_name: p.phase_name,
+        status: p.status,
+      }))
+      const issues = data.issues.map((i) => ({
+        title: i.title,
+        severity: i.severity,
+        resolved_at: i.resolved_at,
+        lessons_learned: i.lessons_learned,
+      }))
+
+      const aiResult = await generateReportNarrative({
+        event: {
+          name: data.event.name,
+          event_type: data.event.event_type,
+          event_date: data.event.event_date,
+          venue_name: data.event.venue_name,
+          status: data.event.status,
+        },
+        phases,
+        guestCount: data.guestCount,
+        checkedIn: data.checkedIn,
+        totalBudget: data.totalBudget,
+        vendorCount: data.vendorCount,
+        issues,
+        issuesResolved: data.issuesResolved,
+        mediaCount: data.mediaCount,
+        type: 'internal',
+      })
+
+      narrativeData = { ...data, aiNarrative: aiResult.narrative }
+      setData(narrativeData)
+    } catch (e) {
+      console.warn('[AI] narrative generation failed, continuing without AI:', e)
+    }
+    setGeneratingAi(false)
+
     try {
       const plannerName = user?.user_metadata?.display_name || user?.email || ''
       const blob = await pdf(
-        <ReportPdfDocument data={data} vendorRatings={vendorRatings} type="internal" plannerName={plannerName} />
+        <ReportPdfDocument data={narrativeData} vendorRatings={vendorRatings} type="internal" plannerName={plannerName} />
       ).toBlob()
       setPdfUrl(URL.createObjectURL(blob))
       setShowPreview(true)
@@ -115,8 +159,9 @@ export function CompletedEventReport() {
         subtitle={`${data.event.name} · ${data.event.event_type}`}
         backTo={`/events/${paramId}`}
         actions={
-          <button className="btn btn-primary btn-sm" onClick={handleGenerate} disabled={showPreview}>
-            <FileText size={14} /> View Report
+          <button className="btn btn-primary btn-sm" onClick={handleGenerate} disabled={showPreview || generating}>
+            {generatingAi ? <Sparkles size={14} className="spin" /> : <Sparkles size={14} />}
+            {generatingAi ? 'Generating...' : 'View AI Report'}
           </button>
         }
       />

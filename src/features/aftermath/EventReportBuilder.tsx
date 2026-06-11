@@ -3,8 +3,9 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { pdf } from '@react-pdf/renderer'
-import { FileText, Users, CircleDollarSign, Building, Star, X } from 'lucide-react'
+import { FileText, Users, CircleDollarSign, Building, Star, Sparkles, X } from 'lucide-react'
 import { ReportPdfDocument } from './ReportPdfDocument'
+import { generateReportNarrative } from '@/lib/edgeFunctions'
 import type { Event, EventPhase, Issue } from '@/types'
 import styles from './Aftermath.module.css'
 
@@ -13,6 +14,14 @@ export interface VendorRating {
   name: string
   category: string
   rating: number
+}
+
+export interface AiNarrative {
+  executiveSummary: string
+  highlights: string[]
+  vendorNotes: string
+  issueSummary: string
+  recommendations: string[]
 }
 
 export interface ReportData {
@@ -27,6 +36,7 @@ export interface ReportData {
   issuesResolved: number
   mediaCount: number
   clientSharedCount: number
+  aiNarrative?: AiNarrative | null
 }
 
 export function EventReportBuilder({ eventId }: { eventId: string }) {
@@ -39,6 +49,7 @@ export function EventReportBuilder({ eventId }: { eventId: string }) {
   const [showPreview, setShowPreview] = useState<'internal' | 'client' | null>(null)
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
   const [generating, setGenerating] = useState(false)
+  const [generatingAi, setGeneratingAi] = useState(false)
 
   useEffect(() => {
     if (!user) return
@@ -99,10 +110,52 @@ export function EventReportBuilder({ eventId }: { eventId: string }) {
   const handleGenerate = async (type: 'internal' | 'client') => {
     if (!data?.event) return
     setGenerating(true)
+    setGeneratingAi(true)
+
+    let narrativeData = data
+    try {
+      const phases = data.phases.map((p) => ({
+        phase_number: p.phase_number,
+        phase_name: p.phase_name,
+        status: p.status,
+      }))
+      const issues = data.issues.map((i) => ({
+        title: i.title,
+        severity: i.severity,
+        resolved_at: i.resolved_at,
+        lessons_learned: i.lessons_learned,
+      }))
+
+      const aiResult = await generateReportNarrative({
+        event: {
+          name: data.event.name,
+          event_type: data.event.event_type,
+          event_date: data.event.event_date,
+          venue_name: data.event.venue_name,
+          status: data.event.status,
+        },
+        phases,
+        guestCount: data.guestCount,
+        checkedIn: data.checkedIn,
+        totalBudget: data.totalBudget,
+        vendorCount: data.vendorCount,
+        issues,
+        issuesResolved: data.issuesResolved,
+        mediaCount: data.mediaCount,
+        type,
+      })
+
+      narrativeData = { ...data, aiNarrative: aiResult.narrative }
+      setData(narrativeData)
+    } catch (e) {
+      console.warn('[AI] narrative generation failed, continuing without AI:', e)
+    }
+    setGeneratingAi(false)
+
     try {
       const plannerName = user?.user_metadata?.display_name || user?.email || ''
       const blob = await pdf(
-        <ReportPdfDocument data={data} vendorRatings={vendorRatings} type={type} plannerName={plannerName} />
+        <ReportPdfDocument data={narrativeData} vendorRatings={vendorRatings} type={type} plannerName={plannerName} />
       ).toBlob()
       const url = URL.createObjectURL(blob)
       setPdfUrl(url)
@@ -237,25 +290,25 @@ export function EventReportBuilder({ eventId }: { eventId: string }) {
 
       <div className={styles.reportActions}>
         <button
-          className="btn btn-primary"
-          style={{ borderRadius: 'var(--radius-sm)' }}
-          onClick={() => handleGenerate('internal')}
-          disabled={showPreview !== null}
-        >
-          <FileText size={16} />
-          Generate Internal Report
-        </button>
-        {role === 'planner' && (
-          <button
-            className="btn btn-secondary"
+            className="btn btn-primary"
             style={{ borderRadius: 'var(--radius-sm)' }}
-            onClick={() => handleGenerate('client')}
-            disabled={showPreview !== null}
+            onClick={() => handleGenerate('internal')}
+            disabled={showPreview !== null || generating}
           >
-            <FileText size={16} />
-            Generate Client Report
+            {generatingAi ? <Sparkles size={16} className="spin" /> : <Sparkles size={16} />}
+            {generatingAi ? 'Generating AI Report...' : 'Generate Internal Report'}
           </button>
-        )}
+          {role === 'planner' && (
+            <button
+              className="btn btn-secondary"
+              style={{ borderRadius: 'var(--radius-sm)' }}
+              onClick={() => handleGenerate('client')}
+              disabled={showPreview !== null || generating}
+            >
+              {generatingAi ? <Sparkles size={16} className="spin" /> : <Sparkles size={16} />}
+              {generatingAi ? 'Generating AI Report...' : 'Generate Client Report'}
+            </button>
+          )}
       </div>
 
       {showPreview && data?.event && (

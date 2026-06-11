@@ -1,5 +1,5 @@
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
-import type { ReportData, VendorRating } from './EventReportBuilder'
+import type { ReportData, VendorRating, AiNarrative } from './EventReportBuilder'
 
 const COLORS = {
   gold: '#D4A017',
@@ -189,6 +189,44 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: COLORS.muted,
   },
+  summaryBox: {
+    padding: 10,
+    border: `1 solid ${COLORS.border}`,
+    borderRadius: 4,
+    marginBottom: 12,
+  },
+  summaryText: {
+    fontSize: 10,
+    color: COLORS.body,
+    lineHeight: 1.5,
+  },
+  highlightItem: {
+    flexDirection: 'row',
+    paddingVertical: 2,
+  },
+  highlightBullet: {
+    fontSize: 10,
+    color: COLORS.gold,
+    marginRight: 6,
+    width: 10,
+  },
+  highlightText: {
+    fontSize: 10,
+    color: COLORS.body,
+    flex: 1,
+  },
+  recBox: {
+    padding: 8,
+    border: `1 solid ${COLORS.border}`,
+    borderRadius: 4,
+    marginBottom: 4,
+    backgroundColor: '#FAFAFA',
+  },
+  recText: {
+    fontSize: 10,
+    color: COLORS.body,
+    lineHeight: 1.4,
+  },
   footer: {
     position: 'absolute',
     bottom: 24,
@@ -266,6 +304,33 @@ export function ReportPdfDocument({ data, vendorRatings, type, plannerName }: Pd
             )}
           </View>
 
+          {data.aiNarrative && (
+            <>
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <View style={styles.sectionAccent} />
+                  <Text style={styles.sectionTitle}>Executive Summary</Text>
+                </View>
+                <View style={styles.summaryBox}>
+                  <Text style={styles.summaryText}>{data.aiNarrative.executiveSummary}</Text>
+                </View>
+              </View>
+
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <View style={styles.sectionAccent} />
+                  <Text style={styles.sectionTitle}>Highlights</Text>
+                </View>
+                {data.aiNarrative.highlights.map((h, i) => (
+                  <View key={i} style={styles.highlightItem}>
+                    <Text style={styles.highlightBullet}>✦</Text>
+                    <Text style={styles.highlightText}>{h}</Text>
+                  </View>
+                ))}
+              </View>
+            </>
+          )}
+
           {type === 'internal' && (
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
@@ -325,6 +390,19 @@ export function ReportPdfDocument({ data, vendorRatings, type, plannerName }: Pd
                 <Text style={styles.issueLesson}>Lesson: {i.lessons_learned}</Text>
               </View>
             ))}
+            {data.aiNarrative?.issueSummary && (
+              <View style={{ marginTop: 8 }}>
+                <Text style={styles.summaryText}>{data.aiNarrative.issueSummary}</Text>
+              </View>
+            )}
+            {data.aiNarrative?.vendorNotes && type === 'internal' && (
+              <View style={{ marginTop: 8 }}>
+                <View style={styles.summaryBox}>
+                  <Text style={{ fontSize: 9, fontWeight: 'bold', color: COLORS.muted, marginBottom: 2, textTransform: 'uppercase', letterSpacing: 0.5 }}>Vendor Notes</Text>
+                  <Text style={styles.summaryText}>{data.aiNarrative.vendorNotes}</Text>
+                </View>
+              </View>
+            )}
           </View>
 
           <View style={styles.section}>
@@ -342,6 +420,23 @@ export function ReportPdfDocument({ data, vendorRatings, type, plannerName }: Pd
               </View>
             ))}
           </View>
+
+          {data.aiNarrative?.recommendations && data.aiNarrative.recommendations.length > 0 && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <View style={styles.sectionAccent} />
+                <Text style={styles.sectionTitle}>Recommendations</Text>
+              </View>
+              {data.aiNarrative.recommendations.map((r, i) => (
+                <View key={i} style={styles.recBox}>
+                  <Text style={styles.recText}>
+                    <Text style={{ fontWeight: 'bold' }}>{i + 1}. </Text>
+                    {r}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
 
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
