@@ -25,7 +25,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
     user,
     role: !user ? null
       : state.profile?.is_super_admin ? 'super_admin' as UserRole
-      : (user?.user_metadata?.role as UserRole) ?? null,
+      : (state.profile?.role || (user?.user_metadata?.role as UserRole)) ?? null,
   })),
   setProfile: (profile) => set((state) => ({
     profile,
