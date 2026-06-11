@@ -1,5 +1,6 @@
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
+import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
 import Footer from '@/pages/landing/Footer'
 import { GitMerge, Layers, Clock, Settings } from 'lucide-react'
@@ -87,6 +88,26 @@ export function PipelineLandingPage() {
           </div>
         </div>
       </section>
+
+      <FaqSection
+        items={[
+          {
+            category: 'Pipelines',
+            items: [
+              {
+                question: 'Can I customize pipeline phases?',
+                answer: 'Yes, you can add, remove, or reorder phases to match your unique event planning workflow.'
+              },
+              {
+                question: 'Can I reuse pipelines for future events?',
+                answer: 'Absolutely. Save any event as a template and duplicate it for new clients with one click.'
+              }
+            ]
+          }
+        ]}
+        header="Frequently Asked Questions"
+        summary="Common questions about Event Pipelines."
+      />
 
       <LandingCTA
         title="Ready to organize your timelines?"

@@ -1,5 +1,6 @@
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
+import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
 import Footer from '@/pages/landing/Footer'
 import { CalendarRange, ClipboardList, Zap, ShieldCheck } from 'lucide-react'
@@ -87,6 +88,26 @@ export function CoordinatorsLandingPage() {
           </div>
         </div>
       </section>
+
+      <FaqSection
+        items={[
+          {
+            category: 'Coordinators',
+            items: [
+              {
+                question: 'Do I need a separate app to use EventGrid?',
+                answer: 'No, EventGrid works entirely in your mobile browser. Checklists and timelines are fully responsive on phones and tablets.'
+              },
+              {
+                question: 'Can I use EventGrid offline?',
+                answer: 'Yes, our offline mode lets you check tasks and update checklists even without internet. Everything syncs automatically when you reconnect.'
+              }
+            ]
+          }
+        ]}
+        header="Frequently Asked Questions"
+        summary="Common questions about coordinating with EventGrid."
+      />
 
       <LandingCTA
         title="Ready to coordinate like a pro?"

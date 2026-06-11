@@ -1,5 +1,6 @@
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
+import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
 import Footer from '@/pages/landing/Footer'
 import styles from './InfoPages.module.css'
@@ -66,6 +67,26 @@ export function BlogPage() {
           </div>
         </div>
       </section>
+
+      <FaqSection
+        items={[
+          {
+            category: 'General',
+            items: [
+              {
+                question: 'How often is the blog updated?',
+                answer: 'We publish new articles every week covering event planning strategies, vendor management tips, and platform updates.'
+              },
+              {
+                question: 'Can I contribute to the blog?',
+                answer: 'We welcome guest posts from event professionals. Reach out to our editorial team with your pitch.'
+              }
+            ]
+          }
+        ]}
+        header="Frequently Asked Questions"
+        summary="Common questions about our blog and content."
+      />
 
       <LandingCTA
         title="Stay updated on event execution tips."

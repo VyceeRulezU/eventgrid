@@ -1,5 +1,6 @@
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
+import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
 import Footer from '@/pages/landing/Footer'
 import { FileBarChart, PiggyBank, Smile, Download } from 'lucide-react'
@@ -87,6 +88,26 @@ export function AftermathReportsLandingPage() {
           </div>
         </div>
       </section>
+
+      <FaqSection
+        items={[
+          {
+            category: 'Aftermath Reports',
+            items: [
+              {
+                question: 'What data is included in the report?',
+                answer: 'Reports consolidate budget summaries, guest attendance analytics, vendor feedback, and timeline milestones into one PDF.'
+              },
+              {
+                question: 'Can I export the report as a PDF?',
+                answer: 'Yes, with one click you can generate a professionally formatted PDF ready to share with clients.'
+              }
+            ]
+          }
+        ]}
+        header="Frequently Asked Questions"
+        summary="Common questions about Aftermath Reports."
+      />
 
       <LandingCTA
         title="Ready to build aftermath reports?"

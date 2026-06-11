@@ -1,5 +1,6 @@
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
+import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
 import Footer from '@/pages/landing/Footer'
 import { Landmark, Compass, Eye, ShieldAlert } from 'lucide-react'
@@ -87,6 +88,26 @@ export function ClientPortalLandingPage() {
           </div>
         </div>
       </section>
+
+      <FaqSection
+        items={[
+          {
+            category: 'Client Portal',
+            items: [
+              {
+                question: 'Is the client portal secure?',
+                answer: 'Yes, portals are read-only and accessed via secure magic links. Clients cannot modify any event data.'
+              },
+              {
+                question: 'Can I customize what clients see?',
+                answer: 'Yes, you control which sections — budget, timeline, guest tracking — are visible to each client.'
+              }
+            ]
+          }
+        ]}
+        header="Frequently Asked Questions"
+        summary="Common questions about the Client Portal."
+      />
 
       <LandingCTA
         title="Ready to delight your clients?"

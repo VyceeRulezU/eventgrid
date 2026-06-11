@@ -1,5 +1,6 @@
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
+import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
 import Footer from '@/pages/landing/Footer'
 import { Download, FileText, Image } from 'lucide-react'
@@ -48,6 +49,26 @@ export function PressPage() {
           </div>
         </div>
       </section>
+
+      <FaqSection
+        items={[
+          {
+            category: 'Press & Media',
+            items: [
+              {
+                question: 'How do I request an interview?',
+                answer: 'Send an email to press@eventgrid.ng with your publication details, story angle, and deadline.'
+              },
+              {
+                question: 'Can I use EventGrid logos and assets?',
+                answer: 'Yes, our brand assets are available for download in the Press Kit section above. Please follow our brand guidelines.'
+              }
+            ]
+          }
+        ]}
+        header="Frequently Asked Questions"
+        summary="Common questions for press and media."
+      />
 
       <LandingCTA
         title="Looking for media comments?"

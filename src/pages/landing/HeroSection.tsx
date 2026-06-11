@@ -6,10 +6,10 @@ import { useAuthStore } from '@/store/auth.store'
 import styles from './HeroSection.module.css'
 
 const SLIDES = [
-  'https://images.unsplash.com/photo-1519741497674-611481863552?w=1600&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1511578314322-379afb476865?w=1600&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=1600&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1600&auto=format&fit=crop&q=80'
+  { url: 'https://images.pexels.com/photos/34079361/pexels-photo-34079361.jpeg?auto=compress&cs=tinysrgb&w=1600&fit=crop', pos: 'bottom' }, /* nigerian wedding */
+  { url: 'https://images.pexels.com/photos/19870036/pexels-photo-19870036.jpeg?auto=compress&cs=tinysrgb&w=1600&fit=crop',  pos: 'center' }, /* nigerian wedding decor */
+  { url: 'https://images.pexels.com/photos/35042249/pexels-photo-35042249.jpeg?auto=compress&cs=tinysrgb&w=1600&fit=crop', pos: 'center' }, /* business conference */
+  { url: 'https://images.pexels.com/photos/57980/pexels-photo-57980.jpeg?auto=compress&cs=tinysrgb&w=1600&fit=crop',       pos: 'center' }  /* corporate gala */
 ]
 
 export default function HeroSection() {
@@ -40,7 +40,10 @@ export default function HeroSection() {
               opacity: { duration: 1.5, ease: 'easeInOut' },
               scale: { duration: 6, ease: 'easeOut' },
             }}
-            style={{ backgroundImage: `url(${SLIDES[currentSlide]})` }}
+            style={{
+              backgroundImage: `url(${SLIDES[currentSlide].url})`,
+              backgroundPosition: SLIDES[currentSlide].pos,
+            }}
           />
         </AnimatePresence>
       </div>

@@ -1,5 +1,6 @@
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
+import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
 import Footer from '@/pages/landing/Footer'
 import { Calendar, Users, BarChart3, Shield } from 'lucide-react'
@@ -87,6 +88,26 @@ export function PlannersLandingPage() {
           </div>
         </div>
       </section>
+
+      <FaqSection
+        items={[
+          {
+            category: 'Planners',
+            items: [
+              {
+                question: 'Can I import my existing event templates?',
+                answer: 'Yes, you can create reusable pipeline templates. You can also duplicate existing events to use as templates for future events.'
+              },
+              {
+                question: 'How do I share access with my team?',
+                answer: 'Invite coordinators and team members directly from the dashboard with granular permission controls for each role.'
+              }
+            ]
+          }
+        ]}
+        header="Frequently Asked Questions"
+        summary="Common questions about planning with EventGrid."
+      />
 
       <LandingCTA
         title="Ready to streamline your planning workflow?"

@@ -1,5 +1,6 @@
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
+import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
 import Footer from '@/pages/landing/Footer'
 import { Truck, Wallet, FileText, CheckSquare } from 'lucide-react'
@@ -87,6 +88,26 @@ export function VendorTrackerLandingPage() {
           </div>
         </div>
       </section>
+
+      <FaqSection
+        items={[
+          {
+            category: 'Vendor Tracker',
+            items: [
+              {
+                question: 'Can I track payments to vendors?',
+                answer: 'Yes, the Vendor Tracker lets you manage deposits, milestone payments, and final balances for each vendor.'
+              },
+              {
+                question: 'Can vendors update their own status?',
+                answer: 'Vendors with accounts can log in to update arrival times and mark deliverables as complete.'
+              }
+            ]
+          }
+        ]}
+        header="Frequently Asked Questions"
+        summary="Common questions about Vendor Tracking."
+      />
 
       <LandingCTA
         title="Ready to track your vendors?"

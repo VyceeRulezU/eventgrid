@@ -1,5 +1,6 @@
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
+import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
 import Footer from '@/pages/landing/Footer'
 import { Sparkles } from 'lucide-react'
@@ -83,6 +84,26 @@ export function PricingPage() {
           </div>
         </div>
       </section>
+
+      <FaqSection
+        items={[
+          {
+            category: 'Pricing',
+            items: [
+              {
+                question: 'When will pricing plans launch?',
+                answer: 'Our pricing tiers are scheduled to launch in Q3 2026. Early adopters can lock in 50% off for the first 3 months.'
+              },
+              {
+                question: 'Is there a free plan?',
+                answer: 'Yes, you can register a free draft account today with no credit card required to explore the workspace.'
+              }
+            ]
+          }
+        ]}
+        header="Frequently Asked Questions"
+        summary="Common questions about EventGrid pricing."
+      />
 
       <LandingCTA
         title="Lock in early-bird access today."

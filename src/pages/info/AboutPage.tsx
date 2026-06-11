@@ -1,5 +1,6 @@
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
+import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
 import Footer from '@/pages/landing/Footer'
 import styles from './InfoPages.module.css'
@@ -56,6 +57,26 @@ export function AboutPage() {
           </div>
         </div>
       </section>
+
+      <FaqSection
+        items={[
+          {
+            category: 'General',
+            items: [
+              {
+                question: 'What is EventGrid?',
+                answer: 'EventGrid is a premium, multi-role event management workspace that helps planners, venue coordinators, and vendors collaborate in real-time.'
+              },
+              {
+                question: 'Who is EventGrid for?',
+                answer: 'EventGrid is built for event planners, venue coordinators, vendors, and clients who need a unified workspace to manage events from planning through aftermath.'
+              }
+            ]
+          }
+        ]}
+        header="Frequently Asked Questions"
+        summary="Quick answers about EventGrid."
+      />
 
       <LandingCTA
         title="Let's build the future of events."

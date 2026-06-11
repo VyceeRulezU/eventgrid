@@ -1,9 +1,8 @@
-import { useState } from 'react'
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
+import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
 import Footer from '@/pages/landing/Footer'
-import { ChevronDown, ChevronUp } from 'lucide-react'
 import styles from './InfoPages.module.css'
 
 const FAQS = [
@@ -49,13 +48,6 @@ const FAQS = [
 ]
 
 export function FAQPage() {
-  const [activeIdx, setActiveIdx] = useState<string | null>(null)
-
-  const toggleFaq = (catIdx: number, itemIdx: number) => {
-    const key = `${catIdx}-${itemIdx}`
-    setActiveIdx(activeIdx === key ? null : key)
-  }
-
   return (
     <div className={styles.pageWrapper}>
       <Navbar />
@@ -66,41 +58,7 @@ export function FAQPage() {
         subtitle="Find answers to common questions about setting up event pipelines, coordinator invitations, and payment security."
       />
 
-      {/* Accordions Section */}
-      <section className={styles.faqSection} aria-label="Accordion FAQs">
-        <div className={styles.container}>
-          <div className={styles.faqCategories}>
-            {FAQS.map((cat, catIdx) => (
-              <div key={cat.category} className={styles.faqCategoryBlock}>
-                <h2 className={styles.faqCategoryTitle}>{cat.category}</h2>
-                <div className={styles.faqList}>
-                  {cat.items.map((item, itemIdx) => {
-                    const isOpen = activeIdx === `${catIdx}-${itemIdx}`
-                    return (
-                      <div key={item.question} className={`${styles.faqCard} ${isOpen ? styles.faqCardOpen : ''}`}>
-                        <button
-                          className={styles.faqTrigger}
-                          onClick={() => toggleFaq(catIdx, itemIdx)}
-                          aria-expanded={isOpen}
-                          id={`faq-trigger-${catIdx}-${itemIdx}`}
-                        >
-                          <span className={styles.faqQuestion}>{item.question}</span>
-                          {isOpen ? <ChevronUp size={18} className={styles.faqChevron} /> : <ChevronDown size={18} className={styles.faqChevron} />}
-                        </button>
-                        {isOpen && (
-                          <div className={styles.faqContent}>
-                            <p className={styles.faqAnswer}>{item.answer}</p>
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <FaqSection items={FAQS} />
 
       <LandingCTA
         title="Still have questions?"

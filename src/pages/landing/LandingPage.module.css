@@ -14,3 +14,8 @@
   display: flex;
   flex-direction: column;
 }
+
+.faqTestimonialsWrap {
+  display: flex;
+  flex-direction: column;
+}

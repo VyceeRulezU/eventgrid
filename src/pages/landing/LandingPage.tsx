@@ -10,6 +10,7 @@ import FeatureSpotlightB from '@/pages/landing/FeatureSpotlightB'
 import FeatureSpotlightC from '@/pages/landing/FeatureSpotlightC'
 import FeatureSpotlightD from '@/pages/landing/FeatureSpotlightD'
 import RoleSection from '@/pages/landing/RoleSection'
+import { FaqSection } from '@/components/shared/FaqSection'
 import TestimonialsSection from '@/pages/landing/TestimonialsSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
 import Footer from '@/pages/landing/Footer'
@@ -53,9 +54,43 @@ export function LandingPage() {
         {/* SECTION: Role Selector */}
         <RoleSection />
 
-        {/* DARK ZONE: Testimonials + CTA + Footer share the same bg */}
+        {/* DARK ZONE: FAQ + Testimonials + CTA + Footer share the same bg */}
         <div className={styles.darkZone}>
-          <TestimonialsSection />
+          <div className={styles.faqTestimonialsWrap}>
+            <FaqSection
+              items={[
+                {
+                  category: 'Getting Started',
+                  items: [
+                    {
+                      question: 'What is EventGrid?',
+                      answer: 'EventGrid is a premium, multi-role event management workspace. We help planners, venue coordinators, and vendors collaborate in real-time, trace phase milestones, and manage secure contract payouts.'
+                    },
+                    {
+                      question: 'How do I get started?',
+                      answer: 'Register a free account, create your first event, and invite your team. The first activation takes about 5 minutes. No credit card required.'
+                    }
+                  ]
+                },
+                {
+                  category: 'Platform',
+                  items: [
+                    {
+                      question: 'Can I try EventGrid before paying?',
+                      answer: 'Yes. We offer a free draft account that lets you explore the workspace and invite up to 2 coordinators. Pricing tiers launching Q3 2026.'
+                    },
+                    {
+                      question: 'Is my data secure?',
+                      answer: 'Extremely secure. All event activations are verified server-to-server via our API. Payment status variables are protected from client-side direct database write modifications using database constraints.'
+                    }
+                  ]
+                }
+              ]}
+              header="Frequently Asked Questions"
+              summary="Quick answers to common questions about EventGrid."
+            />
+            <TestimonialsSection />
+          </div>
           <LandingCTA
             eyebrow="Start today. Pay per event."
             title="No more chaos. Just coordinated events."

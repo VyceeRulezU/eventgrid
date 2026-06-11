@@ -1,5 +1,6 @@
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
+import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
 import Footer from '@/pages/landing/Footer'
 import styles from './InfoPages.module.css'
@@ -62,6 +63,26 @@ export function CareersPage() {
           </div>
         </div>
       </section>
+
+      <FaqSection
+        items={[
+          {
+            category: 'Recruitment',
+            items: [
+              {
+                question: 'What is the hiring process?',
+                answer: 'Our process typically includes an initial screening, a technical or portfolio review, and a final interview with the team.'
+              },
+              {
+                question: 'Do you offer remote work?',
+                answer: 'Yes, we are a remote-first company. Most roles are fully remote with optional hybrid arrangements in Lagos and Abuja.'
+              }
+            ]
+          }
+        ]}
+        header="Frequently Asked Questions"
+        summary="Common questions about working at EventGrid."
+      />
 
       <LandingCTA
         title="Don't see your role?"

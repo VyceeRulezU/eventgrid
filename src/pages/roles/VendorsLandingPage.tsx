@@ -1,5 +1,6 @@
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
+import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
 import Footer from '@/pages/landing/Footer'
 import { Store, Wallet, Clock, CheckCircle } from 'lucide-react'
@@ -87,6 +88,26 @@ export function VendorsLandingPage() {
           </div>
         </div>
       </section>
+
+      <FaqSection
+        items={[
+          {
+            category: 'Vendors',
+            items: [
+              {
+                question: 'Is there a fee to list my services?',
+                answer: 'No, basic profile listing is completely free. You only pay a small service fee on completed bookings.'
+              },
+              {
+                question: 'How do I get paid?',
+                answer: 'Payments are processed through our secure escrow system. Clients deposit funds, and payouts are released upon milestone completion.'
+              }
+            ]
+          }
+        ]}
+        header="Frequently Asked Questions"
+        summary="Common questions about selling on EventGrid."
+      />
 
       <LandingCTA
         title="Ready to showcase your services?"

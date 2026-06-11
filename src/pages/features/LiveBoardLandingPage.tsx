@@ -1,5 +1,6 @@
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
+import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
 import Footer from '@/pages/landing/Footer'
 import { Radio, AlertCircle, Play, Users } from 'lucide-react'
@@ -87,6 +88,26 @@ export function LiveBoardLandingPage() {
           </div>
         </div>
       </section>
+
+      <FaqSection
+        items={[
+          {
+            category: 'Live Board',
+            items: [
+              {
+                question: 'How real-time is the Live Feed?',
+                answer: 'Updates appear in under 1 second via secure websocket connections, ensuring your team always has the latest information.'
+              },
+              {
+                question: 'Can the Live Board be displayed on a screen?',
+                answer: 'Yes, the Live Board is designed to be projected on event day screens so all coordinators can see live updates at a glance.'
+              }
+            ]
+          }
+        ]}
+        header="Frequently Asked Questions"
+        summary="Common questions about the Live Board."
+      />
 
       <LandingCTA
         title="Ready to go live?"

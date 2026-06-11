@@ -31,6 +31,7 @@ const NAV_COLS = [
       { label: 'Blog', href: '/blog', internal: true },
       { label: 'Careers', href: '/careers', internal: true },
       { label: 'Press Kit', href: '/press', internal: true },
+      { label: 'FAQ', href: '/faq', internal: true },
       { label: 'Contact', href: '/contact', internal: true },
     ],
   },
