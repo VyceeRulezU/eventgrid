@@ -49,19 +49,14 @@ export function AnalyticsPage() {
         guests: guestCount || 0,
       })
 
-      const twelveMonthsAgo = new Date()
-      twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 11)
-      twelveMonthsAgo.setDate(1)
-      const start = twelveMonthsAgo.toISOString()
-
       const [{ data: profiles }, { data: events }, { data: orgs }, { data: vendors }] = await Promise.all([
-        supabase.from('profiles').select('created_at').gte('created_at', start).order('created_at'),
-        supabase.from('events').select('created_at').gte('created_at', start).order('created_at'),
-        supabase.from('organizations').select('created_at').gte('created_at', start).order('created_at'),
-        supabase.from('vendors').select('created_at').gte('created_at', start).order('created_at'),
+        supabase.from('profiles').select('created_at').order('created_at'),
+        supabase.from('events').select('created_at').order('created_at'),
+        supabase.from('organizations').select('created_at').order('created_at'),
+        supabase.from('vendors').select('created_at').order('created_at'),
       ])
 
-      const months = getMonthRange(12)
+      const months = getMonthRange()
       const snap: MonthlySnapshot[] = months.map(m => ({
         month: m,
         signups: countInMonth(profiles || [], m),
@@ -77,14 +72,11 @@ export function AnalyticsPage() {
     load()
   }, [role])
 
-  function getMonthRange(n: number): string[] {
-    const result: string[] = []
-    const now = new Date()
-    for (let i = n - 1; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-      result.push(d.toISOString().substring(0, 7))
-    }
-    return result
+  function getMonthRange(): string[] {
+    const year = new Date().getUTCFullYear()
+    return Array.from({ length: 12 }, (_, i) =>
+      new Date(Date.UTC(year, i, 1)).toISOString().substring(0, 7),
+    )
   }
 
   function countInMonth(rows: { created_at: string }[], month: string): number {
