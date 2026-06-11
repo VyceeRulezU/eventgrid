@@ -9,9 +9,10 @@ import {
   Calendar, Users, Wallet, AlertTriangle,
   ExternalLink, FileText, CheckCircle2, Circle,
   CreditCard, ShieldCheck, Radio, ListChecks, BarChart3,
-  Clock, ArrowRight, Zap, X, Pencil,
+  Clock, ArrowRight, Zap, X, Pencil, Gift, Lock,
 } from 'lucide-react'
 import { PageHero } from '@/components/shared/PageHero'
+import { ModuleLock } from '@/components/shared/ModuleLock'
 import { EventVendorsPage } from '@/features/vendors/EventVendorsPage'
 import { GeneratePortalModal } from '@/features/client-portal/GeneratePortalModal'
 import { EditEventModal } from '@/features/events/EditEventModal'
@@ -414,6 +415,33 @@ export function EventDashboardPage() {
     }
   }, [user, id, activeEvent, setActiveEvent, showNotification])
 
+  const handleActivateFree = useCallback(async () => {
+    if (!activeEvent || !user) return
+    setPayStatus('processing')
+
+    const { error } = await supabase
+      .from('events')
+      .update({ status: 'active', updated_at: new Date().toISOString() })
+      .eq('id', activeEvent.id)
+
+    if (error) {
+      showNotification({ variant: 'error', title: 'Activation failed', message: error.message })
+      setPayStatus('idle')
+      return
+    }
+
+    await supabase.from('profiles').update({ free_tier_used: true }).eq('id', user.id)
+
+    useAuthStore.setState((s) => ({
+      profile: s.profile ? { ...s.profile, free_tier_used: true } : null,
+    }))
+
+    setActiveEvent({ ...activeEvent, status: 'active' })
+    showNotification({ variant: 'success', title: '🎉 Event activated!', message: `${activeEvent.name} is now active with full access.` })
+    setShowPaymentModal(false)
+    setPayStatus('success')
+  }, [activeEvent, user, profile, showNotification, setActiveEvent])
+
   const openPayment = () => {
     setPayStatus('idle')
     setShowPaymentModal(true)
@@ -433,6 +461,8 @@ export function EventDashboardPage() {
   const progressPct = phases.length ? Math.round((completedCount / phases.length) * 100) : 0
   const countdown = activeEvent ? getCountdown(activeEvent.event_date) : null
   const isPaid = activeEvent?.payment_status === 'paid'
+  const isActivated = activeEvent?.status !== 'draft'
+  const isFreeAvailable = !profile?.free_tier_used
 
   // Pagination for Deadlines (3 items per page)
   const itemsPerPageDeadlines = 3
@@ -487,11 +517,13 @@ export function EventDashboardPage() {
     nextActions.push({
       id: 'activate',
       priority: 'critical',
-      Icon: CreditCard,
-      title: 'Activate this event',
-      subtitle: 'Complete payment to unlock all planning features and start coordinating.',
-      cta: 'Pay ₦20,000',
-      onClick: openPayment,
+      Icon: isFreeAvailable ? Gift : CreditCard,
+      title: isFreeAvailable ? 'Activate Free' : 'Activate this event',
+      subtitle: isFreeAvailable
+        ? 'Your first event activation is free. Unlock vendors, guests, finances, tasks, and more.'
+        : 'Complete payment to unlock all planning features and start coordinating.',
+      cta: isFreeAvailable ? 'Activate Free — 1 Free Event' : 'Pay ₦20,000',
+      onClick: isFreeAvailable ? handleActivateFree : openPayment,
     })
   } else {
     if (countdown && !countdown.past && countdown.days <= 7) {
@@ -703,7 +735,7 @@ export function EventDashboardPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', animation: `${styles.slideFadeIn} 0.3s ease` }}>
           {/* Metrics Row */}
           <div className={styles.overviewStatsGrid}>
-            <button className={styles.statCard} onClick={() => navigate(`/events/${id}/vendors`)}>
+            <button className={styles.statCard} onClick={() => isActivated ? navigate(`/events/${id}/vendors`) : openPayment()}>
               <div className={styles.statCardHeader}>
                 <Users size={16} />
                 <span className={styles.statCardChevron}>→</span>
@@ -712,7 +744,7 @@ export function EventDashboardPage() {
               <div className={styles.statCardLabel}>Vendors Assigned</div>
             </button>
 
-            <button className={`${styles.statCard} ${stats.tasksDue > 0 ? styles.statCardWarn : ''}`} onClick={() => navigate(`/events/${id}/tasks`)}>
+            <button className={`${styles.statCard} ${stats.tasksDue > 0 ? styles.statCardWarn : ''}`} onClick={() => isActivated ? navigate(`/events/${id}/tasks`) : openPayment()}>
               <div className={styles.statCardHeader}>
                 <ListChecks size={16} />
                 <span className={styles.statCardChevron}>→</span>
@@ -721,7 +753,7 @@ export function EventDashboardPage() {
               <div className={styles.statCardLabel}>Overdue Tasks</div>
             </button>
 
-            <button className={`${styles.statCard} ${stats.openIssues > 0 ? styles.statCardError : ''}`} onClick={() => navigate(`/events/${id}/live-board`)}>
+            <button className={`${styles.statCard} ${stats.openIssues > 0 ? styles.statCardError : ''}`} onClick={() => isActivated ? navigate(`/events/${id}/live-board`) : openPayment()}>
               <div className={styles.statCardHeader}>
                 <AlertTriangle size={16} />
                 <span className={styles.statCardChevron}>→</span>
@@ -730,7 +762,7 @@ export function EventDashboardPage() {
               <div className={styles.statCardLabel}>Open Issues</div>
             </button>
 
-            <button className={styles.statCard} onClick={() => handleTabChange('phases')}>
+            <button className={styles.statCard} onClick={() => isActivated ? handleTabChange('phases') : openPayment()}>
               <div className={styles.statCardHeader}>
                 <CheckCircle2 size={16} />
                 <span className={styles.statCardChevron}>→</span>
@@ -741,7 +773,7 @@ export function EventDashboardPage() {
           </div>
 
           {/* Financial Snapshot Grid */}
-          {role === 'planner' && (
+          {role === 'planner' && isActivated && (
             <div className={styles.financialSnapshot}>
               <div className={styles.finSnapHeader}>
                 <div className={styles.finSnapTitle}>Financial Snapshot</div>
@@ -1120,12 +1152,17 @@ export function EventDashboardPage() {
 
       {activeTab === 'vendors' && (
         <div style={{ animation: `${styles.slideFadeIn} 0.3s ease` }}>
-          <EventVendorsPage standalone={false} />
+          {isActivated ? (
+            <EventVendorsPage standalone={false} />
+          ) : (
+            <ModuleLock isFreeAvailable={isFreeAvailable} onActivate={openPayment} />
+          )}
         </div>
       )}
 
       {activeTab === 'modules' && (
-        <div className={styles.modulesTabContent} style={{ animation: `${styles.slideFadeIn} 0.3s ease` }}>
+        isActivated ? (
+          <div className={styles.modulesTabContent} style={{ animation: `${styles.slideFadeIn} 0.3s ease` }}>
           {/* Operations Section */}
           <div className={styles.moduleCategorySection}>
             <h3 className={styles.moduleCategoryTitle}>Planning & Operations</h3>
@@ -1229,6 +1266,9 @@ export function EventDashboardPage() {
             </div>
           </div>
         </div>
+        ) : (
+          <ModuleLock isFreeAvailable={isFreeAvailable} onActivate={openPayment} />
+        )
       )}
 
       {/* ── Modals ── */}

@@ -4,6 +4,7 @@ import { useAuthStore } from '@/store/auth.store'
 import { useLiveFeedStore } from '@/store/liveFeed.store'
 import { useUIStore } from '@/store/ui.store'
 import { compressImage } from '@/lib/compressImage'
+import { uploadFile } from '@/lib/storage'
 import { Send, Paperclip, X, MapPin, User } from 'lucide-react'
 import type { LiveFeedPost } from '@/types'
 import styles from './LiveBoardPage.module.css'
@@ -55,19 +56,19 @@ export function PostForm({ eventId }: PostFormProps) {
         const ext = f.name.split('.').pop()
         const path = `live-feed/${eventId}/${user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
         const blob = await compressImage(f)
-        const { error: uploadErr } = await supabase.storage.from('event-media').upload(path, blob)
-        if (uploadErr) {
-          showNotification({ variant: 'error', title: 'Upload failed', message: uploadErr.message })
+        try {
+          const { url: publicUrl } = await uploadFile('event-media', blob, path)
+          urls.push(publicUrl)
+          mediaRows.push({
+            event_id: eventId,
+            uploader_id: user.id,
+            url: publicUrl,
+            storage_path: path,
+          })
+        } catch {
+          showNotification({ variant: 'error', title: 'Upload failed', message: 'Could not upload photo' })
           continue
         }
-        const { data: { publicUrl } } = supabase.storage.from('event-media').getPublicUrl(path)
-        urls.push(publicUrl)
-        mediaRows.push({
-          event_id: eventId,
-          uploader_id: user.id,
-          url: publicUrl,
-          storage_path: path,
-        })
       }
 
       const { data, error } = await supabase

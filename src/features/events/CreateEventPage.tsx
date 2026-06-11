@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Calendar, ArrowLeft, Check, CreditCard, ShieldCheck } from 'lucide-react'
+import { Calendar, ArrowLeft, Check, CreditCard, Gift, ShieldCheck } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -273,6 +273,61 @@ export function CreateEventPage() {
     setStep('payment')
   }
 
+  const handleActivateFree = async () => {
+    if (!user) {
+      showToast({ type: 'error', title: 'Not authenticated' })
+      return
+    }
+
+    let activeOrg = org
+    if (!activeOrg) {
+      const owned = await ensureOwnOrg(user.id, profile?.display_name || '')
+      if (!owned) {
+        showToast({ type: 'warning', title: 'Organization not set up', body: 'Please complete onboarding first' })
+        return
+      }
+      activeOrg = owned
+      setOrg(owned)
+    }
+
+    setSaving(true)
+
+    const { data, error } = await supabase
+      .from('events')
+      .insert({
+        org_id: activeOrg.id,
+        created_by: user.id,
+        name: form.name,
+        event_type: form.eventType,
+        event_date: form.eventDate || null,
+        venue_name: form.venueName || null,
+        venue_address: form.venueAddress || null,
+        guest_count: form.guestCount || null,
+        size_tier: 'standard',
+        budget_total: form.budgetTotal * 100 || null,
+        status: 'active',
+        payment_status: 'unpaid',
+        slug: generateSlug(form.name),
+      })
+      .select()
+      .single()
+
+    setSaving(false)
+
+    if (error || !data) {
+      showToast({ type: 'error', title: 'Failed to create event', body: error?.message })
+      return
+    }
+
+    await supabase.from('profiles').update({ free_tier_used: true }).eq('id', user.id)
+    useAuthStore.setState((s) => ({
+      profile: s.profile ? { ...s.profile, free_tier_used: true } : null,
+    }))
+
+    showToast({ type: 'success', title: '🎉 Event activated!', body: `${form.name} is ready with full access.` })
+    navigate(`/events/${data.slug || data.id}`)
+  }
+
   const handlePaymentSuccess = async (provider: 'paystack' | 'flutterwave', reference: string) => {
     paySucceededRef.current = true
     setPaying(true)
@@ -531,17 +586,31 @@ export function CreateEventPage() {
           </div>
         </div>
 
-        <div className="card" style={{ marginBottom: 'var(--space-5)', textAlign: 'center', padding: 'var(--space-6)' }}>
-          <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-2)' }}>
-            Event Activation Fee
+        {profile?.free_tier_used ? (
+          <div className="card" style={{ marginBottom: 'var(--space-5)', textAlign: 'center', padding: 'var(--space-6)' }}>
+            <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-2)' }}>
+              Event Activation Fee
+            </div>
+            <div style={{ fontSize: 'var(--text-display)', fontWeight: 800, color: 'var(--color-accent)', letterSpacing: '-0.02em' }}>
+              ₦20,000
+            </div>
+            <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              One-time payment · All event sizes included
+            </div>
           </div>
-          <div style={{ fontSize: 'var(--text-display)', fontWeight: 800, color: 'var(--color-accent)', letterSpacing: '-0.02em' }}>
-            ₦20,000
+        ) : (
+          <div className="card" style={{ marginBottom: 'var(--space-5)', textAlign: 'center', padding: 'var(--space-6)' }}>
+            <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--color-success-bg)', color: 'var(--color-success)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto var(--space-3)' }}>
+              <Gift size={24} />
+            </div>
+            <div style={{ fontSize: 'var(--text-display)', fontWeight: 800, color: 'var(--color-accent)', letterSpacing: '-0.02em' }}>
+              Free
+            </div>
+            <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              Your first event activation is on us
+            </div>
           </div>
-          <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
-            One-time payment · All event sizes included
-          </div>
-        </div>
+        )}
 
         <div className="card" style={{ marginBottom: 'var(--space-5)', padding: 'var(--space-4)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', lineHeight: 1.7 }}>
           <div style={{ fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 'var(--space-2)', fontSize: 'var(--text-sm)' }}>
@@ -557,19 +626,32 @@ export function CreateEventPage() {
             <span>✓ Client portal access</span>
           </div>
           <div style={{ marginTop: 'var(--space-3)', paddingTop: 'var(--space-3)', borderTop: '1px solid var(--color-border-subtle)' }}>
-            <strong>Note:</strong> This is a one-time payment per event. No recurring fees. You can save as a draft for free and activate later.
+            <strong>Note:</strong> {profile?.free_tier_used ? 'This is a one-time payment per event. No recurring fees.' : 'Your first activation is free. Subsequent events cost ₦20,000 per event.'} You can save as a draft for free and activate later.
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
-          <button className="btn btn-primary btn-lg" style={{ flex: 1 }} onClick={handleActivate} disabled={saving}>
-            <CreditCard size={18} />
-            {saving ? 'Creating...' : 'Activate Event — ₦20,000'}
-          </button>
+          <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
+          {profile?.free_tier_used ? (
+            <button className="btn btn-primary btn-lg" style={{ flex: 1 }} onClick={handleActivate} disabled={saving}>
+              <CreditCard size={18} />
+              {saving ? 'Creating...' : 'Activate Event — ₦20,000'}
+            </button>
+          ) : (
+            <button className="btn btn-primary btn-lg" style={{ flex: 1 }} onClick={handleActivateFree} disabled={saving}>
+              <Gift size={18} />
+              {saving ? 'Creating...' : 'Activate Free — 1 Free Event'}
+            </button>
+          )}
           <button className="btn btn-secondary btn-lg" onClick={handleSaveDraft} disabled={saving}>
             Save Draft (Free)
           </button>
         </div>
+
+        {!profile?.free_tier_used && (
+          <div style={{ marginTop: 'var(--space-3)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', textAlign: 'center' }}>
+            Your first event activation is free. Subsequent events cost ₦20,000.
+          </div>
+        )}
       </div>
     )
   }

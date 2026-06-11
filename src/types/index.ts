@@ -10,6 +10,7 @@ export interface Profile {
   org_id: string | null
   is_super_admin?: boolean
   is_active: boolean
+  free_tier_used?: boolean
   created_at: string
   updated_at: string
 }

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Camera, Upload, ArrowLeft, ExternalLink, LogOut, Building2, LifeBuoy, Book, Bell } from 'lucide-react'
+import { uploadFile } from '@/lib/storage'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
@@ -129,16 +130,7 @@ export function SettingsPage() {
       const ext = file.name.split('.').pop() || 'jpg'
       const path = `avatars/${user.id}/avatar.${ext}`
 
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(path, compressed, { upsert: true })
-
-      if (uploadError) {
-        showToast({ type: 'error', title: 'Upload failed', body: uploadError.message })
-        return
-      }
-
-      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
+      const { url: publicUrl } = await uploadFile('avatars', compressed, path)
 
       const { error: rpcError } = await supabase.rpc('update_own_profile', {
         p_user_id: user.id,
@@ -170,16 +162,8 @@ export function SettingsPage() {
 
     const ext = file.name.split('.').pop()
     const path = `org-logos/${org.id}-${Date.now()}.${ext}`
-    const { error: uploadErr } = await supabase.storage
-      .from('org-assets')
-      .upload(path, file, { upsert: true })
 
-    if (uploadErr) {
-      showToast({ type: 'error', title: 'Upload failed', body: uploadErr.message })
-      return
-    }
-
-    const { data: { publicUrl } } = supabase.storage.from('org-assets').getPublicUrl(path)
+    const { url: publicUrl } = await uploadFile('org-assets', file, path)
     setLogoPreview(publicUrl)
 
     const { error } = await supabase

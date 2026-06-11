@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { compressImage } from '@/lib/compressImage'
+import { uploadFile } from '@/lib/storage'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import type { Task, TaskComment } from '@/types'
 
@@ -106,17 +107,13 @@ export function TaskCard({ task, onUpdate }: TaskCardProps) {
       const ext = file.name.split('.').pop()
       const path = `${task.event_id}/comments/${task.id}/${crypto.randomUUID()}.${ext}`
       const blob = await compressImage(file)
-      const { error: uploadErr } = await supabase.storage
-        .from('event-media')
-        .upload(path, blob)
-      if (uploadErr) {
-        showNotification({ variant: 'error', title: 'Upload failed', message: uploadErr.message })
+      try {
+        const { url: publicUrl } = await uploadFile('event-media', blob, path)
+        urls.push(publicUrl)
+      } catch {
+        showNotification({ variant: 'error', title: 'Upload failed', message: 'Could not upload photo' })
         continue
       }
-      const { data: { publicUrl } } = supabase.storage
-        .from('event-media')
-        .getPublicUrl(path)
-      urls.push(publicUrl)
     }
 
     const { error } = await supabase

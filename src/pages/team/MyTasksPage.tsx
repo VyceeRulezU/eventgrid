@@ -143,13 +143,13 @@ export function MyTasksPage() {
       const ext = p.file.name.split('.').pop()
       const path = `${task?.event_id}/comments/${taskId}/${crypto.randomUUID()}.${ext}`
       const blob = await compressImage(p.file)
-      const { error: uploadErr } = await supabase.storage.from('event-media').upload(path, blob)
-      if (uploadErr) {
-        showNotification({ variant: 'error', title: 'Upload failed', message: uploadErr.message })
+      try {
+        const { url: publicUrl } = await uploadFile('event-media', blob, path)
+        urls.push(publicUrl)
+      } catch {
+        showNotification({ variant: 'error', title: 'Upload failed', message: 'Could not upload photo' })
         continue
       }
-      const { data: { publicUrl } } = supabase.storage.from('event-media').getPublicUrl(path)
-      urls.push(publicUrl)
     }
 
     const { error } = await supabase.from('task_comments').insert({

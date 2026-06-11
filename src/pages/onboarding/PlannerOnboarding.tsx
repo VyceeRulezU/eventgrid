@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Upload, X, Info, Sparkles, ChevronRight, LogOut, ArrowLeft, Star, Check, Calendar, Users, User, Briefcase, Building2, MapPin, Target } from 'lucide-react'
 import { SEO } from '@/components/shared/SEO'
 import { supabase } from '@/lib/supabase'
+import { uploadFile } from '@/lib/storage'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import styles from './Onboarding.module.css'
@@ -136,15 +137,11 @@ export function PlannerOnboarding() {
     if (logoFile && logoPreview) {
       const ext = logoFile.name.split('.').pop()
       const path = `org-logos/${user.id}-${Date.now()}.${ext}`
-      const { error: uploadErr } = await supabase.storage
-        .from('org-assets')
-        .upload(path, logoFile, { upsert: true })
-
-      if (!uploadErr) {
-        const { data: { publicUrl } } = supabase.storage
-          .from('org-assets')
-          .getPublicUrl(path)
-        logoUrl = publicUrl
+      try {
+        const { url } = await uploadFile('org-assets', logoFile, path)
+        logoUrl = url
+      } catch {
+        // upload failed silently — logoUrl stays null
       }
     }
 

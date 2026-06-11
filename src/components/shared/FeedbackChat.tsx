@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
+import { uploadFile, getFileUrl, getStorageProvider } from '@/lib/storage'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import {
@@ -56,7 +57,7 @@ function timeAgo(dateStr: string): string {
 }
 
 function storageUrl(path: string) {
-  return `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/media/${path}`
+  return getFileUrl('media', path)
 }
 
 export function FeedbackChat({ mode = 'user', initialFeedbackId }: { mode: 'admin' | 'user'; initialFeedbackId?: string }) {
@@ -161,18 +162,17 @@ export function FeedbackChat({ mode = 'user', initialFeedbackId }: { mode: 'admi
       setUploading(true)
       const ext = attachment.file.name.split('.').pop()
       const path = `feedback/${selectedId}/${Date.now()}.${ext}`
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('media')
-        .upload(path, attachment.file, { upsert: false })
-
-      setUploading(false)
-      if (uploadError) {
-        showNotification({ variant: 'error', title: 'Upload failed', message: uploadError.message })
+      try {
+        const { storagePath } = await uploadFile('media', attachment.file, path)
+        attachmentUrl = storagePath
+        attachmentName = attachment.file.name
+      } catch {
+        showNotification({ variant: 'error', title: 'Upload failed', message: 'Could not upload attachment' })
         setSending(false)
+        setUploading(false)
         return
       }
-      attachmentUrl = uploadData?.path || null
-      attachmentName = attachment.file.name
+      setUploading(false)
     }
 
     const { error } = await supabase.from('feedback_messages').insert({

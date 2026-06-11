@@ -17,11 +17,12 @@ const corsHeaders = {
 // ── Shared email shell ──────────────────────────────────────────────────────
 
 const isProdPlaceholder = APP_URL.includes('eventgrid.ng')
+const R2_BASE = 'https://pub-962633edede94bf8a4e41b91db2b602a.r2.dev'
 const HERO_IMAGE = isProdPlaceholder
-  ? 'https://menmpyyrqevonepbpfai.supabase.co/storage/v1/object/public/org-assets/emails/corporate_event_hall.png'
+  ? `${R2_BASE}/emails/corporate_event_hall.png`
   : APP_URL + '/emails/corporate_event_hall.png'
 const LOGO_IMAGE = isProdPlaceholder
-  ? 'https://menmpyyrqevonepbpfai.supabase.co/storage/v1/object/public/org-assets/EventGrid-logo-white.svg'
+  ? `${R2_BASE}/EventGrid-logo-white.svg`
   : APP_URL + '/EventGrid-logo-white.svg'
 
 function emailShell(title: string, bodyHtml: string): string {
