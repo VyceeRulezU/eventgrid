@@ -2,12 +2,13 @@ import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
+import { useNavigate, Link } from 'react-router-dom'
 import {
   Users, Calendar, TrendingUp, BarChart3,
   Activity, Database, HardDrive,
   CreditCard, Zap, Shield, ExternalLink,
 } from 'lucide-react'
-import { PageHero } from '@/components/shared/PageHero'
+import { AdminPageHero } from '@/components/shared/AdminPageHero'
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
@@ -160,6 +161,7 @@ const FormatTooltip = ({ active, payload, label }: { active?: boolean; payload?:
 export function SuperAdminDashboard() {
   const role = useAuthStore((s) => s.role)
   const showToast = useUIStore((s) => s.showToast)
+  const navigate = useNavigate()
 
   const [loading, setLoading] = useState(true)
   const [totalPlanners, setTotalPlanners] = useState(0)
@@ -472,7 +474,7 @@ export function SuperAdminDashboard() {
 
   return (
     <div>
-      <PageHero
+      <AdminPageHero
         icon={Shield}
         title="Super Admin"
         subtitle="Platform-wide overview"
@@ -601,7 +603,7 @@ export function SuperAdminDashboard() {
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-3) var(--space-5)', borderBottom: '1px solid var(--color-border-subtle)' }}>
             <h3 style={{ margin: 0, fontSize: 'var(--text-sm)', fontWeight: 700 }}>Top 10 Planners</h3>
-            <a href="/planners" style={{ fontSize: 'var(--text-xs)', color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>View More →</a>
+            <Link to="/admin/manage?tab=planners" style={{ fontSize: 'var(--text-xs)', color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>View More →</Link>
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--text-sm)' }}>
@@ -638,7 +640,7 @@ export function SuperAdminDashboard() {
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-3) var(--space-5)', borderBottom: '1px solid var(--color-border-subtle)' }}>
             <h3 style={{ margin: 0, fontSize: 'var(--text-sm)', fontWeight: 700 }}>Active Live Events</h3>
-            <a href="/events" style={{ fontSize: 'var(--text-xs)', color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>View More →</a>
+            <Link to="/events" style={{ fontSize: 'var(--text-xs)', color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>View More →</Link>
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--text-sm)' }}>
@@ -660,7 +662,7 @@ export function SuperAdminDashboard() {
                     </td>
                   </tr>
                 ) : liveEvents.map((e) => (
-                  <tr key={e.id} style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+                  <tr key={e.id} style={{ borderBottom: '1px solid var(--color-border-subtle)', cursor: 'pointer' }} onClick={() => navigate(`/events/${e.id}`)}>
                     <td style={{ padding: 'var(--space-2) var(--space-3)', fontWeight: 600 }}>{e.name}</td>
                     <td style={{ padding: 'var(--space-2) var(--space-3)', color: 'var(--color-text-secondary)' }}>{e.type}</td>
                     <td style={{ padding: 'var(--space-2) var(--space-3)' }}>
@@ -684,7 +686,7 @@ export function SuperAdminDashboard() {
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-3) var(--space-5)', borderBottom: '1px solid var(--color-border-subtle)' }}>
             <h3 style={{ margin: 0, fontSize: 'var(--text-sm)', fontWeight: 700 }}>Recent Payments</h3>
-            <a href="/payments" style={{ fontSize: 'var(--text-xs)', color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>View More →</a>
+            <Link to="/admin/manage?tab=payments" style={{ fontSize: 'var(--text-xs)', color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>View More →</Link>
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--text-sm)' }}>
@@ -730,7 +732,7 @@ export function SuperAdminDashboard() {
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-3) var(--space-5)', borderBottom: '1px solid var(--color-border-subtle)' }}>
             <h3 style={{ margin: 0, fontSize: 'var(--text-sm)', fontWeight: 700 }}>Recent Events</h3>
-            <a href="/events" style={{ fontSize: 'var(--text-xs)', color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>View More →</a>
+            <Link to="/admin/manage?tab=events" style={{ fontSize: 'var(--text-xs)', color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>View More →</Link>
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--text-sm)' }}>

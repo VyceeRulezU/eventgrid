@@ -2,7 +2,13 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { TrendingUp, Users, Calendar, ArrowUp, ArrowDown } from 'lucide-react'
+import { AdminPageHero } from '@/components/shared/AdminPageHero'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+
+const BAR_COLORS = {
+  accent: '#D4A017',
+  info: '#3B82F6',
+} as const
 
 interface MonthlySnapshot {
   month: string
@@ -136,36 +142,37 @@ export function AnalyticsPage() {
 
   return (
     <div>
-      <div style={{ marginBottom: 'var(--space-6)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 2 }}>
-          <TrendingUp size={20} style={{ color: 'var(--color-accent)' }} />
-          <h2 style={{ margin: 0 }}>Platform Analytics</h2>
-        </div>
-        <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', margin: 'var(--space-1) 0 0 0' }}>
-          12-month performance overview
-        </p>
-      </div>
+      <AdminPageHero
+        icon={TrendingUp}
+        title="Analytics"
+        subtitle="12-month platform performance overview"
+        backTo="/admin"
+      />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-3)', marginBottom: 'var(--space-6)' }}>
         {metrics.map((m) => (
-          <div key={m.label} className="card" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-            <div style={{
-              width: 48, height: 48, borderRadius: 'var(--radius-md)',
-              background: `${m.color}15`, color: m.color,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-            }}>
-              <m.icon size={22} />
+          <div key={m.label} className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-4) var(--space-5)', gap: 'var(--space-3)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', minWidth: 0, flex: 1 }}>
+              <div style={{
+                width: 48, height: 48, borderRadius: 'var(--radius-md)',
+                background: `${m.color}15`, color: m.color,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              }}>
+                <m.icon size={22} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: '1.5rem', fontWeight: 800, lineHeight: 1.2, marginBottom: 2 }}>{m.label}</div>
+                {'sub' in m && m.sub && (
+                  <div style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>{m.sub}</div>
+                )}
+              </div>
             </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', marginBottom: 2 }}>{m.label}</div>
-              <div style={{ fontSize: 'var(--text-title)', fontWeight: 700 }}>{m.value.toLocaleString()}</div>
-              <div style={{ fontSize: 11, display: 'flex', alignItems: 'center', gap: 2, color: m.growth >= 0 ? 'var(--color-success)' : 'var(--color-error)', marginTop: 2 }}>
+            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+              <div style={{ fontSize: 'var(--text-title)', fontWeight: 900, lineHeight: 1, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums' }}>{m.value.toLocaleString()}</div>
+              <div style={{ fontSize: 11, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 2, color: m.growth >= 0 ? 'var(--color-success)' : 'var(--color-error)', marginTop: 4 }}>
                 {m.growth >= 0 ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
                 {Math.abs(m.growth)}% this month
               </div>
-              {'sub' in m && m.sub && (
-                <div style={{ fontSize: 10, color: 'var(--color-text-muted)', marginTop: 1 }}>{m.sub}</div>
-              )}
             </div>
           </div>
         ))}
@@ -184,7 +191,7 @@ export function AnalyticsPage() {
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }} axisLine={false} tickLine={false} />
                 <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="signups" fill="var(--color-accent)" radius={[4, 4, 0, 0]} maxBarSize={32} name="Signups" />
+                <Bar dataKey="signups" fill={BAR_COLORS.accent} radius={[4, 4, 0, 0]} maxBarSize={32} name="Signups" />
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -204,7 +211,7 @@ export function AnalyticsPage() {
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }} axisLine={false} tickLine={false} />
                 <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="events" fill="var(--color-info)" radius={[4, 4, 0, 0]} maxBarSize={32} name="Events" />
+                <Bar dataKey="events" fill={BAR_COLORS.info} radius={[4, 4, 0, 0]} maxBarSize={32} name="Events" />
               </BarChart>
             </ResponsiveContainer>
           ) : (

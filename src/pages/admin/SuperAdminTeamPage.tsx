@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Users, UserPlus, X, Mail, Shield, ShieldCheck, Eye, Headset } from 'lucide-react'
-import { PageHero } from '@/components/shared/PageHero'
+import { AdminPageHero } from '@/components/shared/AdminPageHero'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -80,7 +80,7 @@ export function SuperAdminTeamPage() {
   if (loading) {
     return (
       <div className={styles.page}>
-        <PageHero icon={Shield} title="Admin Team" subtitle="Loading..." />
+        <AdminPageHero icon={Shield} title="Admin Team" subtitle="Loading..." />
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 200, gap: 'var(--space-4)' }}>
           <img src="/EventGrid-favicon.svg" alt="Loading" style={{ width: 48, height: 48, opacity: 0.5 }} />
           <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>Loading admin team...</div>
@@ -91,7 +91,7 @@ export function SuperAdminTeamPage() {
 
   return (
     <div className={styles.page}>
-      <PageHero
+      <AdminPageHero
         icon={Shield}
         title="Admin Team"
         subtitle="Manage platform administrators"

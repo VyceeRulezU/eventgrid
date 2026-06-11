@@ -3,7 +3,7 @@ import { LayoutGrid, List, Users, Plus, Pencil, Star, Trash2, Phone, Mail, Build
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
-import { PageHero } from '@/components/shared/PageHero'
+import { AdminPageHero } from '@/components/shared/AdminPageHero'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { useSearch } from '@/hooks/useSearch'
 import { SearchBar } from '@/components/shared/SearchBar'
@@ -252,7 +252,7 @@ export function VendorDirectoryPage() {
 
   return (
     <div>
-      <PageHero
+      <AdminPageHero
         icon={Building}
         title="Vendor Directory"
         subtitle="Browse and manage your vendor network"

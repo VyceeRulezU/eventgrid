@@ -1,6 +1,6 @@
 import { useAuthStore } from '@/store/auth.store'
 import { MessageSquare } from 'lucide-react'
-import { PageHero } from '@/components/shared/PageHero'
+import { AdminPageHero } from '@/components/shared/AdminPageHero'
 import { FeedbackChat } from '@/components/shared/FeedbackChat'
 
 export function FeedbackManagementPage() {
@@ -10,7 +10,7 @@ export function FeedbackManagementPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
-      <PageHero
+      <AdminPageHero
         icon={MessageSquare}
         title="Feedback"
         subtitle="User submissions and inquiries"

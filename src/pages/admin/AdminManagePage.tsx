@@ -5,7 +5,8 @@ import { useUIStore } from '@/store/ui.store'
 import { useNavigate } from 'react-router-dom'
 import { Tabs } from '@/components/ui/Tabs'
 import { Checkbox } from '@/components/ui/Checkbox'
-import { Calendar, Users, Building, Eye, ExternalLink, Pencil, Trash2, X } from 'lucide-react'
+import { Calendar, Users, Building, CreditCard, Eye, ExternalLink, Pencil, Trash2, X } from 'lucide-react'
+import { AdminPageHero } from '@/components/shared/AdminPageHero'
 import styles from './AdminManagePage.module.css'
 
 interface PersonRow {
@@ -30,6 +31,15 @@ interface EventRow {
   creator_email: string
   creator_role: string
   org_name: string
+}
+
+interface PaymentRow {
+  id: string
+  created_at: string
+  amount: number
+  payment_method: string
+  status: string
+  event_name: string
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -212,14 +222,23 @@ function PersonModal({
   )
 }
 
+function formatCurrency(kobo: number): string {
+  return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 2 }).format(kobo / 100)
+}
+
 export function AdminManagePage() {
   const role = useAuthStore((s) => s.role)
   const navigate = useNavigate()
-  const [activeTab, setActiveTab] = useState<'planners' | 'coordinators' | 'events'>('planners')
+  const [activeTab, setActiveTab] = useState<'planners' | 'coordinators' | 'events' | 'payments'>(() => {
+    const tab = new URLSearchParams(window.location.search).get('tab')
+    if (tab === 'coordinators' || tab === 'events' || tab === 'payments') return tab
+    return 'planners'
+  })
   const [loading, setLoading] = useState(true)
   const [planners, setPlanners] = useState<PersonRow[]>([])
   const [coordinators, setCoordinators] = useState<PersonRow[]>([])
   const [events, setEvents] = useState<EventRow[]>([])
+  const [payments, setPayments] = useState<PaymentRow[]>([])
   const [page, setPage] = useState(0)
   const [selectedPerson, setSelectedPerson] = useState<PersonRow | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -298,6 +317,31 @@ export function AdminManagePage() {
     loadData()
   }, [loadData, role])
 
+  const loadPayments = useCallback(async () => {
+    const { data: paymentsData } = await supabase
+      .from('client_payments')
+      .select('id, amount, payment_method, status, created_at, event_id, description')
+      .order('created_at', { ascending: false })
+      .limit(100)
+
+    const eventIds = [...new Set((paymentsData || []).map(p => p.event_id).filter(Boolean))]
+    const { data: eventsData } = eventIds.length > 0
+      ? await supabase.from('events').select('id, name').in('id', eventIds)
+      : { data: [] }
+    const eventMap = new Map((eventsData || []).map(e => [e.id, e.name]))
+
+    setPayments((paymentsData || []).map(p => ({
+      id: p.id,
+      created_at: p.created_at,
+      amount: p.amount || 0,
+      payment_method: p.payment_method || 'N/A',
+      status: p.status,
+      event_name: p.event_id ? eventMap.get(p.event_id) || 'Unknown' : 'Unknown',
+    })))
+  }, [])
+
+  useEffect(() => { loadPayments() }, [loadPayments])
+
   const showModal = useUIStore((s) => s.showModal)
   const showNotification = useUIStore((s) => s.showNotification)
 
@@ -355,7 +399,7 @@ export function AdminManagePage() {
   const filteredEvents = activeTab === 'events' && eventFilter !== 'all'
     ? events.filter(e => e.creator_role === eventFilter)
     : events
-  const currentData = activeTab === 'planners' ? planners : activeTab === 'coordinators' ? coordinators : filteredEvents
+  const currentData = activeTab === 'planners' ? planners : activeTab === 'coordinators' ? coordinators : activeTab === 'payments' ? payments : filteredEvents
   const totalItems = currentData.length
   const totalPages = Math.ceil(totalItems / PAGE_SIZE)
   const pageData = currentData.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
@@ -561,28 +605,81 @@ export function AdminManagePage() {
     )
   }
 
+  function renderPaymentsTable() {
+    const data = pageData as PaymentRow[]
+    return (
+      <div className={styles.tableCard}>
+        <div className={styles.tableScroll}>
+          <table className={styles.table}>
+            <thead className={styles.thead}>
+              <tr>
+                <th className={styles.th}>Date</th>
+                <th className={styles.th}>Event</th>
+                <th className={styles.th}>Amount</th>
+                <th className={styles.th}>Method</th>
+                <th className={styles.th}>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.length === 0 ? (
+                <tr>
+                  <td colSpan={5} style={{ textAlign: 'center', padding: 'var(--space-8)', color: 'var(--color-text-muted)' }}>
+                    <div className="empty-state"><div className="empty-state__title">No payments yet</div></div>
+                  </td>
+                </tr>
+              ) : data.map(p => (
+                <tr key={p.id} className={styles.tr}>
+                  <td className={styles.td} style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)', whiteSpace: 'nowrap' }}>
+                    {formatDate(p.created_at)}
+                  </td>
+                  <td className={styles.td} style={{ fontWeight: 600 }}>{p.event_name}</td>
+                  <td className={styles.td} style={{ fontWeight: 600, color: 'var(--color-accent)', whiteSpace: 'nowrap' }}>{formatCurrency(p.amount)}</td>
+                  <td className={styles.td} style={{ color: 'var(--color-text-secondary)' }}>{p.payment_method}</td>
+                  <td className={styles.td}>
+                    <span className={`${styles.statusBadge} ${styles[`status_${p.status}`] || ''}`}>
+                      {p.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className={styles.tableFooter}>
+          <span>{payments.length} payments</span>
+          {totalPages > 1 && (
+            <span>
+              Page {page + 1} of {totalPages}
+              <button className="btn btn-ghost btn-xs" style={{ marginLeft: 'var(--space-2)' }} disabled={page === 0} onClick={() => setPage(p => p - 1)}>Prev</button>
+              <button className="btn btn-ghost btn-xs" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>Next</button>
+            </span>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  if (!role) return <div className={styles.page}><div className="skeleton skeleton-title" style={{ width: 200, marginBottom: 'var(--space-4)' }} /></div>
   if (role !== 'super_admin') return null
 
   return (
     <div className={styles.page}>
-      <div className={styles.header}>
-        <div className={styles.headerLeft}>
-          <Users size={20} className={styles.headerIcon} />
-          <div>
-            <h2 className={styles.headerTitle}>Manage</h2>
-            <p className={styles.headerSubtitle}>Users and events across the platform</p>
-          </div>
-        </div>
-      </div>
+      <AdminPageHero
+        icon={Users}
+        title="Manage"
+        subtitle="Users and events across the platform"
+        backTo="/admin"
+      />
 
       <Tabs
         tabs={[
           { key: 'planners', label: 'Planners', icon: <Users size={16} />, badge: planners.length },
           { key: 'coordinators', label: 'Coordinators', icon: <Users size={16} />, badge: coordinators.length },
           { key: 'events', label: 'Events', icon: <Calendar size={16} />, badge: events.length },
+          { key: 'payments', label: 'Payments', icon: <CreditCard size={16} />, badge: payments.length },
         ]}
         activeTab={activeTab}
-        onChange={(k) => { setActiveTab(k); setPage(0); setSelectedPerson(null); setSelectedIds(new Set()) }}
+        onChange={(k) => { setActiveTab(k); setPage(0); setSelectedPerson(null); setSelectedIds(new Set()); navigate(`/admin/manage?tab=${k}`, { replace: true }) }}
       />
 
       {loading ? (
@@ -593,6 +690,8 @@ export function AdminManagePage() {
         renderPersonTable(planners, 'planners')
       ) : activeTab === 'coordinators' ? (
         renderPersonTable(coordinators, 'coordinators')
+      ) : activeTab === 'payments' ? (
+        renderPaymentsTable()
       ) : (
         <>
           <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-3)', flexWrap: 'wrap' }}>
