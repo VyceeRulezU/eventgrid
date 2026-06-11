@@ -29,3 +29,5 @@ test-results/
 # Temporary agent logs
 dev_err.txt
 dev_out.txt
+
+.vercel
