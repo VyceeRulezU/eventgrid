@@ -2,7 +2,7 @@ import type { LucideIcon } from 'lucide-react'
 import { ArrowLeft } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import adminImg from '@/assets/images/wedding_event_hall.png'
-import styles from './PageHero.module.css'
+import styles from './AdminPageHero.module.css'
 
 interface Breadcrumb {
   label: string
@@ -23,8 +23,8 @@ export function AdminPageHero({ icon: Icon, title, subtitle, breadcrumbs, action
   const navigate = useNavigate()
 
   return (
-    <div className={styles.hero} style={{ '--hero-bg': `url(${backgroundImage || adminImg})` } as React.CSSProperties}>
-      <div className={styles.heroOverlay} />
+    <div className={styles.adminHero} style={{ '--admin-hero-bg': `url(${backgroundImage || adminImg})` } as React.CSSProperties}>
+      <div className={styles.adminHeroOverlay} />
 
       {breadcrumbs && breadcrumbs.length > 0 && (
         <div className={styles.breadcrumbs}>
@@ -41,15 +41,15 @@ export function AdminPageHero({ icon: Icon, title, subtitle, breadcrumbs, action
         </div>
       )}
 
-      <div className={styles.heroContent}>
-        <div className={styles.heroIcon}>
+      <div className={styles.adminHeroContent}>
+        <div className={styles.adminHeroIcon}>
           <Icon size={24} />
         </div>
-        <div className={styles.heroText}>
-          <h1 className={styles.heroTitle}>{title}</h1>
-          {subtitle && <p className={styles.heroSubtitle}>{subtitle}</p>}
+        <div className={styles.adminHeroText}>
+          <h1 className={styles.adminHeroTitle}>{title}</h1>
+          {subtitle && <p className={styles.adminHeroSubtitle}>{subtitle}</p>}
         </div>
-        <div className={styles.heroActions}>
+        <div className={styles.adminHeroActions}>
           {actions}
           {backTo && (
             <button type="button" className={styles.backBtn} onClick={() => navigate(backTo)} aria-label="Back">
