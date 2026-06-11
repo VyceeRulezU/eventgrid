@@ -34,14 +34,14 @@ export function FeedbackFormModal({ open, onClose }: FeedbackFormModalProps) {
     if (!subject.trim() || !message.trim() || !user) return
     setSending(true)
 
-    const { error } = await supabase.from('feedback').insert({
+    const { data: inserted, error } = await supabase.from('feedback').insert({
       user_id: user.id,
       user_email: user.email || user.user_metadata?.email || 'unknown@eventgrid.ng',
       user_role: role || 'unknown',
       type,
       subject: subject.trim(),
       message: message.trim(),
-    })
+    }).select('id').single()
 
     setSending(false)
 
@@ -52,6 +52,17 @@ export function FeedbackFormModal({ open, onClose }: FeedbackFormModalProps) {
     }
 
     showNotification({ variant: 'success', title: 'Submitted', message: 'Your feedback has been sent to the admin team.' })
+
+    const feedbackId = inserted?.id
+    const bodyPayload = feedbackId ? JSON.stringify({ feedback_id: feedbackId, text: message.trim().substring(0, 200) }) : message.trim().substring(0, 200)
+
+    // Notify the user so they can continue the thread from notifications
+    await supabase.from('notifications').insert({
+      user_id: user.id,
+      type: 'feedback_reply',
+      title: subject.trim(),
+      body: bodyPayload,
+    })
 
     // Notify all super admins about new feedback
     const { data: superAdmins } = await supabase
@@ -65,7 +76,7 @@ export function FeedbackFormModal({ open, onClose }: FeedbackFormModalProps) {
           user_id: sa.id,
           type: 'feedback_reply',
           title: `New feedback: ${subject.trim()}`,
-          body: message.trim().substring(0, 200),
+          body: bodyPayload,
         })
       }
     }

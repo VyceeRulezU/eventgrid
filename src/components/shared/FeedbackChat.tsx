@@ -190,16 +190,41 @@ export function FeedbackChat({ mode = 'user', initialFeedbackId }: { mode: 'admi
       return
     }
 
-    if (mode === 'admin') {
-      const fb = conversations.find((c) => c.id === selectedId)
-      if (fb) {
+    const fb = conversations.find((c) => c.id === selectedId)
+    if (fb) {
+      const bodyPayload = JSON.stringify({
+        feedback_id: fb.id,
+        text: newMessage.trim().substring(0, 200),
+      })
+
+      if (mode === 'admin') {
         try {
           await supabase.from('notifications').insert({
             user_id: fb.user_id,
             type: 'feedback_reply',
             title: `Reply: ${fb.subject}`,
-            body: newMessage.trim().substring(0, 200),
+            body: bodyPayload,
           })
+        } catch { /* notification is non-critical */ }
+      } else {
+        try {
+          await supabase.from('notifications').insert({
+            user_id: user.id,
+            type: 'feedback_reply',
+            title: fb.subject,
+            body: bodyPayload,
+          })
+          const { data: superAdmins } = await supabase.from('profiles').select('id').eq('is_super_admin', true)
+          if (superAdmins) {
+            for (const sa of superAdmins) {
+              await supabase.from('notifications').insert({
+                user_id: sa.id,
+                type: 'feedback_reply',
+                title: `Reply: ${fb.subject}`,
+                body: bodyPayload,
+              })
+            }
+          }
         } catch { /* notification is non-critical */ }
       }
     }
@@ -383,7 +408,7 @@ export function FeedbackChat({ mode = 'user', initialFeedbackId }: { mode: 'admi
             onClick={handleSend}
             disabled={sending || uploading || (!newMessage.trim() && !attachment)}
           >
-            {sending || uploading ? <Loader2 size={16} className="spin" /> : <Send size={16} />}
+            {sending || uploading ? <Loader2 size={28} className="spin" /> : <Send size={28} />}
           </button>
         </div>
       </div>
