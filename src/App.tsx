@@ -388,9 +388,8 @@ export function App() {
       if (session?.user) {
         setUser(session.user)
         if (_event !== 'INITIAL_SESSION') {
-          loadProfile(session.user.id, session.user)
+          loadProfile(session.user.id, session.user).finally(() => setLoading(false))
           getUnreadCount(session.user.id).then(useNotificationStore.getState().setUnreadCount)
-          setLoading(false)
         }
       } else {
         setUser(null)
