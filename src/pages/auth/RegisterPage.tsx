@@ -351,18 +351,7 @@ export function RegisterPage() {
                 </div>
 
                 <div className="input-wrapper" style={{ marginTop: 'var(--space-4)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-2)' }}>
-                    <label className="input-label" htmlFor="password" style={{ margin: 0 }}>Password</label>
-                    <button
-                      type="button"
-                      className="btn btn-ghost btn-sm btn-icon"
-                      onClick={() => setShowPassword(!showPassword)}
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
-                      style={{ width: 28, height: 28, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                    >
-                      {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
-                    </button>
-                  </div>
+                  <label className="input-label" htmlFor="password" style={{ marginBottom: 'var(--space-2)', display: 'block' }}>Password</label>
                   <div style={{ position: 'relative' }}>
                     <input
                       id="password"
@@ -373,8 +362,35 @@ export function RegisterPage() {
                       placeholder="Min. 6 characters"
                       minLength={6}
                       required
-                      style={{ borderColor: password ? strengthColors[pwStrength.level] : undefined }}
+                      style={{ paddingRight: '36px', borderColor: password ? strengthColors[pwStrength.level] : undefined }}
                     />
+                    <button
+                      type="button"
+                      tabIndex={-1}
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      style={{
+                        position: 'absolute',
+                        right: '8px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#ffffff',
+                        opacity: 0.6,
+                        transition: 'opacity var(--transition-fast)',
+                        borderRadius: 'var(--radius-sm)',
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                      onMouseLeave={(e) => e.currentTarget.style.opacity = '0.6'}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
                   </div>
 
                   {password && (
