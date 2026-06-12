@@ -59,6 +59,17 @@ export function AcceptAdminInvite() {
       return
     }
 
+    try {
+      const { data: newProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email.trim())
+        .maybeSingle()
+      if (newProfile?.id) {
+        await supabase.from('super_admins').upsert({ user_id: newProfile.id }, { onConflict: 'user_id' })
+      }
+    } catch { /* best-effort */ }
+
     let confirmed = false
     try {
       const res = await fetch(
