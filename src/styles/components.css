@@ -248,11 +248,13 @@
 .badge-yellow { background-color: var(--color-status-yellow-bg); color: var(--color-status-yellow); }
 .badge-red    { background-color: var(--color-status-red-bg);    color: var(--color-status-red);    }
 .badge-grey   { background-color: var(--color-status-grey-bg);   color: var(--color-status-grey);   }
+.badge-blue   { background-color: rgba(96,165,250,0.12);        color: #60A5FA;                    }
 
 .badge-green  .badge-dot { background-color: var(--color-status-green);  }
 .badge-yellow .badge-dot { background-color: var(--color-status-yellow); }
 .badge-red    .badge-dot { background-color: var(--color-status-red);    }
 .badge-grey   .badge-dot { background-color: var(--color-status-grey);   }
+.badge-blue   .badge-dot { background-color: #60A5FA;                    }
 
 .badge-unpaid  { background-color: var(--color-payment-unpaid-bg);  color: var(--color-payment-unpaid);  }
 .badge-advance { background-color: var(--color-payment-advance-bg); color: var(--color-payment-advance); }

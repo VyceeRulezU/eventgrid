@@ -313,7 +313,7 @@ export function SuperAdminTeamPage() {
                       <DropdownMenu
                         trigger={
                           <span className={`badge ${entry.role === 'super_admin' ? 'badge-yellow' : entry.role === 'monitor' ? 'badge-grey' : 'badge-blue'}`}
-                            style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, color: '#fff' }}>
                             <Icon size={12} />
                             {roleLabel(entry.role)}
                           </span>
