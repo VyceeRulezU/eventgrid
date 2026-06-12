@@ -125,33 +125,4 @@
   --color-nav-active-border: var(--color-accent);
 }
 
-/* ── LIGHT THEME ── */
-[data-theme="light"] {
-  --color-bg-base:           #f5f2eb;
-  --color-surface-1:         #e8e4db;
-  --color-surface-2:         #ffffff;
-  --color-surface-3:         #f0ece4;
-  --color-surface-hover:     #ddd9d0;
-  --color-text-primary:      #1a1a2e;
-  --color-text-secondary:    #5a5a6e;
-  --color-text-muted:        #8a8a9e;
-  --color-text-inverse:      #ffffff;
-  --color-text-accent:       #B8860B;
-  --color-border:            #d4d0c7;
-  --color-border-subtle:     #e0dcd3;
-  --color-border-focus:      #D4A017;
-  --color-overlay:           rgba(0, 0, 0, 0.4);
 
-  --shadow-sm:               0 1px 3px rgba(0, 0, 0, 0.08);
-  --shadow-md:               0 4px 12px rgba(0, 0, 0, 0.1);
-  --shadow-lg:               0 8px 24px rgba(0, 0, 0, 0.12);
-  --shadow-gold:             0 0 0 2px var(--color-accent);
-
-  --color-accent-muted:      rgba(212, 160, 23, 0.12);
-  --color-accent-border:     rgba(212, 160, 23, 0.2);
-
-  /* Light mode: active sidebar tab uses surface-2 with accent text */
-  --color-nav-active-bg:     #ffffff;
-  --color-nav-active-text:   #B8860B;
-  --color-nav-active-border: #D4A017;
-}

@@ -26,7 +26,7 @@ interface UIStore {
   sidebarOpen: boolean
   activeModal: string | null
   toasts: Toast[]
-  theme: 'dark' | 'light'
+  theme: 'dark'
   modalNotification: PremiumNotification | null
   toastNotifications: PremiumNotification[]
   setSidebarOpen: (open: boolean) => void
@@ -34,7 +34,7 @@ interface UIStore {
   showToast: (toast: Omit<Toast, 'id'>) => void
   dismissToast: (id: string) => void
   toggleTheme: () => void
-  setTheme: (theme: 'dark' | 'light') => void
+  setTheme: (theme: 'dark') => void
   showModal: (notification: Omit<PremiumNotification, 'id'>) => void
   showNotification: (notification: Omit<PremiumNotification, 'id'>) => void
   dismissModal: () => void
@@ -46,9 +46,7 @@ export const useUIStore = create<UIStore>((set) => ({
   sidebarOpen: false,
   activeModal: null,
   toasts: [],
-  theme: (typeof document !== 'undefined'
-    ? (document.documentElement.getAttribute('data-theme') as 'dark' | 'light') ?? 'dark'
-    : 'dark'),
+  theme: 'dark',
   modalNotification: null,
   toastNotifications: [],
 
@@ -73,17 +71,9 @@ export const useUIStore = create<UIStore>((set) => ({
       toastNotifications: state.toastNotifications.filter((n) => n.id !== id),
     })),
 
-  toggleTheme: () =>
-    set((state) => {
-      const next = state.theme === 'dark' ? 'light' : 'dark'
-      document.documentElement.setAttribute('data-theme', next)
-      return { theme: next }
-    }),
+  toggleTheme: () => undefined,
 
-  setTheme: (theme) => {
-    document.documentElement.setAttribute('data-theme', theme)
-    return { theme }
-  },
+  setTheme: () => undefined,
 
   showModal: (notification) =>
     set({

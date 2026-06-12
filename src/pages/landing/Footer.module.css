@@ -451,6 +451,3 @@
 }
 
 /* ── Always dark footer ── */
-[data-theme="light"] .footer {
-  background-color: #080808;
-}

@@ -7,7 +7,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import type { User } from '@supabase/supabase-js'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
-import { useUIStore } from '@/store/ui.store'
 import { useNotificationStore } from '@/store/notification.store'
 import { getUnreadCount, subscribeToNotifications } from '@/lib/notifications'
 import type { Profile, UserRole } from '@/types'
@@ -269,8 +268,6 @@ export function App() {
   const setProfile = useAuthStore((s) => s.setProfile)
   const setOrg = useAuthStore((s) => s.setOrg)
   const setLoading = useAuthStore((s) => s.setLoading)
-  const setTheme = useUIStore((s) => s.setTheme)
-
   async function loadProfile(userId: string, user?: User) {
     let profile: Profile | null = null
     let error: unknown = null
@@ -339,10 +336,6 @@ export function App() {
   }
 
   useEffect(() => {
-    setTheme(
-      (document.documentElement.getAttribute('data-theme') as 'dark' | 'light') ?? 'dark'
-    )
-
     if (!isSupabaseConfigured) {
       setLoading(false)
       return
@@ -404,7 +397,7 @@ export function App() {
       isMounted = false
       subscription.unsubscribe()
     }
-  }, [setUser, setProfile, setOrg, setLoading, setTheme])
+  }, [setUser, setProfile, setOrg, setLoading])
 
   const user = useAuthStore((s) => s.user)
 

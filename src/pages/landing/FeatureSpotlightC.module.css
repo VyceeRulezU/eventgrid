@@ -213,23 +213,6 @@
 }
 
 /* ── Light mode ── */
-[data-theme="light"] .contentPane,
-[data-theme="light"] .section {
-  background-color: var(--color-surface-1);
-}
-
-[data-theme="light"] .featureCard {
-  border-bottom-color: var(--color-border);
-}
-
-[data-theme="light"] .featureCard:first-child {
-  border-top-color: var(--color-border);
-}
-
-[data-theme="light"] .contentPane {
-  border-right-color: var(--color-border);
-}
-
 /* ── Mobile ── */
 @media (max-width: 899px) {
   .contentInner {

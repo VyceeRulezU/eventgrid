@@ -186,22 +186,6 @@
 }
 
 /* ── Light mode ── */
-[data-theme="light"] .stepRow {
-  border-top-color: var(--color-border);
-}
-
-[data-theme="light"] .stepRow:last-child {
-  border-bottom-color: var(--color-border);
-}
-
-[data-theme="light"] .statsRow {
-  border-top-color: var(--color-border);
-}
-
-[data-theme="light"] .stepConnector {
-  background: var(--color-border);
-}
-
 /* ── Responsive ── */
 @media (max-width: 640px) {
   .statsRow {

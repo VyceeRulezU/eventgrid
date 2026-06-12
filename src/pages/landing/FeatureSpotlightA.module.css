@@ -297,7 +297,3 @@
 }
 
 /* ── Light mode overrides ── */
-[data-theme="light"] .phaseChip {
-  background-color: var(--color-surface-2);
-  box-shadow: var(--shadow-md);
-}

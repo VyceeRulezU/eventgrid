@@ -244,6 +244,3 @@
 }
 
 /* Always dark */
-[data-theme="light"] .section {
-  background-color: #080808;
-}

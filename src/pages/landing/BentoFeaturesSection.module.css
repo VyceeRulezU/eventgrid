@@ -210,22 +210,6 @@
 }
 
 /* ── Light mode overrides ── */
-[data-theme="light"] .cellDark {
-  background-color: var(--color-surface-1);
-  border-color: var(--color-border);
-}
-
-[data-theme="light"] .overlayChip {
-  background-color: rgba(255, 255, 255, 0.9);
-  color: var(--color-text-primary);
-  border-color: var(--color-border);
-}
-
-[data-theme="light"] .ctaBtn {
-  background-color: var(--color-text-primary);
-  color: var(--color-surface-2);
-}
-
 /* ══════════════════════════════════════════
    Responsive
 ═══════════════════════════════════════════ */

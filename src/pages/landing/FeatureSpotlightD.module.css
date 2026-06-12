@@ -203,19 +203,6 @@
 }
 
 /* ── Light mode ── */
-[data-theme="light"] .contentPane {
-  background-color: var(--color-surface-1);
-  border-left-color: var(--color-border);
-}
-
-[data-theme="light"] .featureCard {
-  border-bottom-color: var(--color-border);
-}
-
-[data-theme="light"] .featureCard:first-child {
-  border-top-color: var(--color-border);
-}
-
 /* ── Mobile ── */
 @media (max-width: 899px) {
   .contentInner {

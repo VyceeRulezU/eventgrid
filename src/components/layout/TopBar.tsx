@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Sun, Moon, Bell, Menu, LogOut, Settings } from 'lucide-react'
+import { ArrowLeft, Bell, Menu, LogOut, Settings } from 'lucide-react'
 import { useUIStore } from '@/store/ui.store'
 import { useAuthStore } from '@/store/auth.store'
 import { useNotificationStore } from '@/store/notification.store'
@@ -26,7 +26,7 @@ const routeMeta: Record<string, { title: string; subtitle: string }> = {
 export function TopBar() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { theme, toggleTheme, setSidebarOpen } = useUIStore()
+  const { setSidebarOpen } = useUIStore()
   const profile = useAuthStore((s) => s.profile)
   const user = useAuthStore((s) => s.user)
   const org = useAuthStore((s) => s.org)
@@ -107,9 +107,7 @@ export function TopBar() {
             </span>
           )}
         </button>
-        <button className={styles.iconBtn} onClick={toggleTheme} aria-label="Toggle theme">
-          {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-        </button>
+
         <div className={styles.userBtnWrap} ref={menuRef}>
           <button className={styles.userBtn} onClick={() => setUserMenuOpen((p) => !p)} aria-label="User menu">
             <span
