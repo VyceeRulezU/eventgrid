@@ -1,0 +1,208 @@
+.adminAuthContainer {
+  display: flex;
+  height: 100vh;
+  padding: var(--space-4);
+  box-sizing: border-box;
+  background-color: #0a0e14;
+  font-family: var(--font-base);
+  overflow: hidden;
+}
+
+.adminAuthLeft {
+  position: relative;
+  flex: 0 0 36%;
+  height: 100%;
+  background: linear-gradient(135deg, #0f1419 0%, #151d27 100%);
+  border-radius: var(--radius-xl) 0 0 var(--radius-xl);
+  padding: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.adminAuthLeft::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(212, 160, 23, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212, 160, 23, 0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.adminAuthLeft::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -25rem;
+  transform: translateY(-50%);
+  width: 50rem;
+  height: 50rem;
+  background-image: url('/EventGrid-favicon.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.adminAuthTopBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 2;
+  position: relative;
+}
+
+.adminAuthCenter {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  z-index: 2;
+  position: relative;
+}
+
+.adminAuthCenterContent {
+  max-width: 340px;
+}
+
+.adminAuthBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  margin-bottom: var(--space-4);
+}
+
+.adminAuthTitle {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0 0 var(--space-3);
+  color: #F9FAFB;
+}
+
+.adminAuthDesc {
+  font-size: var(--text-sm);
+  color: #9CA3AF;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.adminAuthFooter {
+  z-index: 2;
+  position: relative;
+}
+
+.adminAuthFooterText {
+  font-size: var(--text-xs);
+  color: #6B7280;
+  margin: 0;
+}
+
+.adminAuthFooterLink {
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.adminAuthRight {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+  background-color: #0a0e14;
+}
+
+.adminAuthForm {
+  width: 100%;
+  max-width: 400px;
+}
+
+.adminAuthFormTitle {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  margin: 0 0 var(--space-1);
+  color: #F9FAFB;
+}
+
+.adminAuthFormDesc {
+  font-size: var(--text-sm);
+  color: #9CA3AF;
+  margin: 0 0 var(--space-6);
+}
+
+.adminAuthError {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  margin-bottom: var(--space-4);
+}
+
+.adminAuthError.error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #F87171;
+}
+
+.adminAuthError.success {
+  background: rgba(52, 211, 153, 0.1);
+  border: 1px solid rgba(52, 211, 153, 0.2);
+  color: #34D399;
+}
+
+.adminAuthInput {
+  background-color: #1a1f2e;
+  border-color: #2a2f3e;
+  color: #F9FAFB;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.adminAuthLabel {
+  color: #D1D5DB;
+}
+
+.adminAuthSubmit {
+  width: 100%;
+  min-height: 44px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+}
+
+.adminAuthSubmit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.passwordToggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  opacity: 0.6;
+  transition: opacity var(--transition-fast);
+  border-radius: var(--radius-sm);
+}
+
+.passwordToggle:hover {
+  opacity: 1;
+}

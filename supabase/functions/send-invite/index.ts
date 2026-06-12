@@ -587,14 +587,20 @@ Deno.serve(async (req) => {
 
     if (type === 'admin_monitor') {
       const adminRole = role || 'super_admin'
-      const { error: inviteError } = await supabaseAdmin.from('admin_invites').upsert({
-        email,
-        role: adminRole,
-        invited_by: invited_by || null,
-        status: 'pending',
-      }, { onConflict: 'email' })
-      if (inviteError) {
-        console.error('[send-invite] admin_invites upsert failed:', inviteError)
+      try {
+        console.log('[send-invite] inserting admin_invite', { email, adminRole, invited_by })
+        const { data: invData, error: inviteError } = await supabaseAdmin
+          .from('admin_invites')
+          .insert({ email, role: adminRole, invited_by: invited_by || null, status: 'pending' })
+          .select('id')
+          .maybeSingle()
+        if (inviteError) {
+          console.error('[send-invite] admin_invites insert failed:', inviteError)
+        } else {
+          console.log('[send-invite] admin_invites insert succeeded:', invData?.id)
+        }
+      } catch (err) {
+        console.error('[send-invite] admin_invites exception:', err)
       }
     }
 
