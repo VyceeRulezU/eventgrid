@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useResolvedEventId } from '@/hooks/useResolvedEventId'
-import { Users, X, Mail, UserPlus, FileText, CheckCircle2, AlertTriangle, Clock, Send, Download, Plus } from 'lucide-react'
+import { Users, X, Mail, UserPlus, FileText, CheckCircle2, AlertTriangle, Clock, Send, Download, Plus, Trash2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -105,6 +105,7 @@ export function TeamPage() {
   const [reportMessage, setReportMessage] = useState('')
   const [submittingReport, setSubmittingReport] = useState(false)
   const [activeTab, setActiveTab] = useState<'members' | 'reports'>('members')
+  const [confirmRemove, setConfirmRemove] = useState<{ type: 'member' | 'invite'; id: string; name: string } | null>(null)
 
   useEffect(() => {
     if (!eventId) return
@@ -268,6 +269,28 @@ export function TeamPage() {
     setAddingExisting(null)
   }
 
+  async function handleRemoveMember(accessId: string) {
+    const { error } = await supabase.from('event_access').delete().eq('id', accessId)
+    if (error) {
+      showNotification({ variant: 'error', title: 'Failed to remove member', message: error.message })
+      return
+    }
+    showNotification({ variant: 'success', title: 'Member removed' })
+    setConfirmRemove(null)
+    loadData()
+  }
+
+  async function handleCancelInvite(inviteId: string) {
+    const { error } = await supabase.from('invitations').update({ status: 'cancelled' }).eq('id', inviteId)
+    if (error) {
+      showNotification({ variant: 'error', title: 'Failed to cancel invite', message: error.message })
+      return
+    }
+    showNotification({ variant: 'success', title: 'Invite cancelled' })
+    setConfirmRemove(null)
+    loadData()
+  }
+
   async function handleSearch(query: string) {
     setSearchQuery(query)
     if (!query.trim()) { setSearchResults([]); return }
@@ -360,12 +383,13 @@ export function TeamPage() {
                   <th className={styles.th}>Member</th>
                   <th className={styles.th}>Role</th>
                   <th className={`${styles.th} ${styles.thTasks}`}>Tasks</th>
+                  {(role === 'planner' || role === 'coordinator') && <th className={styles.th} style={{ width: 60 }} />}
                 </tr>
               </thead>
               <tbody>
-                {members.length === 0 && pendingInvitations.length === 0 ? (
+                    {members.length === 0 && pendingInvitations.length === 0 ? (
                   <tr>
-                    <td className={styles.td} colSpan={3}>
+                    <td className={styles.td} colSpan={(role === 'planner' || role === 'coordinator') ? 4 : 3}>
                       <div style={{ textAlign: 'center', padding: 'var(--space-8) var(--space-4)', color: 'var(--color-text-muted)' }}>
                         <Users size={24} style={{ marginBottom: 'var(--space-2)', opacity: 0.4 }} />
                         <div style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>No team members yet</div>
@@ -397,6 +421,19 @@ export function TeamPage() {
                         <td className={`${styles.td} ${styles.cellCenter}`}>
                           <span className={styles.tasksCount}>{taskCounts[member.user_id] || 0} tasks</span>
                         </td>
+                        {(role === 'planner' || role === 'coordinator') && (
+                          <td className={styles.td} style={{ textAlign: 'right' }}>
+                            <button
+                              className="btn btn-ghost btn-sm btn-icon"
+                              style={{ width: 32, height: 32, color: 'var(--color-text-muted)' }}
+                              onClick={() => setConfirmRemove({ type: 'member', id: member.id, name: member.profile?.display_name || member.profile?.email || 'this member' })}
+                              aria-label={`Remove ${member.profile?.display_name || member.profile?.email || 'member'}`}
+                              title="Remove from event"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </td>
+                        )}
                       </tr>
                     ))}
                     {pendingInvitations.map((inv) => (
@@ -421,6 +458,19 @@ export function TeamPage() {
                         <td className={`${styles.td} ${styles.cellCenter}`}>
                           <span className={styles.tasksCount}>&mdash;</span>
                         </td>
+                        {(role === 'planner' || role === 'coordinator') && (
+                          <td className={styles.td} style={{ textAlign: 'right' }}>
+                            <button
+                              className="btn btn-ghost btn-sm btn-icon"
+                              style={{ width: 32, height: 32, color: 'var(--color-text-muted)' }}
+                              onClick={() => setConfirmRemove({ type: 'invite', id: inv.id, name: inv.email })}
+                              aria-label={`Cancel invite for ${inv.email}`}
+                              title="Cancel invite"
+                            >
+                              <X size={14} />
+                            </button>
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </>
@@ -553,6 +603,49 @@ export function TeamPage() {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── Confirm remove ── */}
+      {confirmRemove && (
+        <div className={styles.overlay} onClick={() => setConfirmRemove(null)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()} style={{ maxWidth: 400 }}>
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>
+                {confirmRemove.type === 'invite' ? 'Cancel Invite' : 'Remove Member'}
+              </h3>
+              <button type="button" className={styles.modalClose} onClick={() => setConfirmRemove(null)} aria-label="Close">
+                <X size={18} />
+              </button>
+            </div>
+            <div className={styles.modalBody} style={{ textAlign: 'center', padding: 'var(--space-6)' }}>
+              <AlertTriangle size={32} style={{ color: 'var(--color-warning)', marginBottom: 'var(--space-3)' }} />
+              <p style={{ margin: '0 0 var(--space-1)', fontSize: 'var(--text-sm)', fontWeight: 600 }}>
+                {confirmRemove.type === 'invite' ? 'Cancel this invitation?' : `Remove ${confirmRemove.name}?`}
+              </p>
+              <p style={{ margin: '0 0 var(--space-5)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                {confirmRemove.type === 'invite'
+                  ? 'The pending invitation will be cancelled. They can be re-invited later.'
+                  : 'They will lose access to this event and its tasks.'}
+              </p>
+              <div style={{ display: 'flex', gap: 'var(--space-2)', justifyContent: 'center' }}>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={() =>
+                    confirmRemove.type === 'invite'
+                      ? handleCancelInvite(confirmRemove.id)
+                      : handleRemoveMember(confirmRemove.id)
+                  }
+                >
+                  <Trash2 size={14} />
+                  {confirmRemove.type === 'invite' ? 'Cancel Invite' : 'Remove'}
+                </button>
+                <button className="btn btn-ghost btn-sm" onClick={() => setConfirmRemove(null)}>
+                  Keep
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

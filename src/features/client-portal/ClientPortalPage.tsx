@@ -8,7 +8,7 @@ import {
 import { supabase } from '@/lib/supabase'
 import { PhaseTimelineTracker } from '@/components/shared/PhaseTimelineTracker'
 import { PhaseSegmentBar } from '@/components/shared/PhasePipeline'
-import type { Event, EventPhase, Media, ClientPortal } from '@/types'
+import type { Event, EventPhase, Media, ClientPortal, EventVendor } from '@/types'
 import styles from './ClientPortalPage.module.css'
 
 interface PortalData {
@@ -18,7 +18,7 @@ interface PortalData {
   media: Media[]
 }
 
-type ClientTab = 'timeline' | 'all' | 'active' | 'done' | 'gallery'
+type ClientTab = 'timeline' | 'all' | 'active' | 'done' | 'gallery' | 'vendors'
 
 /* ── SVG Progress ring ─────────────────────────── */
 function ProgressRing({ pct }: { pct: number }) {
@@ -71,6 +71,7 @@ export function ClientPortalPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<ClientTab>('timeline')
+  const [eventVendors, setEventVendors] = useState<EventVendor[]>([])
 
   useEffect(() => {
     if (!token) { setError('Invalid access link'); setLoading(false); return }
@@ -98,7 +99,9 @@ export function ClientPortalPage() {
             Promise.all([
               supabase.from('event_phases').select('*').eq('event_id', event.id).order('phase_number'),
               supabase.from('media').select('*').eq('event_id', event.id).eq('tag', 'client_share').order('created_at'),
-            ]).then(([phasesRes, mediaRes]) => {
+              supabase.from('event_vendors').select('*').eq('event_id', event.id).order('category'),
+            ]).then(([phasesRes, mediaRes, vendorsRes]) => {
+              setEventVendors((vendorsRes.data || []) as unknown as EventVendor[])
               supabase.from('client_portals').update({ last_accessed: new Date().toISOString() }).eq('id', portal.id).then()
               setData({
                 portal,
@@ -248,6 +251,7 @@ export function ClientPortalPage() {
             ['active', 'Active', activeCount > 0 ? activeCount : null],
             ['done', 'Done', completed > 0 ? completed : null],
             ['gallery', 'Gallery', media.length > 0 ? media.length : null],
+            ['vendors', 'Vendors', eventVendors.length > 0 ? eventVendors.length : null],
           ] as const).map(([key, label, badge]) => (
             <button
               key={key}
@@ -332,6 +336,47 @@ export function ClientPortalPage() {
                 <div key={m.id} className={styles.mediaCard}>
                   <img src={m.url} alt={m.caption || ''} className={styles.mediaImg} loading="lazy" />
                   {m.caption && <div className={styles.mediaCaption}>{m.caption}</div>}
+                </div>
+              ))}
+            </div>
+          )
+        )}
+
+        {/* Vendors */}
+        {activeTab === 'vendors' && (
+          eventVendors.length === 0 ? (
+            <div className={styles.emptyState}>
+              <div className={styles.emptyStateIcon}><Users size={24} /></div>
+              <div className={styles.emptyStateTitle}>No vendors assigned</div>
+              <div className={styles.emptyStateSub}>Your planner will add vendors and service providers here.</div>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+              {eventVendors.map((ev) => (
+                <div key={ev.id} className={styles.phaseCard}>
+                  <div style={{ width: 40, height: 40, borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'var(--text-sm)', fontWeight: 700, background: 'var(--color-accent-muted)', color: 'var(--color-accent)', flexShrink: 0 }}>
+                    {(ev.vendor_name || '?')[0].toUpperCase()}
+                  </div>
+                  <div className={styles.phaseInfo}>
+                    <div className={styles.phaseName}>{ev.vendor_name}</div>
+                    <div className={styles.phaseStatus}>{ev.category}</div>
+                    {ev.service_desc && (
+                      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginTop: 2 }}>
+                        {ev.service_desc}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 'var(--space-1)', flexShrink: 0 }}>
+                    <span style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>
+                      ₦{ev.total_amount.toLocaleString()}
+                    </span>
+                    <span
+                      className={`badge ${ev.booking_status === 'confirmed' || ev.booking_status === 'paid' ? 'badge-success' : ev.booking_status === 'cancelled' ? 'badge-error' : 'badge-medium'}`}
+                      style={{ fontSize: 10 }}
+                    >
+                      {ev.booking_status}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>

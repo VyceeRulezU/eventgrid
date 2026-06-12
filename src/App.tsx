@@ -489,9 +489,7 @@ export function App() {
             <Route path="/dashboard/vendor" element={
               <RoleGuard allowedRole="vendor"><VendorPortal /></RoleGuard>
             } />
-            <Route path="/dashboard/client" element={
-              <RoleGuard allowedRole="client"><ClientDashboard /></RoleGuard>
-            } />
+            <Route path="/dashboard/client" element={<Navigate to="/vendors/directory" replace />} />
             <Route path="/dashboard/my-tasks" element={
               <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
                 <MyTasksPage />
