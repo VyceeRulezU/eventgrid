@@ -122,6 +122,16 @@ export function SuperAdminTeamPage() {
       return
     }
 
+    const { error: dbError } = await supabase
+      .from('admin_invites')
+      .upsert({ email: inviteEmail.trim(), role: inviteRole, invited_by: user.id, status: 'pending' }, { onConflict: 'email' })
+    if (dbError) {
+      console.error('[SuperAdminTeamPage] admin_invites upsert failed:', dbError)
+      showNotification({ variant: 'error', title: 'Invite record failed', message: dbError.message })
+      setInviting(false)
+      return
+    }
+
     showNotification({ variant: 'success', title: 'Invite sent', message: `An invitation has been sent to ${inviteEmail.trim()}` })
     setInviteEmail('')
     setShowInvite(false)
@@ -353,6 +363,7 @@ export function SuperAdminTeamPage() {
                     <td className={styles.td}>
                       {role === 'super_admin' && (
                         <DropdownMenu
+                          align="end"
                           trigger={
                             <button className="btn btn-ghost btn-sm btn-icon" aria-label="Actions" style={{ width: 28, height: 28 }}>
                               <MoreVertical size={14} />

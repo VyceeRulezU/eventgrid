@@ -32,3 +32,4 @@ CREATE INDEX IF NOT EXISTS idx_admin_invites_email ON admin_invites(email);
 CREATE INDEX IF NOT EXISTS idx_admin_invites_status ON admin_invites(status);
 
 GRANT ALL ON public.admin_invites TO service_role;
+GRANT ALL ON public.admin_invites TO authenticated;
