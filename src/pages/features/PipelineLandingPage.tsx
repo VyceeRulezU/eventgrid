@@ -1,3 +1,4 @@
+import { SEO } from '@/components/shared/SEO'
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import { FaqSection } from '@/components/shared/FaqSection'
@@ -9,6 +10,11 @@ import styles from './FeaturesLanding.module.css'
 export function PipelineLandingPage() {
   return (
     <div className={styles.pageWrapper}>
+      <SEO
+        title="Visual Event Pipeline — EventGrid"
+        description="Structure your event workflow from booking to closeout with 9 default timeline phases, 1-click PDF exports, and full audit trails for every task."
+        url="/features/pipeline"
+      />
       <Navbar />
       
       <LandingPageHero

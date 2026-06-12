@@ -1,3 +1,4 @@
+import { SEO } from '@/components/shared/SEO'
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import Footer from '@/pages/landing/Footer'
@@ -12,6 +13,11 @@ export function ContactPage() {
 
   return (
     <div className={styles.pageWrapper}>
+      <SEO
+        title="Contact EventGrid — Get in Touch"
+        description="Have questions about onboarding, vendor listing verifications, pricing, or API customizations? Contact the EventGrid team."
+        url="/contact"
+      />
       <Navbar />
       
       <LandingPageHero

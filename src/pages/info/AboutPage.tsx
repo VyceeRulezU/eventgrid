@@ -1,3 +1,4 @@
+import { SEO } from '@/components/shared/SEO'
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import { FaqSection } from '@/components/shared/FaqSection'
@@ -8,6 +9,11 @@ import styles from './InfoPages.module.css'
 export function AboutPage() {
   return (
     <div className={styles.pageWrapper}>
+      <SEO
+        title="About EventGrid — Our Story"
+        description="EventGrid closes the gap in event management. Over 5,000 events coordinated across Nigeria with ₦5B+ in budgets tracked securely."
+        url="/about"
+      />
       <Navbar />
       
       <LandingPageHero

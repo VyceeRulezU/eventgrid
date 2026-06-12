@@ -1,3 +1,4 @@
+import { SEO } from '@/components/shared/SEO'
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import { FaqSection } from '@/components/shared/FaqSection'
@@ -50,6 +51,11 @@ const FAQS = [
 export function FAQPage() {
   return (
     <div className={styles.pageWrapper}>
+      <SEO
+        title="FAQ — EventGrid Help Center"
+        description="Find answers about EventGrid's event management platform — team invites, live board, payments, security, and vendor coordination."
+        url="/faq"
+      />
       <Navbar />
       
       <LandingPageHero

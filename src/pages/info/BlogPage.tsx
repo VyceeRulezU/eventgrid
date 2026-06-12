@@ -1,3 +1,4 @@
+import { SEO } from '@/components/shared/SEO'
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import { FaqSection } from '@/components/shared/FaqSection'
@@ -35,6 +36,11 @@ const POSTS = [
 export function BlogPage() {
   return (
     <div className={styles.pageWrapper}>
+      <SEO
+        title="EventGrid Blog — Event Management Insights"
+        description="Tips on escrow payments, event day coordination, aftermath reports, and more for Nigerian event planners and coordinators."
+        url="/blog"
+      />
       <Navbar />
       
       <LandingPageHero

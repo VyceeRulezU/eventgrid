@@ -1,3 +1,4 @@
+import { SEO } from '@/components/shared/SEO'
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import { FaqSection } from '@/components/shared/FaqSection'
@@ -29,6 +30,11 @@ const ROLES = [
 export function CareersPage() {
   return (
     <div className={styles.pageWrapper}>
+      <SEO
+        title="Careers at EventGrid — Join Our Team"
+        description="Work with curious, driven team members to eliminate friction from event day operations. Remote roles across Nigeria in engineering, design, and operations."
+        url="/careers"
+      />
       <Navbar />
       
       <LandingPageHero

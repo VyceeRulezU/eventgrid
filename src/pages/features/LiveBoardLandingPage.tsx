@@ -1,3 +1,4 @@
+import { SEO } from '@/components/shared/SEO'
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import { FaqSection } from '@/components/shared/FaqSection'
@@ -9,6 +10,11 @@ import styles from './FeaturesLanding.module.css'
 export function LiveBoardLandingPage() {
   return (
     <div className={styles.pageWrapper}>
+      <SEO
+        title="Live Feed & Event Board — EventGrid"
+        description="Bring event day operations alive with real-time task checkoffs, live program monitoring, and team coordination via secure websockets."
+        url="/features/live-board"
+      />
       <Navbar />
       
       <LandingPageHero

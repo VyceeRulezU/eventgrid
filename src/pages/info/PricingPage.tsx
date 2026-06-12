@@ -1,3 +1,4 @@
+import { SEO } from '@/components/shared/SEO'
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import { FaqSection } from '@/components/shared/FaqSection'
@@ -9,6 +10,11 @@ import styles from './PricingPage.module.css'
 export function PricingPage() {
   return (
     <div className={styles.pageWrapper}>
+      <SEO
+        title="Pricing — EventGrid Plans"
+        description="Predictable event management pricing. Register today to lock in 50% early access when plans launch in Q3 2026."
+        url="/pricing"
+      />
       <Navbar />
       
       <LandingPageHero

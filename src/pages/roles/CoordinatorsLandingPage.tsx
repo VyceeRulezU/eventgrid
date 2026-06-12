@@ -1,3 +1,4 @@
+import { SEO } from '@/components/shared/SEO'
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import { FaqSection } from '@/components/shared/FaqSection'
@@ -9,6 +10,11 @@ import styles from './RolesLanding.module.css'
 export function CoordinatorsLandingPage() {
   return (
     <div className={styles.pageWrapper}>
+      <SEO
+        title="Event Coordination Software — EventGrid"
+        description="Empower on-site teams with instant task updates, interactive schedules, and real-time synchronization tools for flawless event day execution."
+        url="/coordinators"
+      />
       <Navbar />
       
       <LandingPageHero

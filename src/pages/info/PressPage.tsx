@@ -1,3 +1,4 @@
+import { SEO } from '@/components/shared/SEO'
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import { FaqSection } from '@/components/shared/FaqSection'
@@ -9,6 +10,11 @@ import styles from './InfoPages.module.css'
 export function PressPage() {
   return (
     <div className={styles.pageWrapper}>
+      <SEO
+        title="Press Kit — EventGrid Media Assets"
+        description="Download official EventGrid logos, brand colors, and media assets for press coverage and media publications."
+        url="/press"
+      />
       <Navbar />
       
       <LandingPageHero

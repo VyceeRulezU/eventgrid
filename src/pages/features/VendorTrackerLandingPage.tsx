@@ -1,3 +1,4 @@
+import { SEO } from '@/components/shared/SEO'
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import { FaqSection } from '@/components/shared/FaqSection'
@@ -9,6 +10,11 @@ import styles from './FeaturesLanding.module.css'
 export function VendorTrackerLandingPage() {
   return (
     <div className={styles.pageWrapper}>
+      <SEO
+        title="Vendor Logistics & Payment Tracker — EventGrid"
+        description="Manage vendor relationships, contracts, deposits, and delivery schedules from one workspace. Zero booking conflicts with milestone payment tracking."
+        url="/features/vendor-tracker"
+      />
       <Navbar />
       
       <LandingPageHero

@@ -1,3 +1,4 @@
+import { SEO } from '@/components/shared/SEO'
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import { FaqSection } from '@/components/shared/FaqSection'
@@ -9,6 +10,11 @@ import styles from './RolesLanding.module.css'
 export function PlannersLandingPage() {
   return (
     <div className={styles.pageWrapper}>
+      <SEO
+        title="Event Planning Software — EventGrid"
+        description="Design timelines, assign tasks, control budgets, and manage vendors from one dashboard. 10x faster event setup with reusable templates."
+        url="/planners"
+      />
       <Navbar />
       
       <LandingPageHero

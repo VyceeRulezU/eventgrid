@@ -1,3 +1,4 @@
+import { SEO } from '@/components/shared/SEO'
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import { FaqSection } from '@/components/shared/FaqSection'
@@ -9,6 +10,11 @@ import styles from './RolesLanding.module.css'
 export function VendorsLandingPage() {
   return (
     <div className={styles.pageWrapper}>
+      <SEO
+        title="Vendor Marketplace for Events — EventGrid"
+        description="Connect with top planners, receive verified bookings, manage milestones, and secure escrow payments on Nigeria's premium event vendor network."
+        url="/vendors-landing"
+      />
       <Navbar />
       
       <LandingPageHero

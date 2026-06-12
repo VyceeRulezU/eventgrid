@@ -1,3 +1,4 @@
+import { SEO } from '@/components/shared/SEO'
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import { FaqSection } from '@/components/shared/FaqSection'
@@ -9,6 +10,11 @@ import styles from './FeaturesLanding.module.css'
 export function AftermathReportsLandingPage() {
   return (
     <div className={styles.pageWrapper}>
+      <SEO
+        title="Automated Aftermath Reports — EventGrid"
+        description="Consolidate financial statements, guest feedback, vendor parameters, and timeline metrics into one professional PDF in under 30 seconds."
+        url="/features/aftermath-reports"
+      />
       <Navbar />
       
       <LandingPageHero

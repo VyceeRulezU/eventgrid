@@ -1,3 +1,4 @@
+import { SEO } from '@/components/shared/SEO'
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import { FaqSection } from '@/components/shared/FaqSection'
@@ -9,6 +10,11 @@ import styles from './FeaturesLanding.module.css'
 export function ClientPortalLandingPage() {
   return (
     <div className={styles.pageWrapper}>
+      <SEO
+        title="Interactive Client Portal — EventGrid"
+        description="Offer clients a premium read-only dashboard with real-time RSVP numbers, budget breakdowns, and timeline updates — no more email chains."
+        url="/features/client-portal"
+      />
       <Navbar />
       
       <LandingPageHero
