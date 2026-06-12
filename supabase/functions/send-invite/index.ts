@@ -358,7 +358,7 @@ Deno.serve(async (req) => {
         : adminRole === 'monitor' ? 'Monitor'
         : adminRole === 'admin_support' ? 'Support'
         : 'Admin'
-      const inviteLink = `${APP_URL}/register?role=${adminRole}&invited_by=${encodeURIComponent(email)}`
+      const inviteLink = `${APP_URL}/accept-admin-invite?role=${adminRole}`
       subject = `You've been invited as ${roleLabel} on EventGrid`
       html = emailShell(`${roleLabel} Invitation`, `
               <h1 style="margin:0 0 12px;font-size:24px;font-weight:300;color:#F9FAFB;line-height:1.3;letter-spacing:-0.02em;">${roleLabel} Invitation</h1>

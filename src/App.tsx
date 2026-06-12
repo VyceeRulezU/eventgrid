@@ -16,6 +16,7 @@ import { AppShell } from '@/components/layout/AppShell'
 import { LandingPage } from '@/pages/landing/LandingPage'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
+import { AcceptAdminInvite } from '@/pages/auth/AcceptAdminInvite'
 import { VerifyEmailPage } from '@/pages/auth/VerifyEmailPage'
 import NotFoundPage from '@/pages/error/NotFoundPage'
 import { PlannerOnboarding } from '@/pages/onboarding/PlannerOnboarding'
@@ -430,6 +431,7 @@ export function App() {
           <Route path="/home" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/accept-admin-invite" element={<AcceptAdminInvite />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/pricing" element={<PricingPage />} />
           <Route path="/coordinators" element={<CoordinatorsLandingPage />} />
