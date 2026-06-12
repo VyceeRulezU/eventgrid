@@ -40,6 +40,7 @@ interface AdminInviteParams {
   type: 'admin_monitor'
   email: string
   invited_by_name: string
+  invited_by?: string
   role?: 'super_admin' | 'monitor' | 'admin_support'
 }
 

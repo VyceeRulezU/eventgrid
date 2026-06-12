@@ -112,6 +112,7 @@ export function SuperAdminTeamPage() {
       type: 'admin_monitor',
       email: inviteEmail.trim(),
       invited_by_name: displayName,
+      invited_by: user.id,
       role: inviteRole as 'super_admin' | 'monitor' | 'admin_support',
     })
 
@@ -369,7 +370,7 @@ export function SuperAdminTeamPage() {
                                   label: 'Remove Admin',
                                   value: 'remove',
                                   icon: <Trash2 size={14} />,
-                                  className: 'danger' as const,
+                                  danger: true,
                                 },
                               ]
                               : entry.status === 'pending'
@@ -378,13 +379,13 @@ export function SuperAdminTeamPage() {
                                     label: 'Cancel Invite',
                                     value: 'cancel',
                                     icon: <X size={14} />,
-                                    className: 'danger' as const,
+                                    danger: true,
                                   },
                                   {
                                     label: 'Delete Invite',
                                     value: 'delete',
                                     icon: <Trash2 size={14} />,
-                                    className: 'danger' as const,
+                                    danger: true,
                                   },
                                 ]
                                 : []),
