@@ -281,9 +281,9 @@ function formatCurrency(kobo: number): string {
 export function AdminManagePage() {
   const role = useAuthStore((s) => s.role)
   const navigate = useNavigate()
-  const [activeTab, setActiveTab] = useState<'planners' | 'coordinators' | 'events' | 'payments'>(() => {
+  const [activeTab, setActiveTab] = useState<'planners' | 'coordinators' | 'events' | 'payments' | 'users'>(() => {
     const tab = new URLSearchParams(window.location.search).get('tab')
-    if (tab === 'coordinators' || tab === 'events' || tab === 'payments') return tab
+    if (tab === 'coordinators' || tab === 'events' || tab === 'payments' || tab === 'users') return tab
     return 'planners'
   })
   const [loading, setLoading] = useState(true)
@@ -291,6 +291,7 @@ export function AdminManagePage() {
   const [coordinators, setCoordinators] = useState<PersonRow[]>([])
   const [events, setEvents] = useState<EventRow[]>([])
   const [payments, setPayments] = useState<PaymentRow[]>([])
+  const [authUsers, setAuthUsers] = useState<{ id: string; email: string; created_at: string; last_sign_in_at: string | null; confirmed_at: string | null }[]>([])
   const [page, setPage] = useState(0)
   const [selectedPerson, setSelectedPerson] = useState<PersonRow | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -301,7 +302,7 @@ export function AdminManagePage() {
     setLoading(true)
 
     const [{ data: profiles }, { data: orgs }, { data: allEvents }] = await Promise.all([
-      supabase.from('profiles').select('id, display_name, email, phone, avatar_url, is_active, org_id, role, created_at').eq('is_active', true).order('created_at', { ascending: false }),
+      supabase.from('profiles').select('id, display_name, email, phone, avatar_url, is_active, org_id, role, created_at').order('created_at', { ascending: false }),
       supabase.from('organizations').select('id, name'),
       supabase.from('events').select('id, name, event_type, status, event_date, guest_count, created_at, created_by, org_id, coordinator_id').is('deleted_at', null).order('created_at', { ascending: false }),
     ])
@@ -365,10 +366,33 @@ export function AdminManagePage() {
     setLoading(false)
   }, [])
 
+  const loadAuthUsers = useCallback(async () => {
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const res = await fetch(`${supabaseUrl}/functions/v1/list-users`, { method: 'POST' })
+      const body = await res.json()
+      if (body?.users && Array.isArray(body.users)) {
+        setAuthUsers(body.users.map((u: any) => ({
+          id: u.id,
+          email: u.email,
+          created_at: u.created_at,
+          last_sign_in_at: u.last_sign_in_at,
+          confirmed_at: u.email_confirmed_at || u.confirmed_at,
+        })))
+      }
+    } catch (err) {
+      console.error('loadAuthUsers exception:', err)
+    }
+  }, [])
+
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData()
   }, [loadData, role])
+
+  useEffect(() => {
+    loadAuthUsers()
+  }, [loadAuthUsers])
 
   const loadPayments = useCallback(async () => {
     const { data: paidEvents } = await supabase
@@ -796,6 +820,7 @@ export function AdminManagePage() {
           { key: 'coordinators', label: 'Coordinators', icon: <Users size={16} />, badge: coordinators.length },
           { key: 'events', label: 'Events', icon: <Calendar size={16} />, badge: events.length },
           { key: 'payments', label: 'Payments', icon: <CreditCard size={16} />, badge: payments.length },
+          { key: 'users', label: 'All Users', icon: <Users size={16} />, badge: authUsers.length },
         ]}
         activeTab={activeTab}
         onChange={(k) => { setActiveTab(k); setPage(0); setSelectedPerson(null); setSelectedPayment(null); setSelectedIds(new Set()); navigate(`/admin/manage?tab=${k}`, { replace: true }) }}
@@ -811,6 +836,48 @@ export function AdminManagePage() {
         renderPersonTable(coordinators, 'coordinators')
       ) : activeTab === 'payments' ? (
         renderPaymentsTable()
+      ) : activeTab === 'users' ? (
+        <div className={styles.tableCard}>
+          <div className={styles.tableScroll}>
+            <table className={styles.table}>
+              <thead className={styles.thead}>
+                <tr>
+                  <th className={styles.th}>Email</th>
+                  <th className={styles.th}>Created</th>
+                  <th className={styles.th}>Confirmed</th>
+                  <th className={styles.th}>Last Sign In</th>
+                  <th className={`${styles.th} ${styles.thActions}`}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {authUsers.map(u => (
+                  <tr key={u.id} className={styles.tr}>
+                    <td className={styles.td}>{u.email}</td>
+                    <td className={styles.td}>{u.created_at ? formatDate(u.created_at) : '—'}</td>
+                    <td className={styles.td}>{u.confirmed_at ? 'Yes' : 'No'}</td>
+                    <td className={styles.td}>{u.last_sign_in_at ? formatDate(u.last_sign_in_at) : 'Never'}</td>
+                    <td className={`${styles.td} ${styles.actionsCell}`}>
+                      <button
+                        className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          const p: PersonRow = { id: u.id, display_name: null, email: u.email, phone: null, avatar_url: null, is_active: !!u.confirmed_at, org_name: null, event_count: 0 }
+                          handleDeletePerson(p, 'user')
+                        }}
+                        data-tooltip="Delete"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className={styles.tableFooter}>
+            <span>{authUsers.length} users</span>
+          </div>
+        </div>
       ) : (
         <>
           <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-3)', flexWrap: 'wrap' }}>
