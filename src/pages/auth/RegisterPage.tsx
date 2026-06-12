@@ -148,8 +148,7 @@ export function RegisterPage() {
       if (error) throw error
 
       if (role === 'client') {
-        supabase.functions.invoke('confirm-signup', { body: { email } }).catch(() => {})
-        navigate('/dashboard/client')
+        navigate('/verify-email')
       } else {
         navigate('/verify-email')
       }
