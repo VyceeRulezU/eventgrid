@@ -1,7 +1,6 @@
 import { useEffect, useState, useMemo } from 'react'
 import { Users, Plus, X, Pencil, ExternalLink } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { useResolvedEventId } from '@/hooks/useResolvedEventId'
 import { PageHero } from '@/components/shared/PageHero'
@@ -55,7 +54,6 @@ function fmtNaira(kobo: number): string {
 
 export function EventVendorsPage({ standalone = true }: { standalone?: boolean }) {
   const { eventId } = useResolvedEventId()
-  const org = useAuthStore((s) => s.org)
   const showNotification = useUIStore((s) => s.showNotification)
 
   const [vendors, setVendors] = useState<EventVendor[]>([])
@@ -358,7 +356,7 @@ function AddEventVendorModal({ eventId, onClose, onSaved }: {
           <button className="modal-card-close" onClick={onClose} disabled={saving} data-tooltip="Close"><X size={20} /></button>
         </div>
         <div className="modal-card-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
-          {orgId && !form.vendor_id && (
+          {!form.vendor_id && (
             <button className="btn btn-ghost btn-sm" style={{ marginBottom: 'var(--space-3)' }} onClick={() => setStep('choose')}>
               Choose from directory
             </button>
