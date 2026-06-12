@@ -26,12 +26,14 @@ Deno.serve(async (req) => {
 
     const errors: string[] = []
 
-    // 1. Nullify profiles.org_id so we can delete organizations (circular FK)
+    // -- Get orgs owned by this user --
     const { data: userOrgs } = await supabaseAdmin
       .from('organizations')
       .select('id')
       .eq('owner_id', user_id)
     const orgIds = (userOrgs ?? []).map(o => o.id)
+
+    // -- Nullify profiles.org_id that reference our orgs (circular FK) --
     if (orgIds.length > 0) {
       const { error: nullifyErr } = await supabaseAdmin
         .from('profiles')
@@ -40,7 +42,7 @@ Deno.serve(async (req) => {
       if (nullifyErr) errors.push('nullify_profiles_org_id: ' + nullifyErr.message)
     }
 
-    // 2. Nullify nullable FK references
+    // -- Nullify nullable FK references targeted at our user --
     for (const q of [
       supabaseAdmin.from('events').update({ coordinator_id: null }).eq('coordinator_id', user_id),
       supabaseAdmin.from('events').update({ client_id: null }).eq('client_id', user_id),
@@ -54,7 +56,18 @@ Deno.serve(async (req) => {
       supabaseAdmin.from('petty_cash').update({ logged_by: null }).eq('logged_by', user_id),
     ]) { await q }
 
-    // 3. Delete NOT NULL FK rows
+    // -- Delete rows in tables referencing our orgs (these precede org deletion) --
+    if (orgIds.length > 0) {
+      for (const [table, col] of [
+        ['vendors', 'org_id'],
+        ['events', 'org_id'],
+      ] as [string, string][]) {
+        const { error } = await supabaseAdmin.from(table as any).delete().in(col as any, orgIds)
+        if (error && !error.message.includes('Found 0 rows')) errors.push(`${table}_by_org: ${error.message}`)
+      }
+    }
+
+    // -- Delete NOT NULL FK rows referencing our user --
     for (const [table, col] of [
       ['organizations', 'owner_id'],
       ['events', 'created_by'],
@@ -68,14 +81,14 @@ Deno.serve(async (req) => {
       if (error) errors.push(`${table}: ${error.message}`)
     }
 
-    // 4. Delete super_admins (FK to profiles, ON DELETE CASCADE — but delete manually just in case)
+    // -- Delete super_admins entry --
     await supabaseAdmin.from('super_admins').delete().eq('user_id', user_id)
 
-    // 5. Delete profile (cascades to event_access, notifications, push_subscriptions)
+    // -- Delete profile (cascades to event_access, notifications, push_subscriptions) --
     const { error: profileErr } = await supabaseAdmin.from('profiles').delete().eq('id', user_id)
     if (profileErr) errors.push('profile: ' + profileErr.message)
 
-    // 6. Delete auth user
+    // -- Delete auth user --
     const { error: authErr } = await supabaseAdmin.auth.admin.deleteUser(user_id)
     if (authErr) errors.push('auth: ' + authErr.message)
 
