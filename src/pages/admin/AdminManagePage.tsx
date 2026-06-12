@@ -416,21 +416,20 @@ export function AdminManagePage() {
     showModal({
       variant: 'confirm',
       title: `Delete ${label}?`,
-      message: `Are you sure you want to delete ${person.display_name || person.email}? This will deactivate their account.`,
+      message: `Permanently delete ${person.display_name || person.email} and all their data? This cannot be undone.`,
       actions: [
         { label: 'Cancel', variant: 'secondary' as const, onClick: () => {} },
         {
           label: 'Delete',
           variant: 'danger' as const,
           onClick: async () => {
-            const { error } = await supabase
-              .from('profiles')
-              .update({ is_active: false })
-              .eq('id', person.id)
-            if (error) {
-              showNotification({ variant: 'error', title: 'Delete failed', message: error.message })
+            const { data, error: invokeError } = await supabase.functions.invoke('delete-user', {
+              body: { user_id: person.id },
+            })
+            if (invokeError || data?.error) {
+              showNotification({ variant: 'error', title: 'Delete failed', message: invokeError?.message || data?.error || 'Unknown error' })
             } else {
-              showNotification({ variant: 'success', title: 'Deleted', message: `${person.display_name || person.email} has been deactivated.` })
+              showNotification({ variant: 'success', title: 'Deleted', message: `${person.display_name || person.email} has been permanently deleted.` })
               loadData()
             }
           },
