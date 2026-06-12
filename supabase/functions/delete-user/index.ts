@@ -10,19 +10,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const TABLE_PRIORITY: { table: string; fk: string; nullable: boolean }[] = [
-  { table: 'event_access',     fk: 'user_id',    nullable: false },
-  { table: 'notifications',    fk: 'user_id',    nullable: false },
-  { table: 'push_subscriptions', fk: 'user_id',  nullable: false },
-  { table: 'client_payments',  fk: 'user_id',    nullable: false },
-  { table: 'invitations',      fk: 'invited_by', nullable: true  },
-  { table: 'vendors',          fk: 'portal_user_id', nullable: true },
-  { table: 'tasks',            fk: 'assignee_id', nullable: true  },
-  { table: 'events',           fk: 'coordinator_id', nullable: true },
-  { table: 'events',           fk: 'client_id',   nullable: true  },
-  { table: 'organizations',    fk: 'owner_id',    nullable: true  },
-]
-
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -39,30 +26,56 @@ Deno.serve(async (req) => {
 
     const errors: string[] = []
 
-    // 1. Clean up referencing rows — delete or nullify FKs
-    for (const { table, fk, nullable } of TABLE_PRIORITY) {
-      if (nullable) {
-        const { error } = await supabaseAdmin.from(table as any).update({ [fk]: null }).eq(fk as any, user_id)
-        if (error) errors.push(`${table}.${fk}: ${error.message}`)
-      } else {
-        const { error } = await supabaseAdmin.from(table as any).delete().eq(fk as any, user_id)
-        if (error) errors.push(`${table}.${fk}: ${error.message}`)
-      }
+    // 1. Nullify profiles.org_id so we can delete organizations (circular FK)
+    const { data: userOrgs } = await supabaseAdmin
+      .from('organizations')
+      .select('id')
+      .eq('owner_id', user_id)
+    const orgIds = (userOrgs ?? []).map(o => o.id)
+    if (orgIds.length > 0) {
+      const { error: nullifyErr } = await supabaseAdmin
+        .from('profiles')
+        .update({ org_id: null })
+        .in('org_id', orgIds)
+      if (nullifyErr) errors.push('nullify_profiles_org_id: ' + nullifyErr.message)
     }
 
-    // 2. Delete events created by the user (created_by is NOT NULL)
-    const { error: eventsErr } = await supabaseAdmin.from('events').delete().eq('created_by', user_id)
-    if (eventsErr) errors.push('events.created_by: ' + eventsErr.message)
+    // 2. Nullify nullable FK references
+    for (const q of [
+      supabaseAdmin.from('events').update({ coordinator_id: null }).eq('coordinator_id', user_id),
+      supabaseAdmin.from('events').update({ client_id: null }).eq('client_id', user_id),
+      supabaseAdmin.from('tasks').update({ assignee_id: null }).eq('assignee_id', user_id),
+      supabaseAdmin.from('event_vendors').update({ portal_user_id: null }).eq('portal_user_id', user_id),
+      supabaseAdmin.from('invitations').update({ invited_by: null }).eq('invited_by', user_id),
+      supabaseAdmin.from('event_activity').update({ actor_id: null }).eq('actor_id', user_id),
+      supabaseAdmin.from('vendors').update({ owner_id: null }).eq('owner_id', user_id),
+      supabaseAdmin.from('live_board_items').update({ updated_by: null }).eq('updated_by', user_id),
+      supabaseAdmin.from('issues').update({ resolved_by: null }).eq('resolved_by', user_id),
+      supabaseAdmin.from('petty_cash').update({ logged_by: null }).eq('logged_by', user_id),
+    ]) { await q }
 
-    // 3. Delete tasks created by the user
-    const { error: tasksErr } = await supabaseAdmin.from('tasks').delete().eq('created_by', user_id)
-    if (tasksErr) errors.push('tasks.created_by: ' + tasksErr.message)
+    // 3. Delete NOT NULL FK rows
+    for (const [table, col] of [
+      ['organizations', 'owner_id'],
+      ['events', 'created_by'],
+      ['tasks', 'created_by'],
+      ['issues', 'raised_by'],
+      ['media', 'uploader_id'],
+      ['task_comments', 'user_id'],
+      ['live_feed_posts', 'user_id'],
+    ] as [string, string][]) {
+      const { error } = await supabaseAdmin.from(table as any).delete().eq(col as any, user_id)
+      if (error) errors.push(`${table}: ${error.message}`)
+    }
 
-    // 4. Delete profile
+    // 4. Delete super_admins (FK to profiles, ON DELETE CASCADE — but delete manually just in case)
+    await supabaseAdmin.from('super_admins').delete().eq('user_id', user_id)
+
+    // 5. Delete profile (cascades to event_access, notifications, push_subscriptions)
     const { error: profileErr } = await supabaseAdmin.from('profiles').delete().eq('id', user_id)
     if (profileErr) errors.push('profile: ' + profileErr.message)
 
-    // 5. Delete auth user
+    // 6. Delete auth user
     const { error: authErr } = await supabaseAdmin.auth.admin.deleteUser(user_id)
     if (authErr) errors.push('auth: ' + authErr.message)
 
