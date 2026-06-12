@@ -202,7 +202,6 @@ export function EventVendorsPage({ standalone = true }: { standalone?: boolean }
       {showAddModal && (
         <AddEventVendorModal
           eventId={eventId!}
-          orgId={org?.id}
           onClose={() => setShowAddModal(false)}
           onSaved={() => { setShowAddModal(false); loadVendors() }}
         />
@@ -222,9 +221,8 @@ export function EventVendorsPage({ standalone = true }: { standalone?: boolean }
   )
 }
 
-function AddEventVendorModal({ eventId, orgId, onClose, onSaved }: {
+function AddEventVendorModal({ eventId, onClose, onSaved }: {
   eventId: string
-  orgId: string | undefined
   onClose: () => void
   onSaved: () => void
 }) {
@@ -244,17 +242,15 @@ function AddEventVendorModal({ eventId, orgId, onClose, onSaved }: {
   })
 
   useEffect(() => {
-    if (!orgId) { setLoading(false); return }
     supabase.from('vendors')
       .select('id, name, category, contact_name, phone, email')
-      .eq('org_id', orgId)
       .is('deleted_at', null)
       .order('name', { ascending: true })
       .then(({ data }) => {
         if (data) setDirectory(data as unknown as DirectoryVendor[])
         setLoading(false)
       })
-  }, [orgId])
+  }, [])
 
   async function handleSave() {
     if (!form.vendor_name.trim()) return

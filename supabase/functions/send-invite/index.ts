@@ -329,6 +329,7 @@ Deno.serve(async (req) => {
 
     // Check if the user exists in profiles or auth
     let userExists = false
+    let existingUserId: string | null = null
     try {
       const { data: existingProfile } = await supabaseAdmin
         .from('profiles')
@@ -338,10 +339,13 @@ Deno.serve(async (req) => {
       
       if (existingProfile?.id) {
         userExists = true
+        existingUserId = existingProfile.id
       } else {
-        const { data: authUserRes } = await supabaseAdmin.auth.admin.getUserByEmail(email)
-        if (authUserRes?.user?.id) {
+        const { data: authUsers } = await supabaseAdmin.auth.admin.listUsers()
+        const found = authUsers?.users?.find((u: any) => u.email?.toLowerCase() === email.toLowerCase())
+        if (found?.id) {
           userExists = true
+          existingUserId = found.id
         }
       }
     } catch (err) {
@@ -452,24 +456,39 @@ Deno.serve(async (req) => {
 
     } else if (type === 'team_member') {
       const teamRole = role || 'team_member'
-      const redirectUrl = `${APP_URL}/onboarding/team-member?event_id=${event_id}&role=${teamRole}`;
-      let linkData: any
-      let linkError: any
 
-      if (userExists) {
-        // User already exists, generate a login link that redirects to team member onboarding to add event access
-        const { data, error } = await supabaseAdmin.auth.admin.generateLink({
-          type: 'magiclink',
-          email,
-          options: {
-            redirectTo: redirectUrl,
-          },
+      if (userExists && existingUserId) {
+        // User already exists — add them directly to event_team and send notification
+        const { error: insertError } = await supabaseAdmin
+          .from('event_access')
+          .upsert({
+            event_id,
+            user_id: existingUserId,
+            role: teamRole,
+            invited_by: invited_by || null,
+            accepted_at: new Date().toISOString(),
+          }, { onConflict: 'event_id,user_id' })
+
+        if (insertError) {
+          console.error('Failed to add to event_team:', insertError)
+          return new Response(
+            JSON.stringify({ error: 'Failed to add team member: ' + insertError.message }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+
+        const inviteLink = `${APP_URL}/events/${event_id}?team=true`
+        const template = teamInviteEmail({
+          invitedByName: invited_by_name ?? 'Your event planner',
+          eventName: event!.name,
+          inviteLink,
         })
-        linkData = data
-        linkError = error
+        subject = template.subject
+        html = template.html
       } else {
         // User does not exist, generate an invite link which also creates the user record
-        const { data, error } = await supabaseAdmin.auth.admin.generateLink({
+        const redirectUrl = `${APP_URL}/onboarding/team-member?event_id=${event_id}&role=${teamRole}`;
+        const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
           type: 'invite',
           email,
           options: {
@@ -477,25 +496,23 @@ Deno.serve(async (req) => {
             redirectTo: redirectUrl,
           },
         })
-        linkData = data
-        linkError = error
-      }
 
-      if (linkError || !linkData?.properties?.action_link) {
-        console.error('Magic link error:', linkError)
-        return new Response(
-          JSON.stringify({ error: 'Failed to generate invite link: ' + (linkError?.message ?? 'unknown') }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
+        if (linkError || !linkData?.properties?.action_link) {
+          console.error('Invite link error:', linkError)
+          return new Response(
+            JSON.stringify({ error: 'Failed to generate invite link: ' + (linkError?.message ?? 'unknown') }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
 
-      const template = teamInviteEmail({
-        invitedByName: invited_by_name ?? 'Your event planner',
-        eventName: event!.name,
-        inviteLink: linkData.properties.action_link,
-      })
-      subject = template.subject
-      html = template.html
+        const template = teamInviteEmail({
+          invitedByName: invited_by_name ?? 'Your event planner',
+          eventName: event!.name,
+          inviteLink: linkData.properties.action_link,
+        })
+        subject = template.subject
+        html = template.html
+      }
 
     } else if (type === 'vendor') {
       const link = portal_link ?? `${APP_URL}/vendor-portal/${event_id}`
