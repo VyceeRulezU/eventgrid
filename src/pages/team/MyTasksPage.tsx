@@ -7,6 +7,7 @@ import { useUIStore } from '@/store/ui.store'
 import { compressImage } from '@/lib/compressImage'
 import { uploadFile } from '@/lib/storage'
 import { PageHero } from '@/components/shared/PageHero'
+import weddingImg from '@/assets/images/wedding_event_hall.png'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import type { Task, TaskComment } from '@/types'
 import styles from './MyTasksPage.module.css'
@@ -196,6 +197,7 @@ export function MyTasksPage() {
         icon={ListChecks}
         title="My Tasks"
         subtitle={`${tasks.length} task${tasks.length !== 1 ? 's' : ''} assigned to you`}
+        backgroundImage={weddingImg}
       />
 
       <div className={styles.content}>

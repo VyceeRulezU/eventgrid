@@ -10,6 +10,7 @@ import { EditVendorModal } from './EditVendorModal'
 import { AddVendorModal } from './AddVendorModal'
 import { AddTypeModal } from './AddTypeModal'
 import { PageHero } from '@/components/shared/PageHero'
+import weddingImg from '@/assets/images/wedding_event_hall.png'
 import { useSearch } from '@/hooks/useSearch'
 import { SearchBar } from '@/components/shared/SearchBar'
 import type { Vendor } from '@/types'
@@ -107,6 +108,7 @@ export function VendorsPage() {
       .select('id')
 
     if (error || !data || data.length === 0) {
+      console.error('[VendorsPage] delete failed', { error, data })
       showNotification({ variant: 'error', title: 'Failed to delete', message: error?.message || 'No rows were updated. You may not have permission to delete this vendor.' })
       return
     }
@@ -120,7 +122,7 @@ export function VendorsPage() {
   if (!orgId && !loading) {
     return (
       <div className={styles.page}>
-        <PageHero icon={Users} title="Vendors" subtitle="Manage your vendor directory" />
+        <PageHero icon={Users} title="Vendors" subtitle="Manage your vendor directory" backgroundImage={weddingImg} />
         <div className="empty-state">
           <div className="empty-state__icon"><Users size={24} /></div>
           <div className="empty-state__title">Complete your onboarding first</div>
@@ -183,6 +185,7 @@ export function VendorsPage() {
               .select('id')
 
             if (error || !data || data.length === 0) {
+              console.error('[VendorsPage] bulk delete failed', { error, data, ids })
               showNotification({ variant: 'error', title: 'Delete failed', message: error?.message || 'No rows were updated. You may not have permission to delete these vendors.' })
             } else {
               setVendors((prev) => prev.filter((v) => !ids.includes(v.id)))
@@ -201,6 +204,7 @@ export function VendorsPage() {
         icon={Users}
         title="Vendors"
         subtitle={`${vendors.length} vendor${vendors.length !== 1 ? 's' : ''} in your organisation`}
+        backgroundImage={weddingImg}
         actions={
           <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', flexWrap: 'wrap' }}>
             <span className="desktop-only" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>

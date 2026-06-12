@@ -12,6 +12,7 @@ import { PhaseSegmentBar } from '@/components/shared/PhasePipeline'
 import { Checkbox } from '@/components/ui/Checkbox'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { PageHero } from '@/components/shared/PageHero'
+import weddingImg from '@/assets/images/wedding_event_hall.png'
 import type { Event, EventPhase } from '@/types'
 import styles from './EventsListPage.module.css'
 
@@ -155,7 +156,7 @@ export function EventsListPage() {
   if (loading) {
     return (
       <div className={styles.page}>
-        <PageHero icon={Calendar} title="Events" />
+        <PageHero icon={Calendar} title="Events" backgroundImage={weddingImg} />
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 200, gap: 'var(--space-4)' }}>
           <img src="/EventGrid-favicon.svg" alt="Loading" style={{ width: 48, height: 48, opacity: 0.5 }} />
           <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>Loading events...</div>
@@ -172,6 +173,7 @@ export function EventsListPage() {
           title="Events"
           subtitle="Manage all your events in one place"
           actions={org || role === 'super_admin' ? <Link to="/events/new" className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }}><Plus size={16} /> Create Event</Link> : undefined}
+          backgroundImage={weddingImg}
         />
         <div className="empty-state">
           <div className="empty-state__icon"><Calendar size={24} /></div>
@@ -196,6 +198,7 @@ export function EventsListPage() {
         title="Events"
         subtitle={`${events.length} event${events.length !== 1 ? 's' : ''}${org ? ' in your organisation' : ''}`}
         actions={org || role === 'super_admin' ? <Link to="/events/new" className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }}><Plus size={16} /> Create Event</Link> : undefined}
+        backgroundImage={weddingImg}
       />
 
       <div className={styles.tableCard}>

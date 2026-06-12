@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { PageHero } from '@/components/shared/PageHero'
+import weddingImg from '@/assets/images/wedding_event_hall.png'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { useSearch } from '@/hooks/useSearch'
 import { SearchBar } from '@/components/shared/SearchBar'
@@ -212,6 +213,7 @@ export function VendorDirectoryPage() {
       .select('id')
 
     if (error || !data || data.length === 0) {
+      console.error('[VendorDirectoryPage] delete failed', { error, data, id })
       showNotification({ variant: 'error', title: 'Failed to delete', message: error?.message || 'No rows were updated. You may not have permission to delete this vendor.' })
       return
     }
@@ -256,6 +258,7 @@ export function VendorDirectoryPage() {
         icon={Building}
         title="Vendor Directory"
         subtitle="Browse and manage your vendor network"
+        backgroundImage={weddingImg}
         actions={
           <button className="btn btn-primary btn-sm" onClick={() => { resetForm(); setShowForm(true) }}>
             <Plus size={16} /> Add Vendor
