@@ -407,7 +407,7 @@ export function TeamPage() {
                               {member.profile?.display_name?.charAt(0)?.toUpperCase() || member.profile?.email?.charAt(0)?.toUpperCase() || '?'}
                             </div>
                             <div>
-                              <div className={styles.memberName}>{member.profile?.display_name || 'Unnamed'}</div>
+                              <div className={styles.memberName}>{member.profile?.display_name || member.profile?.email?.split('@')[0] || 'Unnamed'}</div>
                               <div className={styles.memberEmail}>{member.profile?.email}</div>
                             </div>
                           </div>
