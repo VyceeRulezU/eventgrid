@@ -368,11 +368,13 @@ export function AdminManagePage() {
 
   const loadAuthUsers = useCallback(async () => {
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-      const res = await fetch(`${supabaseUrl}/functions/v1/list-users`, { method: 'POST' })
-      const body = await res.json()
-      if (body?.users && Array.isArray(body.users)) {
-        setAuthUsers(body.users.map((u: any) => ({
+      const { data, error } = await supabase.functions.invoke('list-users')
+      if (error) {
+        console.error('list-users error:', error)
+        return
+      }
+      if (data?.users && Array.isArray(data.users)) {
+        setAuthUsers(data.users.map((u: any) => ({
           id: u.id,
           email: u.email,
           created_at: u.created_at,
@@ -440,7 +442,7 @@ export function AdminManagePage() {
     showModal({
       variant: 'confirm',
       title: `Delete ${label}?`,
-      message: `Permanently delete ${person.display_name || person.email} and all their data? This cannot be undone.`,
+      message: `This action is permanent and cannot be undone. All data associated with ${person.display_name || person.email} will be removed from the platform.`,
       actions: [
         { label: 'Cancel', variant: 'secondary' as const, onClick: () => {} },
         {
@@ -454,6 +456,7 @@ export function AdminManagePage() {
               showNotification({ variant: 'error', title: 'Delete failed', message: invokeError?.message || data?.error || 'Unknown error' })
             } else {
               showNotification({ variant: 'success', title: 'Deleted', message: `${person.display_name || person.email} has been permanently deleted.` })
+              loadAuthUsers()
               loadData()
             }
           },
@@ -838,10 +841,63 @@ export function AdminManagePage() {
         renderPaymentsTable()
       ) : activeTab === 'users' ? (
         <div className={styles.tableCard}>
+          {selectedIds.size > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', padding: 'var(--space-3) var(--space-4)', background: 'var(--color-surface-elevated)', borderBottom: '1px solid var(--color-border)', fontSize: 'var(--text-sm)' }}>
+              <span>{selectedIds.size} selected</span>
+              <button
+                className="btn btn-destructive btn-sm"
+                onClick={() => {
+                  const count = selectedIds.size
+                  showModal({
+                    variant: 'confirm',
+                    title: `Delete ${count} user${count !== 1 ? 's' : ''}?`,
+                    message: `This action is permanent and cannot be undone. All data associated with ${count > 1 ? 'these accounts' : 'this account'} will be removed from the platform.`,
+                    actions: [
+                      { label: 'Cancel', variant: 'secondary', onClick: () => {} },
+                      {
+                        label: 'Delete',
+                        variant: 'danger',
+                        onClick: async () => {
+                          let failed = 0
+                          for (const id of selectedIds) {
+                            const { error: e, data: d } = await supabase.functions.invoke('delete-user', { body: { user_id: id } })
+                            if (e || d?.error) failed++
+                          }
+                          if (failed === 0) {
+                            showNotification({ variant: 'success', title: 'Deleted', message: `${selectedIds.size} user${selectedIds.size !== 1 ? 's' : ''} deleted.` })
+                          } else {
+                            showNotification({ variant: 'error', title: 'Delete failed', message: `${failed} of ${selectedIds.size} could not be deleted.` })
+                          }
+                          setSelectedIds(new Set())
+                          loadAuthUsers()
+                          loadData()
+                        },
+                      },
+                    ],
+                  })
+                }}
+              >
+                Delete Selected
+              </button>
+            </div>
+          )}
           <div className={styles.tableScroll}>
             <table className={styles.table}>
               <thead className={styles.thead}>
                 <tr>
+                  <th className={`${styles.th} ${styles.thCheck}`}>
+                    <Checkbox
+                      checked={authUsers.length > 0 && authUsers.every(u => selectedIds.has(u.id))}
+                      onChange={() => {
+                        if (authUsers.every(u => selectedIds.has(u.id))) {
+                          setSelectedIds(new Set())
+                        } else {
+                          setSelectedIds(new Set(authUsers.map(u => u.id)))
+                        }
+                      }}
+                      aria-label="Select all users"
+                    />
+                  </th>
                   <th className={styles.th}>Email</th>
                   <th className={styles.th}>Created</th>
                   <th className={styles.th}>Confirmed</th>
@@ -850,8 +906,19 @@ export function AdminManagePage() {
                 </tr>
               </thead>
               <tbody>
-                {authUsers.map(u => (
-                  <tr key={u.id} className={styles.tr}>
+                {authUsers.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE).map(u => (
+                  <tr key={u.id} className={`${styles.tr} ${selectedIds.has(u.id) ? styles.trSelected : ''}`}>
+                    <td className={`${styles.td} ${styles.tdCheck}`} onClick={e => e.stopPropagation()}>
+                      <Checkbox
+                        checked={selectedIds.has(u.id)}
+                        onChange={() => {
+                          const next = new Set(selectedIds)
+                          if (next.has(u.id)) next.delete(u.id); else next.add(u.id)
+                          setSelectedIds(next)
+                        }}
+                        aria-label={`Select ${u.email}`}
+                      />
+                    </td>
                     <td className={styles.td}>{u.email}</td>
                     <td className={styles.td}>{u.created_at ? formatDate(u.created_at) : '—'}</td>
                     <td className={styles.td}>{u.confirmed_at ? 'Yes' : 'No'}</td>
@@ -876,6 +943,13 @@ export function AdminManagePage() {
           </div>
           <div className={styles.tableFooter}>
             <span>{authUsers.length} users</span>
+            {Math.ceil(authUsers.length / PAGE_SIZE) > 1 && (
+              <span>
+                Page {page + 1} of {Math.ceil(authUsers.length / PAGE_SIZE)}
+                <button className="btn btn-ghost btn-xs" style={{ marginLeft: 'var(--space-2)' }} disabled={page === 0} onClick={() => setPage(p => p - 1)}>Prev</button>
+                <button className="btn btn-ghost btn-xs" disabled={page >= Math.ceil(authUsers.length / PAGE_SIZE) - 1} onClick={() => setPage(p => p + 1)}>Next</button>
+              </span>
+            )}
           </div>
         </div>
       ) : (
