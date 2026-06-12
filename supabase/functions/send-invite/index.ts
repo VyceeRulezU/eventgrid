@@ -585,6 +585,16 @@ Deno.serve(async (req) => {
       }, { onConflict: 'event_id,email' }).maybeSingle()
     }
 
+    if (type === 'admin_monitor') {
+      const adminRole = role || 'super_admin'
+      await supabaseAdmin.from('admin_invites').upsert({
+        email,
+        role: adminRole,
+        invited_by: invited_by || null,
+        status: 'pending',
+      }, { onConflict: 'email' }).maybeSingle()
+    }
+
     return new Response(
       JSON.stringify({ success: true, message: `${type} invite sent to ${email}` }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

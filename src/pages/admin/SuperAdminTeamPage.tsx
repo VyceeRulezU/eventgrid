@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Users, UserPlus, X, Mail, Shield, ShieldCheck, Eye, Headset } from 'lucide-react'
+import { useEffect, useState, useCallback } from 'react'
+import { Users, UserPlus, X, Mail, Shield, ShieldCheck, Eye, Headset, Trash2, MoreVertical, CheckCircle, Clock, AlertTriangle } from 'lucide-react'
 import { AdminPageHero } from '@/components/shared/AdminPageHero'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
@@ -21,6 +21,29 @@ interface AdminMember {
   role: string
   created_at: string
   last_sign_in_at: string | null
+  status: 'active'
+  source: 'profile'
+}
+
+interface AdminInvite {
+  id: string
+  email: string
+  role: string
+  invited_by: string | null
+  status: 'pending' | 'accepted' | 'cancelled'
+  created_at: string
+  source: 'invite'
+}
+
+type AdminEntry = AdminMember | AdminInvite
+
+const roleIcon = (r: string) => {
+  const found = ADMIN_ROLES.find(a => a.value === r)
+  return found?.icon || Shield
+}
+
+const roleLabel = (r: string) => {
+  return ADMIN_ROLES.find(a => a.value === r)?.label || r
 }
 
 export function SuperAdminTeamPage() {
@@ -28,32 +51,59 @@ export function SuperAdminTeamPage() {
   const profile = useAuthStore((s) => s.profile)
   const role = useAuthStore((s) => s.role)
   const showNotification = useUIStore((s) => s.showNotification)
+  const showModal = useUIStore((s) => s.showModal)
 
-  const [members, setMembers] = useState<AdminMember[]>([])
+  const [entries, setEntries] = useState<AdminEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [showInvite, setShowInvite] = useState(false)
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState('super_admin')
   const [inviting, setInviting] = useState(false)
 
-  useEffect(() => {
-    loadMembers()
+  const loadData = useCallback(async () => {
+    setLoading(true)
+
+    const [profilesRes, invitesRes] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('id, email, display_name, role, created_at, last_sign_in_at')
+        .eq('is_super_admin', true)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('admin_invites')
+        .select('*')
+        .order('created_at', { ascending: false }),
+    ])
+
+    const all: AdminEntry[] = []
+
+    if (profilesRes.data) {
+      for (const m of profilesRes.data) {
+        all.push({ ...m, status: 'active' as const, source: 'profile' as const })
+      }
+    }
+
+    if (invitesRes.data) {
+      for (const inv of invitesRes.data) {
+        const alreadyActive = all.some(e => e.source === 'profile' && e.email === inv.email)
+        if (!alreadyActive) {
+          all.push({ ...inv, source: 'invite' as const })
+        } else if (inv.status === 'accepted') {
+          await supabase.from('admin_invites').delete().eq('id', inv.id)
+        }
+      }
+    }
+
+    setEntries(all)
+    setLoading(false)
   }, [])
 
-  async function loadMembers() {
-    const { data } = await supabase
-      .from('profiles')
-      .select('id, email, display_name, role, created_at, last_sign_in_at')
-      .eq('is_super_admin', true)
-      .order('created_at', { ascending: false })
-
-    if (data) setMembers(data as AdminMember[])
-    setLoading(false)
-  }
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   async function handleInvite() {
     if (!inviteEmail.trim() || !user) return
-
     setInviting(true)
 
     const displayName = profile?.display_name || user?.user_metadata?.display_name || 'A super admin'
@@ -75,7 +125,104 @@ export function SuperAdminTeamPage() {
     setInviteEmail('')
     setShowInvite(false)
     setInviting(false)
+    loadData()
   }
+
+  async function handleCancelInvite(inviteId: string) {
+    showModal({
+      variant: 'confirm',
+      title: 'Cancel invite?',
+      message: 'This will cancel the pending invitation. The recipient will no longer be able to accept.',
+      actions: [
+        { label: 'Keep Invite', variant: 'secondary' as const, onClick: () => {} },
+        {
+          label: 'Cancel Invite',
+          variant: 'danger' as const,
+          onClick: async () => {
+            const { error } = await supabase.from('admin_invites').update({ status: 'cancelled' }).eq('id', inviteId)
+            if (error) {
+              showNotification({ variant: 'error', title: 'Failed to cancel', message: error.message })
+              return
+            }
+            showNotification({ variant: 'success', title: 'Invite cancelled' })
+            loadData()
+          },
+        },
+      ],
+    })
+  }
+
+  async function handleDeleteInvite(inviteId: string) {
+    showModal({
+      variant: 'confirm',
+      title: 'Remove invite?',
+      message: 'This will permanently remove the invitation record.',
+      actions: [
+        { label: 'Keep', variant: 'secondary' as const, onClick: () => {} },
+        {
+          label: 'Remove',
+          variant: 'danger' as const,
+          onClick: async () => {
+            const { error } = await supabase.from('admin_invites').delete().eq('id', inviteId)
+            if (error) {
+              showNotification({ variant: 'error', title: 'Failed to remove', message: error.message })
+              return
+            }
+            showNotification({ variant: 'success', title: 'Invite removed' })
+            loadData()
+          },
+        },
+      ],
+    })
+  }
+
+  async function handleChangeRole(entry: AdminEntry, newRole: string) {
+    if (entry.source === 'invite') {
+      const { error } = await supabase.from('admin_invites').update({ role: newRole }).eq('id', entry.id)
+      if (error) {
+        showNotification({ variant: 'error', title: 'Failed to update role', message: error.message })
+        return
+      }
+      showNotification({ variant: 'success', title: 'Role updated', message: `Invite role changed to ${roleLabel(newRole)}` })
+    } else {
+      const { error } = await supabase.from('profiles').update({ role: newRole }).eq('id', entry.id)
+      if (error) {
+        showNotification({ variant: 'error', title: 'Failed to update role', message: error.message })
+        return
+      }
+      await supabase.auth.admin.updateUserById(entry.id, {
+        user_metadata: { ...(entry as AdminMember), role: newRole },
+      })
+      showNotification({ variant: 'success', title: 'Role updated', message: `${entry.email} is now ${roleLabel(newRole)}` })
+    }
+    loadData()
+  }
+
+  async function handleRemoveMember(memberId: string) {
+    showModal({
+      variant: 'confirm',
+      title: 'Remove admin?',
+      message: 'This will revoke all admin privileges from this user. They will become a regular platform user.',
+      actions: [
+        { label: 'Keep', variant: 'secondary' as const, onClick: () => {} },
+        {
+          label: 'Remove',
+          variant: 'danger' as const,
+          onClick: async () => {
+            const { error } = await supabase.from('profiles').update({ is_super_admin: false }).eq('id', memberId)
+            if (error) {
+              showNotification({ variant: 'error', title: 'Failed to remove', message: error.message })
+              return
+            }
+            showNotification({ variant: 'success', title: 'Admin removed' })
+            loadData()
+          },
+        },
+      ],
+    })
+  }
+
+  const entriesWithoutCurrentUser = entries.filter(e => e.source !== 'profile' || e.id !== user?.id)
 
   if (loading) {
     return (
@@ -110,61 +257,155 @@ export function SuperAdminTeamPage() {
           <table className={styles.table}>
             <thead className={styles.thead}>
               <tr>
-                <th className={styles.th}>Admin</th>
+                <th className={styles.th}>Member</th>
                 <th className={styles.th}>Role</th>
-                <th className={styles.th}>Joined</th>
+                <th className={styles.th}>Status</th>
+                <th className={styles.th}>Invited / Joined</th>
                 <th className={styles.th}>Last Active</th>
+                <th className={styles.th} style={{ width: 60 }}></th>
               </tr>
             </thead>
             <tbody>
-              {members.length === 0 ? (
+              {entriesWithoutCurrentUser.length === 0 ? (
                 <tr>
-                  <td className={styles.td} colSpan={4}>
+                  <td className={styles.td} colSpan={6}>
                     <div style={{ textAlign: 'center', padding: 'var(--space-8) var(--space-4)', color: 'var(--color-text-muted)' }}>
                       <Users size={24} style={{ marginBottom: 'var(--space-2)', opacity: 0.4 }} />
                       <div style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>No admin team configured</div>
-                      <div style={{ fontSize: 'var(--text-xs)', marginTop: 4 }}>No super admins found in the database</div>
+                      <div style={{ fontSize: 'var(--text-xs)', marginTop: 4 }}>Invite your first admin to get started</div>
                     </div>
                   </td>
                 </tr>
-              ) : members.map((m) => (
-                <tr key={m.id} className={styles.tr}>
-                  <td className={styles.td}>
-                    <div className={styles.memberInfo}>
-                      <div className={styles.avatar}>
-                        {(m.display_name || m.email).charAt(0).toUpperCase()}
+              ) : entriesWithoutCurrentUser.map((entry) => {
+                const isProfile = entry.source === 'profile'
+                const Icon = roleIcon(entry.role)
+
+                return (
+                  <tr key={`${entry.source}-${entry.id}`} className={styles.tr}>
+                    <td className={styles.td}>
+                      <div className={styles.memberInfo}>
+                        <div className={styles.avatar}>
+                          {(isProfile
+                            ? (entry as AdminMember).display_name || entry.email
+                            : entry.email
+                          ).charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <div className={styles.memberName}>
+                            {isProfile ? (entry as AdminMember).display_name || 'Unnamed' : entry.email}
+                          </div>
+                          <div className={styles.memberEmail}>{entry.email}</div>
+                        </div>
                       </div>
-                      <div>
-                        <div className={styles.memberName}>{m.display_name || 'Unnamed'}</div>
-                        <div className={styles.memberEmail}>{m.email}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className={styles.td}>
-                    <span className={`badge ${m.role === 'super_admin' ? 'badge-yellow' : m.role === 'monitor' ? 'badge-grey' : 'badge-blue'}`}>
-                      <span className="badge-dot" />
-                      {m.role === 'super_admin' ? 'Super Admin' : m.role === 'monitor' ? 'Monitor' : 'Support'}
-                    </span>
-                  </td>
-                  <td className={styles.td}>
-                    <span className={styles.cellMuted}>
-                      {new Date(m.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                    </span>
-                  </td>
-                  <td className={styles.td}>
-                    <span className={styles.cellMuted}>
-                      {m.last_sign_in_at
-                        ? new Date(m.last_sign_in_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-                        : 'Never'}
-                    </span>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className={styles.td}>
+                      <DropdownMenu
+                        trigger={
+                          <span className={`badge ${entry.role === 'super_admin' ? 'badge-yellow' : entry.role === 'monitor' ? 'badge-grey' : 'badge-blue'}`}
+                            style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <Icon size={12} />
+                            {roleLabel(entry.role)}
+                          </span>
+                        }
+                        items={ADMIN_ROLES.map(r => ({
+                          label: r.label,
+                          value: r.value,
+                          icon: <r.icon size={14} />,
+                          disabled: r.value === entry.role,
+                        }))}
+                        onSelect={(item) => handleChangeRole(entry, item.value)}
+                      />
+                    </td>
+                    <td className={styles.td}>
+                      {isProfile ? (
+                        <span className="badge badge-green" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          <CheckCircle size={12} /> Active
+                        </span>
+                      ) : entry.status === 'pending' ? (
+                        <span className="badge badge-grey" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          <Clock size={12} /> Pending
+                        </span>
+                      ) : entry.status === 'cancelled' ? (
+                        <span className="badge" style={{ background: 'var(--color-surface-3)', color: 'var(--color-text-muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          <AlertTriangle size={12} /> Cancelled
+                        </span>
+                      ) : (
+                        <span className="badge badge-green" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          <CheckCircle size={12} /> Accepted
+                        </span>
+                      )}
+                    </td>
+                    <td className={styles.td}>
+                      <span className={styles.cellMuted}>
+                        {new Date(entry.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </span>
+                    </td>
+                    <td className={styles.td}>
+                      <span className={styles.cellMuted}>
+                        {isProfile
+                          ? ((entry as AdminMember).last_sign_in_at
+                            ? new Date((entry as AdminMember).last_sign_in_at!).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                            : 'Never')
+                          : '\u2014'}
+                      </span>
+                    </td>
+                    <td className={styles.td}>
+                      {role === 'super_admin' && (
+                        <DropdownMenu
+                          trigger={
+                            <button className="btn btn-ghost btn-sm btn-icon" aria-label="Actions" style={{ width: 28, height: 28 }}>
+                              <MoreVertical size={14} />
+                            </button>
+                          }
+                          items={[
+                            ...(isProfile
+                              ? [
+                                {
+                                  label: entry.role === 'super_admin' ? 'Downgrade to Monitor' : 'Upgrade to Super Admin',
+                                  value: entry.role === 'super_admin' ? 'monitor' : 'super_admin',
+                                  icon: <Shield size={14} />,
+                                },
+                                {
+                                  label: 'Remove Admin',
+                                  value: 'remove',
+                                  icon: <Trash2 size={14} />,
+                                  className: 'danger' as const,
+                                },
+                              ]
+                              : entry.status === 'pending'
+                                ? [
+                                  {
+                                    label: 'Cancel Invite',
+                                    value: 'cancel',
+                                    icon: <X size={14} />,
+                                    className: 'danger' as const,
+                                  },
+                                  {
+                                    label: 'Delete Invite',
+                                    value: 'delete',
+                                    icon: <Trash2 size={14} />,
+                                    className: 'danger' as const,
+                                  },
+                                ]
+                                : []),
+                          ]}
+                          onSelect={(item) => {
+                            if (item.value === 'remove') handleRemoveMember(entry.id)
+                            else if (item.value === 'cancel') handleCancelInvite(entry.id)
+                            else if (item.value === 'delete') handleDeleteInvite(entry.id)
+                            else handleChangeRole(entry, item.value)
+                          }}
+                        />
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
         <div className={styles.tableFooter}>
-          <span>Showing {members.length} admin{members.length !== 1 ? 's' : ''}</span>
+          <span>{entriesWithoutCurrentUser.length} admin{entriesWithoutCurrentUser.length !== 1 ? 's' : ''}</span>
         </div>
       </div>
 

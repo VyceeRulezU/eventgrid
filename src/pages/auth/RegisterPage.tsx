@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, Navigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Star, Eye, EyeOff, Check, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
@@ -54,8 +54,15 @@ const passwordChecks = [
 
 export function RegisterPage() {
   const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
   const inviteRole = searchParams.get('role')
   const isSuperAdminInvite = inviteRole === 'super_admin'
+
+  const adminRoles = ['super_admin', 'monitor', 'admin_support']
+
+  if (inviteRole && adminRoles.includes(inviteRole)) {
+    return <Navigate to={`/accept-admin-invite?role=${inviteRole}`} replace />
+  }
 
   const [step, setStep] = useState<'role' | 'form'>(isSuperAdminInvite ? 'form' : 'role')
   const [role, setRole] = useState<UserRole>('planner')
@@ -67,7 +74,6 @@ export function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const [currentSlide, setCurrentSlide] = useState(0)
 
-  const navigate = useNavigate()
   const showToast = useUIStore((s) => s.showToast)
 
   useEffect(() => {
