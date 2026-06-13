@@ -6,7 +6,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import {
   Users, Calendar, TrendingUp, BarChart3,
   Activity, Database, HardDrive,
-  CreditCard, Zap, Shield, ExternalLink,
+  CreditCard, Zap, Shield,
 } from 'lucide-react'
 import { AdminPageHero } from '@/components/shared/AdminPageHero'
 import {

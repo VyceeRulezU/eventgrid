@@ -1,10 +1,10 @@
 import { useEffect, useState, useMemo, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
-  Calendar, MapPin, Users, Image, LayoutGrid,
+  Users, Image, LayoutGrid,
   CheckCircle2, Circle, Clock, AlertTriangle,
-  Zap, FileText, Upload, X, Download, FileSpreadsheet,
-  Send, Trash2, UserPlus, Mail, Phone, Loader2, ExternalLink,
+  FileText, Upload, X, Download, FileSpreadsheet,
+  Send, Trash2, UserPlus, Mail, Loader2, ExternalLink,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { PhaseTimelineTracker } from '@/components/shared/PhaseTimelineTracker'
@@ -871,8 +871,8 @@ export function ClientPortalPage() {
                   const input = document.createElement('input');
                   input.type = 'file';
                   input.accept = '.csv';
-                  input.onchange = (e: Event) => {
-                    const file = (e.target as HTMLInputElement).files?.[0];
+                  input.onchange = () => {
+                    const file = input.files?.[0];
                     if (!file) return;
                     import('papaparse').then(({ default: Papa }) => {
                       Papa.parse(file, {
