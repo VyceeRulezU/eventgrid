@@ -454,6 +454,7 @@
   to { opacity: 1; transform: scale(1); }
 }
 
+.modal-card__header,
 .modal-card-header {
   display: flex;
   align-items: center;
@@ -461,12 +462,14 @@
   padding: var(--space-5) var(--space-5) 0;
 }
 
+.modal-card__title,
 .modal-card-title {
   font-size: var(--text-base);
   font-weight: var(--weight-bold);
   margin: 0;
 }
 
+.modal-card__close,
 .modal-card-close {
   width: 40px;
   height: 40px;
@@ -482,19 +485,70 @@
   transition: background var(--transition-fast), opacity var(--transition-fast);
 }
 
+.modal-card__close:hover,
 .modal-card-close:hover {
   background: var(--color-accent);
   color: #fff;
 }
 
+.modal-card__body,
 .modal-card-body {
   padding: var(--space-5);
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
 }
+.modal-card__footer {
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--color-border-subtle);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
 
-/* ── Page Layout Shell ── */
+/* ── Stat Card ── */
+.stat-card {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  text-align: center;
+}
+
+.stat-card__value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--color-accent);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.stat-card__label {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ── Overview Card ── */
+.overview-card {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.overview-card__title {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-primary);
+}
+
+
 .app-shell {
   display: flex;
   min-height: 100vh;
