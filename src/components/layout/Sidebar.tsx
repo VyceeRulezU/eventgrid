@@ -3,7 +3,7 @@ import { NavLink, useNavigate, Link, useParams } from 'react-router-dom'
 import {
   LayoutDashboard, Calendar, Wallet, Users, BookOpen,
   Settings, LogOut, X, ArrowLeft, ListChecks, Radio,
-  FileText, TrendingUp, Send, MessageSquare, Bell,
+  FileText, TrendingUp, Send, MessageSquare, Bell, Image,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { useNotificationStore } from '@/store/notification.store'
@@ -34,27 +34,32 @@ export function Sidebar() {
   const { id: eventId } = useParams<{ id: string }>()
 
   const [showFeedbackForm, setShowFeedbackForm] = useState(false)
+  const isAdmin = role === 'super_admin'
 
   const mainItems: NavItem[] = [
-    { to: role === 'team_member' || !role ? '/events' : role === 'super_admin' ? '/admin' : role === 'client' ? '/vendors/directory' : `/dashboard/${role}`, label: 'Dashboard', icon: LayoutDashboard },
+    { to: isAdmin ? '/admin' : role === 'team_member' || !role ? '/events' : role === 'client' ? '/vendors/directory' : `/dashboard/${role}`, label: 'Dashboard', icon: LayoutDashboard },
   ]
-  if (role !== 'client') {
-    mainItems.push({ to: '/dashboard/my-tasks', label: 'My Tasks', icon: ListChecks })
+  if (role !== 'client' && !isAdmin) {
+    mainItems.push({ to: isAdmin ? '/admin/my-tasks' : '/dashboard/my-tasks', label: 'My Tasks', icon: ListChecks })
   }
 
-  const managementItems: NavItem[] = [
-    { to: '/events', label: 'Events', icon: Calendar },
-  ]
+  const managementItems: NavItem[] = []
 
-  if (role === 'planner') {
+  if (!isAdmin) {
+    managementItems.push({ to: '/events', label: 'Events', icon: Calendar })
+  }
+
+  if (!isAdmin && role === 'planner') {
     const financialsUrl = activeEvent?.id
       ? `/events/${activeEvent.id}/financials`
       : '/financials'
     managementItems.push({ to: financialsUrl, label: 'Financials', icon: Wallet })
   }
 
-  managementItems.push({ to: '/vendors', label: 'Vendors', icon: Users })
-  managementItems.push({ to: '/vendors/directory', label: 'Vendor Directory', icon: BookOpen })
+  if (!isAdmin) {
+    managementItems.push({ to: '/vendors', label: 'Vendors', icon: Users })
+    managementItems.push({ to: '/vendors/directory', label: 'Vendor Directory', icon: BookOpen })
+  }
 
   const categories: NavCategory[] = [
     { label: 'Main', items: mainItems },
@@ -69,6 +74,7 @@ export function Sidebar() {
         { to: `/events/${eventId}/tasks`, label: 'Tasks', icon: ListChecks },
         { to: `/events/${eventId}/live-board`, label: 'Live Feed', icon: Radio },
         { to: `/events/${eventId}/aftermath`, label: 'Aftermath', icon: FileText },
+        { to: `/events/${eventId}/assets`, label: 'Assets', icon: Image },
       ]
     : []
 
@@ -100,7 +106,7 @@ export function Sidebar() {
         </div>
 
         <nav className={styles.nav} id="sidebar-nav">
-          {categories.map((cat) => (
+          {categories.filter(c => c.items.length > 0).map((cat) => (
             <div key={cat.label} className={styles.category}>
               <span className={styles.categoryLabel}>{cat.label}</span>
               {cat.items.map((item) => (
@@ -119,9 +125,50 @@ export function Sidebar() {
               ))}
             </div>
           ))}
-          {role === 'super_admin' && (
+          {isAdmin && (
             <div className={styles.category}>
               <span className={styles.categoryLabel}>Admin</span>
+              <NavLink
+                to="/admin/my-tasks"
+                className={({ isActive }) =>
+                  `${styles.navItem} ${isActive ? styles.active : ''}`
+                }
+                onClick={() => setSidebarOpen(false)}
+              >
+                <ListChecks size={20} />
+                <span>My Tasks</span>
+              </NavLink>
+              <NavLink
+                to="/admin/events"
+                className={({ isActive }) =>
+                  `${styles.navItem} ${isActive ? styles.active : ''}`
+                }
+                onClick={() => setSidebarOpen(false)}
+              >
+                <Calendar size={20} />
+                <span>Events</span>
+              </NavLink>
+              <NavLink
+                to="/admin/vendors"
+                end
+                className={({ isActive }) =>
+                  `${styles.navItem} ${isActive ? styles.active : ''}`
+                }
+                onClick={() => setSidebarOpen(false)}
+              >
+                <Users size={20} />
+                <span>Vendors</span>
+              </NavLink>
+              <NavLink
+                to="/admin/vendors/directory"
+                className={({ isActive }) =>
+                  `${styles.navItem} ${isActive ? styles.active : ''}`
+                }
+                onClick={() => setSidebarOpen(false)}
+              >
+                <BookOpen size={20} />
+                <span>Vendor Directory</span>
+              </NavLink>
               <NavLink
                 to="/admin/analytics"
                 className={({ isActive }) =>
@@ -152,17 +199,6 @@ export function Sidebar() {
                 <MessageSquare size={20} />
                 <span>Feedback</span>
               </NavLink>
-              <NavLink
-                to="/admin/team"
-                className={({ isActive }) =>
-                  `${styles.navItem} ${isActive ? styles.active : ''}`
-                }
-                onClick={() => setSidebarOpen(false)}
-              >
-                <Users size={20} />
-                <span>Admin Team</span>
-              </NavLink>
-
             </div>
           )}
         </nav>

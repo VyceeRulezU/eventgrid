@@ -9,11 +9,12 @@ import {
   Calendar, Users, Wallet, AlertTriangle,
   ExternalLink, FileText, CheckCircle2, Circle,
   CreditCard, ShieldCheck, Radio, ListChecks, BarChart3,
-  Clock, ArrowRight, Zap, X, Pencil, Gift,
+  Clock, ArrowRight, Zap, X, Pencil, Gift, Image,
 } from 'lucide-react'
 import { PageHero } from '@/components/shared/PageHero'
 import { ModuleLock } from '@/components/shared/ModuleLock'
 import { EventVendorsPage } from '@/features/vendors/EventVendorsPage'
+import { EventAssetsPage } from '@/features/assets/EventAssetsPage'
 import { GeneratePortalModal } from '@/features/client-portal/GeneratePortalModal'
 import { EditEventModal } from '@/features/events/EditEventModal'
 import { Tabs } from '@/components/ui/Tabs'
@@ -128,14 +129,14 @@ export function EventDashboardPage() {
   const [deadlines, setDeadlines] = useState<DeadlineItem[]>([])
   const [activity, setActivity] = useState<EventActivity[]>([])
   const [financialSummary, setFinancialSummary] = useState({ paid: 0, outstanding: 0 })
-  const [activeTab, setActiveTab] = useState<'overview' | 'timeline' | 'phases' | 'vendors' | 'modules'>(() => {
+  const [activeTab, setActiveTab] = useState<'overview' | 'timeline' | 'phases' | 'vendors' | 'modules' | 'assets'>(() => {
     const params = new URLSearchParams(window.location.search)
     const tab = params.get('tab')
-    if (tab === 'timeline' || tab === 'phases' || tab === 'modules') return tab
+    if (tab === 'timeline' || tab === 'phases' || tab === 'modules' || tab === 'assets') return tab
     return 'overview'
   })
 
-  const handleTabChange = (tab: 'overview' | 'timeline' | 'phases' | 'vendors' | 'modules') => {
+  const handleTabChange = (tab: 'overview' | 'timeline' | 'phases' | 'vendors' | 'modules' | 'assets') => {
     setActiveTab(tab)
     const params = new URLSearchParams(window.location.search)
     params.set('tab', tab)
@@ -360,11 +361,21 @@ export function EventDashboardPage() {
     if (activeEvent) setActiveEvent({ ...activeEvent, ...updated })
   }
 
+  const PAYMENT_TIMEOUT = 120000 // 2 minutes
+
   const handlePayNow = useCallback(async (provider: 'paystack' | 'flutterwave') => {
     if (!user || !id || !activeEvent) return
     const currentEvent = activeEvent
     paySucceededRef.current = false
     setPayStatus('processing')
+
+    const timeoutId = setTimeout(() => {
+      if (!paySucceededRef.current) {
+        paySucceededRef.current = true
+        setPayStatus('failed')
+        showNotification({ variant: 'error', title: 'Payment timed out', message: 'The payment window did not respond. Check your internet connection and try again.' })
+      }
+    }, PAYMENT_TIMEOUT)
 
     try {
       await processPayment({
@@ -374,6 +385,7 @@ export function EventDashboardPage() {
         metadata: { event_id: activeEvent.id },
 
         onSuccess: async (reference: string) => {
+          clearTimeout(timeoutId)
           paySucceededRef.current = true
 
           const { data, error: verifyErr } = await supabase.functions.invoke('verify-payment', {
@@ -408,10 +420,12 @@ export function EventDashboardPage() {
         },
 
         onClose: () => {
+          clearTimeout(timeoutId)
           if (!paySucceededRef.current) setPayStatus('cancelled')
         },
       })
     } catch {
+      clearTimeout(timeoutId)
       if (!paySucceededRef.current) setPayStatus('failed')
     }
   }, [user, id, activeEvent, setActiveEvent, showNotification])
@@ -726,6 +740,7 @@ export function EventDashboardPage() {
           { key: 'phases', label: 'Phases', icon: <ListChecks size={15} /> },
           { key: 'vendors', label: 'Vendors', icon: <Users size={15} /> },
           { key: 'modules', label: 'Modules', icon: <Radio size={15} /> },
+          { key: 'assets', label: 'Assets', icon: <Image size={15} /> },
         ]}
         activeTab={activeTab}
         onChange={handleTabChange}
@@ -1270,6 +1285,12 @@ export function EventDashboardPage() {
         ) : (
           <ModuleLock isFreeAvailable={isFreeAvailable} onActivate={openPayment} />
         )
+      )}
+
+      {activeTab === 'assets' && (
+        <div style={{ animation: `${styles.slideFadeIn} 0.3s ease` }}>
+          <EventAssetsPage />
+        </div>
       )}
 
       {/* ── Modals ── */}

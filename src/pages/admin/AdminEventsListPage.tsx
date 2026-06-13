@@ -1,19 +1,17 @@
 import { useEffect, useState, useMemo } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import {
-  Plus, Calendar, Pencil, Trash2, ExternalLink,
+  Calendar, ChevronLeft, ChevronRight,
 } from 'lucide-react'
 import { useSearch } from '@/hooks/useSearch'
 import { SearchBar } from '@/components/shared/SearchBar'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
-import { useUIStore } from '@/store/ui.store'
 import { PhaseSegmentBar } from '@/components/shared/PhasePipeline'
-import { Checkbox } from '@/components/ui/Checkbox'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
-import { PageHero } from '@/components/shared/PageHero'
+import { AdminPageHero } from '@/components/shared/AdminPageHero'
 import type { Event, EventPhase } from '@/types'
-import styles from './EventsListPage.module.css'
+import styles from '@/features/events/EventsListPage.module.css'
 
 const STATUS_BADGE: Record<string, string> = {
   draft: 'grey',
@@ -33,19 +31,17 @@ function formatType(type: string | null): string {
   return type
 }
 
-export function EventsListPage() {
+export function AdminEventsListPage() {
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const org = useAuthStore((s) => s.org)
   const role = useAuthStore((s) => s.role)
-  const showNotification = useUIStore((s) => s.showNotification)
-  const showModal = useUIStore((s) => s.showModal)
-  const [events, setEvents] = useState<(Event & { phases?: EventPhase[] })[]>([])
+  const [events, setEvents] = useState<(Event & { phases?: EventPhase[]; creator_name?: string })[]>([])
   const [loading, setLoading] = useState(true)
-  const [selected, setSelected] = useState<Set<string>>(new Set())
   const [statusFilter, setStatusFilter] = useState('all')
+  const [page, setPage] = useState(1)
+  const PAGE_SIZE = 10
   const { query, setQuery, filtered: searched } = useSearch(events, ['name', 'event_type', 'venue_name'])
-  const [deleting, setDeleting] = useState(false)
 
   const loadEvents = async () => {
     if (!user) {
@@ -53,19 +49,24 @@ export function EventsListPage() {
       return
     }
 
-    const { data } = org
-      ? await supabase
-          .from('events')
-          .select('*')
-          .eq('org_id', org.id)
-          .is('deleted_at', null)
-          .order('created_at', { ascending: false })
-      : await supabase
-          .from('events')
-          .select('*, event_access!inner(user_id)')
-          .eq('event_access.user_id', user.id)
-          .is('deleted_at', null)
-          .order('created_at', { ascending: false })
+    let query = supabase
+      .from('events')
+      .select('*')
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false })
+
+    if (org) {
+      query = query.eq('org_id', org.id)
+    } else if (role !== 'super_admin') {
+      query = supabase
+        .from('events')
+        .select('*, event_access!inner(user_id)')
+        .eq('event_access.user_id', user.id)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false })
+    }
+
+    const { data } = await query
 
     if (!data) {
       setLoading(false)
@@ -79,11 +80,20 @@ export function EventsListPage() {
           .select('*')
           .eq('event_id', event.id)
           .order('phase_number', { ascending: true })
-        return { ...event, phases: (phases as unknown as EventPhase[]) || [] }
+        return { ...event, phases: (phases as unknown as EventPhase[]) || [] } as Event & { phases?: EventPhase[] }
       })
     )
 
-    setEvents(eventsWithPhases)
+    const creatorIds = [...new Set(eventsWithPhases.map((e) => e.created_by).filter(Boolean))]
+    const { data: creators } = creatorIds.length
+      ? await supabase.from('profiles').select('id, display_name, email').in('id', creatorIds)
+      : { data: [] }
+    const creatorMap = new Map((creators || []).map((p) => [p.id, p.display_name || p.email]))
+
+    setEvents(eventsWithPhases.map((e) => ({
+      ...e,
+      creator_name: e.created_by ? creatorMap.get(e.created_by) || 'Unknown' : '—',
+    })))
     setLoading(false)
   }
 
@@ -98,64 +108,17 @@ export function EventsListPage() {
     return searched
   }, [searched, statusFilter])
 
-  const allSelected = filtered.length > 0 && filtered.every((e) => selected.has(e.id))
-  const someSelected = selected.size > 0
+  useEffect(() => {
+    setPage(1)
+  }, [filtered])
 
-  const toggleAll = () => {
-    if (allSelected) {
-      setSelected(new Set())
-    } else {
-      setSelected(new Set(filtered.map((e) => e.id)))
-    }
-  }
-
-  const toggleOne = (id: string) => {
-    const next = new Set(selected)
-    if (next.has(id)) next.delete(id)
-    else next.add(id)
-    setSelected(next)
-  }
-
-  const handleDelete = (ids: string[]) => {
-    showModal({
-      variant: 'confirm',
-      title: 'Delete event?',
-      message: `Delete ${ids.length} event${ids.length > 1 ? 's' : ''}? This cannot be undone.`,
-      actions: [
-        { label: 'Cancel', variant: 'secondary' as const, onClick: () => {} },
-        {
-          label: 'Delete',
-          variant: 'danger' as const,
-          onClick: async () => {
-            setDeleting(true)
-            const { error } = await supabase.rpc('soft_delete_events', { event_ids: ids })
-
-            if (error) {
-              showNotification({ variant: 'error', title: 'Delete failed', message: error.message })
-            } else {
-              setEvents((prev) => prev.filter((e) => !ids.includes(e.id)))
-              setSelected(new Set())
-              showNotification({ variant: 'success', title: 'Deleted', message: `${ids.length} event(s) removed.` })
-            }
-            setDeleting(false)
-          },
-        },
-      ],
-    })
-  }
-
-  const handleEdit = () => {
-    if (selected.size !== 1) {
-      showNotification({ variant: 'warning', title: 'Select one event', message: 'Choose a single event to open its details.' })
-      return
-    }
-    navigate(`/events/${[...selected][0]}`)
-  }
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
+  const displayed = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   if (loading) {
     return (
       <div className={styles.page}>
-        <PageHero icon={Calendar} title="Events" />
+        <AdminPageHero icon={Calendar} title="Events" />
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 200, gap: 'var(--space-4)' }}>
           <img src="/EventGrid-favicon.svg" alt="Loading" style={{ width: 48, height: 48, opacity: 0.5 }} />
           <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>Loading events...</div>
@@ -167,23 +130,21 @@ export function EventsListPage() {
   if (events.length === 0) {
     return (
       <div className={styles.page}>
-        <PageHero
+        <AdminPageHero
           icon={Calendar}
           title="Events"
           subtitle="Manage all your events in one place"
-          actions={org || role === 'super_admin' ? <Link to="/events/new" className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }}><Plus size={16} /> Create Event</Link> : undefined}
         />
         <div className="empty-state">
           <div className="empty-state__icon"><Calendar size={24} /></div>
           <div className="empty-state__title">No events yet</div>
           {org ? (
-            <div className="empty-state__description">Create your first event to get started</div>
+            <div className="empty-state__description">No events found on the platform</div>
           ) : role === 'planner' ? (
             <div className="empty-state__description">Complete your organization setup to start creating events</div>
           ) : (
             <div className="empty-state__description">You haven't been added to any events yet</div>
           )}
-          {(org || role === 'super_admin') && <Link to="/events/new" className="btn btn-primary"><Plus size={16} /> Create Event</Link>}
         </div>
       </div>
     )
@@ -191,37 +152,13 @@ export function EventsListPage() {
 
   return (
     <div className={styles.page}>
-      <PageHero
+      <AdminPageHero
         icon={Calendar}
         title="Events"
         subtitle={`${events.length} event${events.length !== 1 ? 's' : ''}${org ? ' in your organisation' : ''}`}
-        actions={org || role === 'super_admin' ? <Link to="/events/new" className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }}><Plus size={16} /> Create Event</Link> : undefined}
       />
 
       <div className={styles.tableCard}>
-        {someSelected && org && (
-          <div className={styles.bulkBar}>
-            <span className={styles.bulkInfo}>{selected.size} selected</span>
-            <div className={styles.bulkActions}>
-              <button type="button" className="btn btn-secondary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={handleEdit}>
-                <Pencil size={14} /> Open
-              </button>
-              <button
-                type="button"
-                className="btn btn-destructive btn-sm"
-                style={{ borderRadius: 'var(--radius-sm)' }}
-                onClick={() => handleDelete([...selected])}
-                disabled={deleting}
-              >
-                <Trash2 size={14} /> Delete
-              </button>
-              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setSelected(new Set())}>
-                Clear
-              </button>
-            </div>
-          </div>
-        )}
-
         <div className={styles.toolbar}>
           <SearchBar value={query} onChange={setQuery} placeholder="Search events..." containerStyle={{ flex: 1, maxWidth: 320 }} />
           <div className={styles.filterWrap}>
@@ -244,16 +181,8 @@ export function EventsListPage() {
           <table className={styles.table}>
             <thead className={styles.thead}>
               <tr>
-                {org && (
-                  <th className={`${styles.th} ${styles.thCheck}`}>
-                    <Checkbox
-                      checked={allSelected}
-                      onChange={toggleAll}
-                      aria-label="Select all events"
-                    />
-                  </th>
-                )}
                 <th className={styles.th}>Event</th>
+                <th className={styles.th}>Created by</th>
                 <th className={styles.th}>Type</th>
                 <th className={styles.th}>Date</th>
                 <th className={styles.th}>Venue</th>
@@ -261,27 +190,13 @@ export function EventsListPage() {
                 <th className={`${styles.th} ${styles.thCenter}`}>Status</th>
                 <th className={styles.th}>Progress</th>
                 <th className={`${styles.th} ${styles.thCenter}`}>Payment</th>
-                {org && <th className={`${styles.th} ${styles.thCenter}`}>Actions</th>}
               </tr>
             </thead>
             <tbody>
-              {filtered.map((event) => {
-                const isSelected = selected.has(event.id)
+              {displayed.map((event) => {
                 const badge = STATUS_BADGE[event.status] || 'grey'
                 return (
-                  <tr
-                    key={event.id}
-                    className={`${styles.tr} ${isSelected ? styles.trSelected : ''}`}
-                  >
-                    {org && (
-                      <td className={`${styles.td} ${styles.tdCheck}`}>
-                        <Checkbox
-                          checked={isSelected}
-                          onChange={() => toggleOne(event.id)}
-                          aria-label={`Select ${event.name}`}
-                        />
-                      </td>
-                    )}
+                  <tr key={event.id}>
                     <td className={`${styles.td} ${styles.eventCell}`}>
                       <button
                         type="button"
@@ -293,6 +208,9 @@ export function EventsListPage() {
                           Updated {formatDate(event.updated_at)}
                         </div>
                       </button>
+                    </td>
+                    <td className={styles.td}>
+                      <span className={styles.cellMuted}>{event.creator_name || '—'}</span>
                     </td>
                     <td className={styles.td}>
                       <span className={styles.cellMuted}>{formatType(event.event_type)}</span>
@@ -324,36 +242,6 @@ export function EventsListPage() {
                         {event.payment_status === 'paid' ? 'Paid' : 'Unpaid'}
                       </span>
                     </td>
-                    {org && (
-                      <td className={styles.td}>
-                        <div className={styles.rowActions}>
-                          <button
-                            type="button"
-                            className={styles.iconBtn}
-                            onClick={() => navigate(`/events/${event.slug || event.id}`)}
-                            aria-label={`Open ${event.name}`}
-                          >
-                            <ExternalLink size={14} />
-                          </button>
-                          <button
-                            type="button"
-                            className={styles.iconBtn}
-                            onClick={() => navigate(`/events/${event.slug || event.id}`)}
-                            aria-label={`Edit ${event.name}`}
-                          >
-                            <Pencil size={14} />
-                          </button>
-                          <button
-                            type="button"
-                            className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
-                            onClick={() => handleDelete([event.id])}
-                            aria-label={`Delete ${event.name}`}
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      </td>
-                    )}
                   </tr>
                 )
               })}
@@ -362,7 +250,38 @@ export function EventsListPage() {
         </div>
 
         <div className={styles.tableFooter}>
-          <span>Showing {filtered.length} of {events.length} events</span>
+          <span>Showing {displayed.length} of {filtered.length} events</span>
+          {totalPages > 1 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginLeft: 'auto' }}>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                disabled={page <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >
+                <ChevronLeft size={16} />
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  className={`btn btn-sm ${p === page ? 'btn-primary' : 'btn-ghost'}`}
+                  style={{ minWidth: 32 }}
+                  onClick={() => setPage(p)}
+                >
+                  {p}
+                </button>
+              ))}
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                disabled={page >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

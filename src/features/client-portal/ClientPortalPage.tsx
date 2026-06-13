@@ -1,14 +1,29 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   Calendar, MapPin, Users, Image, LayoutGrid,
-  CheckCircle2, Circle, Clock, AlertTriangle, Lock,
-  Zap,
+  CheckCircle2, Circle, Clock, AlertTriangle,
+  Zap, FileText, Upload, X, Download, FileSpreadsheet,
+  Send, Trash2, UserPlus, Mail, Phone, Loader2, ExternalLink,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { PhaseTimelineTracker } from '@/components/shared/PhaseTimelineTracker'
 import { PhaseSegmentBar } from '@/components/shared/PhasePipeline'
-import type { Event, EventPhase, Media, ClientPortal, EventVendor } from '@/types'
+import { sendInvite } from '@/lib/edgeFunctions'
+import { Table } from '@/components/ui/Table'
+import type { Event, EventPhase, Media, ClientPortal, EventVendor, Guest } from '@/types'
+
+interface PortalAsset {
+  id: string
+  event_id: string
+  name: string
+  type: string
+  category: string
+  file_size: number | null
+  mime_type: string | null
+  url: string | null
+  created_at: string
+}
 import styles from './ClientPortalPage.module.css'
 
 interface PortalData {
@@ -18,7 +33,7 @@ interface PortalData {
   media: Media[]
 }
 
-type ClientTab = 'timeline' | 'all' | 'active' | 'done' | 'gallery' | 'vendors'
+type ClientTab = 'timeline' | 'all' | 'active' | 'done' | 'gallery' | 'vendors' | 'assets' | 'guests'
 
 /* ── SVG Progress ring ─────────────────────────── */
 function ProgressRing({ pct }: { pct: number }) {
@@ -52,7 +67,7 @@ function PortalHeader({ eventName }: { eventName?: string }) {
         <img src="/EventGrid-logo-white.svg" alt="EventGrid" className={styles.headerLogo} />
         <div className={styles.headerDivider} />
         <span className={styles.headerPortalBadge}>Client Portal</span>
-        <span className={styles.headerReadOnly}><Lock size={10} /> Read Only</span>
+        
       </div>
       {eventName && (
         <div className={styles.headerRight}>
@@ -72,6 +87,44 @@ export function ClientPortalPage() {
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<ClientTab>('timeline')
   const [eventVendors, setEventVendors] = useState<EventVendor[]>([])
+  const [portalAssets, setPortalAssets] = useState<PortalAsset[]>([])
+  const [guests, setGuests] = useState<Guest[]>([])
+  const [previewMedia, setPreviewMedia] = useState<Media | null>(null)
+  const [showInviteForm, setShowInviteForm] = useState(false)
+  const [inviteFirstName, setInviteFirstName] = useState('')
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviting, setInviting] = useState(false)
+  const [showUploadForm, setShowUploadForm] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [uploadFile, setUploadFile] = useState<File | null>(null)
+  const [uploadName, setUploadName] = useState('')
+  const [uploadCategory, setUploadCategory] = useState('')
+  const [showCSV, setShowCSV] = useState(false)
+  const [csvPreview, setCsvPreview] = useState<Record<string, string>[]>([])
+  const [sendingBulk, setSendingBulk] = useState(false)
+  const [sendingInvites, setSendingInvites] = useState<Set<string>>(new Set())
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  const sendInviteToGuest = async (guest: Guest) => {
+    if (!data || !guest.email) return
+    setSendingInvites((prev) => new Set(prev).add(guest.id))
+    await sendInvite({
+      type: 'guest_invite',
+      event_id: data.event.id,
+      email: guest.email,
+      guest_name: guest.first_name,
+      invited_by_name: 'Your Event Planner',
+    })
+    setSendingInvites((prev) => { const next = new Set(prev); next.delete(guest.id); return next })
+  }
+
+  const deleteGuest = async (guest: Guest) => {
+    if (!data) return
+    const confirmed = window.confirm(`Remove "${guest.first_name}" from the guest list?`)
+    if (!confirmed) return
+    await supabase.from('guests').delete().eq('id', guest.id)
+    setGuests((prev) => prev.filter((g) => g.id !== guest.id))
+  }
 
   useEffect(() => {
     if (!token) { setError('Invalid access link'); setLoading(false); return }
@@ -100,8 +153,12 @@ export function ClientPortalPage() {
               supabase.from('event_phases').select('*').eq('event_id', event.id).order('phase_number'),
               supabase.from('media').select('*').eq('event_id', event.id).eq('tag', 'client_share').order('created_at'),
               supabase.from('event_vendors').select('*').eq('event_id', event.id).order('category'),
-            ]).then(([phasesRes, mediaRes, vendorsRes]) => {
+              supabase.from('event_assets').select('*').eq('event_id', event.id).order('created_at', { ascending: false }),
+              supabase.from('guests').select('*').eq('event_id', event.id).order('created_at', { ascending: false }),
+            ]).then(([phasesRes, mediaRes, vendorsRes, assetsRes, guestsRes]) => {
               setEventVendors((vendorsRes.data || []) as unknown as EventVendor[])
+              setPortalAssets((assetsRes.data || []) as unknown as PortalAsset[])
+              setGuests((guestsRes.data || []) as unknown as Guest[])
               supabase.from('client_portals').update({ last_accessed: new Date().toISOString() }).eq('id', portal.id).then()
               setData({
                 portal,
@@ -233,6 +290,10 @@ export function ClientPortalPage() {
             <div className={styles.statChipValue}>{media.length}</div>
             <div className={styles.statChipLabel}>Shared Media</div>
           </div>
+          <div className={styles.statChip}>
+            <div className={styles.statChipValue}>{guests.length}</div>
+            <div className={styles.statChipLabel}>Guests</div>
+          </div>
           {eventDate && (
             <div className={styles.statChip}>
               <div className={styles.statChipValue}>
@@ -252,6 +313,8 @@ export function ClientPortalPage() {
             ['done', 'Done', completed > 0 ? completed : null],
             ['gallery', 'Gallery', media.length > 0 ? media.length : null],
             ['vendors', 'Vendors', eventVendors.length > 0 ? eventVendors.length : null],
+            ['assets', 'Assets', portalAssets.length > 0 ? portalAssets.length : null],
+            ['guests', 'Guests', guests.length > 0 ? guests.length : null],
           ] as const).map(([key, label, badge]) => (
             <button
               key={key}
@@ -275,114 +338,645 @@ export function ClientPortalPage() {
 
         {/* Phase list */}
         {(activeTab === 'all' || activeTab === 'active' || activeTab === 'done') && (
-          <div className={styles.phaseList}>
-            {listPhases.length === 0 ? (
-              <div className={styles.emptyState}>
-                <div className={styles.emptyStateIcon}><Circle size={24} /></div>
-                <div className={styles.emptyStateTitle}>No phases here yet</div>
-                <div className={styles.emptyStateSub}>
-                  {activeTab === 'active' ? 'No phases are currently in progress.' : 'No completed phases yet.'}
-                </div>
-              </div>
-            ) : (
-              listPhases.map((phase) => {
-                const isComplete = phase.status === 'completed'
-                const isCurrent = phase.status === 'in_progress'
-                const isBlocked = phase.status === 'blocked'
-                return (
-                  <div
-                    key={phase.id}
-                    className={`${styles.phaseCard} ${isComplete ? styles.phaseCardComplete : ''} ${isCurrent ? styles.phaseCardActive : ''} ${isBlocked ? styles.phaseCardBlocked : ''}`}
-                  >
-                    <div className={`${styles.phaseNum} ${isComplete ? styles.phaseNumDone : ''}`}>
+          <Table
+            columns={[
+              { key: 'num', label: '#' },
+              { key: 'name', label: 'Phase' },
+              { key: 'status', label: 'Status' },
+              { key: 'due', label: 'Due' },
+            ]}
+            minWidth="500px"
+            empty={listPhases.length === 0}
+            emptyIcon={Circle}
+            emptyTitle="No phases here yet"
+            emptyDescription={activeTab === 'active' ? 'No phases are currently in progress.' : 'No completed phases yet.'}
+          >
+            {listPhases.map((phase) => {
+              const isComplete = phase.status === 'completed'
+              const isCurrent = phase.status === 'in_progress'
+              const isBlocked = phase.status === 'blocked'
+              return (
+                <tr key={phase.id}>
+                  <td style={{ padding: 'var(--space-3) var(--space-4)', fontSize: 'var(--text-sm)' }}>
+                    <div style={{ width: 28, height: 28, borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'var(--text-xs)', fontWeight: 700, background: isComplete ? 'var(--color-accent)' : 'var(--color-accent-muted)', color: isComplete ? '#000' : 'var(--color-accent)' }}>
                       {phase.phase_number}
                     </div>
-                    <div className={styles.phaseInfo}>
-                      <div className={styles.phaseName}>{phase.phase_name}</div>
-                      <div className={`${styles.phaseStatus} ${isComplete ? styles.phaseStatusDone : ''} ${isCurrent ? styles.phaseStatusActive : ''} ${isBlocked ? styles.phaseStatusBlocked : ''}`}>
-                        {isComplete ? '✓ Completed' : isCurrent ? '⟳ In Progress' : isBlocked ? '⚠ On Hold' : '○ Not Started'}
-                        {phase.completed_at && isComplete && (
-                          <> · {new Date(phase.completed_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</>
-                        )}
-                      </div>
-                    </div>
-                    {phase.due_date && (
-                      <span className={styles.phaseDueDate}>
-                        <Clock size={10} style={{ display: 'inline', marginRight: 3 }} />
-                        Due {new Date(phase.due_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                  </td>
+                  <td style={{ padding: 'var(--space-3) var(--space-4)', fontSize: 'var(--text-sm)' }}>
+                    <div style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{phase.phase_name}</div>
+                  </td>
+                  <td style={{ padding: 'var(--space-3) var(--space-4)', fontSize: 'var(--text-sm)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                      <span style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 4,
+                        color: isComplete ? 'var(--color-accent)' : isCurrent ? 'var(--color-info)' : isBlocked ? 'var(--color-warning)' : 'var(--color-text-muted)',
+                        fontWeight: isComplete || isCurrent || isBlocked ? 600 : 400,
+                        fontSize: 'var(--text-xs)',
+                      }}>
+                        {isComplete ? <CheckCircle2 size={12} /> : isCurrent ? <Clock size={12} /> : isBlocked ? <AlertTriangle size={12} /> : <Circle size={12} />}
+                        {isComplete ? 'Completed' : isCurrent ? 'In Progress' : isBlocked ? 'On Hold' : 'Not Started'}
                       </span>
-                    )}
-                    <div className={`${styles.phaseCheckIcon} ${isComplete ? styles.phaseCheckIconDone : ''}`}>
-                      {isComplete ? <CheckCircle2 size={16} /> : <Circle size={16} />}
+                      {phase.completed_at && isComplete && (
+                        <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                          · {new Date(phase.completed_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                        </span>
+                      )}
                     </div>
-                  </div>
-                )
-              })
-            )}
-          </div>
+                  </td>
+                  <td style={{ padding: 'var(--space-3) var(--space-4)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                    {phase.due_date ? (
+                      <span>Due {new Date(phase.due_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
+                    ) : (
+                      <span style={{ color: 'var(--color-text-muted)' }}>—</span>
+                    )}
+                  </td>
+                </tr>
+              )
+            })}
+          </Table>
         )}
 
         {/* Gallery */}
         {activeTab === 'gallery' && (
-          media.length === 0 ? (
-            <div className={styles.emptyState}>
-              <div className={styles.emptyStateIcon}><Image size={24} /></div>
-              <div className={styles.emptyStateTitle}>No shared media yet</div>
-              <div className={styles.emptyStateSub}>Your planner will share photos and documents here after the event.</div>
-            </div>
-          ) : (
-            <div className={styles.galleryGrid}>
-              {media.map((m) => (
-                <div key={m.id} className={styles.mediaCard}>
-                  <img src={m.url} alt={m.caption || ''} className={styles.mediaImg} loading="lazy" />
-                  {m.caption && <div className={styles.mediaCaption}>{m.caption}</div>}
+          <>
+            {media.length === 0 ? (
+              <div className={styles.emptyState}>
+                <div className={styles.emptyStateIcon}><Image size={24} /></div>
+                <div className={styles.emptyStateTitle}>No shared media yet</div>
+                <div className={styles.emptyStateSub}>Your planner will share photos and documents here after the event.</div>
+              </div>
+            ) : (
+              <div className={styles.galleryGrid}>
+                {media.map((m) => (
+                  <div key={m.id} className={styles.mediaCard} style={{ cursor: 'pointer' }} onClick={() => setPreviewMedia(m)}>
+                    <img src={m.url} alt={m.caption || ''} className={styles.mediaImg} loading="lazy" />
+                    {m.caption && <div className={styles.mediaCaption}>{m.caption}</div>}
+                  </div>
+                ))}
+              </div>
+            )}
+            {previewMedia && (
+              <div className={styles.modalOverlay} onClick={() => setPreviewMedia(null)}>
+                <div className={styles.mediaPreviewCard} onClick={(e) => e.stopPropagation()}>
+                  <button type="button" className={styles.modalClose} onClick={() => setPreviewMedia(null)} style={{ position: 'absolute', top: 12, right: 12, zIndex: 10, background: 'rgba(0,0,0,0.5)', color: '#fff', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <X size={18} />
+                  </button>
+                  <img src={previewMedia.url} alt={previewMedia.caption || ''} className={styles.mediaPreviewFull} />
+                  {previewMedia.caption && <div className={styles.mediaPreviewCaption}>{previewMedia.caption}</div>}
                 </div>
-              ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Assets */}
+        {activeTab === 'assets' && (
+          <>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 'var(--space-4)' }}>
+              <button type="button" className="btn btn-primary btn-sm" onClick={() => setShowUploadForm(true)}>
+                <Upload size={14} /> Upload
+              </button>
             </div>
-          )
+            {portalAssets.length === 0 ? (
+              <div className={styles.emptyState}>
+                <div className={styles.emptyStateIcon}><Image size={24} /></div>
+                <div className={styles.emptyStateTitle}>No shared assets yet</div>
+                <div className={styles.emptyStateSub}>Your planner will share moodboards, images, and documents here.</div>
+              </div>
+            ) : (
+              <div className={styles.galleryGrid}>
+                {portalAssets.map((asset) => {
+                  const isImg = asset.mime_type?.startsWith('image/')
+                  return (
+                    <div key={asset.id} className={styles.mediaCard}>
+                      {isImg && asset.url ? (
+                        <img src={asset.url} alt={asset.name} className={styles.mediaImg} loading="lazy" />
+                      ) : (
+                        <div style={{ height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-surface-3)' }}>
+                          <FileText size={36} style={{ opacity: 0.4 }} />
+                        </div>
+                      )}
+                      <div style={{ padding: 'var(--space-2) var(--space-3)' }}>
+                        <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 4 }}>{asset.name}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                          <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 'var(--radius-full)', background: 'var(--color-surface-3)' }}>{asset.category || 'Uncategorized'}</span>
+                          {asset.file_size ? (
+                            <span>{(asset.file_size / 1024 / 1024).toFixed(1)} MB</span>
+                          ) : null}
+                        </div>
+                      </div>
+                      {asset.url && (
+                        <a
+                          href={asset.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            position: 'absolute', bottom: 8, right: 8,
+                            padding: '4px 10px', borderRadius: 'var(--radius-md)',
+                            background: 'rgba(0,0,0,0.6)', color: '#fff',
+                            fontSize: 11, fontWeight: 600, textDecoration: 'none',
+                            backdropFilter: 'blur(4px)',
+                          }}
+                        >
+                          <ExternalLink size={11} style={{ marginRight: 3 }} /> View
+                        </a>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </>
         )}
 
         {/* Vendors */}
         {activeTab === 'vendors' && (
-          eventVendors.length === 0 ? (
-            <div className={styles.emptyState}>
-              <div className={styles.emptyStateIcon}><Users size={24} /></div>
-              <div className={styles.emptyStateTitle}>No vendors assigned</div>
-              <div className={styles.emptyStateSub}>Your planner will add vendors and service providers here.</div>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-              {eventVendors.map((ev) => (
-                <div key={ev.id} className={styles.phaseCard}>
-                  <div style={{ width: 40, height: 40, borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'var(--text-sm)', fontWeight: 700, background: 'var(--color-accent-muted)', color: 'var(--color-accent)', flexShrink: 0 }}>
-                    {(ev.vendor_name || '?')[0].toUpperCase()}
+          <Table
+            columns={[
+              { key: 'name', label: 'Vendor' },
+              { key: 'category', label: 'Category' },
+              { key: 'service', label: 'Service' },
+              { key: 'amount', label: 'Amount' },
+              { key: 'status', label: 'Status' },
+            ]}
+            minWidth="600px"
+            empty={eventVendors.length === 0}
+            emptyIcon={Users}
+            emptyTitle="No vendors assigned"
+            emptyDescription="Your planner will add vendors and service providers here."
+          >
+            {eventVendors.map((ev) => (
+              <tr key={ev.id}>
+                <td style={{ padding: 'var(--space-3) var(--space-4)', fontSize: 'var(--text-sm)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'var(--text-xs)', fontWeight: 700, background: 'var(--color-accent-muted)', color: 'var(--color-accent)', flexShrink: 0 }}>
+                      {(ev.vendor_name || '?')[0].toUpperCase()}
+                    </div>
+                    <span style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{ev.vendor_name}</span>
                   </div>
-                  <div className={styles.phaseInfo}>
-                    <div className={styles.phaseName}>{ev.vendor_name}</div>
-                    <div className={styles.phaseStatus}>{ev.category}</div>
-                    {ev.service_desc && (
-                      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginTop: 2 }}>
-                        {ev.service_desc}
+                </td>
+                <td style={{ padding: 'var(--space-3) var(--space-4)', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>{ev.category}</td>
+                <td style={{ padding: 'var(--space-3) var(--space-4)', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
+                  {ev.service_desc || <span style={{ color: 'var(--color-text-muted)' }}>—</span>}
+                </td>
+                <td style={{ padding: 'var(--space-3) var(--space-4)', fontSize: 'var(--text-sm)', fontWeight: 600 }}>₦{ev.total_amount.toLocaleString()}</td>
+                <td style={{ padding: 'var(--space-3) var(--space-4)' }}>
+                  <span className={`badge ${ev.booking_status === 'confirmed' || ev.booking_status === 'paid' ? 'badge-success' : ev.booking_status === 'cancelled' ? 'badge-error' : 'badge-medium'}`}>
+                    {ev.booking_status}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </Table>
+        )}
+
+        {/* Guests */}
+        {activeTab === 'guests' && (
+          <>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 'var(--space-3)', marginBottom: 'var(--space-4)', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
+                <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
+                  {guests.length} guest{guests.length !== 1 ? 's' : ''}
+                  {guests.filter((g) => !!g.email).length > 0 && (
+                    <> · {guests.filter((g) => !!g.email).length} with email</>
+                  )}
+                </span>
+              </div>
+              <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
+                <button type="button" className="btn btn-secondary btn-sm" onClick={() => {
+                  const headers = 'first_name,last_name,email,phone,group_name\n';
+                  const blob = new Blob([headers], { type: 'text/csv;charset=utf-8;' });
+                  const a = document.createElement('a');
+                  a.href = URL.createObjectURL(blob);
+                  a.download = 'guest-template.csv';
+                  a.click();
+                  URL.revokeObjectURL(a.href);
+                }}>
+                  <Download size={14} /> Template
+                </button>
+                <button type="button" className="btn btn-secondary btn-sm" onClick={() => setShowCSV(true)}>
+                  <FileSpreadsheet size={14} /> Import CSV
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  disabled={sendingBulk || guests.filter((g) => !!g.email).length === 0}
+                  onClick={async () => {
+                    if (!data) return
+                    setSendingBulk(true)
+                    const withEmail = guests.filter((g) => !!g.email)
+                    for (const g of withEmail) {
+                      setSendingInvites((prev) => new Set(prev).add(g.id))
+                      try {
+                        await sendInvite({
+                          type: 'guest_invite',
+                          event_id: data.event.id,
+                          email: g.email!,
+                          guest_name: g.first_name,
+                          invited_by_name: 'Your Event Planner',
+                        })
+                      } catch {}
+                      setSendingInvites((prev) => { const next = new Set(prev); next.delete(g.id); return next })
+                    }
+                    setSendingBulk(false)
+                  }}
+                >
+                  <Send size={14} /> {sendingBulk ? 'Sending...' : 'Send Invitations'}
+                </button>
+                <button type="button" className="btn btn-primary btn-sm" onClick={() => setShowInviteForm(true)}>
+                  <UserPlus size={14} /> Invite Guest
+                </button>
+              </div>
+            </div>
+            <Table
+              columns={[
+                { key: 'name', label: 'Name' },
+                { key: 'email', label: 'Email' },
+                { key: 'phone', label: 'Phone' },
+                { key: 'rsvp', label: 'RSVP' },
+                { key: 'actions', label: '' },
+              ]}
+              minWidth="600px"
+              empty={guests.length === 0}
+              emptyIcon={Users}
+              emptyTitle="No guests yet"
+              emptyDescription="Invite your guests so they can receive event updates."
+            >
+              {guests.map((g) => (
+                <tr key={g.id}>
+                  <td style={{ padding: 'var(--space-3) var(--space-4)', fontSize: 'var(--text-sm)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+                      <div style={{ width: 32, height: 32, borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'var(--text-xs)', fontWeight: 700, background: 'var(--color-accent-muted)', color: 'var(--color-accent)', flexShrink: 0 }}>
+                        {(g.first_name || '?')[0].toUpperCase()}
                       </div>
-                    )}
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 'var(--space-1)', flexShrink: 0 }}>
-                    <span style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>
-                      ₦{ev.total_amount.toLocaleString()}
-                    </span>
-                    <span
-                      className={`badge ${ev.booking_status === 'confirmed' || ev.booking_status === 'paid' ? 'badge-success' : ev.booking_status === 'cancelled' ? 'badge-error' : 'badge-medium'}`}
-                      style={{ fontSize: 10 }}
+                      <span style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                        {g.first_name}{g.last_name ? ` ${g.last_name}` : ''}
+                      </span>
+                    </div>
+                  </td>
+                  <td style={{ padding: 'var(--space-3) var(--space-4)', fontSize: 'var(--text-sm)' }}>
+                    {g.email ? (
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', color: 'var(--color-text-secondary)' }}>
+                        <Mail size={11} /> {g.email}
+                      </span>
+                    ) : <span style={{ color: 'var(--color-text-muted)' }}>—</span>}
+                  </td>
+                  <td style={{ padding: 'var(--space-3) var(--space-4)', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
+                    {g.phone || <span style={{ color: 'var(--color-text-muted)' }}>—</span>}
+                  </td>
+                  <td style={{ padding: 'var(--space-3) var(--space-4)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                      <span className={`${styles.rsvpBadge} ${g.rsvp_status === 'confirmed' ? styles.rsvpConfirmed : g.rsvp_status === 'declined' ? styles.rsvpDeclined : g.rsvp_status === 'maybe' ? styles.rsvpMaybe : styles.rsvpPending}`}>
+                        {g.rsvp_status === 'confirmed' ? 'Confirmed' : g.rsvp_status === 'declined' ? 'Declined' : g.rsvp_status === 'maybe' ? 'Maybe' : 'Pending'}
+                      </span>
+                      {g.email && !sendingInvites.has(g.id) && (
+                        <button
+                          type="button"
+                          className="btn btn-ghost btn-sm"
+                          style={{ padding: '2px 6px', fontSize: 10 }}
+                          onClick={() => sendInviteToGuest(g)}
+                          title="Send invite"
+                        >
+                          <Send size={11} />
+                        </button>
+                      )}
+                      {sendingInvites.has(g.id) && (
+                        <Loader2 size={12} className="spin" style={{ color: 'var(--color-accent)' }} />
+                      )}
+                    </div>
+                  </td>
+                  <td style={{ padding: 'var(--space-3) var(--space-4)', textAlign: 'right' }}>
+                    <button
+                      type="button"
+                      onClick={() => deleteGuest(g)}
+                      style={{
+                        background: 'none', border: 'none', color: 'var(--color-text-muted)',
+                        cursor: 'pointer', padding: '4px', borderRadius: 'var(--radius-sm)',
+                      }}
+                      title={`Remove ${g.first_name}`}
                     >
-                      {ev.booking_status}
-                    </span>
-                  </div>
-                </div>
+                      <Trash2 size={14} />
+                    </button>
+                  </td>
+                </tr>
               ))}
-            </div>
-          )
+            </Table>
+          </>
         )}
       </div>
+
+      {/* ── Invite Guest Modal ── */}
+      {showInviteForm && (
+        <div className={styles.modalOverlay} onClick={() => { if (!inviting) setShowInviteForm(false) }}>
+          <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <div className={styles.modalTitle}><UserPlus size={16} /> Invite Guest</div>
+              <button type="button" className={styles.modalClose} onClick={() => setShowInviteForm(false)} disabled={inviting}>
+                <X size={18} />
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <div className={styles.formField}>
+                <label className={styles.formLabel}>First Name</label>
+                <input
+                  type="text"
+                  className={styles.formInput}
+                  value={inviteFirstName}
+                  onChange={(e) => setInviteFirstName(e.target.value)}
+                  placeholder="Guest's first name"
+                />
+              </div>
+              <div className={styles.formField}>
+                <label className={styles.formLabel}>Email</label>
+                <input
+                  type="email"
+                  className={styles.formInput}
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  placeholder="guest@example.com"
+                />
+              </div>
+            </div>
+            <div className={styles.modalFooter}>
+              <button type="button" className="btn btn-secondary" onClick={() => setShowInviteForm(false)} disabled={inviting}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={async () => {
+                  if (!inviteFirstName.trim() || !inviteEmail.trim() || inviting || !data) return
+                  setInviting(true)
+                  const result = await sendInvite({
+                    type: 'guest_invite',
+                    event_id: data.event.id,
+                    email: inviteEmail.trim(),
+                    guest_name: inviteFirstName.trim(),
+                    invited_by_name: 'Your Event Planner',
+                  })
+                  if (result.success) {
+                    const { data: updated } = await supabase
+                      .from('guests')
+                      .select('*')
+                      .eq('event_id', data.event.id)
+                      .order('created_at', { ascending: false })
+                    if (updated) setGuests(updated as unknown as Guest[])
+                    setShowInviteForm(false)
+                    setInviteFirstName('')
+                    setInviteEmail('')
+                  }
+                  setInviting(false)
+                }}
+                disabled={!inviteFirstName.trim() || !inviteEmail.trim() || inviting}
+              >
+                {inviting ? (
+                  <><Loader2 size={14} className="spin" /> Sending...</>
+                ) : (
+                  <><Mail size={14} /> Send Invite</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Upload Asset Modal ── */}
+      {showUploadForm && (
+        <div className={styles.modalOverlay} onClick={() => { if (!uploading) setShowUploadForm(false) }}>
+          <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <div className={styles.modalTitle}><Upload size={16} /> Upload Asset</div>
+              <button type="button" className={styles.modalClose} onClick={() => setShowUploadForm(false)} disabled={uploading}>
+                <X size={18} />
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <div className={styles.formField}>
+                <label className={styles.formLabel}>File</label>
+                <div
+                  className={styles.uploadArea}
+                  onClick={() => fileRef.current?.click()}
+                >
+                  {uploadFile ? (
+                    <div className={styles.uploadAreaPreview}>
+                      {uploadFile.type.startsWith('image/') ? (
+                        <img src={URL.createObjectURL(uploadFile)} alt="" className={styles.uploadPreviewImg} />
+                      ) : (
+                        <FileText size={24} />
+                      )}
+                      <span>{uploadFile.name}</span>
+                    </div>
+                  ) : (
+                    <div className={styles.uploadAreaPlaceholder}>
+                      <Upload size={20} />
+                      <span>Click to select a file</span>
+                      <span className={styles.uploadAreaHint}>Images, PDFs, and documents</span>
+                    </div>
+                  )}
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept="image/*,.pdf,.doc,.docx"
+                    className={styles.fileInput}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (!file) return
+                      setUploadFile(file)
+                      if (!uploadName) setUploadName(file.name.replace(/\.[^.]+$/, ''))
+                    }}
+                  />
+                </div>
+              </div>
+              <div className={styles.formField}>
+                <label className={styles.formLabel}>Name</label>
+                <input
+                  type="text"
+                  className={styles.formInput}
+                  value={uploadName}
+                  onChange={(e) => setUploadName(e.target.value)}
+                  placeholder="Asset name"
+                />
+              </div>
+              <div className={styles.formField}>
+                <label className={styles.formLabel}>Category</label>
+                <input
+                  type="text"
+                  className={styles.formInput}
+                  value={uploadCategory}
+                  onChange={(e) => setUploadCategory(e.target.value)}
+                  placeholder="e.g. Moodboard, Venue, Decor"
+                />
+              </div>
+            </div>
+            <div className={styles.modalFooter}>
+              <button type="button" className="btn btn-secondary" onClick={() => setShowUploadForm(false)} disabled={uploading}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={async () => {
+                  if (!data || !uploadFile || !uploadName.trim() || uploading) return
+                  setUploading(true)
+                  try {
+                    const ext = uploadFile.name.split('.').pop() || 'bin'
+                    const path = `${data.event.id}/portal/${crypto.randomUUID()}.${ext}`
+                    const { error: uploadErr } = await supabase.storage
+                      .from('event-media')
+                      .upload(path, uploadFile, {
+                        contentType: uploadFile.type,
+                        upsert: false,
+                      })
+                    if (uploadErr) throw uploadErr
+                    const { data: pubUrlData } = supabase.storage
+                      .from('event-media')
+                      .getPublicUrl(path)
+                    const url = pubUrlData?.publicUrl || ''
+                    const mime = uploadFile.type
+                    const assetType = mime.startsWith('image/') ? 'image' : 'document'
+                    const { error: insertErr } = await supabase.from('event_assets').insert({
+                      event_id: data.event.id,
+                      name: uploadName.trim(),
+                      asset_type: assetType,
+                      category: uploadCategory.trim() || 'General',
+                      file_size: uploadFile.size,
+                      mime_type: mime,
+                      storage_path: path,
+                      file_url: url,
+                    })
+                    if (insertErr) throw insertErr
+                    const { data: freshAssets } = await supabase
+                      .from('event_assets')
+                      .select('*')
+                      .eq('event_id', data.event.id)
+                      .order('created_at', { ascending: false })
+                    if (freshAssets) setPortalAssets(freshAssets as unknown as PortalAsset[])
+                    setShowUploadForm(false)
+                    setUploadFile(null)
+                    setUploadName('')
+                    setUploadCategory('')
+                  } catch (err: unknown) {
+                    const msg = err instanceof Error ? err.message : 'Upload failed'
+                    alert(msg)
+                  } finally {
+                    setUploading(false)
+                  }
+                }}
+                disabled={!uploadFile || !uploadName.trim() || uploading}
+              >
+                {uploading ? (
+                  <><Loader2 size={14} className="spin" /> Uploading...</>
+                ) : (
+                  <><Upload size={14} /> Upload</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── CSV Import Modal ── */}
+      {showCSV && data && (
+        <div className={styles.modalOverlay} onClick={() => setShowCSV(false)}>
+          <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <div className={styles.modalTitle}><FileSpreadsheet size={16} /> Import Guests from CSV</div>
+              <button type="button" className={styles.modalClose} onClick={() => setShowCSV(false)}>
+                <X size={18} />
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', margin: 0 }}>
+                CSV headers: <code>first_name, last_name, email, phone, group_name</code>
+              </p>
+              <div
+                className={styles.uploadArea}
+                onClick={() => {
+                  const input = document.createElement('input');
+                  input.type = 'file';
+                  input.accept = '.csv';
+                  input.onchange = (e: Event) => {
+                    const file = (e.target as HTMLInputElement).files?.[0];
+                    if (!file) return;
+                    import('papaparse').then(({ default: Papa }) => {
+                      Papa.parse(file, {
+                        header: true,
+                        skipEmptyLines: true,
+                        complete: (results) => setCsvPreview(results.data as Record<string, string>[]),
+                      });
+                    });
+                  };
+                  input.click();
+                }}
+              >
+                {csvPreview.length > 0 ? (
+                  <div className={styles.uploadAreaPreview}>
+                    <FileSpreadsheet size={24} />
+                    <span>{csvPreview.length} rows ready to import</span>
+                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', maxHeight: 120, overflowY: 'auto', textAlign: 'left', width: '100%' }}>
+                      {csvPreview.slice(0, 10).map((r, i) => (
+                        <div key={i} style={{ padding: '2px 0' }}>{r.first_name || r['First Name'] || r.name || r.Name || `Row ${i + 1}`}</div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className={styles.uploadAreaPlaceholder}>
+                    <FileSpreadsheet size={20} />
+                    <span>Click to select a CSV file</span>
+                    <span className={styles.uploadAreaHint}>Headers: first_name, last_name, email, phone, group_name</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className={styles.modalFooter}>
+              <button type="button" className="btn btn-secondary" onClick={() => { setShowCSV(false); setCsvPreview([]) }}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={csvPreview.length === 0}
+                onClick={async () => {
+                  if (!data) return;
+                  const rows = csvPreview.map((r) => ({
+                    event_id: data.event.id,
+                    first_name: r.first_name || r['First Name'] || r.name || r.Name || '',
+                    last_name: r.last_name || r['Last Name'] || null,
+                    phone: r.phone || r.Phone || r.telephone || null,
+                    email: r.email || r.Email || null,
+                    group_name: r.group_name || r.Group || r['Group Name'] || null,
+                    rsvp_status: 'pending' as const,
+                  })).filter(r => r.first_name);
+                  if (rows.length === 0) return;
+                  const { error } = await supabase.from('guests').insert(rows as any);
+                  if (error) { alert(error.message); return; }
+                  for (const row of rows) {
+                    if (row.email) {
+                      sendInvite({
+                        type: 'guest_invite',
+                        event_id: data.event.id,
+                        email: row.email,
+                        guest_name: row.first_name,
+                        invited_by_name: 'Your Event Planner',
+                      }).catch(() => {});
+                    }
+                  }
+                  const { data: updated } = await supabase
+                    .from('guests')
+                    .select('*')
+                    .eq('event_id', data.event.id)
+                    .order('created_at', { ascending: false });
+                  if (updated) setGuests(updated as unknown as Guest[]);
+                  setShowCSV(false);
+                  setCsvPreview([]);
+                }}
+              >
+                <Upload size={14} /> Import {csvPreview.length} Guest{csvPreview.length !== 1 ? 's' : ''}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Footer ── */}
       <footer className={styles.portalFooter}>

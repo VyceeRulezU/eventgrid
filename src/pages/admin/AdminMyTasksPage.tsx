@@ -6,12 +6,12 @@ import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { compressImage } from '@/lib/compressImage'
 import { uploadFile } from '@/lib/storage'
-import { PageHero } from '@/components/shared/PageHero'
+import { AdminPageHero } from '@/components/shared/AdminPageHero'
 import { Table } from '@/components/ui/Table'
 import type { TableColumn } from '@/components/ui/Table'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import type { Task, TaskComment } from '@/types'
-import styles from './MyTasksPage.module.css'
+import styles from '@/pages/team/MyTasksPage.module.css'
 
 interface MyTask extends Task {
   event: { id: string; name: string }
@@ -59,7 +59,7 @@ const columns: TableColumn[] = [
   { key: 'actions', label: '' },
 ]
 
-export function MyTasksPage() {
+export function AdminMyTasksPage() {
   const user = useAuthStore((s) => s.user)
   const showNotification = useUIStore((s) => s.showNotification)
 
@@ -211,8 +211,8 @@ export function MyTasksPage() {
   })
 
   return (
-    <div className={styles.page}>
-      <PageHero
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)', width: '100%' }}>
+      <AdminPageHero
         icon={ListChecks}
         title="My Tasks"
         subtitle={`${filteredTasks.length} task${filteredTasks.length !== 1 ? 's' : ''} assigned to you`}

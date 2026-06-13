@@ -1,3 +1,6 @@
+const SCRIPT_URL = 'https://js.paystack.co/v1/inline.js'
+const LOAD_TIMEOUT = 15000
+
 export interface PaystackConfig {
   key: string
   email: string
@@ -26,22 +29,53 @@ declare global {
   }
 }
 
+function getExistingScript(): HTMLScriptElement | null {
+  return document.querySelector<HTMLScriptElement>(`script[src="${SCRIPT_URL}"]`)
+}
+
 export function loadPaystackScript(): Promise<void> {
   return new Promise((resolve, reject) => {
-    if (document.querySelector('script[src*="paystack"]')) {
+    const existing = getExistingScript()
+    if (existing && window.PaystackPop) {
       resolve()
       return
     }
+    if (existing && !window.PaystackPop) {
+      existing.remove()
+    }
+
     const script = document.createElement('script')
-    script.src = 'https://js.paystack.co/v1/inline.js'
+    script.src = SCRIPT_URL
     script.async = true
-    script.onload = () => resolve()
-    script.onerror = () => reject(new Error('Failed to load Paystack script'))
+
+    const timeoutId = setTimeout(() => {
+      script.onload = null
+      script.onerror = null
+      reject(new Error('Paystack script timed out'))
+    }, LOAD_TIMEOUT)
+
+    script.onload = () => {
+      clearTimeout(timeoutId)
+      if (window.PaystackPop) {
+        resolve()
+      } else {
+        reject(new Error('Paystack script loaded but PaystackPop not found'))
+      }
+    }
+
+    script.onerror = () => {
+      clearTimeout(timeoutId)
+      reject(new Error('Failed to load Paystack script'))
+    }
+
     document.head.appendChild(script)
   })
 }
 
 export function initPaystackPayment(config: PaystackConfig): void {
+  if (!window.PaystackPop) {
+    throw new Error('PaystackPop not available. Call loadPaystackScript() first.')
+  }
   const handler = window.PaystackPop.setup({
     key: config.key,
     email: config.email,

@@ -257,7 +257,7 @@ function PaymentDetailModal({ payment, onClose }: { payment: PaymentRow; onClose
           <div className={styles.paySectionTitle}>Payment Info</div>
           <div className={styles.payCard}>
             <PayRow label="Method" value={method} />
-            <PayRow label="Reference" value={payment.paystack_ref || '—'} last />
+            <PayRow label="Reference" value={payment.paystack_ref ? `${payment.paystack_ref}` : '—'} last />
           </div>
         </div>
       </div>

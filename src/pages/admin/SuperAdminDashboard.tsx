@@ -483,9 +483,6 @@ export function SuperAdminDashboard() {
           <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
             <button className="btn btn-secondary btn-sm" onClick={exportCSV}>Export CSV</button>
             <button className="btn btn-secondary btn-sm" onClick={exportPDF}>Export PDF</button>
-            <a href="https://supabase.com/dashboard" target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm">
-              <ExternalLink size={14} /> Open Supabase Dashboard
-            </a>
           </div>
         }
       />

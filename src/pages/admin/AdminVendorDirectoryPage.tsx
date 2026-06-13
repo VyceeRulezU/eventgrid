@@ -3,12 +3,12 @@ import { LayoutGrid, List, Users, Plus, Pencil, Star, Trash2, Phone, Mail, Build
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
-import { PageHero } from '@/components/shared/PageHero'
+import { AdminPageHero } from '@/components/shared/AdminPageHero'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { useSearch } from '@/hooks/useSearch'
 import { SearchBar } from '@/components/shared/SearchBar'
 import type { Vendor } from '@/types'
-import styles from './VendorDirectoryPage.module.css'
+import styles from '@/features/vendors/VendorDirectoryPage.module.css'
 
 const DEFAULT_TYPES = [
   'Wedding planner', 'Venue', 'Decor', 'DJ/Sound/Konga',
@@ -21,7 +21,7 @@ const DEFAULT_TYPES = [
   'Wedding dress', 'Stylist', 'Miscellaneous', 'Extra table decor', 'Boutonniere',
 ]
 
-export function VendorDirectoryPage() {
+export function AdminVendorDirectoryPage() {
   const user = useAuthStore((s) => s.user)
   const role = useAuthStore((s) => s.role)
   const showNotification = useUIStore((s) => s.showNotification)
@@ -64,8 +64,6 @@ export function VendorDirectoryPage() {
     if (!user) { setLoading(false); return }
 
     async function load() {
-      // Left join (no !inner) so vendors without an org row still appear.
-      // RLS on the vendors table must allow SELECT for all authenticated roles.
       const { data } = await supabase
         .from('vendors')
         .select('*, organizations(name)')
@@ -95,9 +93,6 @@ export function VendorDirectoryPage() {
 
   const availableTypes = [...new Set([...DEFAULT_TYPES, ...vendors.map((v) => v.category)])]
 
-  /* ══════════════════════════════════════════════
-     Vendor form / CRUD — scoped to user's org
-     ══════════════════════════════════════════════ */
   const org = useAuthStore((s) => s.org)
   const resetForm = () => {
     setForm({ category: DEFAULT_TYPES[0], name: '', contact_name: '', phone: '', email: '', rating: 0, notes: '' })
@@ -212,7 +207,7 @@ export function VendorDirectoryPage() {
       .select('id')
 
     if (error || !data || data.length === 0) {
-      console.error('[VendorDirectoryPage] delete failed', { error, data, id })
+      console.error('[AdminVendorDirectoryPage] delete failed', { error, data, id })
       showNotification({ variant: 'error', title: 'Failed to delete', message: error?.message || 'No rows were updated. You may not have permission to delete this vendor.' })
       return
     }
@@ -253,7 +248,7 @@ export function VendorDirectoryPage() {
 
   return (
     <div>
-      <PageHero
+      <AdminPageHero
         icon={Building}
         title="Vendor Directory"
         subtitle="Browse and manage your vendor network"

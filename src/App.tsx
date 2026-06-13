@@ -12,6 +12,7 @@ import { getUnreadCount, subscribeToNotifications } from '@/lib/notifications'
 import type { Profile, UserRole } from '@/types'
 import { AuthGuard } from '@/components/layout/AuthGuard'
 import { RoleGuard } from '@/components/layout/RoleGuard'
+import { AdminGuard } from '@/components/layout/AdminGuard'
 import { AppShell } from '@/components/layout/AppShell'
 import { LandingPage } from '@/pages/landing/LandingPage'
 import { LoginPage } from '@/pages/auth/LoginPage'
@@ -68,7 +69,12 @@ const FeedbackManagementPage = lazy(() => import('@/pages/admin/FeedbackManageme
 const SuperAdminTeamPage = lazy(() => import('@/pages/admin/SuperAdminTeamPage').then(m => ({ default: m.SuperAdminTeamPage })))
 const AdminManagePage = lazy(() => import('@/pages/admin/AdminManagePage').then(m => ({ default: m.AdminManagePage })))
 const AnalyticsPage = lazy(() => import('@/pages/admin/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })))
+const AdminMyTasksPage = lazy(() => import('@/pages/admin/AdminMyTasksPage').then(m => ({ default: m.AdminMyTasksPage })))
+const AdminEventsListPage = lazy(() => import('@/pages/admin/AdminEventsListPage').then(m => ({ default: m.AdminEventsListPage })))
+const AdminVendorsPage = lazy(() => import('@/pages/admin/AdminVendorsPage').then(m => ({ default: m.AdminVendorsPage })))
+const AdminVendorDirectoryPage = lazy(() => import('@/pages/admin/AdminVendorDirectoryPage').then(m => ({ default: m.AdminVendorDirectoryPage })))
 
+const EventAssetsPage = lazy(() => import('@/features/assets/EventAssetsPage').then(m => ({ default: m.EventAssetsPage })))
 const AftermathPage = lazy(() => import('@/features/aftermath/AftermathPage').then(m => ({ default: m.AftermathPage })))
 const CompletedEventReport = lazy(() => import('@/features/aftermath/CompletedEventReport').then(m => ({ default: m.CompletedEventReport })))
 const GuestRsvpPage = lazy(() => import('@/features/guests/GuestRsvpPage').then(m => ({ default: m.GuestRsvpPage })))
@@ -500,6 +506,11 @@ export function App() {
             <Route path="/events/:id/tasks" element={<TaskBoard />} />
             <Route path="/events/:id/vendors" element={<EventVendorsPage />} />
           <Route path="/events/:id/live-board" element={<LiveFeedPage />} />
+          <Route path="/events/:id/assets" element={
+            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
+              <EventAssetsPage />
+            </Suspense>
+          } />
           <Route path="/events/:id/guests" element={
             <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
               <GuestManagementPage />
@@ -561,6 +572,26 @@ export function App() {
           <Route path="/admin/analytics" element={
             <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
               <RoleGuard allowedRole="super_admin"><AnalyticsPage /></RoleGuard>
+            </Suspense>
+          } />
+          <Route path="/admin/my-tasks" element={
+            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
+              <AdminGuard><AdminMyTasksPage /></AdminGuard>
+            </Suspense>
+          } />
+          <Route path="/admin/events" element={
+            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
+              <AdminGuard><AdminEventsListPage /></AdminGuard>
+            </Suspense>
+          } />
+          <Route path="/admin/vendors" element={
+            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
+              <AdminGuard><AdminVendorsPage /></AdminGuard>
+            </Suspense>
+          } />
+          <Route path="/admin/vendors/directory" element={
+            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
+              <AdminGuard><AdminVendorDirectoryPage /></AdminGuard>
             </Suspense>
           } />
         </Route>

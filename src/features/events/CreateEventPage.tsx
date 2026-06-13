@@ -376,16 +376,25 @@ export function CreateEventPage() {
     setPaying(true)
     setPaymentStatus('idle')
     paySucceededRef.current = false
+    const timeoutId = setTimeout(() => {
+      if (!paySucceededRef.current) {
+        paySucceededRef.current = true
+        setPaymentStatus('failed')
+        showToast({ type: 'error', title: 'Payment timed out', body: 'The payment window did not respond. Please try again.' })
+        setPaying(false)
+      }
+    }, 120000)
     try {
       await processPayment({
         provider: 'paystack',
         email: user.email || '',
         amount: getEventPrice('standard'),
         metadata: { event_id: createdEventId },
-        onSuccess: (reference) => handlePaymentSuccess('paystack', reference),
-        onClose: handlePaymentCancel,
+        onSuccess: (reference) => { clearTimeout(timeoutId); handlePaymentSuccess('paystack', reference) },
+        onClose: () => { clearTimeout(timeoutId); handlePaymentCancel() },
       })
     } catch {
+      clearTimeout(timeoutId)
       if (!paySucceededRef.current) {
         setPaymentStatus('failed')
         showToast({ type: 'error', title: 'Payment failed', body: 'Could not load payment provider' })

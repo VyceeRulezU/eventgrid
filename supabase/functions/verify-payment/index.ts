@@ -95,8 +95,7 @@ Deno.serve(async (req) => {
         payment_status: 'paid',
         payment_provider: provider,
         updated_at: new Date().toISOString(),
-        // Save the reference for audits
-        ...(provider === 'paystack' ? { paystack_ref: reference } : {})
+        paystack_ref: reference,
       })
       .eq('id', event_id)
       .neq('payment_status', 'paid')

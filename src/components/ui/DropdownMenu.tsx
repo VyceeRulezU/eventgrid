@@ -30,12 +30,32 @@ export function DropdownMenu({ trigger, items, onSelect, align = 'start', classN
   const updatePosition = useCallback(() => {
     if (!triggerRef.current) return
     const rect = triggerRef.current.getBoundingClientRect()
+    const menuHeight = 200
+    const spaceBelow = window.innerHeight - rect.bottom
+    const spaceAbove = rect.top
+    const top = spaceBelow < menuHeight && spaceAbove > spaceBelow
+      ? rect.top - menuHeight - 4
+      : rect.bottom + 4
+    let left = align === 'end' ? rect.right : rect.left
+    let transform = align === 'end' ? 'translateX(-100%)' : 'none'
+
+    if (left + 200 > window.innerWidth) {
+      left = window.innerWidth - 16
+      transform = 'translateX(-100%)'
+    }
+    if (left < 8) {
+      left = 8
+      transform = 'none'
+    }
+
     setMenuStyle({
       position: 'fixed',
-      top: rect.bottom + 4,
-      left: align === 'end' ? rect.right : rect.left,
-      transform: align === 'end' ? 'translateX(-100%)' : 'none',
-      minWidth: rect.width,
+      top,
+      left,
+      transform,
+      minWidth: Math.max(rect.width, 160),
+      maxHeight: Math.min(menuHeight, Math.max(spaceBelow - 8, spaceAbove - 8, 120)),
+      overflowY: 'auto',
       zIndex: 9999,
     })
   }, [align])

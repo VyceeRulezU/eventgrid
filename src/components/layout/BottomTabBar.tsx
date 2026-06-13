@@ -7,19 +7,20 @@ import styles from './BottomTabBar.module.css'
 export function BottomTabBar() {
   const role = useAuthStore((s) => s.role)
   const activeEvent = useEventStore((s) => s.activeEvent)
+  const isAdmin = role === 'super_admin'
 
   const items = [
-    { to: role === 'team_member' || !role ? '/events' : role === 'super_admin' ? '/admin' : `/dashboard/${role}`, label: 'Dashboard', icon: LayoutDashboard },
-    { to: '/dashboard/my-tasks', label: 'My Tasks', icon: ListChecks },
-    { to: '/events', label: 'Events', icon: Calendar },
+    { to: isAdmin ? '/admin' : role === 'team_member' || !role ? '/events' : `/dashboard/${role}`, label: 'Dashboard', icon: LayoutDashboard },
+    { to: isAdmin ? '/admin/my-tasks' : '/dashboard/my-tasks', label: 'My Tasks', icon: ListChecks },
+    { to: isAdmin ? '/admin/events' : '/events', label: 'Events', icon: Calendar },
   ]
 
-  if (role === 'planner') {
+  if (!isAdmin && role === 'planner') {
     const financialsUrl = activeEvent?.id ? `/events/${activeEvent.id}/financials` : '/financials'
     items.push({ to: financialsUrl, label: 'Financials', icon: CircleDollarSign })
   }
 
-  items.push({ to: '/vendors', label: 'Vendors', icon: Users })
+  items.push({ to: isAdmin ? '/admin/vendors' : '/vendors', label: 'Vendors', icon: Users })
 
   return (
     <nav className={styles.tabBar}>

@@ -220,7 +220,7 @@ export function TaskCard({ task, onUpdate }: TaskCardProps) {
       {expanded && (
         <div style={{ marginTop: 'var(--space-3)', paddingTop: 'var(--space-3)', borderTop: '1px solid var(--color-border)' }}>
           {task.description && (
-            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', lineHeight: 'var(--leading-relaxed)', marginBottom: 'var(--space-3)' }}>
+            <div style={{ fontSize: 'var(--text-base)', color: 'var(--color-text-secondary)', lineHeight: 'var(--leading-relaxed)', marginBottom: 'var(--space-3)', whiteSpace: 'pre-wrap' }}>
               {task.description}
             </div>
           )}

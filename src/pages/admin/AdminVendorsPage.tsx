@@ -1,19 +1,18 @@
 import { useEffect, useState } from 'react'
-import { useSearchParams, useNavigate, Link } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { Users, Plus, Pencil, Tag, Star, Trash2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
-import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { Checkbox } from '@/components/ui/Checkbox'
-import { EditVendorModal } from './EditVendorModal'
-import { AddVendorModal } from './AddVendorModal'
-import { AddTypeModal } from './AddTypeModal'
-import { PageHero } from '@/components/shared/PageHero'
+import { EditVendorModal } from '@/features/vendors/EditVendorModal'
+import { AddVendorModal } from '@/features/vendors/AddVendorModal'
+import { AddTypeModal } from '@/features/vendors/AddTypeModal'
+import { AdminPageHero } from '@/components/shared/AdminPageHero'
 import { useSearch } from '@/hooks/useSearch'
 import { SearchBar } from '@/components/shared/SearchBar'
 import type { Vendor } from '@/types'
-import styles from './VendorsPage.module.css'
+import styles from '@/features/vendors/VendorsPage.module.css'
 
 const DEFAULT_TYPES = [
   'Wedding planner', 'Venue', 'Decor', 'DJ/Sound/Konga',
@@ -26,10 +25,7 @@ const DEFAULT_TYPES = [
   'Wedding dress', 'Stylist', 'Miscellaneous', 'Extra table decor', 'Boutonniere',
 ]
 
-export function VendorsPage() {
-  const [searchParams] = useSearchParams()
-  const navigate = useNavigate()
-  const eventId = searchParams.get('event')
+export function AdminVendorsPage() {
   const user = useAuthStore((s) => s.user)
   const profile = useAuthStore((s) => s.profile)
   const org = useAuthStore((s) => s.org)
@@ -40,7 +36,6 @@ export function VendorsPage() {
   const orgId = org?.id || profile?.org_id
   const [vendors, setVendors] = useState<Vendor[]>([])
   const [loading, setLoading] = useState(true)
-  const [events, setEvents] = useState<{ id: string; name: string }[]>([])
   const { query, setQuery, filtered } = useSearch(vendors, ['name', 'category'])
   const [editingVendor, setEditingVendor] = useState<Vendor | null>(null)
   const [selectedVendors, setSelectedVendors] = useState<Set<string>>(new Set())
@@ -50,28 +45,40 @@ export function VendorsPage() {
   const availableTypes = [...new Set([...DEFAULT_TYPES, ...vendors.map((v) => v.category)])]
 
   useEffect(() => {
-    if (!user || !orgId) { setLoading(false); return }
+    if (!user) { setLoading(false); return }
 
     async function load() {
-      const { data: evts } = await supabase
-        .from('events')
+      const orgsQuery = supabase
+        .from('organizations')
         .select('id, name')
-        .eq('org_id', orgId)
-        .is('deleted_at', null)
-        .order('event_date', { ascending: false })
+        .order('name', { ascending: true })
 
-      if (evts) setEvents(evts as unknown as { id: string; name: string }[])
-
-      const { data: vends } = await supabase
+      const vendsQuery = supabase
         .from('vendors')
         .select('*')
-        .eq('org_id', orgId)
         .is('deleted_at', null)
         .order('name', { ascending: true })
 
+      if (orgId) {
+        orgsQuery.eq('id', orgId)
+        vendsQuery.eq('org_id', orgId)
+      } else if (role !== 'super_admin') {
+        setLoading(false)
+        return
+      }
+
+      const [orgsRes, vendsRes] = await Promise.all([orgsQuery, vendsQuery])
+      const orgsData = orgsRes.data
+      const vends = vendsRes.data
+
       if (vends) {
+        const orgMap = new Map((orgsData || []).map((o: { id: string; name: string }) => [o.id, o.name]))
+
         const seen = new Set<string>()
-        const filteredVends = (vends as unknown as Vendor[]).filter((v) => {
+        const filteredVends = (vends as unknown as Vendor[]).map((v) => ({
+          ...v,
+          org_name: v.org_id ? orgMap.get(v.org_id) || 'Unknown' : '—',
+        })).filter((v) => {
           if (v.category === 'Coordinator' && v.email) {
             const key = v.email.toLowerCase()
             if (seen.has(key)) return false
@@ -79,7 +86,7 @@ export function VendorsPage() {
           }
           return true
         })
-        setVendors(filteredVends)
+        setVendors(filteredVends as unknown as Vendor[])
       }
 
       setLoading(false)
@@ -108,7 +115,7 @@ export function VendorsPage() {
       .select('id')
 
     if (error || !data || data.length === 0) {
-      console.error('[VendorsPage] delete failed', { error, data })
+      console.error('[AdminVendorsPage] delete failed', { error, data })
       showNotification({ variant: 'error', title: 'Failed to delete', message: error?.message || 'No rows were updated. You may not have permission to delete this vendor.' })
       return
     }
@@ -117,12 +124,10 @@ export function VendorsPage() {
     showNotification({ variant: 'success', title: 'Vendor deleted' })
   }
 
-
-
-  if (!orgId && !loading) {
+  if (!orgId && role !== 'super_admin' && !loading) {
     return (
       <div className={styles.page}>
-        <PageHero icon={Users} title="Vendors" subtitle="Manage your vendor directory" />
+        <AdminPageHero icon={Users} title="Vendors" subtitle="Manage your vendor directory" />
         <div className="empty-state">
           <div className="empty-state__icon"><Users size={24} /></div>
           <div className="empty-state__title">Complete your onboarding first</div>
@@ -185,7 +190,7 @@ export function VendorsPage() {
               .select('id')
 
             if (error || !data || data.length === 0) {
-              console.error('[VendorsPage] bulk delete failed', { error, data, ids })
+              console.error('[AdminVendorsPage] bulk delete failed', { error, data, ids })
               showNotification({ variant: 'error', title: 'Delete failed', message: error?.message || 'No rows were updated. You may not have permission to delete these vendors.' })
             } else {
               setVendors((prev) => prev.filter((v) => !ids.includes(v.id)))
@@ -200,26 +205,12 @@ export function VendorsPage() {
 
   return (
     <div className={styles.page}>
-      <PageHero
+      <AdminPageHero
         icon={Users}
         title="Vendors"
-        subtitle={`${vendors.length} vendor${vendors.length !== 1 ? 's' : ''} in your organisation`}
+        subtitle={role === 'super_admin' && !orgId ? `${vendors.length} vendor${vendors.length !== 1 ? 's' : ''} across all organisations` : `${vendors.length} vendor${vendors.length !== 1 ? 's' : ''} in your organisation`}
         actions={
           <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', flexWrap: 'wrap' }}>
-            <span className="desktop-only" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-              <div className={styles.eventFilterLabel}>Event filter</div>
-              <div className={styles.eventFilterWrap}>
-                <DropdownMenu
-                trigger={
-                  <span className={styles.eventFilterTrigger}>
-                    {events.find((e) => e.id === (eventId || events[0]?.id))?.name || 'Select event'}
-                  </span>
-                }
-                items={events.map((e) => ({ label: e.name, value: e.id }))}
-                onSelect={(item) => { navigate(`/vendors?event=${item.value}`) }}
-              />
-              </div>
-            </span>
             <span className="desktop-only">
               <button className="btn btn-secondary btn-sm" onClick={() => setShowAddType(true)} style={{ borderRadius: 'var(--radius-sm)' }}>
                 <Tag size={14} />
@@ -316,6 +307,7 @@ export function VendorsPage() {
                   </th>
                   <th className={styles.th}>Type</th>
                   <th className={styles.th}>Name</th>
+                  {!orgId && role === 'super_admin' && <th className={styles.th}>Organisation</th>}
                   <th className={styles.th}>Contact</th>
                   <th className={styles.th}>Phone</th>
                   <th className={styles.th}>Rating</th>
@@ -347,6 +339,11 @@ export function VendorsPage() {
                           {vendor.name || 'Not assigned'}
                         </span>
                       </td>
+                      {!orgId && role === 'super_admin' && (
+                        <td className={styles.td}>
+                          <span className={styles.cellMuted}>{(vendor as Vendor & { org_name?: string }).org_name || '—'}</span>
+                        </td>
+                      )}
                       <td className={styles.td}>
                         <span className={styles.cellMuted}>
                           {vendor.contact_name || '—'}
