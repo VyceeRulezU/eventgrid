@@ -15,6 +15,13 @@ const roleItems: DropdownItem[] = [
   { label: 'Other', value: 'other' },
 ]
 
+const billingItems: DropdownItem[] = [
+  { label: 'Per event', value: 'per_event' },
+  { label: 'Monthly', value: 'monthly' },
+  { label: 'Quarterly', value: 'quarterly' },
+  { label: 'Yearly', value: 'yearly' },
+]
+
 const CURRENT_FEATURES = [
   'Event Pipeline & Timeline Management',
   'Task Management with Team Collaboration',
@@ -36,10 +43,13 @@ export function SurveyPage() {
     respondent_name: '',
     respondent_email: '',
     respondent_role: '',
+    open_to_software: false,
+    currently_using: false,
+    current_software_names: '',
+    preferred_billing: '',
     pay_per_event: '',
-    prefers_monthly: false,
     monthly_amount: '',
-    prefers_yearly: false,
+    quarterly_amount: '',
     yearly_amount: '',
     important_features: [] as string[],
     wanted_features: '',
@@ -62,10 +72,13 @@ export function SurveyPage() {
       respondent_name: form.respondent_name || null,
       respondent_email: form.respondent_email || null,
       respondent_role: form.respondent_role || null,
+      open_to_software: form.open_to_software,
+      currently_using: form.currently_using,
+      current_software_names: form.current_software_names || null,
+      preferred_billing: form.preferred_billing || null,
       pay_per_event: form.pay_per_event || null,
-      prefers_monthly: form.prefers_monthly,
       monthly_amount: form.monthly_amount || null,
-      prefers_yearly: form.prefers_yearly,
+      quarterly_amount: form.quarterly_amount || null,
       yearly_amount: form.yearly_amount || null,
       important_features: form.important_features,
       wanted_features: form.wanted_features || null,
@@ -115,6 +128,46 @@ export function SurveyPage() {
 
       <div className={styles.pageContainer}>
         <form onSubmit={handleSubmit} className={styles.surveyForm}>
+          {/* ── Adoption ── */}
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Adoption</h2>
+
+            <div className={styles.field}>
+              <label className={styles.checkLabel}>
+                <input
+                  type="checkbox"
+                  checked={form.open_to_software}
+                  onChange={(e) => setForm((p) => ({ ...p, open_to_software: e.target.checked }))}
+                />
+                I am open to using an event planning software for a seamless operation
+              </label>
+            </div>
+
+            <div className={styles.field}>
+              <label className={styles.checkLabel}>
+                <input
+                  type="checkbox"
+                  checked={form.currently_using}
+                  onChange={(e) => setForm((p) => ({ ...p, currently_using: e.target.checked }))}
+                />
+                I am currently using an event planning software
+              </label>
+            </div>
+
+            {form.currently_using && (
+              <div className={styles.field}>
+                <label className={styles.label}>What software(s) are you currently using?</label>
+                <input
+                  type="text"
+                  className={styles.input}
+                  value={form.current_software_names}
+                  onChange={(e) => setForm((p) => ({ ...p, current_software_names: e.target.value }))}
+                  placeholder="e.g. Trello, Asana, Google Sheets"
+                />
+              </div>
+            )}
+          </div>
+
           {/* ── About You ── */}
           <div className={styles.section}>
             <h2 className={styles.sectionTitle}>About You</h2>
@@ -155,57 +208,65 @@ export function SurveyPage() {
             <h2 className={styles.sectionTitle}>Pricing</h2>
 
             <div className={styles.field}>
-              <label className={styles.label}>How much would you be willing to pay <strong>per event</strong>?</label>
-              <input
-                type="text"
-                className={styles.input}
-                value={form.pay_per_event}
-                onChange={(e) => setForm((p) => ({ ...p, pay_per_event: e.target.value }))}
-                placeholder="e.g. ₦15,000 – ₦25,000"
+              <label className={styles.label}>Would you rather pay for the service per event, monthly, quarterly or yearly?</label>
+              <DropdownMenu
+                trigger={<span>{form.preferred_billing ? billingItems.find(i => i.value === form.preferred_billing)?.label : 'Select billing preference'}</span>}
+                items={billingItems}
+                onSelect={(item) => setForm((p) => ({ ...p, preferred_billing: item.value }))}
               />
             </div>
 
-            <div className={styles.field}>
-              <label className={styles.checkLabel}>
-                <input
-                  type="checkbox"
-                  checked={form.prefers_monthly}
-                  onChange={(e) => setForm((p) => ({ ...p, prefers_monthly: e.target.checked }))}
-                />
-                I would prefer a <strong>monthly subscription</strong>
-              </label>
-              {form.prefers_monthly && (
+            {form.preferred_billing === 'per_event' && (
+              <div className={styles.field}>
+                <label className={styles.label}>How much would you be willing to pay <strong>per event</strong>?</label>
                 <input
                   type="text"
                   className={styles.input}
-                  style={{ marginTop: 8 }}
+                  value={form.pay_per_event}
+                  onChange={(e) => setForm((p) => ({ ...p, pay_per_event: e.target.value }))}
+                  placeholder="e.g. ₦15,000"
+                />
+              </div>
+            )}
+
+            {form.preferred_billing === 'monthly' && (
+              <div className={styles.field}>
+                <label className={styles.label}>How much would you be willing to pay <strong>monthly</strong>?</label>
+                <input
+                  type="text"
+                  className={styles.input}
                   value={form.monthly_amount}
                   onChange={(e) => setForm((p) => ({ ...p, monthly_amount: e.target.value }))}
-                  placeholder="How much per month? e.g. ₦10,000"
+                  placeholder="e.g. ₦10,000"
                 />
-              )}
-            </div>
+              </div>
+            )}
 
-            <div className={styles.field}>
-              <label className={styles.checkLabel}>
-                <input
-                  type="checkbox"
-                  checked={form.prefers_yearly}
-                  onChange={(e) => setForm((p) => ({ ...p, prefers_yearly: e.target.checked }))}
-                />
-                I would prefer a <strong>yearly subscription</strong>
-              </label>
-              {form.prefers_yearly && (
+            {form.preferred_billing === 'quarterly' && (
+              <div className={styles.field}>
+                <label className={styles.label}>How much would you be willing to pay <strong>quarterly</strong>?</label>
                 <input
                   type="text"
                   className={styles.input}
-                  style={{ marginTop: 8 }}
+                  value={form.quarterly_amount}
+                  onChange={(e) => setForm((p) => ({ ...p, quarterly_amount: e.target.value }))}
+                  placeholder="e.g. ₦25,000"
+                />
+              </div>
+            )}
+
+            {form.preferred_billing === 'yearly' && (
+              <div className={styles.field}>
+                <label className={styles.label}>How much would you be willing to pay <strong>yearly</strong>?</label>
+                <input
+                  type="text"
+                  className={styles.input}
                   value={form.yearly_amount}
                   onChange={(e) => setForm((p) => ({ ...p, yearly_amount: e.target.value }))}
-                  placeholder="How much per year? e.g. ₦100,000"
+                  placeholder="e.g. ₦100,000"
                 />
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* ── Features ── */}

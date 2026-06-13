@@ -745,10 +745,13 @@ export interface Database {
           respondent_name: string | null
           respondent_email: string | null
           respondent_role: string | null
+          open_to_software: boolean
+          currently_using: boolean
+          current_software_names: string | null
+          preferred_billing: string | null
           pay_per_event: string | null
-          prefers_monthly: boolean
           monthly_amount: string | null
-          prefers_yearly: boolean
+          quarterly_amount: string | null
           yearly_amount: string | null
           important_features: string[]
           wanted_features: string | null
@@ -760,10 +763,13 @@ export interface Database {
           respondent_name?: string | null
           respondent_email?: string | null
           respondent_role?: string | null
+          open_to_software?: boolean
+          currently_using?: boolean
+          current_software_names?: string | null
+          preferred_billing?: string | null
           pay_per_event?: string | null
-          prefers_monthly?: boolean
           monthly_amount?: string | null
-          prefers_yearly?: boolean
+          quarterly_amount?: string | null
           yearly_amount?: string | null
           important_features?: string[]
           wanted_features?: string | null
@@ -774,10 +780,13 @@ export interface Database {
           respondent_name?: string | null
           respondent_email?: string | null
           respondent_role?: string | null
+          open_to_software?: boolean
+          currently_using?: boolean
+          current_software_names?: string | null
+          preferred_billing?: string | null
           pay_per_event?: string | null
-          prefers_monthly?: boolean
           monthly_amount?: string | null
-          prefers_yearly?: boolean
+          quarterly_amount?: string | null
           yearly_amount?: string | null
           important_features?: string[]
           wanted_features?: string | null

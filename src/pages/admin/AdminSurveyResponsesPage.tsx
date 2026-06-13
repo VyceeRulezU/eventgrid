@@ -10,10 +10,13 @@ interface SurveyResponse {
   respondent_name: string | null
   respondent_email: string | null
   respondent_role: string | null
+  open_to_software: boolean
+  currently_using: boolean
+  current_software_names: string | null
+  preferred_billing: string | null
   pay_per_event: string | null
-  prefers_monthly: boolean
   monthly_amount: string | null
-  prefers_yearly: boolean
+  quarterly_amount: string | null
   yearly_amount: string | null
   important_features: string[]
   wanted_features: string | null
@@ -30,6 +33,13 @@ const ROLE_LABELS: Record<string, string> = {
   coordinator: 'Coordinator',
   both: 'Both',
   other: 'Other',
+}
+
+const BILLING_LABELS: Record<string, string> = {
+  per_event: 'Per Event',
+  monthly: 'Monthly',
+  quarterly: 'Quarterly',
+  yearly: 'Yearly',
 }
 
 export function AdminSurveyResponsesPage() {
@@ -66,9 +76,8 @@ export function AdminSurveyResponsesPage() {
             { key: 'date', label: 'Date' },
             { key: 'name', label: 'Name' },
             { key: 'role', label: 'Role' },
-            { key: 'per_event', label: 'Per Event' },
-            { key: 'monthly', label: 'Monthly' },
-            { key: 'yearly', label: 'Yearly' },
+            { key: 'billing', label: 'Billing' },
+            { key: 'amount', label: 'Amt' },
             { key: 'features', label: 'Features' },
             { key: 'actions', label: '' },
           ]}
@@ -95,14 +104,15 @@ export function AdminSurveyResponsesPage() {
               <td style={{ padding: 'var(--space-3) var(--space-4)', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
                 {ROLE_LABELS[r.respondent_role || ''] || r.respondent_role || '—'}
               </td>
+              <td style={{ padding: 'var(--space-3) var(--space-4)', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
+                {BILLING_LABELS[r.preferred_billing || ''] || '—'}
+              </td>
               <td style={{ padding: 'var(--space-3) var(--space-4)', fontSize: 'var(--text-sm)', fontWeight: 600 }}>
-                {r.pay_per_event || '—'}
-              </td>
-              <td style={{ padding: 'var(--space-3) var(--space-4)', fontSize: 'var(--text-sm)' }}>
-                {r.prefers_monthly ? (r.monthly_amount || 'Yes') : '—'}
-              </td>
-              <td style={{ padding: 'var(--space-3) var(--space-4)', fontSize: 'var(--text-sm)' }}>
-                {r.prefers_yearly ? (r.yearly_amount || 'Yes') : '—'}
+                {r.preferred_billing === 'per_event' ? (r.pay_per_event || '—') : ''}
+                {r.preferred_billing === 'monthly' ? (r.monthly_amount || '—') : ''}
+                {r.preferred_billing === 'quarterly' ? (r.quarterly_amount || '—') : ''}
+                {r.preferred_billing === 'yearly' ? (r.yearly_amount || '—') : ''}
+                {!r.preferred_billing ? '—' : ''}
               </td>
               <td style={{ padding: 'var(--space-3) var(--space-4)', fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>
                 {r.important_features?.length || 0} selected
@@ -157,21 +167,54 @@ export function AdminSurveyResponsesPage() {
               </div>
               <hr style={{ border: 'none', borderTop: '1px solid var(--color-border-subtle)', margin: 0 }} />
               <div>
-                <div className="input-label">Pay Per Event</div>
-                <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>{selected.pay_per_event || '—'}</div>
-              </div>
-              <div>
-                <div className="input-label">Monthly Subscription</div>
-                <div style={{ fontSize: 'var(--text-sm)' }}>
-                  {selected.prefers_monthly ? (selected.monthly_amount || 'Yes, amount not specified') : 'Not interested'}
+                <div className="input-label">Open to Event Planning Software</div>
+                <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>
+                  {selected.open_to_software ? 'Yes' : 'No'}
                 </div>
               </div>
               <div>
-                <div className="input-label">Yearly Subscription</div>
-                <div style={{ fontSize: 'var(--text-sm)' }}>
-                  {selected.prefers_yearly ? (selected.yearly_amount || 'Yes, amount not specified') : 'Not interested'}
+                <div className="input-label">Currently Using Event Planning Software</div>
+                <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>
+                  {selected.currently_using ? 'Yes' : 'No'}
                 </div>
               </div>
+              {selected.currently_using && selected.current_software_names && (
+                <div>
+                  <div className="input-label">Current Software(s)</div>
+                  <div style={{ fontSize: 'var(--text-sm)' }}>{selected.current_software_names}</div>
+                </div>
+              )}
+              <hr style={{ border: 'none', borderTop: '1px solid var(--color-border-subtle)', margin: 0 }} />
+              <div>
+                <div className="input-label">Billing Preference</div>
+                <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>
+                  {BILLING_LABELS[selected.preferred_billing || ''] || '—'}
+                </div>
+              </div>
+              {selected.preferred_billing === 'per_event' && (
+                <div>
+                  <div className="input-label">Per Event Amount</div>
+                  <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>{selected.pay_per_event || '—'}</div>
+                </div>
+              )}
+              {selected.preferred_billing === 'monthly' && (
+                <div>
+                  <div className="input-label">Monthly Amount</div>
+                  <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>{selected.monthly_amount || '—'}</div>
+                </div>
+              )}
+              {selected.preferred_billing === 'quarterly' && (
+                <div>
+                  <div className="input-label">Quarterly Amount</div>
+                  <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>{selected.quarterly_amount || '—'}</div>
+                </div>
+              )}
+              {selected.preferred_billing === 'yearly' && (
+                <div>
+                  <div className="input-label">Yearly Amount</div>
+                  <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>{selected.yearly_amount || '—'}</div>
+                </div>
+              )}
               <hr style={{ border: 'none', borderTop: '1px solid var(--color-border-subtle)', margin: 0 }} />
               <div>
                 <div className="input-label">Important Features</div>
