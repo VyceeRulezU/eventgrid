@@ -9,6 +9,7 @@ import {
 import { supabase } from '@/lib/supabase'
 import { PhaseTimelineTracker } from '@/components/shared/PhaseTimelineTracker'
 import { PhaseSegmentBar } from '@/components/shared/PhasePipeline'
+import { PageHero } from '@/components/shared/PageHero'
 import { sendInvite } from '@/lib/edgeFunctions'
 import { Table } from '@/components/ui/Table'
 import type { Event, EventPhase, Media, ClientPortal, EventVendor, Guest } from '@/types'
@@ -56,25 +57,6 @@ function ProgressRing({ pct }: { pct: number }) {
         <span className={styles.progressRingDesc}>done</span>
       </div>
     </div>
-  )
-}
-
-/* ── Header ────────────────────────────────────── */
-function PortalHeader({ eventName }: { eventName?: string }) {
-  return (
-    <header className={styles.portalHeader}>
-      <div className={styles.headerLeft}>
-        <img src="/EventGrid-logo-white.svg" alt="EventGrid" className={styles.headerLogo} />
-        <div className={styles.headerDivider} />
-        <span className={styles.headerPortalBadge}>Client Portal</span>
-        
-      </div>
-      {eventName && (
-        <div className={styles.headerRight}>
-          <span className={styles.headerEventName}>{eventName}</span>
-        </div>
-      )}
-    </header>
   )
 }
 
@@ -183,7 +165,11 @@ export function ClientPortalPage() {
   /* ── Loading ── */
   if (loading) return (
     <div className={styles.portalPage}>
-      <PortalHeader />
+      <header className={styles.portalHeader}>
+        <div className={styles.headerLeft}>
+          <img src="/EventGrid-logo-white.svg" alt="EventGrid" className={styles.headerLogoLg} />
+        </div>
+      </header>
       <div className={styles.skeletonWrap}>
         <div className={`${styles.skeleton} ${styles.skeletonHero}`} />
         {[1,2,3].map(i => <div key={i} className={`${styles.skeleton} ${styles.skeletonCard}`} />)}
@@ -194,7 +180,11 @@ export function ClientPortalPage() {
   /* ── Error ── */
   if (error) return (
     <div className={styles.portalPage}>
-      <PortalHeader />
+      <header className={styles.portalHeader}>
+        <div className={styles.headerLeft}>
+          <img src="/EventGrid-logo-white.svg" alt="EventGrid" className={styles.headerLogoLg} />
+        </div>
+      </header>
       <div className={styles.errorWrap}>
         <div className={styles.errorCard}>
           <div className={styles.errorIcon}><AlertTriangle size={28} /></div>
@@ -218,59 +208,44 @@ export function ClientPortalPage() {
   const progressPct = phases.length ? Math.round((completed / phases.length) * 100) : 0
   const eventDate = event.event_date ? new Date(event.event_date) : null
 
+  const heroSubtitle = [
+    eventDate ? eventDate.toLocaleDateString('en-NG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : '',
+    event.venue_name ? `${event.venue_name}${event.venue_address ? `, ${event.venue_address}` : ''}` : '',
+    event.guest_count ? `${event.guest_count.toLocaleString()} guests` : '',
+  ].filter(Boolean).join(' · ')
+
   return (
     <div className={styles.portalPage}>
-      <PortalHeader eventName={event.name} />
-
-      {/* ── Hero band ── */}
-      <section className={styles.portalHero}>
-        <div className={styles.heroGlow} aria-hidden="true" />
-        <div className={styles.heroInner}>
-          <div className={styles.heroLeft}>
-            {event.event_type && (
-              <div className={styles.heroEventType}>
-                <Zap size={11} />
-                {event.event_type}
-              </div>
-            )}
-            <h1 className={styles.heroEventName}>{event.name}</h1>
-            <div className={styles.heroMeta}>
-              {eventDate && (
-                <span className={styles.heroMetaChip}>
-                  <Calendar size={14} />
-                  {eventDate.toLocaleDateString('en-NG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                </span>
-              )}
-              {event.venue_name && (
-                <span className={styles.heroMetaChip}>
-                  <MapPin size={14} />
-                  {event.venue_name}{event.venue_address ? `, ${event.venue_address}` : ''}
-                </span>
-              )}
-              {event.guest_count && (
-                <span className={styles.heroMetaChip}>
-                  <Users size={14} />
-                  {event.guest_count.toLocaleString()} guests
-                </span>
-              )}
-            </div>
-          </div>
-
-          <div className={styles.heroRight}>
-            <ProgressRing pct={progressPct} />
-            <div className={styles.heroProgressText}>
-              {completed} of {phases.length} phases complete
-            </div>
-          </div>
+      <header className={styles.portalHeader}>
+        <div className={styles.headerLeft}>
+          <img src="/EventGrid-logo-white.svg" alt="EventGrid" className={styles.headerLogoLg} />
+          <div className={styles.headerDivider} />
+          <span className={styles.headerPortalBadge}>Client Portal</span>
         </div>
+      </header>
+
+      <div className={styles.portalBody}>
+        <PageHero
+          icon={LayoutGrid}
+          title={event.name}
+          subtitle={heroSubtitle}
+          breadcrumbs={[{ label: event.event_type || 'Event' }]}
+          actions={
+            <div className={styles.pageHeroActions}>
+              <ProgressRing pct={progressPct} />
+              <div className={styles.heroProgressText}>
+                {completed} of {phases.length} phases complete
+              </div>
+            </div>
+          }
+        />
 
         <div className={styles.heroProgressBar}>
           <PhaseSegmentBar phases={phases} />
         </div>
-      </section>
 
-      {/* ── Content area ── */}
-      <div className={styles.mainContent}>
+        {/* ── Content area ── */}
+        <div className={styles.mainContent}>
 
         {/* Stats strip */}
         <div className={styles.statsStrip}>
@@ -663,6 +638,7 @@ export function ClientPortalPage() {
             </Table>
           </>
         )}
+      </div>
       </div>
 
       {/* ── Invite Guest Modal ── */}
