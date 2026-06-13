@@ -4,6 +4,7 @@ import {
   LayoutDashboard, Calendar, Wallet, Users, BookOpen,
   Settings, LogOut, X, ArrowLeft, ListChecks, Radio,
   FileText, TrendingUp, Send, MessageSquare, Bell, Image,
+  ClipboardList,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { useNotificationStore } from '@/store/notification.store'
@@ -198,6 +199,16 @@ export function Sidebar() {
               >
                 <MessageSquare size={20} />
                 <span>Feedback</span>
+              </NavLink>
+              <NavLink
+                to="/admin/surveys"
+                className={({ isActive }) =>
+                  `${styles.navItem} ${isActive ? styles.active : ''}`
+                }
+                onClick={() => setSidebarOpen(false)}
+              >
+                <ClipboardList size={20} />
+                <span>Survey Responses</span>
               </NavLink>
             </div>
           )}

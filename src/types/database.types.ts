@@ -739,6 +739,51 @@ export interface Database {
           sort_order?: number
         }
       }
+      survey_responses: {
+        Row: {
+          id: string
+          respondent_name: string | null
+          respondent_email: string | null
+          respondent_role: string | null
+          pay_per_event: string | null
+          prefers_monthly: boolean
+          monthly_amount: string | null
+          prefers_yearly: boolean
+          yearly_amount: string | null
+          important_features: string[]
+          wanted_features: string | null
+          additional_feedback: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          respondent_name?: string | null
+          respondent_email?: string | null
+          respondent_role?: string | null
+          pay_per_event?: string | null
+          prefers_monthly?: boolean
+          monthly_amount?: string | null
+          prefers_yearly?: boolean
+          yearly_amount?: string | null
+          important_features?: string[]
+          wanted_features?: string | null
+          additional_feedback?: string | null
+        }
+        Update: {
+          id?: string
+          respondent_name?: string | null
+          respondent_email?: string | null
+          respondent_role?: string | null
+          pay_per_event?: string | null
+          prefers_monthly?: boolean
+          monthly_amount?: string | null
+          prefers_yearly?: boolean
+          yearly_amount?: string | null
+          important_features?: string[]
+          wanted_features?: string | null
+          additional_feedback?: string | null
+        }
+      }
     }
     Views: Record<string, never>
     Functions: {

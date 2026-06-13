@@ -56,6 +56,7 @@ import { PrivacyPage } from '@/pages/info/PrivacyPage'
 import { TermsPage } from '@/pages/info/TermsPage'
 import { CookiesPage } from '@/pages/info/CookiesPage'
 import { SecurityPage } from '@/pages/info/SecurityPage'
+import { SurveyPage } from '@/pages/info/SurveyPage'
 import { ScrollToTop } from '@/components/shared/ScrollToTop'
 
 const GuestManagementPage = lazy(() => import('@/features/guests/GuestManagementPage').then(m => ({ default: m.GuestManagementPage })))
@@ -67,6 +68,7 @@ const HelpPage = lazy(() => import('@/pages/settings/HelpPage').then(m => ({ def
 const MyTasksPage = lazy(() => import('@/pages/team/MyTasksPage').then(m => ({ default: m.MyTasksPage })))
 const FeedbackManagementPage = lazy(() => import('@/pages/admin/FeedbackManagementPage').then(m => ({ default: m.FeedbackManagementPage })))
 const SuperAdminTeamPage = lazy(() => import('@/pages/admin/SuperAdminTeamPage').then(m => ({ default: m.SuperAdminTeamPage })))
+const AdminSurveyResponsesPage = lazy(() => import('@/pages/admin/AdminSurveyResponsesPage').then(m => ({ default: m.AdminSurveyResponsesPage })))
 const AdminManagePage = lazy(() => import('@/pages/admin/AdminManagePage').then(m => ({ default: m.AdminManagePage })))
 const AnalyticsPage = lazy(() => import('@/pages/admin/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })))
 const AdminMyTasksPage = lazy(() => import('@/pages/admin/AdminMyTasksPage').then(m => ({ default: m.AdminMyTasksPage })))
@@ -460,6 +462,7 @@ export function App() {
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/cookies" element={<CookiesPage />} />
           <Route path="/security" element={<SecurityPage />} />
+          <Route path="/survey" element={<SurveyPage />} />
         <Route path="/portal/:token" element={
           <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
             <ClientPortalPage />
@@ -557,6 +560,11 @@ export function App() {
           <Route path="/admin/feedback" element={
             <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
               <RoleGuard allowedRole="super_admin"><FeedbackManagementPage /></RoleGuard>
+            </Suspense>
+          } />
+          <Route path="/admin/surveys" element={
+            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
+              <RoleGuard allowedRole="super_admin"><AdminSurveyResponsesPage /></RoleGuard>
             </Suspense>
           } />
           <Route path="/admin/team" element={
