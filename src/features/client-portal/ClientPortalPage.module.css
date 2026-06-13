@@ -32,7 +32,7 @@
 }
 .headerLogo,
 .headerLogoLg {
-  height: 64px;
+  height: 54px;
   width: auto;
 }
 .headerDivider {
@@ -467,7 +467,9 @@
 
 @media (max-width: 640px) {
   .portalBody { padding: 0.5rem; gap: var(--space-3); }
-  .portalHeader { padding: var(--space-3) var(--space-4); }
+  .portalHeader { padding: var(--space-2) var(--space-3); }
+  .headerLogo,
+  .headerLogoLg { height: 40px; }
   .statsStrip { grid-template-columns: repeat(3, 1fr); gap: var(--space-2); }
   .tabBar { gap: 0; overflow-x: auto; }
   .tabBtn { padding: var(--space-2) var(--space-3); font-size: var(--text-xs); }
