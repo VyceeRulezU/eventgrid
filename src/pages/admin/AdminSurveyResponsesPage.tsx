@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useAuthStore } from '@/store/auth.store'
-import { ClipboardList, Eye, X, ExternalLink } from 'lucide-react'
+import { ClipboardList, Eye, X } from 'lucide-react'
 import { AdminPageHero } from '@/components/shared/AdminPageHero'
 import { Table } from '@/components/ui/Table'
 import { supabase } from '@/lib/supabase'
