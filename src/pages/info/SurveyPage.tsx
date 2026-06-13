@@ -86,10 +86,11 @@ export function SurveyPage() {
     })
     setSending(false)
     if (error) {
-      alert('Something went wrong. Please try again.')
+      alert(`Something went wrong: ${error.message}`)
       return
     }
     setSubmitted(true)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   if (submitted) {
@@ -97,6 +98,11 @@ export function SurveyPage() {
       <div className={styles.pageWrapper}>
         <SEO title="Thank You — EventGrid Survey" />
         <Navbar />
+        <LandingPageHero
+          eyebrow="Survey"
+          title="Thank You!"
+          subtitle="Your response has been recorded. We appreciate your time and feedback — it helps us build a better platform for event professionals."
+        />
         <div className={styles.thankYou}>
           <div className={styles.thankYouCard}>
             <div className={styles.thankYouIcon}><Sparkles size={32} /></div>

@@ -1,6 +1,5 @@
-ALTER TABLE public.survey_responses
-  ADD COLUMN open_to_software BOOLEAN DEFAULT false,
-  ADD COLUMN currently_using BOOLEAN DEFAULT false,
-  ADD COLUMN current_software_names TEXT,
-  ADD COLUMN preferred_billing TEXT,
-  ADD COLUMN quarterly_amount TEXT;
+ALTER TABLE public.survey_responses ADD COLUMN IF NOT EXISTS open_to_software BOOLEAN DEFAULT false;
+ALTER TABLE public.survey_responses ADD COLUMN IF NOT EXISTS currently_using BOOLEAN DEFAULT false;
+ALTER TABLE public.survey_responses ADD COLUMN IF NOT EXISTS current_software_names TEXT;
+ALTER TABLE public.survey_responses ADD COLUMN IF NOT EXISTS preferred_billing TEXT;
+ALTER TABLE public.survey_responses ADD COLUMN IF NOT EXISTS quarterly_amount TEXT;
