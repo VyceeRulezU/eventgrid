@@ -14,6 +14,7 @@ import {
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
 } from 'recharts'
 import Papa from 'papaparse'
+import styles from './SuperAdminDashboard.module.css'
 
 function formatCurrency(kobo: number): string {
   return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 2 }).format(kobo / 100)
@@ -487,7 +488,7 @@ export function SuperAdminDashboard() {
         }
       />
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
+      <div className={styles.kpiGrid} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
         <KpiCard icon={Users} label="Total Planners" value={totalPlanners} color="var(--color-accent)" />
         <KpiCard icon={Users} label="Total Coordinators" value={totalCoordinators} color="var(--color-info)" />
         <KpiCard icon={Calendar} label="Total Events" value={totalEvents} color="var(--color-info)" />
@@ -496,7 +497,7 @@ export function SuperAdminDashboard() {
         <KpiCard icon={TrendingUp} label="Revenue (YTD)" value={toNaira(revenueYtd)} color="var(--color-accent)" />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
+      <div className={styles.chartGrid} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
         <div className="card" style={{ padding: 'var(--space-4) var(--space-5)' }}>
           <h3 style={{ margin: '0 0 var(--space-3) 0', fontSize: 'var(--text-base)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
             <TrendingUp size={16} style={{ color: 'var(--color-accent)' }} />
@@ -596,7 +597,7 @@ export function SuperAdminDashboard() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
+      <div className={styles.tableGrid} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-3) var(--space-5)', borderBottom: '1px solid var(--color-border-subtle)' }}>
             <h3 style={{ margin: 0, fontSize: 'var(--text-sm)', fontWeight: 700 }}>Top 10 Planners</h3>
@@ -773,7 +774,7 @@ export function SuperAdminDashboard() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--space-3)', marginBottom: 'var(--space-6)' }}>
+      <div className={styles.infraGrid} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--space-3)', marginBottom: 'var(--space-6)' }}>
         {[
           { label: 'Total DB Rows', value: infra.totalDbRows.toLocaleString(), icon: Database, color: 'var(--color-accent)', max: 50000 },
           { label: 'Storage Used', value: infra.storageUsed > 1073741824 ? `${(infra.storageUsed / 1073741824).toFixed(2)} GB` : `${(infra.storageUsed / 1048576).toFixed(1)} MB`, icon: HardDrive, color: 'var(--color-info)', max: 1073741824 },

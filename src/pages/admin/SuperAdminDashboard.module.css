@@ -153,3 +153,20 @@
   font-weight: var(--weight-semibold);
   color: var(--color-accent);
 }
+
+/* ── Mobile Responsive (375px) ── */
+@media (max-width: 375px) {
+  .kpiGrid {
+    grid-template-columns: 1fr !important;
+    gap: var(--space-3) !important;
+  }
+  .chartGrid {
+    grid-template-columns: 1fr !important;
+  }
+  .tableGrid {
+    grid-template-columns: 1fr !important;
+  }
+  .infraGrid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}

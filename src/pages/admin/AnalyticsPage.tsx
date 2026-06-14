@@ -4,6 +4,7 @@ import { useAuthStore } from '@/store/auth.store'
 import { TrendingUp, Users, Calendar, ArrowUp, ArrowDown } from 'lucide-react'
 import { AdminPageHero } from '@/components/shared/AdminPageHero'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+import styles from './AnalyticsPage.module.css'
 
 const BAR_COLORS = {
   accent: '#D4A017',
@@ -141,7 +142,7 @@ export function AnalyticsPage() {
         backTo="/admin"
       />
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-3)', marginBottom: 'var(--space-6)' }}>
+      <div className={styles.metricsGrid}>
         {metrics.map((m) => (
           <div key={m.label} className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-4) var(--space-5)', gap: 'var(--space-3)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', minWidth: 0, flex: 1 }}>
@@ -170,7 +171,7 @@ export function AnalyticsPage() {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
+      <div className={styles.chartGrid}>
         <div className="card" style={{ padding: 'var(--space-4) var(--space-5)' }}>
           <h3 style={{ margin: '0 0 var(--space-3) 0', fontSize: 'var(--text-base)', fontWeight: 700 }}>
             <Users size={14} style={{ marginRight: 'var(--space-1)', verticalAlign: 'middle', color: 'var(--color-accent)' }} />
