@@ -5,7 +5,7 @@ import { useLiveFeedStore } from '@/store/liveFeed.store'
 import { useUIStore } from '@/store/ui.store'
 import { compressImage } from '@/lib/compressImage'
 import { uploadFile } from '@/lib/storage'
-import { Send, Paperclip, X, MapPin, User } from 'lucide-react'
+import { Send, Paperclip, FileText, X, MapPin, User } from 'lucide-react'
 import type { LiveFeedPost } from '@/types'
 import styles from './LiveBoardPage.module.css'
 
@@ -55,7 +55,8 @@ export function PostForm({ eventId }: PostFormProps) {
       for (const f of files) {
         const ext = f.name.split('.').pop()
         const path = `live-feed/${eventId}/${user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
-        const blob = await compressImage(f)
+        const isPdf = f.type === 'application/pdf' || ext?.toLowerCase() === 'pdf'
+        const blob = isPdf ? f : await compressImage(f)
         try {
           const { url: publicUrl } = await uploadFile('event-media', blob, path)
           urls.push(publicUrl)
@@ -66,7 +67,7 @@ export function PostForm({ eventId }: PostFormProps) {
             storage_path: path,
           })
         } catch {
-          showNotification({ variant: 'error', title: 'Upload failed', message: 'Could not upload photo' })
+          showNotification({ variant: 'error', title: 'Upload failed', message: 'Could not upload file' })
           continue
         }
       }
@@ -128,7 +129,13 @@ export function PostForm({ eventId }: PostFormProps) {
           <div className={styles.postFormPreviews}>
             {previews.map((p, i) => (
               <div key={i} className={styles.postFormPreviewItem}>
-                <img src={p} alt="" className={styles.postFormPreviewImg} />
+                {files[i]?.type === 'application/pdf' || files[i]?.name?.toLowerCase().endsWith('.pdf') ? (
+                  <div className={styles.postFormPdfPreview}>
+                    <FileText size={20} />
+                  </div>
+                ) : (
+                  <img src={p} alt="" className={styles.postFormPreviewImg} />
+                )}
                 <button className={styles.postFormPreviewRemove} onClick={() => removeFile(i)}>
                   <X size={12} />
                 </button>
@@ -149,7 +156,7 @@ export function PostForm({ eventId }: PostFormProps) {
           <div className={styles.postFormLeft}>
           <label className={styles.postFormAttachBtn}>
             <Paperclip size={16} />
-            <input type="file" accept="image/*" multiple ref={fileRef} style={{ display: 'none' }} onChange={handleFileSelect} />
+            <input type="file" accept="image/*,.pdf" multiple ref={fileRef} style={{ display: 'none' }} onChange={handleFileSelect} />
           </label>
           <div className={styles.postFormLocation}>
             <MapPin size={14} />
