@@ -216,7 +216,9 @@ Run the SQL in Supabase SQL editor before using the app.
 
 ## License
 
-MIT — see [LICENSE.md](LICENSE.md)
+Proprietary — All rights reserved. See [LICENSE.md](LICENSE.md).
+
+© 2024-2026 NaliTech Consults Limited.
 
 ---
 
