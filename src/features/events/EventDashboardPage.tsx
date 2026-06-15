@@ -400,7 +400,7 @@ export function EventDashboardPage() {
       clearTimeout(timeoutId)
       if (!paySucceededRef.current) setPayStatus('failed')
     }
-  }, [user, id, activeEvent, setActiveEvent, showNotification])
+  }, [user, id, activeEvent, setActiveEvent, showNotification, promoResult])
 
   const handleActivateFree = useCallback(async () => {
     if (!activeEvent || !user) return
