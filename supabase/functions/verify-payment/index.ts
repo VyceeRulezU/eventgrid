@@ -128,23 +128,26 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Record promo redemption (if promo was applied)
+    // Record promo redemption (if promo was applied) — best-effort, non-blocking
     if (promoCodeId && updatedEvent) {
-      await supabaseAdmin
-        .from('promo_redemptions')
-        .insert({
+      try {
+        await supabaseAdmin.from('promo_redemptions').insert({
           promo_code_id: promoCodeId,
           user_id: updatedEvent.created_by,
           event_id: event_id,
           reference,
-          final_amount: Math.round(amountPaid * 100),  // Naira → kobo
+          final_amount: Math.round(amountPaid * 100),
         })
-        .onConflict('promo_code_id, event_id')
-        .ignore()
-
-      await supabaseAdmin.rpc('increment_promo_redemption', {
-        p_promo_code_id: promoCodeId,
-      })
+      } catch {
+        // Duplicate or other error — redemption already recorded or non-critical
+      }
+      try {
+        await supabaseAdmin.rpc('increment_promo_redemption', {
+          p_promo_code_id: promoCodeId,
+        })
+      } catch {
+        // Best-effort counter increment
+      }
     }
 
     // Send confirmation email

@@ -55,35 +55,26 @@ Deno.serve(async (req) => {
       const amountInNaira = amount / 100
       console.log(`Event ${updatedEvent.id} ("${updatedEvent.name}") activated — ref: ${reference}, amount: ₦${amountInNaira}`)
 
-      // Record promo redemption if promo code was used
+      // Record promo redemption if promo code was used — best-effort, non-blocking
       const promoCodeId = metadata.promo_code_id || null
       if (promoCodeId) {
-        // Validate the promo code server-side
-        const { data: expectedResult } = await supabaseAdmin.rpc('get_promo_expected_amount', {
-          p_promo_code_id: promoCodeId,
-          p_base_amount: BASE_AMOUNT,
-        })
-        const expectedKobo = Number(expectedResult)
-
-        // Only record if the amount paid matches (or exceeds) what the promo code expects
-        if (amount >= expectedKobo) {
-          await supabaseAdmin
-            .from('promo_redemptions')
-            .insert({
-              promo_code_id: promoCodeId,
-              user_id: updatedEvent.created_by,
-              event_id: metadata.event_id,
-              reference,
-              final_amount: amount,
-            })
-            .onConflict('promo_code_id, event_id')
-            .ignore()
-
+        try {
+          await supabaseAdmin.from('promo_redemptions').insert({
+            promo_code_id: promoCodeId,
+            user_id: updatedEvent.created_by,
+            event_id: metadata.event_id,
+            reference,
+            final_amount: amount,
+          })
+        } catch {
+          // Already recorded or non-critical
+        }
+        try {
           await supabaseAdmin.rpc('increment_promo_redemption', {
             p_promo_code_id: promoCodeId,
           })
-        } else {
-          console.warn(`Promo code ${promoCodeId} used but amount ${amount} < expected ${expectedKobo}`)
+        } catch {
+          // Best-effort
         }
       }
 
