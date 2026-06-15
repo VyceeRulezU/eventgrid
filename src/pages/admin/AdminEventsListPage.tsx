@@ -21,8 +21,6 @@ const STATUS_BADGE: Record<string, string> = {
   cancelled: 'red',
 }
 
-const ADMIN_ROLES = ['super_admin', 'monitor', 'admin_support']
-
 function formatDate(date: string | null): string {
   if (!date) return '—'
   return new Date(date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
