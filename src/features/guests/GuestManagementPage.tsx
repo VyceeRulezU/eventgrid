@@ -44,6 +44,8 @@ export function GuestManagementPage() {
   const [editGuest, setEditGuest] = useState<Partial<Guest> | null>(null)
   const [saving, setSaving] = useState(false)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+  const [addConsent, setAddConsent] = useState(false)
+  const [csvConsent, setCsvConsent] = useState(false)
   const [showDetail, setShowDetail] = useState(false)
 
   useEffect(() => {
@@ -96,6 +98,7 @@ export function GuestManagementPage() {
     showToast({ type: 'success', title: 'Guest added' })
     setShowAdd(false)
     setNewGuest({ first_name: '', last_name: '', phone: '', email: '', group_name: '', is_vip: false, plus_one: false })
+    setAddConsent(false)
     const { data } = await supabase.from('guests').select('*').eq('event_id', eventId).order('created_at')
     setGuests((data || []) as unknown as Guest[])
   }
@@ -156,6 +159,7 @@ export function GuestManagementPage() {
     showToast({ type: 'success', title: `${rows.length} guests imported` })
     setShowCSV(false)
     setCsvPreview([])
+    setCsvConsent(false)
     const { data } = await supabase.from('guests').select('*').eq('event_id', eventId).order('created_at')
     setGuests((data || []) as unknown as Guest[])
   }
@@ -270,8 +274,8 @@ export function GuestManagementPage() {
             onSelect={(item) => setRsvpFilter(item.value as RSVP | 'all')}
           />
         </div>
-        <button className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => setShowAdd(true)}><Plus size={14} /> Add</button>
-        <button className="btn btn-secondary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => setShowCSV(true)}><Upload size={14} /> CSV</button>
+        <button className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => { setShowAdd(true); setAddConsent(false) }}><Plus size={14} /> Add</button>
+        <button className="btn btn-secondary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => { setShowCSV(true); setCsvConsent(false) }}><Upload size={14} /> CSV</button>
       </div>
 
       <RSVPSummary />
@@ -553,7 +557,11 @@ export function GuestManagementPage() {
                   <Checkbox checked={newGuest.plus_one} onChange={(e) => setNewGuest({ ...newGuest, plus_one: e.target.checked })} /> Plus One
                 </label>
               </div>
-              <button className={`btn btn-primary ${styles.fullBtn}`} onClick={handleAddGuest}>Add Guest</button>
+              <label className={styles.checkboxLabel} style={{ marginBottom: 'var(--space-3)', fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>
+                <Checkbox checked={addConsent} onChange={(e) => setAddConsent(e.target.checked)} />
+                I confirm that I have obtained consent from this guest to store their data on EventGrid
+              </label>
+              <button className={`btn btn-primary ${styles.fullBtn}`} onClick={handleAddGuest} disabled={!addConsent}>Add Guest</button>
             </div>
           </div>
         </div>
@@ -574,7 +582,11 @@ export function GuestManagementPage() {
                   </div>
                 </div>
               )}
-              <button className={`btn btn-primary ${styles.fullBtn}`} onClick={handleCSVImport} disabled={csvPreview.length === 0}>Import {csvPreview.length} Guests</button>
+              <label className={styles.checkboxLabel} style={{ marginBottom: 'var(--space-3)', fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>
+                <Checkbox checked={csvConsent} onChange={(e) => setCsvConsent(e.target.checked)} />
+                I confirm that I have obtained consent from each guest to store their data on EventGrid
+              </label>
+              <button className={`btn btn-primary ${styles.fullBtn}`} onClick={handleCSVImport} disabled={csvPreview.length === 0 || !csvConsent}>Import {csvPreview.length} Guests</button>
             </div>
           </div>
         </div>

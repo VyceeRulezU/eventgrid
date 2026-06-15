@@ -77,6 +77,7 @@ export function PushNotificationSetup() {
       </div>
       <button
         className={`btn btn-sm ${enabled ? 'btn-secondary' : 'btn-accent'}`}
+        style={{ color: '#fff' }}
         onClick={handleToggle}
         disabled={loading}
       >

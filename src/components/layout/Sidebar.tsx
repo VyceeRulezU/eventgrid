@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { NavLink, useNavigate, Link, useParams } from 'react-router-dom'
 import {
   LayoutDashboard, Calendar, Wallet, Users, BookOpen,
@@ -11,7 +10,6 @@ import { useNotificationStore } from '@/store/notification.store'
 import { useUIStore } from '@/store/ui.store'
 import { useEventStore } from '@/store/event.store'
 import { supabase } from '@/lib/supabase'
-import { FeedbackFormModal } from '@/features/feedback/FeedbackFormModal'
 import styles from './Sidebar.module.css'
 
 type NavItem = {
@@ -34,7 +32,6 @@ export function Sidebar() {
   const navigate = useNavigate()
   const { id: eventId } = useParams<{ id: string }>()
 
-  const [showFeedbackForm, setShowFeedbackForm] = useState(false)
   const isAdmin = role === 'super_admin'
   const isAdminRole = role && ['super_admin', 'monitor', 'admin_support'].includes(role)
 
@@ -279,10 +276,16 @@ export function Sidebar() {
             )}
           </NavLink>
           {role !== 'super_admin' && (
-            <button className={styles.navItem} onClick={() => { setSidebarOpen(false); setShowFeedbackForm(true) }}>
+            <NavLink
+              to="/settings"
+              className={({ isActive }) =>
+                `${styles.navItem} ${isActive ? styles.active : ''}`
+              }
+              onClick={() => setSidebarOpen(false)}
+            >
               <Send size={20} />
               <span>Send Feedback</span>
-            </button>
+            </NavLink>
           )}
           <NavLink
             to="/settings"
@@ -301,7 +304,5 @@ export function Sidebar() {
         </div>
       </aside>
 
-      <FeedbackFormModal open={showFeedbackForm} onClose={() => setShowFeedbackForm(false)} />
-    </>
-  )
-}
+    </>)
+  }

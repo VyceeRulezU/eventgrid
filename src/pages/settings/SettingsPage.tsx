@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Camera, Upload, ArrowLeft, ExternalLink, LogOut, Building2, LifeBuoy, Book, Bell } from 'lucide-react'
+import { Camera, Upload, ArrowLeft, ExternalLink, LogOut, Building2, LifeBuoy, Book, Bell, Send } from 'lucide-react'
 import { uploadFile } from '@/lib/storage'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
@@ -9,6 +9,7 @@ import { compressImage } from '@/lib/image'
 import { clearTourForRole } from '@/components/shared/AppTour'
 import { SEO } from '@/components/shared/SEO'
 import { PushNotificationSetup } from '@/components/shared/PushNotificationSetup'
+import { FeedbackFormModal } from '@/features/feedback/FeedbackFormModal'
 import type { Profile } from '@/types'
 import styles from './SettingsPage.module.css'
 
@@ -30,6 +31,7 @@ export function SettingsPage() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(profile?.avatar_url || null)
   const [saving, setSaving] = useState(false)
   const [testingEmail, setTestingEmail] = useState(false)
+  const [showFeedback, setShowFeedback] = useState(false)
 
   const handleTestEmail = async () => {
     if (!user) return
@@ -422,6 +424,20 @@ export function SettingsPage() {
           <PushNotificationSetup />
         </div>
 
+        <div className="card">
+          <h3 className={`${styles.cardTitle} ${styles.cardTitleRow}`}>
+            <Send size={18} style={{ color: 'var(--color-accent)' }} />
+            Feedback
+          </h3>
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-3)', lineHeight: 1.55 }}>
+            Have a complaint, suggestion, or idea? Share it with the EventGrid team directly.
+          </p>
+          <button type="button" className="btn btn-primary" onClick={() => setShowFeedback(true)}>
+            <Send size={16} />
+            Send Feedback
+          </button>
+        </div>
+
         {/* Help & Onboarding */}
         <div className="card">
           <h3 className={`${styles.cardTitle} ${styles.cardTitleRow}`}>
@@ -466,6 +482,8 @@ export function SettingsPage() {
           <div className={styles.version}>EventGrid v0.1.0</div>
         </div>
       </div>
+
+      <FeedbackFormModal open={showFeedback} onClose={() => setShowFeedback(false)} />
     </div>
   )
 }

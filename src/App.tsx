@@ -58,6 +58,7 @@ import { CookiesPage } from '@/pages/info/CookiesPage'
 import { SecurityPage } from '@/pages/info/SecurityPage'
 import { SurveyPage } from '@/pages/info/SurveyPage'
 import { ScrollToTop } from '@/components/shared/ScrollToTop'
+import { CookieNotice } from '@/components/CookieNotice'
 
 const GuestManagementPage = lazy(() => import('@/features/guests/GuestManagementPage').then(m => ({ default: m.GuestManagementPage })))
 const FinancialsPage = lazy(() => import('@/features/financials/FinancialsPage').then(m => ({ default: m.FinancialsPage })))
@@ -607,6 +608,7 @@ export function App() {
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
         <NotificationsDrawer />
+        <CookieNotice />
       </BrowserRouter>
       </Sentry.ErrorBoundary>
       <PremiumModalContainer />
