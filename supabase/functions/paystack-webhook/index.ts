@@ -76,7 +76,8 @@ Deno.serve(async (req) => {
               reference,
               final_amount: amount,
             })
-            .ignoreConflicts()
+            .onConflict('promo_code_id, event_id')
+            .ignore()
 
           await supabaseAdmin.rpc('increment_promo_redemption', {
             p_promo_code_id: promoCodeId,
