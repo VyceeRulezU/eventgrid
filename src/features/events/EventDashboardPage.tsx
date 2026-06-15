@@ -122,6 +122,10 @@ export function EventDashboardPage() {
   const [payStatus, setPayStatus] = useState<'idle' | 'processing' | 'success' | 'cancelled' | 'failed'>('idle')
   const [showEditModal, setShowEditModal] = useState(false)
   const [autoCloseIn, setAutoCloseIn] = useState<number | null>(null)
+  const [promoCode, setPromoCode] = useState('')
+  const [promoResult, setPromoResult] = useState<{ valid: boolean; promo_code_id?: string; final_amount?: number; message: string } | null>(null)
+  const [showPromoInput, setShowPromoInput] = useState(false)
+  const [applyingPromo, setApplyingPromo] = useState(false)
   const [togglingPhase, setTogglingPhase] = useState<string | null>(null)
   const [taskCounts, setTaskCounts] = useState<Record<string, { total: number; done: number }>>({})
   const [deadlinePage, setDeadlinePage] = useState(1)
@@ -344,11 +348,13 @@ export function EventDashboardPage() {
     }, PAYMENT_TIMEOUT)
 
     try {
+      const finalAmount = promoResult?.valid && promoResult.final_amount ? promoResult.final_amount : getEventPrice('standard')
+      const promoMeta = promoResult?.valid && promoResult.promo_code_id ? { promo_code_id: promoResult.promo_code_id } : {}
       await processPayment({
         provider,
         email: user.email || '',
-        amount: getEventPrice('standard'),
-        metadata: { event_id: activeEvent.id },
+        amount: finalAmount,
+        metadata: { event_id: activeEvent.id, ...promoMeta },
 
         onSuccess: async (reference: string) => {
           clearTimeout(timeoutId)
@@ -423,8 +429,27 @@ export function EventDashboardPage() {
     setPayStatus('success')
   }, [activeEvent, user, profile, showNotification, setActiveEvent])
 
+  const applyPromoCode = async () => {
+    if (!promoCode.trim()) return
+    setApplyingPromo(true)
+    const { data, error } = await supabase.rpc('validate_promo_code', {
+      p_code: promoCode,
+      p_context: 'event_activation',
+      p_base_amount: getEventPrice('standard'),
+    })
+    setApplyingPromo(false)
+    if (error || !data?.valid) {
+      setPromoResult({ valid: false, message: (data as any)?.message || error?.message || 'Invalid promo code' })
+      return
+    }
+    setPromoResult(data as any)
+  }
+
   const openPayment = () => {
     setPayStatus('idle')
+    setPromoCode('')
+    setPromoResult(null)
+    setShowPromoInput(false)
     setShowPaymentModal(true)
     import('@/lib/paystack').then(({ loadPaystackScript }) => loadPaystackScript().catch(() => {}))
     import('@/lib/flutterwave').then(({ loadFlutterwaveScript }) => loadFlutterwaveScript().catch(() => {}))
@@ -435,6 +460,9 @@ export function EventDashboardPage() {
     setShowPaymentModal(false)
     setPayStatus('idle')
     setAutoCloseIn(null)
+    setPromoCode('')
+    setPromoResult(null)
+    setShowPromoInput(false)
   }
 
   /* ── derived ── */
@@ -1312,8 +1340,15 @@ export function EventDashboardPage() {
                   <div className={styles.payEventName}>Activate · {activeEvent.name}</div>
                   <div className={styles.payAmount}>
                     <span className={styles.payCurrency}>₦</span>
-                    20,000
+                    {promoResult?.valid && promoResult.final_amount !== undefined
+                      ? (promoResult.final_amount / 100).toLocaleString()
+                      : '20,000'}
                   </div>
+                  {promoResult?.valid && (
+                    <div style={{ textAlign: 'center', fontSize: 'var(--text-xs)', color: 'var(--color-success)', marginBottom: 'var(--space-2)' }}>
+                      {promoResult.message}
+                    </div>
+                  )}
 
                   {payStatus === 'cancelled' && (
                     <div className="card" style={{ marginBottom: 'var(--space-4)', padding: 'var(--space-3)', background: 'var(--color-warning-bg)', border: '1px solid rgba(234,179,8,0.3)', fontSize: 'var(--text-sm)', color: 'var(--color-warning)', borderRadius: 'var(--radius-lg)' }}>
@@ -1325,6 +1360,42 @@ export function EventDashboardPage() {
                       Payment provider unavailable. Check your internet connection and try again.
                     </div>
                   )}
+
+                  <div style={{ marginBottom: 'var(--space-4)' }}>
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-sm"
+                      style={{ fontSize: 'var(--text-xs)', width: '100%' }}
+                      onClick={() => setShowPromoInput(!showPromoInput)}
+                    >
+                      {showPromoInput ? '– Hide' : '+ Have a promo code?'}
+                    </button>
+
+                    {showPromoInput && (
+                      <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-2)' }}>
+                        <input
+                          className="input"
+                          style={{ flex: 1 }}
+                          placeholder="Enter code"
+                          value={promoCode}
+                          onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoResult(null) }}
+                        />
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={applyPromoCode}
+                          disabled={applyingPromo || !promoCode}
+                        >
+                          {applyingPromo ? '...' : 'Apply'}
+                        </button>
+                      </div>
+                    )}
+
+                    {promoResult && !promoResult.valid && (
+                      <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-error)', marginTop: 'var(--space-1)' }}>
+                        {promoResult.message}
+                      </p>
+                    )}
+                  </div>
 
                   <div className={styles.payButtons}>
                     <button className="btn btn-primary btn-lg" onClick={() => handlePayNow('paystack')}>

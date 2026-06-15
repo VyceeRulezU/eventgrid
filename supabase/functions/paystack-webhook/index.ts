@@ -6,6 +6,8 @@ const supabaseAdmin = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 )
 
+const BASE_AMOUNT = Number(Deno.env.get('BASE_ACTIVATION_AMOUNT')) || 2000000  // 2,000,000 kobo = ₦20,000
+
 Deno.serve(async (req) => {
   const body = await req.text()
 
@@ -30,7 +32,7 @@ Deno.serve(async (req) => {
       return new Response('Missing event_id', { status: 400 })
     }
 
-    // Update event if not already paid, and return metadata
+    // Update event if not already paid
     const { data: updatedEvent, error } = await supabaseAdmin
       .from('events')
       .update({
@@ -50,9 +52,41 @@ Deno.serve(async (req) => {
     }
 
     if (updatedEvent) {
-      console.log(`Event ${updatedEvent.id} ("${updatedEvent.name}") activated — ref: ${reference}, amount: ₦${amount / 100}`)
+      const amountInNaira = amount / 100
+      console.log(`Event ${updatedEvent.id} ("${updatedEvent.name}") activated — ref: ${reference}, amount: ₦${amountInNaira}`)
 
-      // Retrieve the planner/creator's profile
+      // Record promo redemption if promo code was used
+      const promoCodeId = metadata.promo_code_id || null
+      if (promoCodeId) {
+        // Validate the promo code server-side
+        const { data: expectedResult } = await supabaseAdmin.rpc('get_promo_expected_amount', {
+          p_promo_code_id: promoCodeId,
+          p_base_amount: BASE_AMOUNT,
+        })
+        const expectedKobo = Number(expectedResult)
+
+        // Only record if the amount paid matches (or exceeds) what the promo code expects
+        if (amount >= expectedKobo) {
+          await supabaseAdmin
+            .from('promo_redemptions')
+            .insert({
+              promo_code_id: promoCodeId,
+              user_id: updatedEvent.created_by,
+              event_id: metadata.event_id,
+              reference,
+              final_amount: amount,
+            })
+            .ignoreConflicts()
+
+          await supabaseAdmin.rpc('increment_promo_redemption', {
+            p_promo_code_id: promoCodeId,
+          })
+        } else {
+          console.warn(`Promo code ${promoCodeId} used but amount ${amount} < expected ${expectedKobo}`)
+        }
+      }
+
+      // Retrieve the planner/creator's profile for email notification
       const { data: profileData } = await supabaseAdmin
         .from('profiles')
         .select('email, display_name')
@@ -75,7 +109,7 @@ Deno.serve(async (req) => {
               email: profileData.email,
               first_name: profileData.display_name || 'there',
               meta: {
-                amount: `₦${(amount / 100).toLocaleString()}`,
+                amount: `₦${amountInNaira.toLocaleString()}`,
                 event_name: updatedEvent.name,
                 payment_method: 'Paystack'
               }

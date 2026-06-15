@@ -5,8 +5,10 @@ const supabaseAdmin = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 )
 
+const MIN_AMOUNT = Number(Deno.env.get('MINIMUM_ACTIVATION_AMOUNT')) || 20000
+const BASE_AMOUNT = Number(Deno.env.get('BASE_ACTIVATION_AMOUNT')) || 2000000  // 2,000,000 kobo = ₦20,000
+
 Deno.serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', {
       headers: {
@@ -28,7 +30,8 @@ Deno.serve(async (req) => {
     }
 
     let isSuccess = false
-    let amountPaid = 0 // in Naira
+    let amountPaid = 0  // in Naira
+    let promoCodeId: string | null = null
 
     if (provider === 'paystack') {
       const secretKey = Deno.env.get('PAYSTACK_SECRET_KEY')
@@ -47,7 +50,8 @@ Deno.serve(async (req) => {
         const payload = await res.json()
         if (payload.data && payload.data.status === 'success') {
           isSuccess = true
-          amountPaid = payload.data.amount / 100 // convert kobo to Naira
+          amountPaid = payload.data.amount / 100
+          promoCodeId = payload.data.metadata?.promo_code_id || null
         }
       }
     } else if (provider === 'flutterwave') {
@@ -68,6 +72,7 @@ Deno.serve(async (req) => {
         if (payload.data && (payload.data.status === 'successful' || payload.data.status === 'completed')) {
           isSuccess = true
           amountPaid = payload.data.amount
+          promoCodeId = payload.data.meta?.promo_code_id || null
         }
       }
     }
@@ -79,15 +84,28 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Verify amount is correct (₦20,000 standard price)
-    if (amountPaid < 20000) {
+    // --- Server-side amount validation ---
+    // If a promo code was used, calculate expected amount from the database
+    // (never trust the frontend — verified via Paystack API metadata)
+    let expectedAmount: number
+    if (promoCodeId) {
+      const { data: expectedResult } = await supabaseAdmin.rpc('get_promo_expected_amount', {
+        p_promo_code_id: promoCodeId,
+        p_base_amount: BASE_AMOUNT,
+      })
+      expectedAmount = Number(expectedResult) / 100  // kobo → Naira
+    } else {
+      expectedAmount = MIN_AMOUNT
+    }
+
+    if (amountPaid < expectedAmount) {
       return new Response(JSON.stringify({ error: 'Incorrect payment amount' }), {
         status: 422,
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       })
     }
 
-    // Update the database record using the service role admin client (bypasses RLS trigger check)
+    // Update the event to active
     const { data: updatedEvent, error: updateErr } = await supabaseAdmin
       .from('events')
       .update({
@@ -110,7 +128,25 @@ Deno.serve(async (req) => {
       })
     }
 
-    // If successfully activated, send confirmation email
+    // Record promo redemption (if promo was applied)
+    if (promoCodeId && updatedEvent) {
+      await supabaseAdmin
+        .from('promo_redemptions')
+        .insert({
+          promo_code_id: promoCodeId,
+          user_id: updatedEvent.created_by,
+          event_id: event_id,
+          reference,
+          final_amount: Math.round(amountPaid * 100),  // Naira → kobo
+        })
+        .ignoreConflicts()  // idempotent
+
+      await supabaseAdmin.rpc('increment_promo_redemption', {
+        p_promo_code_id: promoCodeId,
+      })
+    }
+
+    // Send confirmation email
     if (updatedEvent) {
       const { data: profile } = await supabaseAdmin
         .from('profiles')
