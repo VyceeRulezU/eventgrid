@@ -422,18 +422,17 @@ export function App() {
 
   if (!isSupabaseConfigured) {
     return (
-      <>
+      <Sentry.ErrorBoundary fallback={({ error }) => <ErrorFallback error={error} />}>
         <SetupNotice />
         <PremiumModalContainer />
-      </>
+      </Sentry.ErrorBoundary>
     )
   }
 
   return (
-    <>
+    <Sentry.ErrorBoundary fallback={({ error }) => <ErrorFallback error={error} />}>
       <Analytics />
       <SpeedInsights />
-      <Sentry.ErrorBoundary fallback={({ error }) => <ErrorFallback error={error} />}>
       <BrowserRouter>
         <ScrollToTop />
         <Routes>
@@ -610,8 +609,7 @@ export function App() {
         <NotificationsDrawer />
         <CookieNotice />
       </BrowserRouter>
-      </Sentry.ErrorBoundary>
       <PremiumModalContainer />
-    </>
+    </Sentry.ErrorBoundary>
   )
 }

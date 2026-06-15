@@ -4,6 +4,7 @@ import { ArrowLeft, Star, Mail, Key, Eye, EyeOff } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
 import { SEO } from '@/components/shared/SEO'
+import { useCaptchaToken, CaptchaField, hasCaptcha } from '@/lib/captcha'
 import styles from './Auth.module.css'
 
 import weddingImg from '@/assets/images/wedding_event_hall.png'
@@ -41,6 +42,7 @@ export function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const { token: captchaTokenValue, setToken: setCaptchaToken, getToken: getCaptchaToken } = useCaptchaToken()
   const [magicLinkMode, setMagicLinkMode] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [currentSlide, setCurrentSlide] = useState(0)
@@ -85,7 +87,8 @@ export function LoginPage() {
         return
       }
 
-      const { data, error } = await authRequestWithTimeout(supabase.auth.signInWithPassword({ email, password }))
+      const captchaToken = getCaptchaToken()
+      const { data, error } = await authRequestWithTimeout(supabase.auth.signInWithPassword({ email, password, options: { ...(captchaToken && { captchaToken }) } }))
       if (error) throw error
 
       if (data.user) {
@@ -243,10 +246,11 @@ export function LoginPage() {
               </div>
             )}
 
+            <CaptchaField onToken={setCaptchaToken} />
             <button
               type="submit"
               className={styles.submitBtn}
-              disabled={loading}
+              disabled={loading || (hasCaptcha && !captchaTokenValue)}
             >
               {loading ? 'Sending...' : magicLinkMode ? 'Send Magic Link' : 'Sign In'}
             </button>

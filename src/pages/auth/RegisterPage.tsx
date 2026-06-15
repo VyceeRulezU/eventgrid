@@ -6,6 +6,7 @@ import { useUIStore } from '@/store/ui.store'
 import type { UserRole } from '@/types'
 import { getPasswordStrength, strengthColors } from '@/lib/passwordStrength'
 import { SEO } from '@/components/shared/SEO'
+import { useCaptchaToken, CaptchaField, hasCaptcha } from '@/lib/captcha'
 import styles from './Auth.module.css'
 
 import weddingImg from '@/assets/images/wedding_event_hall.png'
@@ -72,6 +73,7 @@ export function RegisterPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const { token: captchaTokenValue, setToken: setCaptchaToken, getToken: getCaptchaToken } = useCaptchaToken()
   const [currentSlide, setCurrentSlide] = useState(0)
 
   const showToast = useUIStore((s) => s.showToast)
@@ -142,12 +144,14 @@ export function RegisterPage() {
         metadata.is_super_admin = true
       }
 
+      const captchaToken = getCaptchaToken()
       const { error } = await authRequestWithTimeout(supabase.auth.signUp({
         email,
         password,
         options: {
           data: metadata,
           emailRedirectTo: import.meta.env.VITE_APP_URL,
+          ...(captchaToken && { captchaToken }),
         },
       }))
 
@@ -433,10 +437,11 @@ export function RegisterPage() {
                   )}
                 </div>
 
+                <CaptchaField onToken={setCaptchaToken} />
                 <button
                   type="submit"
                   className={styles.submitBtn}
-                  disabled={loading || pwStrength.score < 15}
+                  disabled={loading || (hasCaptcha && !captchaTokenValue) || pwStrength.score < 15}
                   style={{ opacity: pwStrength.score < 15 && password ? 0.5 : 1 }}
                 >
                   {loading ? 'Creating Account...' : 'Register Now'}

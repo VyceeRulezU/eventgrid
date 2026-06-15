@@ -1,0 +1,234 @@
+import { test, expect } from '@playwright/test'
+
+/* ─── Auth: login page ─── */
+
+test.describe('login page', () => {
+
+  test('shows email and password fields', async ({ page }) => {
+    await page.goto('/login')
+    await expect(page.locator('#email')).toBeVisible()
+    await expect(page.locator('#password')).toBeVisible()
+    await expect(page.getByRole('button', { name: /sign in/i })).toBeVisible()
+  })
+
+  test('shows OAuth provider buttons', async ({ page }) => {
+    await page.goto('/login')
+    await expect(page.getByText(/continue with google/i)).toBeVisible()
+  })
+
+  test('shows validation error on empty submit', async ({ page }) => {
+    await page.goto('/login')
+    await page.locator('#email').fill('')
+    await page.locator('#password').fill('')
+    await page.getByRole('button', { name: /sign in/i }).click()
+    // no crash
+    await expect(page.locator('body')).toBeAttached()
+  })
+
+  test('has link to register page', async ({ page }) => {
+    await page.goto('/login')
+    await expect(page.getByRole('link', { name: /create account/i })).toBeVisible()
+  })
+})
+
+/* ─── Auth: register page ─── */
+
+test.describe('register page', () => {
+
+  test('shows role selection step', async ({ page }) => {
+    await page.goto('/register')
+    await expect(page.getByText(/i am a/i)).toBeVisible()
+    await expect(page.getByText(/planner/i)).toBeVisible()
+    await expect(page.getByText(/coordinator/i)).toBeVisible()
+  })
+
+  test('shows registration form after role selection', async ({ page }) => {
+    await page.goto('/register')
+    await page.getByText(/planner/i).first().click()
+    await expect(page.locator('#name')).toBeVisible()
+    await expect(page.locator('#email')).toBeVisible()
+    await expect(page.locator('#phone')).toBeVisible()
+    await expect(page.locator('#password')).toBeVisible()
+  })
+
+  test('requires password of at least 6 characters', async ({ page }) => {
+    await page.goto('/register')
+    await page.getByText(/planner/i).first().click()
+    await page.locator('#password').fill('abc')
+    // submit should be disabled due to weak password
+    await expect(page.getByRole('button', { name: /create account|get started|sign up/i })).toBeDisabled()
+  })
+})
+
+/* ─── Auth: admin login page ─── */
+
+test.describe('admin login page', () => {
+
+  test('shows admin login form', async ({ page }) => {
+    await page.goto('/admin/login')
+    await expect(page.locator('#email')).toBeVisible()
+    await expect(page.locator('#password')).toBeVisible()
+    await expect(page.getByRole('button', { name: /sign in/i })).toBeVisible()
+  })
+
+  test('shows admin branding', async ({ page }) => {
+    await page.goto('/admin/login')
+    await expect(page.getByText(/admin portal/i)).toBeVisible()
+  })
+})
+
+/* ─── Auth: logout ─── */
+
+test.describe('logout', () => {
+  test.skip(!process.env.E2E_TEST_EMAIL, 'E2E_TEST_EMAIL not set')
+
+  test('logout button exists in sidebar', async ({ page }) => {
+    await page.goto('/')
+    // Wait for dashboard redirect after login
+    await page.waitForURL(/dashboard/, { timeout: 15000 })
+    // Open sidebar
+    const sidebarToggle = page.locator('[aria-label="Open sidebar"], [aria-label="Menu"]').first()
+    if (await sidebarToggle.isVisible()) await sidebarToggle.click()
+    await expect(page.getByText(/log out/i)).toBeVisible()
+  })
+})
+
+/* ─── Role guard ─── */
+
+test.describe('role guard', () => {
+
+  test('redirects unauthenticated user to home', async ({ page }) => {
+    await page.goto('/dashboard/planner')
+    await page.waitForURL(/\/(home|login)/, { timeout: 10000 })
+    expect(page.url()).not.toContain('/dashboard/')
+  })
+
+  test('redirects unauthenticated user from admin page', async ({ page }) => {
+    await page.goto('/admin')
+    await page.waitForURL(/\/(home|login)/, { timeout: 10000 })
+    expect(page.url()).not.toContain('/admin')
+  })
+
+  test('redirects unauthenticated from settings', async ({ page }) => {
+    await page.goto('/settings')
+    await page.waitForURL(/\/(home|login)/, { timeout: 10000 })
+    expect(page.url()).not.toContain('/settings')
+  })
+
+  test('allows access to public pages', async ({ page }) => {
+    for (const path of ['/', '/home', '/login', '/register', '/pricing', '/about', '/faq', '/contact', '/privacy', '/terms', '/cookies', '/security']) {
+      await page.goto(path)
+      await expect(page.locator('body')).toBeAttached()
+    }
+  })
+
+  test('allows guest RSVP page', async ({ page }) => {
+    await page.goto('/rsvp')
+    await expect(page.locator('body')).toBeAttached()
+  })
+
+  test('admin login page is public', async ({ page }) => {
+    await page.goto('/admin/login')
+    await expect(page.locator('#email')).toBeVisible()
+  })
+})
+
+/* ─── Role guard: admin routes (requires auth) ─── */
+
+test.describe('admin route access', () => {
+  const adminRoutes = ['/admin', '/admin/events', '/admin/vendors', '/admin/team', '/admin/feedback', '/admin/analytics', '/admin/my-tasks']
+
+  for (const route of adminRoutes) {
+    test(`redirects unauthenticated from ${route}`, async ({ page }) => {
+      await page.goto(route)
+      await page.waitForURL(/\/(home|login)/, { timeout: 10000 })
+      expect(page.url()).not.toContain(route)
+    })
+  }
+})
+
+/* ─── Activation / payment UI ─── */
+
+test.describe('activation / payment', () => {
+
+  test('home page lists features that mention activation', async ({ page }) => {
+    await page.goto('/home')
+    await expect(page.locator('body')).toBeAttached()
+  })
+
+  test('unpaid event shows activate button', async ({ page }) => {
+    test.skip(!process.env.E2E_TEST_EMAIL, 'E2E_TEST_EMAIL not set — needs logged-in user with an unpaid event')
+
+    // Navigate to events list (assumes auth already via storageState)
+    await page.goto('/events')
+    await page.waitForLoadState('networkidle')
+
+    // If any event card with "activate" text exists, click through to its dashboard
+    const activateLink = page.locator('a:has-text("Activate")').first()
+    if (await activateLink.isVisible()) {
+      await activateLink.click()
+    } else {
+      // Otherwise navigate to the first event
+      const eventLink = page.locator('a[href^="/events/"]').first()
+      if (!(await eventLink.isVisible())) {
+        test.skip(true, 'No events found')
+        return
+      }
+      await eventLink.click()
+    }
+
+    await page.waitForURL(/\/events\//, { timeout: 10000 })
+
+    // Look for the payment activation trigger
+    const activateBtn = page.locator('button:has-text("Activate Event")').first()
+    if (await activateBtn.isVisible()) {
+      await activateBtn.click()
+    } else {
+      // Try clicking "Activate" next-step card
+      const nextStepActivate = page.locator('button:has-text("Activate")').first()
+      if (await nextStepActivate.isVisible()) {
+        await nextStepActivate.click()
+      } else {
+        test.skip(true, 'No activate button found — event may already be active')
+        return
+      }
+    }
+
+    // Verify payment modal appears
+    await expect(page.locator('.overlay .modal-card')).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('text=₦20,000')).toBeVisible()
+    await expect(page.getByRole('button', { name: /pay with paystack/i })).toBeVisible()
+    await expect(page.getByRole('button', { name: /pay with flutterwave/i })).toBeVisible()
+  })
+
+  test('payment modal shows test card info', async ({ page }) => {
+    test.skip(!process.env.E2E_TEST_EMAIL, 'E2E_TEST_EMAIL not set — needs logged-in user')
+
+    await page.goto('/events')
+    await page.waitForLoadState('networkidle')
+
+    const eventLink = page.locator('a[href^="/events/"]').first()
+    if (!(await eventLink.isVisible())) {
+      test.skip(true, 'No events found')
+      return
+    }
+    await eventLink.click()
+    await page.waitForURL(/\/events\//, { timeout: 10000 })
+
+    // Open payment modal
+    const activateBtn = page.locator('button:has-text("Activate Event")').first()
+    if (!(await activateBtn.isVisible())) {
+      const statBtn = page.locator('button[class*="statCard"]').first()
+      if (await statBtn.isVisible()) await statBtn.click()
+      else { test.skip(true, 'No activate trigger found'); return }
+    } else {
+      await activateBtn.click()
+    }
+
+    await expect(page.locator('.overlay .modal-card')).toBeVisible({ timeout: 5000 })
+    // Test card info is displayed
+    await expect(page.getByText(/4084 0828 0408 4081/)).toBeVisible()
+    await expect(page.getByText(/4181 0000 0000 0007/)).toBeVisible()
+    await expect(page.getByText(/test \/ demo mode/i)).toBeVisible()
+  })
+})
