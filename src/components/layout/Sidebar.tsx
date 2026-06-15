@@ -36,6 +36,7 @@ export function Sidebar() {
 
   const [showFeedbackForm, setShowFeedbackForm] = useState(false)
   const isAdmin = role === 'super_admin'
+  const isAdminRole = role && ['super_admin', 'monitor', 'admin_support'].includes(role)
 
   const mainItems: NavItem[] = [
     { to: isAdmin ? '/admin' : role === 'team_member' || !role ? '/events' : role === 'client' ? '/vendors/directory' : `/dashboard/${role}`, label: 'Dashboard', icon: LayoutDashboard },
@@ -126,7 +127,7 @@ export function Sidebar() {
               ))}
             </div>
           ))}
-          {isAdmin && (
+          {isAdminRole && (
             <div className={styles.category}>
               <span className={styles.categoryLabel}>Admin</span>
               <NavLink
@@ -180,16 +181,30 @@ export function Sidebar() {
                 <TrendingUp size={20} />
                 <span>Analytics</span>
               </NavLink>
-              <NavLink
-                to="/admin/manage"
-                className={({ isActive }) =>
-                  `${styles.navItem} ${isActive ? styles.active : ''}`
-                }
-                onClick={() => setSidebarOpen(false)}
-              >
-                <ListChecks size={20} />
-                <span>Manage</span>
-              </NavLink>
+              {isAdmin && (
+                <>
+                  <NavLink
+                    to="/admin/manage"
+                    className={({ isActive }) =>
+                      `${styles.navItem} ${isActive ? styles.active : ''}`
+                    }
+                    onClick={() => setSidebarOpen(false)}
+                  >
+                    <ListChecks size={20} />
+                    <span>All Users</span>
+                  </NavLink>
+                  <NavLink
+                    to="/admin/team"
+                    className={({ isActive }) =>
+                      `${styles.navItem} ${isActive ? styles.active : ''}`
+                    }
+                    onClick={() => setSidebarOpen(false)}
+                  >
+                    <Users size={20} />
+                    <span>Team Members</span>
+                  </NavLink>
+                </>
+              )}
               <NavLink
                 to="/admin/feedback"
                 className={({ isActive }) =>

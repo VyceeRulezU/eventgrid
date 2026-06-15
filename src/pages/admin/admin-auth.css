@@ -206,3 +206,16 @@
 .passwordToggle:hover {
   opacity: 1;
 }
+
+@media (max-width: 375px) {
+  .adminAuthContainer {
+    padding: 0;
+  }
+  .adminAuthLeft {
+    display: none;
+  }
+  .adminAuthRight {
+    padding: var(--space-5);
+    border-radius: 0;
+  }
+}

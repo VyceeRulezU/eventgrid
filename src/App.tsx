@@ -559,7 +559,7 @@ export function App() {
           } />
           <Route path="/admin/feedback" element={
             <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
-              <RoleGuard allowedRole="super_admin"><FeedbackManagementPage /></RoleGuard>
+              <RoleGuard allowedRole="admin_support"><FeedbackManagementPage /></RoleGuard>
             </Suspense>
           } />
           <Route path="/admin/surveys" element={
@@ -579,7 +579,7 @@ export function App() {
           } />
           <Route path="/admin/analytics" element={
             <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
-              <RoleGuard allowedRole="super_admin"><AnalyticsPage /></RoleGuard>
+              <RoleGuard allowedRole={['monitor', 'admin_support']}><AnalyticsPage /></RoleGuard>
             </Suspense>
           } />
           <Route path="/admin/my-tasks" element={

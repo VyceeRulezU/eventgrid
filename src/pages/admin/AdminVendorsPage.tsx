@@ -62,7 +62,7 @@ export function AdminVendorsPage() {
       if (orgId) {
         orgsQuery.eq('id', orgId)
         vendsQuery.eq('org_id', orgId)
-      } else if (role !== 'super_admin') {
+      } else if (role && !['super_admin', 'monitor', 'admin_support'].includes(role)) {
         setLoading(false)
         return
       }

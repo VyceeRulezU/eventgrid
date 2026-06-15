@@ -6,9 +6,11 @@ interface AdminGuardProps {
   children: ReactNode
 }
 
+const ADMIN_ROLES = ['super_admin', 'monitor', 'admin_support']
+
 export function AdminGuard({ children }: AdminGuardProps) {
   const role = useAuthStore((s) => s.role)
-  const isAdmin = role === 'super_admin'
+  const isAdmin = role && ADMIN_ROLES.includes(role)
 
   if (!role) {
     return <Navigate to="/" replace />

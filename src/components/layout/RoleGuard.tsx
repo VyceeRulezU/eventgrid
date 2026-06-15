@@ -1,10 +1,9 @@
 import { Navigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth.store'
-import type { UserRole } from '@/types'
 import type { ReactNode } from 'react'
 
 interface RoleGuardProps {
-  allowedRole: UserRole
+  allowedRole: string | string[]
   children: ReactNode
 }
 
@@ -17,7 +16,9 @@ export function RoleGuard({ allowedRole, children }: RoleGuardProps) {
     return <Navigate to="/" replace />
   }
 
-  if (role !== allowedRole) {
+  const roles = Array.isArray(allowedRole) ? allowedRole : [allowedRole]
+
+  if (!roles.includes(role)) {
     if (role === 'team_member') {
       return <Navigate to="/dashboard/my-tasks" replace />
     }
