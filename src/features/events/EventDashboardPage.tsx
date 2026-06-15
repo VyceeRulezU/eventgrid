@@ -193,53 +193,41 @@ export function EventDashboardPage() {
 
       setActiveEvent(event as unknown as Event)
 
-      const { data: phaseData } = await supabase
-        .from('event_phases')
-        .select('*')
-        .eq('event_id', event.id)
-        .order('phase_number', { ascending: true })
+      const now = new Date().toISOString()
 
-      if (!cancelled && phaseData) setPhases(phaseData as unknown as EventPhase[])
+      const [phaseRes, taskPhaseRes, vendorCountRes, tasksDueRes, issueRes,
+        upcomingTasksRes, phaseDeadlinesRes, vendorPaymentsRes, activityRes, finRes] = await Promise.all([
+        supabase.from('event_phases').select('*').eq('event_id', event.id).order('phase_number', { ascending: true }),
+        supabase.from('tasks').select('phase_id, status').eq('event_id', event.id).not('phase_id', 'is', null),
+        supabase.from('event_vendors').select('id', { count: 'exact' }).eq('event_id', event.id),
+        supabase.from('tasks').select('id', { count: 'exact' }).eq('event_id', event.id).not('status', 'eq', 'done').lte('due_datetime', now),
+        supabase.from('issues').select('id', { count: 'exact' }).eq('event_id', event.id).is('resolved_at', null),
+        supabase.from('tasks').select('id, title, due_datetime, status, created_at, assignee:profiles(display_name, avatar_url)').eq('event_id', event.id).neq('status', 'done').gte('due_datetime', now).order('due_datetime', { ascending: true }).limit(15),
+        supabase.from('event_phases').select('id, phase_name, due_date, status').eq('event_id', event.id).neq('status', 'completed').not('due_date', 'is', null).order('due_date', { ascending: true }).limit(15),
+        supabase.from('event_vendors').select('id, vendor_name, payment_date, payment_status').eq('event_id', event.id).in('payment_status', ['unpaid', 'advance']).not('payment_date', 'is', null).order('payment_date', { ascending: true }).limit(15),
+        supabase.from('event_activity').select('*').eq('event_id', event.id).order('created_at', { ascending: false }).limit(20),
+        supabase.from('financial_entries').select('advance_paid, balance').eq('event_id', event.id),
+      ])
 
-      /* task counts per phase */
-      const { data: taskPhaseCounts } = await supabase
-        .from('tasks')
-        .select('phase_id, status')
-        .eq('event_id', event.id)
-        .not('phase_id', 'is', null)
-      if (taskPhaseCounts) {
+      if (cancelled) return
+
+      if (phaseRes.data) setPhases(phaseRes.data as unknown as EventPhase[])
+
+      if (taskPhaseRes.data) {
         const counts: Record<string, { total: number; done: number }> = {}
-        for (const t of taskPhaseCounts) {
+        for (const t of taskPhaseRes.data) {
           if (!t.phase_id) continue
           if (!counts[t.phase_id]) counts[t.phase_id] = { total: 0, done: 0 }
           counts[t.phase_id].total++
           if (t.status === 'done') counts[t.phase_id].done++
         }
-        if (!cancelled) setTaskCounts(counts)
+        setTaskCounts(counts)
       }
 
-      const { count: vendorCount } = await supabase
-        .from('event_vendors').select('id', { count: 'exact' }).eq('event_id', event.id)
-
-      const { count: tasksDueCount } = await supabase
-        .from('tasks').select('id', { count: 'exact' })
-        .eq('event_id', event.id).not('status', 'eq', 'done')
-        .lte('due_datetime', new Date().toISOString())
-
-      const { count: issueCount } = await supabase
-        .from('issues').select('id', { count: 'exact' })
-        .eq('event_id', event.id).is('resolved_at', null)
-
-      /* upcoming deadlines */
       const d: DeadlineItem[] = []
 
-      const { data: upcomingTasks } = await supabase
-        .from('tasks').select('id, title, due_datetime, status, created_at, assignee:profiles(display_name, avatar_url)')
-        .eq('event_id', event.id).neq('status', 'done')
-        .gte('due_datetime', new Date().toISOString())
-        .order('due_datetime', { ascending: true }).limit(15)
-      if (upcomingTasks) {
-        for (const t of upcomingTasks) {
+      if (upcomingTasksRes.data) {
+        for (const t of upcomingTasksRes.data) {
           if (t.due_datetime) {
             d.push({
               id: t.id,
@@ -254,52 +242,30 @@ export function EventDashboardPage() {
         }
       }
 
-      const { data: phaseDeadlines } = await supabase
-        .from('event_phases').select('id, phase_name, due_date, status')
-        .eq('event_id', event.id).neq('status', 'completed')
-        .not('due_date', 'is', null)
-        .order('due_date', { ascending: true }).limit(15)
-      if (phaseDeadlines) {
-        for (const p of phaseDeadlines) {
+      if (phaseDeadlinesRes.data) {
+        for (const p of phaseDeadlinesRes.data) {
           if (p.due_date) d.push({ id: p.id, type: 'phase', title: p.phase_name, date: p.due_date, label: p.status.replace('_', ' ') })
         }
       }
 
-      const { data: vendorPayments } = await supabase
-        .from('event_vendors').select('id, vendor_name, payment_date, payment_status')
-        .eq('event_id', event.id).in('payment_status', ['unpaid', 'advance'])
-        .not('payment_date', 'is', null)
-        .order('payment_date', { ascending: true }).limit(15)
-      if (vendorPayments) {
-        for (const v of vendorPayments) {
+      if (vendorPaymentsRes.data) {
+        for (const v of vendorPaymentsRes.data) {
           if (v.payment_date) d.push({ id: v.id, type: 'vendor_payment', title: v.vendor_name, date: v.payment_date, label: v.payment_status.replace('_', ' ') })
         }
       }
 
       d.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
-      const { data: activityData } = await supabase
-        .from('event_activity').select('*')
-        .eq('event_id', event.id)
-        .order('created_at', { ascending: false }).limit(20)
-
-      const { data: finData } = await supabase
-        .from('financial_entries')
-        .select('advance_paid, balance')
-        .eq('event_id', event.id)
-
-      if (!cancelled) {
-        setStats({ vendors: vendorCount || 0, tasksDue: tasksDueCount || 0, openIssues: issueCount || 0 })
-        setDeadlines(d)
-        if (activityData) setActivity(activityData as unknown as EventActivity[])
-        if (finData) {
-          setFinancialSummary({
-            paid: finData.reduce((s, e) => s + (e.advance_paid || 0), 0),
-            outstanding: finData.reduce((s, e) => s + (e.balance || 0), 0),
-          })
-        }
-        setLoading(false)
+      setStats({ vendors: vendorCountRes.count || 0, tasksDue: tasksDueRes.count || 0, openIssues: issueRes.count || 0 })
+      setDeadlines(d)
+      if (activityRes.data) setActivity(activityRes.data as unknown as EventActivity[])
+      if (finRes.data) {
+        setFinancialSummary({
+          paid: finRes.data.reduce((s, e) => s + (e.advance_paid || 0), 0),
+          outstanding: finRes.data.reduce((s, e) => s + (e.balance || 0), 0),
+        })
       }
+      setLoading(false)
     }
 
     loadEvent()
