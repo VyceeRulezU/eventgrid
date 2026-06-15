@@ -55,9 +55,11 @@ export function AdminEventsListPage() {
       .is('deleted_at', null)
       .order('created_at', { ascending: false })
 
-    if (org) {
+    const isAdminRole = role && ['super_admin', 'monitor', 'admin_support'].includes(role)
+
+    if (!isAdminRole && org) {
       query = query.eq('org_id', org.id)
-    } else if (role && !['super_admin', 'monitor', 'admin_support'].includes(role)) {
+    } else if (role && !isAdminRole) {
       query = supabase
         .from('events')
         .select('*, event_access!inner(user_id)')
