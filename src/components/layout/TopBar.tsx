@@ -23,32 +23,18 @@ const routeMeta: Record<string, { title: string; subtitle: string }> = {
   '/admin/team':           { title: 'Admin Team', subtitle: 'Manage super admins' },
 }
 
-const BETA_LS_KEY = 'eventgrid:beta-label'
-
 export function TopBar() {
   const location = useLocation()
   const navigate = useNavigate()
   const { setSidebarOpen } = useUIStore()
   const profile = useAuthStore((s) => s.profile)
   const user = useAuthStore((s) => s.user)
-  const role = useAuthStore((s) => s.role)
   const org = useAuthStore((s) => s.org)
   const clearAuth = useAuthStore((s) => s.clearAuth)
   const unreadCount = useNotificationStore((s) => s.unreadCount)
 
   const [userMenuOpen, setUserMenuOpen] = useState(false)
-  const [betaVisible, setBetaVisible] = useState(() => localStorage.getItem(BETA_LS_KEY) !== 'false')
   const menuRef = useRef<HTMLDivElement>(null)
-
-  const isMainSuperAdmin = role === 'super_admin' && !user?.user_metadata?.invite_role
-
-  const toggleBetaLabel = () => {
-    setBetaVisible((prev) => {
-      const next = !prev
-      localStorage.setItem(BETA_LS_KEY, String(next))
-      return next
-    })
-  }
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -107,7 +93,7 @@ export function TopBar() {
         </div>
       </div>
       <div className={styles.right}>
-        {betaVisible && <span className={styles.betaBadge}>Beta</span>}
+        {org?.show_beta_label !== false && <span className={styles.betaBadge}>Beta</span>}
         <button className={styles.iconBtn} onClick={() => useNotificationStore.getState().setDrawerOpen(true)} aria-label="Notifications" style={{ position: 'relative' }}>
           <Bell size={18} />
           {unreadCount > 0 && (
@@ -135,11 +121,6 @@ export function TopBar() {
           </button>
           {userMenuOpen && (
             <div className={styles.userDropdown}>
-              {isMainSuperAdmin && (
-                <button className={styles.userDropdownItem} onClick={toggleBetaLabel}>
-                  {betaVisible ? 'Hide Beta Label' : 'Show Beta Label'}
-                </button>
-              )}
               <Link to="/settings" className={styles.userDropdownItem} onClick={() => setUserMenuOpen(false)}>
                 <Settings size={16} />
                 Settings

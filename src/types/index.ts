@@ -25,6 +25,7 @@ export interface Organization {
   address: string | null
   city: string
   state: string | null
+  show_beta_label: boolean
   created_at: string
   updated_at: string
 }

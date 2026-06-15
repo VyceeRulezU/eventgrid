@@ -6,11 +6,11 @@ interface AuthStore {
   user: User | null
   profile: Profile | null
   role: UserRole | null
-  org: { id: string; name: string; logo_url: string | null } | null
+  org: { id: string; name: string; logo_url: string | null; show_beta_label: boolean } | null
   isLoading: boolean
   setUser: (user: User | null) => void
   setProfile: (profile: Profile | null) => void
-  setOrg: (org: { id: string; name: string; logo_url: string | null } | null) => void
+  setOrg: (org: { id: string; name: string; logo_url: string | null; show_beta_label: boolean } | null) => void
   setLoading: (loading: boolean) => void
   clearAuth: () => void
 }

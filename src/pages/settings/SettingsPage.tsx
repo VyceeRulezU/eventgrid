@@ -7,6 +7,7 @@ import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { compressImage } from '@/lib/image'
 import { clearTourForRole } from '@/components/shared/AppTour'
+import { Switch } from '@/components/ui/Switch'
 import { SEO } from '@/components/shared/SEO'
 import { PushNotificationSetup } from '@/components/shared/PushNotificationSetup'
 import { FeedbackFormModal } from '@/features/feedback/FeedbackFormModal'
@@ -32,6 +33,22 @@ export function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [testingEmail, setTestingEmail] = useState(false)
   const [showFeedback, setShowFeedback] = useState(false)
+  const [showBetaLabel, setShowBetaLabel] = useState(org?.show_beta_label ?? true)
+
+  const handleToggleBetaLabel = async (value: boolean) => {
+    if (!org?.id) return
+    setShowBetaLabel(value)
+    const { error } = await supabase
+      .from('organizations')
+      .update({ show_beta_label: value })
+      .eq('id', org.id)
+    if (error) {
+      setShowBetaLabel(!value)
+      showToast({ type: 'error', title: 'Failed to update', body: error.message })
+      return
+    }
+    setOrg({ ...org, show_beta_label: value })
+  }
 
   const handleTestEmail = async () => {
     if (!user) return
@@ -398,6 +415,19 @@ export function SettingsPage() {
           </div>
         )}
 
+        {role === 'super_admin' && org && (
+          <div className="card">
+            <h3 className={styles.cardTitle}>Beta Label</h3>
+            <div className={styles.toggleRow}>
+              <div className={styles.toggleLabel}>
+                <span>Show "Beta" label in top bar</span>
+                <span>When turned off, the Beta badge is hidden for all users.</span>
+              </div>
+              <Switch checked={showBetaLabel} onChange={handleToggleBetaLabel} />
+            </div>
+          </div>
+        )}
+
         <div className="card">
           <h3 className={styles.cardTitle}>Quick Links</h3>
           <div className={styles.linkList}>
@@ -479,7 +509,7 @@ export function SettingsPage() {
         </div>
 
         <div className="card">
-          <div className={styles.version}>EventGrid v0.1.0</div>
+          <div className={styles.version}>EventGrid v0.2.0</div>
         </div>
       </div>
 

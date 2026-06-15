@@ -313,13 +313,13 @@ export function App() {
           const { data: org } = await withTimeout(
             supabase
               .from('organizations')
-              .select('id, name, logo_url')
+              .select('id, name, logo_url, show_beta_label')
               .eq('id', profile.org_id)
               .single(),
             8000,
             'Organization request timed out.'
           )
-          if (org) setOrg(org)
+          if (org) setOrg({ ...org, show_beta_label: org.show_beta_label ?? true })
         } catch (err) {
           console.warn('Unable to load organization:', err instanceof Error ? err.message : err)
         }
