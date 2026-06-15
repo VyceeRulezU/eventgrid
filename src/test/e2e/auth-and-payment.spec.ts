@@ -1,4 +1,13 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
+
+async function hasTurnstile(page: Page) {
+  try {
+    await page.waitForSelector('iframe[src*="challenges.cloudflare.com"]', { timeout: 5000 })
+    return true
+  } catch {
+    return false
+  }
+}
 
 /* ─── Auth: login page ─── */
 
@@ -230,5 +239,70 @@ test.describe('activation / payment', () => {
     await expect(page.getByText(/4084 0828 0408 4081/)).toBeVisible()
     await expect(page.getByText(/4181 0000 0000 0007/)).toBeVisible()
     await expect(page.getByText(/test \/ demo mode/i)).toBeVisible()
+  })
+})
+
+/* ─── Captcha (Turnstile) ─── */
+
+test.describe('captcha', () => {
+
+  test('login page renders Turnstile captcha widget', async ({ page }) => {
+    await page.goto('/login')
+    if (!(await hasTurnstile(page))) {
+      test.skip(true, 'VITE_TURNSTILE_SITE_KEY not set — captcha disabled')
+      return
+    }
+    await expect(page.locator('iframe[src*="challenges.cloudflare.com"]').first()).toBeVisible()
+  })
+
+  test('login submit button is disabled until captcha resolved', async ({ page }) => {
+    await page.goto('/login')
+    await page.fill('#email', 'test@example.com')
+    await page.fill('#password', 'password123')
+
+    if (!(await hasTurnstile(page))) {
+      test.skip(true, 'VITE_TURNSTILE_SITE_KEY not set — captcha disabled')
+      return
+    }
+
+    await expect(page.getByRole('button', { name: /sign in/i })).toBeDisabled()
+    await expect(page.getByRole('button', { name: /sign in/i })).toBeEnabled({ timeout: 15000 })
+  })
+
+  test('register page renders Turnstile captcha widget after role selection', async ({ page }) => {
+    await page.goto('/register')
+    await page.getByText(/planner/i).first().click()
+
+    if (!(await hasTurnstile(page))) {
+      test.skip(true, 'VITE_TURNSTILE_SITE_KEY not set — captcha disabled')
+      return
+    }
+    await expect(page.locator('iframe[src*="challenges.cloudflare.com"]').first()).toBeVisible()
+  })
+
+  test('register submit button is disabled until captcha and password strength pass', async ({ page }) => {
+    await page.goto('/register')
+    await page.getByText(/planner/i).first().click()
+    await page.fill('#name', 'Test User')
+    await page.fill('#email', 'test@example.com')
+    await page.fill('#phone', '08012345678')
+    await page.fill('#password', 'StrongP@ss1')
+
+    if (!(await hasTurnstile(page))) {
+      test.skip(true, 'VITE_TURNSTILE_SITE_KEY not set — captcha disabled')
+      return
+    }
+
+    await expect(page.getByRole('button', { name: /register now/i })).toBeDisabled()
+    await expect(page.getByRole('button', { name: /register now/i })).toBeEnabled({ timeout: 15000 })
+  })
+
+  test('admin login page also shows captcha', async ({ page }) => {
+    await page.goto('/admin/login')
+    if (!(await hasTurnstile(page))) {
+      test.skip(true, 'VITE_TURNSTILE_SITE_KEY not set — captcha disabled')
+      return
+    }
+    await expect(page.locator('iframe[src*="challenges.cloudflare.com"]').first()).toBeVisible()
   })
 })

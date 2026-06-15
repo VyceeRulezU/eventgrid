@@ -4,6 +4,7 @@ import { Shield, Eye, EyeOff } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
 import { SEO } from '@/components/shared/SEO'
+import { useCaptchaToken, CaptchaField, hasCaptcha } from '@/lib/captcha'
 import './admin-auth.css'
 
 export function AdminLoginPage() {
@@ -12,6 +13,7 @@ export function AdminLoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const { token: captchaTokenValue, setToken: setCaptchaToken, getToken: getCaptchaToken } = useCaptchaToken()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const verified = searchParams.get('verified')
@@ -23,9 +25,11 @@ export function AdminLoginPage() {
     setLoading(true)
     setError('')
 
+    const captchaToken = getCaptchaToken()
     const { error: signInError } = await supabase.auth.signInWithPassword({
       email: email.trim(),
       password,
+      ...(captchaToken && { options: { captchaToken } }),
     })
 
     if (signInError) {
@@ -98,7 +102,8 @@ export function AdminLoginPage() {
               </div>
             </div>
 
-            <button type="submit" disabled={loading} className="adminAuthSubmit" style={{ backgroundColor: '#D4A017', color: '#111827', opacity: loading ? 0.6 : 1 }}>
+            <CaptchaField onToken={setCaptchaToken} />
+            <button type="submit" disabled={loading || (hasCaptcha && !captchaTokenValue)} className="adminAuthSubmit" style={{ backgroundColor: '#D4A017', color: '#111827', opacity: loading || (hasCaptcha && !captchaTokenValue) ? 0.6 : 1 }}>
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
