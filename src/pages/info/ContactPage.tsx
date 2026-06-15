@@ -1,4 +1,7 @@
+import { useState } from 'react'
 import { SEO } from '@/components/shared/SEO'
+import { supabase } from '@/lib/supabase'
+import { useUIStore } from '@/store/ui.store'
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import Footer from '@/pages/landing/Footer'
@@ -6,9 +9,45 @@ import { Mail, Phone, MapPin } from 'lucide-react'
 import styles from './ContactPage.module.css'
 
 export function ContactPage() {
-  const handleSubmit = (e: React.FormEvent) => {
+  const [sending, setSending] = useState(false)
+  const showToast = useUIStore((s) => s.showToast)
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    alert('Thank you! Your inquiry has been submitted successfully.')
+    setSending(true)
+
+    const form = e.currentTarget
+    const formData = new FormData(form)
+    const name = formData.get('name') as string
+    const email = formData.get('email') as string
+    const message = formData.get('message') as string
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-contact`
+
+      const res = await fetch(functionUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token ?? ''}`
+        },
+        body: JSON.stringify({ name, email, message })
+      })
+
+      if (!res.ok) {
+        const body = await res.text()
+        throw new Error(body || `Error ${res.status}`)
+      }
+
+      showToast({ type: 'success', title: 'Message sent!', body: 'We\'ll get back to you within 12–24 business hours.' })
+      form.reset()
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Something went wrong'
+      showToast({ type: 'error', title: 'Failed to send', body: msg })
+    } finally {
+      setSending(false)
+    }
   }
 
   return (
@@ -36,17 +75,19 @@ export function ContactPage() {
               <form onSubmit={handleSubmit} className={styles.contactForm}>
                 <div className={styles.formGroup}>
                   <label htmlFor="name" className={styles.label}>Full Name</label>
-                  <input type="text" id="name" required className={styles.input} placeholder="e.g. Tunde Johnson" />
+                  <input type="text" id="name" name="name" required className={styles.input} placeholder="e.g. Tunde Johnson" />
                 </div>
                 <div className={styles.formGroup}>
                   <label htmlFor="email" className={styles.label}>Email Address</label>
-                  <input type="email" id="email" required className={styles.input} placeholder="e.g. tunde@example.com" />
+                  <input type="email" id="email" name="email" required className={styles.input} placeholder="e.g. tunde@example.com" />
                 </div>
                 <div className={styles.formGroup}>
                   <label htmlFor="message" className={styles.label}>Message</label>
-                  <textarea id="message" required rows={5} className={styles.textarea} placeholder="How can we help your event day coordination?"></textarea>
+                  <textarea id="message" name="message" required rows={5} className={styles.textarea} placeholder="How can we help your event day coordination?"></textarea>
                 </div>
-                <button type="submit" className={styles.submitBtn} id="contact-submit-btn">Send Message</button>
+                <button type="submit" disabled={sending} className={styles.submitBtn} id="contact-submit-btn">
+                  {sending ? 'Sending...' : 'Send Message'}
+                </button>
               </form>
             </div>
 

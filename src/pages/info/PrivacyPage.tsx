@@ -1,3 +1,4 @@
+import { SEO } from '@/components/shared/SEO'
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import Footer from '@/pages/landing/Footer'
@@ -6,6 +7,11 @@ import styles from './LegalPages.module.css'
 export function PrivacyPage() {
   return (
     <div className={styles.pageWrapper}>
+      <SEO
+        title="Privacy Policy — EventGrid"
+        description="Learn how EventGrid collects, protects, and handles your personal information in compliance with the Nigeria Data Protection Act."
+        url="/privacy"
+      />
       <Navbar />
       
       <LandingPageHero

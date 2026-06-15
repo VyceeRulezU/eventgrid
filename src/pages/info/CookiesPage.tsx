@@ -1,3 +1,4 @@
+import { SEO } from '@/components/shared/SEO'
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import Footer from '@/pages/landing/Footer'
@@ -6,6 +7,11 @@ import styles from './LegalPages.module.css'
 export function CookiesPage() {
   return (
     <div className={styles.pageWrapper}>
+      <SEO
+        title="Cookie Policy — EventGrid"
+        description="Learn how EventGrid uses cookies and local storage to enhance your experience on the platform."
+        url="/cookies"
+      />
       <Navbar />
       
       <LandingPageHero

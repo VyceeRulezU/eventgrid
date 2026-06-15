@@ -1,3 +1,4 @@
+import { SEO } from '@/components/shared/SEO'
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import Footer from '@/pages/landing/Footer'
@@ -6,6 +7,11 @@ import styles from './LegalPages.module.css'
 export function SecurityPage() {
   return (
     <div className={styles.pageWrapper}>
+      <SEO
+        title="Security Infrastructure — EventGrid"
+        description="Enterprise-grade row-level database security, server-validated payment gateways, and strict authorization protocols."
+        url="/security"
+      />
       <Navbar />
       
       <LandingPageHero

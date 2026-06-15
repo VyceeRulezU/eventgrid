@@ -1,3 +1,4 @@
+import { SEO } from '@/components/shared/SEO'
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import Footer from '@/pages/landing/Footer'
@@ -6,6 +7,11 @@ import styles from './LegalPages.module.css'
 export function TermsPage() {
   return (
     <div className={styles.pageWrapper}>
+      <SEO
+        title="Terms of Service — EventGrid"
+        description="Read the terms governing your access to and use of the EventGrid platform for event management."
+        url="/terms"
+      />
       <Navbar />
       
       <LandingPageHero

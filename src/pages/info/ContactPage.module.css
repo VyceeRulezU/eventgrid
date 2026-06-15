@@ -99,6 +99,12 @@
   box-shadow: 0 4px 15px rgba(212, 160, 23, 0.2);
 }
 
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .submitBtn:hover {
   background-color: #b8860b;
   transform: translateY(-1px);
@@ -176,7 +182,26 @@
     padding: 24px;
   }
   
-  .submitBtn {
+.successMsg {
+  background-color: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #22c55e;
+  padding: 14px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.errorMsg {
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  padding: 14px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.submitBtn {
     width: 100%;
     align-self: center;
   }
