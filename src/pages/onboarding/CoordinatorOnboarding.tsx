@@ -97,10 +97,10 @@ export function CoordinatorOnboarding() {
     if (finalOrgId) {
       const { data: orgData } = await supabase
         .from('organizations')
-        .select('id, name, logo_url')
+        .select('id, name, logo_url, show_beta_label')
         .eq('id', finalOrgId)
         .single()
-      if (orgData) setOrg(orgData)
+      if (orgData) setOrg({ ...orgData, show_beta_label: orgData.show_beta_label ?? true })
     }
 
     showToast({ type: 'success', title: 'Profile completed!', body: 'Welcome to the EventGrid team.' })

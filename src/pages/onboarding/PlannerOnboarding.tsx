@@ -159,7 +159,7 @@ export function PlannerOnboarding() {
       return
     }
 
-    const orgData = org as { id: string; name: string; logo_url: string | null }
+    const orgData = { ...(org as { id: string; name: string; logo_url: string | null }), show_beta_label: true }
 
     // Save onboarding completed in Supabase Auth user metadata
     const { error: authErr } = await supabase.auth.updateUser({
