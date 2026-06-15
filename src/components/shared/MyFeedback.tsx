@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useNavigate } from 'react-router-dom'
-import { MessageSquare, AlertCircle, Lightbulb, Bug, Sparkles, Clock, CheckCircle, ChevronRight } from 'lucide-react'
+import { MessageSquare, AlertCircle, Lightbulb, Bug, Sparkles, Clock, CheckCircle, ChevronRight, Inbox, X } from 'lucide-react'
+import { Table } from '@/components/ui/Table'
 import type { Feedback } from '@/types'
 
 const TYPE_CONFIG: Record<string, { label: string; icon: typeof MessageSquare; color: string }> = {
@@ -20,12 +21,70 @@ const STATUS_STYLES: Record<string, { color: string; bg: string }> = {
   closed: { color: '#9ca3af', bg: 'rgba(156,163,175,0.12)' },
 }
 
+const COLUMNS = [
+  { key: 'type', label: 'Type' },
+  { key: 'subject', label: 'Subject' },
+  { key: 'status', label: 'Status' },
+  { key: 'date', label: 'Date' },
+]
+
+const MODAL_STYLES: Record<string, React.CSSProperties> = {
+  overlay: {
+    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+    zIndex: 'var(--z-overlay)', display: 'flex', alignItems: 'center',
+    justifyContent: 'center', padding: 'var(--space-4)',
+  },
+  modal: {
+    background: 'var(--color-surface-1)', border: '1px solid var(--color-border)',
+    borderRadius: 20, width: '100%', maxWidth: 520,
+    boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
+    overflow: 'hidden', display: 'flex', flexDirection: 'column',
+    maxHeight: '80vh',
+  },
+  header: {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    padding: 'var(--space-4) var(--space-5)', borderBottom: '1px solid var(--color-border-subtle)',
+  },
+  headerTitle: { fontSize: 'var(--text-base)', fontWeight: 700 },
+  closeBtn: {
+    background: 'none', border: 'none', color: 'var(--color-text-muted)',
+    cursor: 'pointer', padding: 4, borderRadius: 'var(--radius-sm)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+  },
+  body: { padding: 'var(--space-4) var(--space-5)', overflowY: 'auto' as const, flex: 1 },
+  section: { marginBottom: 'var(--space-4)' },
+  sectionLabel: {
+    fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--color-text-muted)',
+    textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 'var(--space-1)',
+  },
+  messageBox: {
+    background: 'var(--color-surface-2)', borderRadius: 'var(--radius-md)',
+    padding: 'var(--space-3) var(--space-4)',
+    fontSize: '1rem', lineHeight: 1.7, color: 'var(--color-text-primary)',
+    whiteSpace: 'pre-wrap',
+  },
+  replyBox: {
+    marginTop: 'var(--space-3)', padding: 'var(--space-3) var(--space-4)',
+    background: 'var(--color-accent-muted)', borderRadius: 'var(--radius-md)',
+    border: '1px solid var(--color-accent-border)',
+  },
+  replyHeader: {
+    fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--color-accent)',
+    marginBottom: 'var(--space-1)',
+  },
+  replyText: {
+    fontSize: '1rem', lineHeight: 1.7, color: 'var(--color-text-secondary)',
+    whiteSpace: 'pre-wrap',
+  },
+  repliedAt: { fontSize: 10, color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' },
+}
+
 export function MyFeedback({ limit = 5 }: { limit?: number }) {
   const user = useAuthStore((s) => s.user)
   const navigate = useNavigate()
   const [items, setItems] = useState<Feedback[]>([])
   const [loading, setLoading] = useState(true)
-  const [expanded, setExpanded] = useState<string | null>(null)
+  const [selected, setSelected] = useState<Feedback | null>(null)
 
   useEffect(() => {
     if (!user) return
@@ -41,16 +100,6 @@ export function MyFeedback({ limit = 5 }: { limit?: number }) {
       })
   }, [user, limit])
 
-  if (loading) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-        {[1,2,3].map(i => <div key={i} className="skeleton skeleton-card" style={{ height: 72 }} />)}
-      </div>
-    )
-  }
-
-  if (items.length === 0) return null
-
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-3)' }}>
@@ -62,88 +111,123 @@ export function MyFeedback({ limit = 5 }: { limit?: number }) {
           View All <ChevronRight size={14} />
         </button>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+      <Table
+        columns={COLUMNS}
+        minWidth="500px"
+        loading={loading}
+        empty={!loading && items.length === 0}
+        emptyIcon={Inbox}
+        emptyTitle="No feedback yet"
+        emptyDescription="Your submitted feedback will appear here."
+      >
         {items.map((fb) => {
           const config = TYPE_CONFIG[fb.type] || TYPE_CONFIG.other
           const Icon = config.icon
           const st = STATUS_STYLES[fb.status] || STATUS_STYLES.closed
-          const isExpanded = expanded === fb.id
           return (
-            <div key={fb.id} className="card" style={{ padding: 0, overflow: 'hidden' }}>
-              <div
-                style={{
-                  padding: 'var(--space-3) var(--space-4)',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 'var(--space-3)',
-                }}
-                onClick={() => setExpanded(isExpanded ? null : fb.id)}
-                onKeyDown={(e) => e.key === 'Enter' && setExpanded(isExpanded ? null : fb.id)}
-                role="button"
-                tabIndex={0}
-              >
-                <div style={{
-                  width: 36, height: 36, borderRadius: 'var(--radius-md)',
-                  background: `${config.color}15`, color: config.color,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                }}>
-                  <Icon size={16} />
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {fb.subject}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
-                    <span className="badge" style={{
-                      fontSize: 9, padding: '1px 6px', borderRadius: 'var(--radius-full)',
-                      background: st.bg, color: st.color, fontWeight: 600, textTransform: 'capitalize',
-                    }}>
-                      {fb.status}
-                    </span>
-                    {fb.admin_reply && <CheckCircle size={11} style={{ color: 'var(--color-info)' }} />}
-                    <Clock size={11} />
-                    <span>{new Date(fb.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
-                  </div>
-                </div>
-                <ChevronRight size={14} style={{ color: 'var(--color-text-muted)', flexShrink: 0, transform: isExpanded ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s' }} />
-              </div>
-              {isExpanded && (
-                <div style={{ padding: '0 var(--space-4) var(--space-3) var(--space-4)', borderTop: '1px solid var(--color-border-subtle)' }}>
+            <tr
+              key={fb.id}
+              onClick={() => setSelected(fb)}
+              style={{ cursor: 'pointer', verticalAlign: 'middle' }}
+            >
+              <td style={{ padding: 'var(--space-3) var(--space-4)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
                   <div style={{
-                    padding: 'var(--space-2) var(--space-3)', marginTop: 'var(--space-2)',
-                    background: 'var(--color-surface-1)', borderRadius: 'var(--radius-md)',
-                    fontSize: 'var(--text-xs)', lineHeight: 1.6, color: 'var(--color-text-secondary)',
-                    whiteSpace: 'pre-wrap',
+                    width: 28, height: 28, borderRadius: 'var(--radius-sm)',
+                    background: `${config.color}15`, color: config.color,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                   }}>
-                    {fb.message}
+                    <Icon size={14} />
                   </div>
-                  {fb.admin_reply && (
-                    <div style={{
-                      marginTop: 'var(--space-2)', padding: 'var(--space-2) var(--space-3)',
-                      background: 'var(--color-accent-muted)', borderRadius: 'var(--radius-md)',
-                      border: '1px solid var(--color-accent-border)',
-                    }}>
-                      <div style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--color-accent)', marginBottom: 2 }}>
-                        <CheckCircle size={11} style={{ marginRight: 4, verticalAlign: 'middle' }} />
-                        Admin Response
-                      </div>
-                      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
-                        {fb.admin_reply}
-                      </div>
-                      {fb.replied_at && (
-                        <div style={{ fontSize: 10, color: 'var(--color-text-muted)', marginTop: 2 }}>
-                          {new Date(fb.replied_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  <span style={{ fontSize: 'var(--text-xs)', fontWeight: 500 }}>{config.label}</span>
                 </div>
-              )}
-            </div>
+              </td>
+              <td style={{ padding: 'var(--space-3) var(--space-4)', fontSize: 'var(--text-sm)', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 240 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+                  {fb.subject}
+                  {fb.admin_reply && <CheckCircle size={12} style={{ color: 'var(--color-info)', flexShrink: 0 }} />}
+                </div>
+              </td>
+              <td style={{ padding: 'var(--space-3) var(--space-4)' }}>
+                <span style={{
+                  display: 'inline-block', fontSize: 10, padding: '2px 8px', borderRadius: 'var(--radius-full)',
+                  background: st.bg, color: st.color, fontWeight: 600, textTransform: 'capitalize',
+                }}>
+                  {fb.status.replace('_', ' ')}
+                </span>
+              </td>
+              <td style={{ padding: 'var(--space-3) var(--space-4)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+                  <Clock size={12} />
+                  {new Date(fb.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                </div>
+              </td>
+            </tr>
           )
         })}
-      </div>
+      </Table>
+
+      {selected && (
+        <div style={MODAL_STYLES.overlay} onClick={() => setSelected(null)}>
+          <div style={MODAL_STYLES.modal} onClick={(e) => e.stopPropagation()}>
+            <div style={MODAL_STYLES.header}>
+              <span style={MODAL_STYLES.headerTitle}>Feedback Detail</span>
+              <button style={MODAL_STYLES.closeBtn} onClick={() => setSelected(null)}>
+                <X size={18} />
+              </button>
+            </div>
+            <div style={MODAL_STYLES.body}>
+              <div style={MODAL_STYLES.section}>
+                <div style={MODAL_STYLES.sectionLabel}>Subject</div>
+                <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>{selected.subject}</div>
+              </div>
+              <div style={MODAL_STYLES.section}>
+                <div style={MODAL_STYLES.sectionLabel}>Message</div>
+                <div style={MODAL_STYLES.messageBox}>{selected.message}</div>
+              </div>
+              {selected.admin_reply && (
+                <div style={MODAL_STYLES.section}>
+                  <div style={MODAL_STYLES.replyBox}>
+                    <div style={MODAL_STYLES.replyHeader}>
+                      <CheckCircle size={11} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+                      Admin Response
+                    </div>
+                    <div style={MODAL_STYLES.replyText}>{selected.admin_reply}</div>
+                    {selected.replied_at && (
+                      <div style={MODAL_STYLES.repliedAt}>
+                        {new Date(selected.replied_at).toLocaleDateString('en-GB', {
+                          day: 'numeric', month: 'short', year: 'numeric',
+                          hour: '2-digit', minute: '2-digit',
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              <div style={MODAL_STYLES.section}>
+                <div style={MODAL_STYLES.sectionLabel}>Status</div>
+                <span style={{
+                  display: 'inline-block', fontSize: 10, padding: '2px 8px', borderRadius: 'var(--radius-full)',
+                  background: (STATUS_STYLES[selected.status] || STATUS_STYLES.closed).bg,
+                  color: (STATUS_STYLES[selected.status] || STATUS_STYLES.closed).color,
+                  fontWeight: 600, textTransform: 'capitalize',
+                }}>
+                  {selected.status.replace('_', ' ')}
+                </span>
+              </div>
+              <div style={MODAL_STYLES.section}>
+                <div style={MODAL_STYLES.sectionLabel}>Submitted</div>
+                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                  {new Date(selected.created_at).toLocaleDateString('en-GB', {
+                    day: 'numeric', month: 'short', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit',
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
