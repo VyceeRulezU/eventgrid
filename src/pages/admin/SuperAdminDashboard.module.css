@@ -154,19 +154,46 @@
   color: var(--color-accent);
 }
 
-/* ── Mobile Responsive (375px) ── */
-@media (max-width: 375px) {
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.chartGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.tableGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.infraGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+/* ── Mobile Responsive ── */
+@media (max-width: 768px) {
   .kpiGrid {
-    grid-template-columns: 1fr !important;
-    gap: var(--space-3) !important;
+    grid-template-columns: 1fr;
   }
   .chartGrid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: 1fr;
   }
   .tableGrid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: 1fr;
   }
   .infraGrid {
-    grid-template-columns: 1fr 1fr !important;
+    grid-template-columns: 1fr 1fr;
   }
 }

@@ -88,6 +88,9 @@ export interface Database {
           budget_total: number | null
           status: string
           payment_status: string
+          payment_provider: string | null
+          amount_paid: number | null
+          paid_at: string | null
           paystack_ref: string | null
           current_phase: number
           client_id: string | null
@@ -112,6 +115,9 @@ export interface Database {
           budget_total?: number | null
           status?: string
           payment_status?: string
+          payment_provider?: string | null
+          amount_paid?: number | null
+          paid_at?: string | null
           paystack_ref?: string | null
           current_phase?: number
           client_id?: string | null
@@ -134,6 +140,9 @@ export interface Database {
           budget_total?: number | null
           status?: string
           payment_status?: string
+          payment_provider?: string | null
+          amount_paid?: number | null
+          paid_at?: string | null
           paystack_ref?: string | null
           current_phase?: number
           client_id?: string | null

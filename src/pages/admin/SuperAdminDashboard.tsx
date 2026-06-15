@@ -40,11 +40,11 @@ function getWeekId(date: Date): string {
   return monday.toISOString().substring(0, 10)
 }
 
-function getMonthRange(n: number): string[] {
+function getMonthRange(): string[] {
   const result: string[] = []
   const now = new Date()
-  for (let i = n - 1; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(now.getFullYear(), i, 1)
     result.push(d.toISOString().substring(0, 7))
   }
   return result
@@ -126,7 +126,7 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
           <div key={p.name} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 2 }}>
             <div style={{ width: 8, height: 8, borderRadius: 2, background: p.fill }} />
             <span style={{ color: 'var(--color-text-secondary)' }}>{p.name}:</span>
-            <span style={{ fontWeight: 600 }}>{typeof p.value === 'number' ? formatCurrency(p.value * 100) : p.value}</span>
+            <span style={{ fontWeight: 600 }}>{typeof p.value === 'number' ? formatCurrency(p.value) : p.value}</span>
           </div>
         ))}
       </div>
@@ -152,7 +152,7 @@ const FormatTooltip = ({ active, payload, label }: { active?: boolean; payload?:
     return (
       <div style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: 'var(--space-2) var(--space-3)', fontSize: 'var(--text-xs)' }}>
         <div style={{ color: 'var(--color-text-muted)', marginBottom: 2 }}>{label}</div>
-        <div style={{ fontWeight: 600 }}>{formatCurrency(payload[0].value * 100)}</div>
+        <div style={{ fontWeight: 600 }}>{formatCurrency(payload[0].value)}</div>
       </div>
     )
   }
@@ -190,7 +190,6 @@ export function SuperAdminDashboard() {
       const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString()
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
       const startOfYear = new Date(now.getFullYear(), 0, 1).toISOString()
-      const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 11, 1).toISOString()
 
       const [
         { count: plannerCount },
@@ -217,11 +216,11 @@ export function SuperAdminDashboard() {
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
         supabase.from('profiles').select('id, email, display_name').eq('role', 'planner'),
         supabase.from('events').select('id, name, event_type, status, created_at, created_by, current_phase, coordinator_id').is('deleted_at', null),
-        supabase.from('client_payments').select('id, amount, payment_method, status, created_at, event_id, received_date').eq('status', 'received').eq('payment_type', 'incoming'),
+        supabase.from('events').select('id, amount_paid, payment_provider, paid_at, name, created_by').eq('payment_status', 'paid'),
         supabase.from('events').select('id, name, event_type, status, current_phase, coordinator_id').is('deleted_at', null).not('status', 'eq', 'completed').not('status', 'eq', 'cancelled'),
-        supabase.from('client_payments').select('id, amount, payment_method, status, created_at, event_id, description').order('created_at', { ascending: false }).limit(10),
+        supabase.from('events').select('id, amount_paid, payment_provider, paid_at, name, created_by').eq('payment_status', 'paid').order('paid_at', { ascending: false }).limit(10),
         supabase.from('events').select('id, name, event_type, status, created_at, created_by').is('deleted_at', null).order('created_at', { ascending: false }).limit(10),
-        supabase.from('profiles').select('created_at').gte('created_at', twelveMonthsAgo).order('created_at'),
+        supabase.from('profiles').select('created_at').gte('created_at', startOfYear).order('created_at'),
         supabase.from('organizations').select('id', { count: 'exact', head: true }),
         supabase.from('vendors').select('id', { count: 'exact', head: true }).is('deleted_at', null),
         supabase.from('guests').select('id', { count: 'exact', head: true }),
@@ -230,16 +229,16 @@ export function SuperAdminDashboard() {
 
       console.log('[SAD] plannerCount', plannerCount, 'coordinatorCount', coordinatorCount, 'tEventCount', tEventCount, 'aEventCount', aEventCount)
       console.log('[SAD] allEventsData count:', allEventsData?.length, 'allPaymentsData count:', allPaymentsData?.length, 'liveEventsRaw count:', liveEventsRaw?.length)
-      console.log('[SAD] profilesForSignups count:', profilesForSignups?.length, 'recentPaymentsRaw count:', recentPaymentsRaw?.length, 'recentEventsRaw count:', recentEventsRaw?.length)
+      console.log('[SAD] profilesForSignups count:', profilesForSignups?.length, 'recentPaymentsRaw (paid events) count:', recentPaymentsRaw?.length, 'recentEventsRaw count:', recentEventsRaw?.length)
 
       setTotalPlanners(plannerCount || 0)
       setTotalCoordinators(coordinatorCount || 0)
       setTotalEvents(tEventCount || 0)
       setActiveEvents(aEventCount || 0)
 
-      const payments = allPaymentsData || []
-      const revenueMtdVal = payments.filter(p => p.received_date && p.received_date >= startOfMonth).reduce((s, p) => s + (p.amount || 0), 0)
-      const revenueYtdVal = payments.filter(p => p.received_date && p.received_date >= startOfYear).reduce((s, p) => s + (p.amount || 0), 0)
+      const paidEvents = allPaymentsData || []
+      const revenueMtdVal = paidEvents.filter(p => p.paid_at && p.paid_at >= startOfMonth).reduce((s, p) => s + (p.amount_paid || 0), 0)
+      const revenueYtdVal = paidEvents.filter(p => p.paid_at && p.paid_at >= startOfYear).reduce((s, p) => s + (p.amount_paid || 0), 0)
       setRevenueMtd(revenueMtdVal)
       setRevenueYtd(revenueYtdVal)
 
@@ -249,16 +248,16 @@ export function SuperAdminDashboard() {
       weeks.forEach(w => { eventsByWeekMap[w] = 0; revenueByWeekMap[w] = 0 })
 
       const ninetyDayEvents = (allEventsData || []).filter(e => e.created_at >= ninetyDaysAgo)
-      const ninetyDayPayments = payments.filter(p => p.received_date && p.received_date >= ninetyDaysAgo)
+      const ninetyDayPayments = paidEvents.filter(p => p.paid_at && p.paid_at >= ninetyDaysAgo)
 
       ninetyDayEvents.forEach(e => {
         const wk = getWeekId(new Date(e.created_at))
         if (eventsByWeekMap[wk] !== undefined) eventsByWeekMap[wk]++
       })
       ninetyDayPayments.forEach(p => {
-        if (p.received_date) {
-          const wk = getWeekId(new Date(p.received_date))
-          if (revenueByWeekMap[wk] !== undefined) revenueByWeekMap[wk] += p.amount
+        if (p.paid_at) {
+          const wk = getWeekId(new Date(p.paid_at))
+          if (revenueByWeekMap[wk] !== undefined) revenueByWeekMap[wk] += p.amount_paid
         }
       })
 
@@ -276,38 +275,34 @@ export function SuperAdminDashboard() {
       setEventsByType(Object.entries(typeMap).map(([name, count]) => ({ name, count })))
 
       const methodMap: Record<string, number> = {}
-      payments.forEach(p => {
-        const m = p.payment_method || 'Unknown'
-        methodMap[m] = (methodMap[m] || 0) + p.amount
+      paidEvents.forEach(p => {
+        const m = p.payment_provider || 'Unknown'
+        methodMap[m] = (methodMap[m] || 0) + (p.amount_paid || 0)
       })
       setRevenueByMethod(Object.entries(methodMap).map(([name, value]) => ({ name, value })))
 
-      const months = getMonthRange(12)
+      const months = getMonthRange()
       const signupCounts: Record<string, number> = {}
       months.forEach(m => signupCounts[m] = 0)
       ;(profilesForSignups || []).forEach(p => {
-        const m = p.created_at.substring(0, 7)
+        const d = typeof p.created_at === 'string' ? new Date(p.created_at) : p.created_at
+        const m = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')
         if (signupCounts[m] !== undefined) signupCounts[m]++
       })
       setSignupsData(months.map(m => ({ month: getMonthLabel(m), count: signupCounts[m] })))
 
       const plannerEvents: Record<string, string[]> = {}
       const plannerEventRevenue: Record<string, number> = {}
-      const eventRevenue: Record<string, number> = {}
 
       ;(allEventsData || []).forEach(e => {
         if (!plannerEvents[e.created_by]) plannerEvents[e.created_by] = []
         plannerEvents[e.created_by].push(e.id)
-        if (!plannerEventRevenue[e.created_by]) plannerEventRevenue[e.created_by] = 0
       })
 
-      payments.forEach(p => {
-        eventRevenue[p.event_id] = (eventRevenue[p.event_id] || 0) + p.amount
-      })
-
-      Object.entries(plannerEventRevenue).forEach(([pid]) => {
-        const eids = plannerEvents[pid] || []
-        plannerEventRevenue[pid] = eids.reduce((sum, eid) => sum + (eventRevenue[eid] || 0), 0)
+      paidEvents.forEach(p => {
+        if (p.created_by) {
+          plannerEventRevenue[p.created_by] = (plannerEventRevenue[p.created_by] || 0) + (p.amount_paid || 0)
+        }
       })
 
       setTopPlanners(
@@ -361,26 +356,14 @@ export function SuperAdminDashboard() {
         }))
       )
 
-      const payEventIds = [...new Set((recentPaymentsRaw || []).map(p => p.event_id).filter(Boolean))]
-      const payEventMap: Record<string, string> = {}
-      if (payEventIds.length > 0) {
-        const { data: payEvents } = await supabase
-          .from('events')
-          .select('id, name')
-          .in('id', payEventIds)
-        ;(payEvents || []).forEach(pe => {
-          payEventMap[pe.id] = pe.name
-        })
-      }
-
       setRecentPayments(
         (recentPaymentsRaw || []).map(p => ({
           id: p.id,
-          date: formatDate(p.created_at),
-          event: p.event_id ? (payEventMap[p.event_id] || 'Unknown') : 'Unknown',
-          amount: p.amount || 0,
-          method: p.payment_method || 'N/A',
-          status: p.status,
+          date: formatDate(p.paid_at),
+          event: p.name || 'Unknown',
+          amount: p.amount_paid || 0,
+          method: p.payment_provider || 'N/A',
+          status: 'paid',
         }))
       )
 
@@ -410,7 +393,7 @@ export function SuperAdminDashboard() {
       const totalRows = [
         plannerCount || 0,
         tEventCount || 0,
-        payments.length,
+        paidEvents.length,
         orgCount || 0,
         vendorCount || 0,
         guestCount || 0,
@@ -488,7 +471,7 @@ export function SuperAdminDashboard() {
         }
       />
 
-      <div className={styles.kpiGrid} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
+      <div className={styles.kpiGrid}>
         <KpiCard icon={Users} label="Total Planners" value={totalPlanners} color="var(--color-accent)" />
         <KpiCard icon={Users} label="Total Coordinators" value={totalCoordinators} color="var(--color-info)" />
         <KpiCard icon={Calendar} label="Total Events" value={totalEvents} color="var(--color-info)" />
@@ -497,7 +480,7 @@ export function SuperAdminDashboard() {
         <KpiCard icon={TrendingUp} label="Revenue (YTD)" value={toNaira(revenueYtd)} color="var(--color-accent)" />
       </div>
 
-      <div className={styles.chartGrid} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
+      <div className={styles.chartGrid}>
         <div className="card" style={{ padding: 'var(--space-4) var(--space-5)' }}>
           <h3 style={{ margin: '0 0 var(--space-3) 0', fontSize: 'var(--text-base)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
             <TrendingUp size={16} style={{ color: 'var(--color-accent)' }} />
@@ -597,7 +580,7 @@ export function SuperAdminDashboard() {
         </div>
       </div>
 
-      <div className={styles.tableGrid} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
+      <div className={styles.tableGrid}>
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-3) var(--space-5)', borderBottom: '1px solid var(--color-border-subtle)' }}>
             <h3 style={{ margin: 0, fontSize: 'var(--text-sm)', fontWeight: 700 }}>Top 10 Planners</h3>
@@ -774,7 +757,7 @@ export function SuperAdminDashboard() {
         </div>
       </div>
 
-      <div className={styles.infraGrid} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--space-3)', marginBottom: 'var(--space-6)' }}>
+      <div className={styles.infraGrid}>
         {[
           { label: 'Total DB Rows', value: infra.totalDbRows.toLocaleString(), icon: Database, color: 'var(--color-accent)', max: 50000 },
           { label: 'Storage Used', value: infra.storageUsed > 1073741824 ? `${(infra.storageUsed / 1073741824).toFixed(2)} GB` : `${(infra.storageUsed / 1048576).toFixed(1)} MB`, icon: HardDrive, color: 'var(--color-info)', max: 1073741824 },

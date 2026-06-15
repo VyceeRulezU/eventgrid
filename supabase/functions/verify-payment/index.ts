@@ -112,6 +112,8 @@ Deno.serve(async (req) => {
         status: 'active',
         payment_status: 'paid',
         payment_provider: provider,
+        amount_paid: Math.round(amountPaid * 100),
+        paid_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         paystack_ref: reference,
       })

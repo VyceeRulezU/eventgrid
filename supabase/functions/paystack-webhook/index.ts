@@ -39,6 +39,8 @@ Deno.serve(async (req) => {
         status: 'active',
         payment_status: 'paid',
         paystack_ref: reference,
+        amount_paid: amount,
+        paid_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
       .eq('id', metadata.event_id)

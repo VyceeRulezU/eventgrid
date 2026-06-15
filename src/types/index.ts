@@ -45,6 +45,9 @@ export interface Event {
   budget_total: number | null
   status: 'draft' | 'active' | 'in_progress' | 'completed' | 'cancelled'
   payment_status: 'unpaid' | 'paid'
+  payment_provider: string | null
+  amount_paid: number | null
+  paid_at: string | null
   paystack_ref: string | null
   current_phase: number
   client_id: string | null
