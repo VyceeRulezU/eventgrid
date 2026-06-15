@@ -20,6 +20,8 @@ export function SettingsPage() {
   const user = useAuthStore((s) => s.user)
   const org = useAuthStore((s) => s.org)
   const role = useAuthStore((s) => s.role)
+  const betaLabelVisible = useAuthStore((s) => s.betaLabelVisible)
+  const setBetaLabelVisible = useAuthStore((s) => s.setBetaLabelVisible)
   const setProfile = useAuthStore((s) => s.setProfile)
   const setOrg = useAuthStore((s) => s.setOrg)
   const clearAuth = useAuthStore((s) => s.clearAuth)
@@ -33,21 +35,20 @@ export function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [testingEmail, setTestingEmail] = useState(false)
   const [showFeedback, setShowFeedback] = useState(false)
-  const [showBetaLabel, setShowBetaLabel] = useState(org?.show_beta_label ?? true)
+  const [showBetaLabel, setShowBetaLabel] = useState(betaLabelVisible)
 
   const handleToggleBetaLabel = async (value: boolean) => {
-    if (!org?.id) return
     setShowBetaLabel(value)
     const { error } = await supabase
-      .from('organizations')
+      .from('app_settings')
       .update({ show_beta_label: value })
-      .eq('id', org.id)
+      .eq('id', 1)
     if (error) {
       setShowBetaLabel(!value)
       showToast({ type: 'error', title: 'Failed to update', body: error.message })
       return
     }
-    setOrg({ ...org, show_beta_label: value })
+    setBetaLabelVisible(value)
   }
 
   const handleTestEmail = async () => {

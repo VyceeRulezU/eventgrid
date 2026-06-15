@@ -7,10 +7,12 @@ interface AuthStore {
   profile: Profile | null
   role: UserRole | null
   org: { id: string; name: string; logo_url: string | null; show_beta_label: boolean } | null
+  betaLabelVisible: boolean
   isLoading: boolean
   setUser: (user: User | null) => void
   setProfile: (profile: Profile | null) => void
   setOrg: (org: { id: string; name: string; logo_url: string | null; show_beta_label: boolean } | null) => void
+  setBetaLabelVisible: (visible: boolean) => void
   setLoading: (loading: boolean) => void
   clearAuth: () => void
 }
@@ -20,6 +22,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
   profile: null,
   role: null,
   org: null,
+  betaLabelVisible: true,
   isLoading: true,
   setUser: (user) => set((state) => ({
     user,
@@ -32,6 +35,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
     role: profile?.is_super_admin ? 'super_admin' as UserRole : (profile?.role || state.role || null),
   })),
   setOrg: (org) => set({ org }),
+  setBetaLabelVisible: (betaLabelVisible) => set({ betaLabelVisible }),
   setLoading: (isLoading) => set({ isLoading }),
-  clearAuth: () => set({ user: null, profile: null, role: null, org: null, isLoading: false }),
+  clearAuth: () => set({ user: null, profile: null, role: null, org: null, betaLabelVisible: true, isLoading: false }),
 }))

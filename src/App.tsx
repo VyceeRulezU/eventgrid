@@ -278,6 +278,7 @@ export function App() {
   const setUser = useAuthStore((s) => s.setUser)
   const setProfile = useAuthStore((s) => s.setProfile)
   const setOrg = useAuthStore((s) => s.setOrg)
+  const setBetaLabelVisible = useAuthStore((s) => s.setBetaLabelVisible)
   const setLoading = useAuthStore((s) => s.setLoading)
   async function loadProfile(userId: string, user?: User) {
     let profile: Profile | null = null
@@ -323,6 +324,17 @@ export function App() {
         } catch (err) {
           console.warn('Unable to load organization:', err instanceof Error ? err.message : err)
         }
+      }
+
+      try {
+        const { data: settings } = await supabase
+          .from('app_settings')
+          .select('show_beta_label')
+          .eq('id', 1)
+          .single()
+        if (settings) setBetaLabelVisible(settings.show_beta_label)
+      } catch (err) {
+        console.warn('Unable to load app settings:', err instanceof Error ? err.message : err)
       }
       return
     }

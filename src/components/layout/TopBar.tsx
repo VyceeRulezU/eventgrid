@@ -30,6 +30,7 @@ export function TopBar() {
   const profile = useAuthStore((s) => s.profile)
   const user = useAuthStore((s) => s.user)
   const org = useAuthStore((s) => s.org)
+  const betaLabelVisible = useAuthStore((s) => s.betaLabelVisible)
   const clearAuth = useAuthStore((s) => s.clearAuth)
   const unreadCount = useNotificationStore((s) => s.unreadCount)
 
@@ -93,7 +94,7 @@ export function TopBar() {
         </div>
       </div>
       <div className={styles.right}>
-        {org?.show_beta_label !== false && <span className={styles.betaBadge}>Beta</span>}
+        {betaLabelVisible && <span className={styles.betaBadge}>Beta</span>}
         <button className={styles.iconBtn} onClick={() => useNotificationStore.getState().setDrawerOpen(true)} aria-label="Notifications" style={{ position: 'relative' }}>
           <Bell size={18} />
           {unreadCount > 0 && (
