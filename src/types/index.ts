@@ -217,6 +217,11 @@ export interface SeatingTable {
   capacity: number
   is_vip: boolean
   notes: string | null
+  x: number
+  y: number
+  width: number
+  height: number
+  rotation: number
   created_at: string
 }
 

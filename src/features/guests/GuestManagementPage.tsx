@@ -12,6 +12,7 @@ import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { Tabs } from '@/components/ui/Tabs'
 import { sendInvite } from '@/lib/edgeFunctions'
 import type { Guest, SeatingTable } from '@/types'
+import { FloorPlanCanvas } from './FloorPlanCanvas'
 import { Checkbox } from '@/components/ui/Checkbox'
 import { PageHero } from '@/components/shared/PageHero'
 import { useSearch } from '@/hooks/useSearch'
@@ -47,6 +48,7 @@ export function GuestManagementPage() {
   const [addConsent, setAddConsent] = useState(false)
   const [csvConsent, setCsvConsent] = useState(false)
   const [showDetail, setShowDetail] = useState(false)
+  const [floorPlan, setFloorPlan] = useState(false)
 
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth < 768)
@@ -515,23 +517,30 @@ export function GuestManagementPage() {
         <>
           <div className={styles.seatingHeader}>
             <button className="btn btn-secondary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => setShowTableForm(true)}><Plus size={14} /> Add Table</button>
+            <button className="btn btn-secondary btn-sm" style={{ borderRadius: 'var(--radius-sm)', marginLeft: 'var(--space-2)' }} onClick={() => setFloorPlan(!floorPlan)}>
+              <LayoutGrid size={14} /> {floorPlan ? 'Cards' : 'Floor Plan'}
+            </button>
           </div>
-          <div className={styles.seatingGrid}>
-            {tables.map((t) => {
-              const occ = getTableOccupancy(t.id)
-              const pct = occ / t.capacity
-              return (
-                <div key={t.id} className={`${styles.tableCard} ${pct >= 1 ? styles.tableCardFull : ''} ${t.is_vip ? styles.tableCardVIP : ''}`}>
-                  <div className={styles.tableHeader}>
-                    <span className={styles.tableName}>{t.table_name}</span>
-                    {t.is_vip && <span className={styles.vipTag}>VIP</span>}
+          {floorPlan ? (
+            <FloorPlanCanvas eventId={eventId} tables={tables} onTablesChange={setTables} />
+          ) : (
+            <div className={styles.seatingGrid}>
+              {tables.map((t) => {
+                const occ = getTableOccupancy(t.id)
+                const pct = occ / t.capacity
+                return (
+                  <div key={t.id} className={`${styles.tableCard} ${pct >= 1 ? styles.tableCardFull : ''} ${t.is_vip ? styles.tableCardVIP : ''}`}>
+                    <div className={styles.tableHeader}>
+                      <span className={styles.tableName}>{t.table_name}</span>
+                      {t.is_vip && <span className={styles.vipTag}>VIP</span>}
+                    </div>
+                    <div className={styles.tableOccupancy}>{occ}/{t.capacity}</div>
+                    <div className={styles.tableBar}><div className={styles.tableBarFill} style={{ width: `${Math.min(pct * 100, 100)}%` }} /></div>
                   </div>
-                  <div className={styles.tableOccupancy}>{occ}/{t.capacity}</div>
-                  <div className={styles.tableBar}><div className={styles.tableBarFill} style={{ width: `${Math.min(pct * 100, 100)}%` }} /></div>
-                </div>
-              )
-            })}
-          </div>
+                )
+              })}
+            </div>
+          )}
         </>
       )}
 
