@@ -25,8 +25,8 @@ async function globalSetup(_config: FullConfig) {
     try {
       await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 20000 })
     } catch {
-      // If still on /login, capture state for debugging
       console.error('Still on /login after submit. URL:', page.url())
+      await page.screenshot({ path: 'playwright/login-failed.png', fullPage: true })
       const html = await page.content()
       console.error('Page HTML (first 2000 chars):', html.substring(0, 2000))
       const title = await page.title()
