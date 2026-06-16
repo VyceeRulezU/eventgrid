@@ -821,7 +821,8 @@ export interface Database {
         Row: {
           id: string
           reviewed_id: string
-          reviewer_id: string
+          reviewer_id: string | null
+          reviewer_name: string | null
           event_id: string
           reviewer_role: string
           rating: number
@@ -831,7 +832,8 @@ export interface Database {
         Insert: {
           id?: string
           reviewed_id: string
-          reviewer_id: string
+          reviewer_id?: string | null
+          reviewer_name?: string | null
           event_id: string
           reviewer_role: string
           rating: number
@@ -840,7 +842,8 @@ export interface Database {
         Update: {
           id?: string
           reviewed_id?: string
-          reviewer_id?: string
+          reviewer_id?: string | null
+          reviewer_name?: string | null
           event_id?: string
           reviewer_role?: string
           rating?: number

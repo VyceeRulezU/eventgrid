@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from 'react'
+import { useEffect, useState, useMemo, useCallback, lazy, Suspense } from 'react'
 import { useResolvedEventId } from '@/hooks/useResolvedEventId'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
@@ -12,7 +12,8 @@ import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { Tabs } from '@/components/ui/Tabs'
 import { sendInvite } from '@/lib/edgeFunctions'
 import type { Guest, SeatingTable } from '@/types'
-import { FloorPlanCanvas } from './FloorPlanCanvas'
+
+const FloorPlanCanvas = lazy(() => import('./FloorPlanCanvas').then((m) => ({ default: m.FloorPlanCanvas })))
 import { Checkbox } from '@/components/ui/Checkbox'
 import { PageHero } from '@/components/shared/PageHero'
 import { useSearch } from '@/hooks/useSearch'
@@ -522,7 +523,9 @@ export function GuestManagementPage() {
             </button>
           </div>
           {floorPlan ? (
-            <FloorPlanCanvas eventId={eventId} tables={tables} onTablesChange={setTables} />
+            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
+              <FloorPlanCanvas eventId={eventId} tables={tables} onTablesChange={setTables} />
+            </Suspense>
           ) : (
             <div className={styles.seatingGrid}>
               {tables.map((t) => {

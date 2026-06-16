@@ -12,6 +12,7 @@ import { PhaseSegmentBar } from '@/components/shared/PhasePipeline'
 import { PageHero } from '@/components/shared/PageHero'
 import { sendInvite } from '@/lib/edgeFunctions'
 import { Table } from '@/components/ui/Table'
+import { ReviewForm } from '@/features/reviews/ReviewForm'
 import type { Event, EventPhase, Media, ClientPortal, EventVendor, Guest } from '@/types'
 
 interface PortalAsset {
@@ -310,7 +311,19 @@ export function ClientPortalPage() {
 
         {/* Timeline */}
         {activeTab === 'timeline' && (
-          <PhaseTimelineTracker phases={phases} event={event} readOnly />
+          <>
+            <PhaseTimelineTracker phases={phases} event={event} readOnly />
+            {data?.event?.created_by && (
+              <div style={{ marginTop: 'var(--space-6)' }}>
+                <ReviewForm
+                  reviewedId={data.event.created_by}
+                  eventId={data.event.id}
+                  reviewerRole="client"
+                  anonymous
+                />
+              </div>
+            )}
+          </>
         )}
 
         {/* Phase list */}

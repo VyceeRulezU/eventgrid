@@ -66,6 +66,7 @@ Deno.serve(async (req) => {
         name,
         event_type,
         event_date,
+        created_by,
         venue_name,
         guest_count,
         event_phases (

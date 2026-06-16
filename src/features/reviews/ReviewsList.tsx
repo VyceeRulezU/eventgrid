@@ -30,7 +30,7 @@ export function ReviewsList({ userId, eventId }: { userId: string; eventId?: str
         setReviews(
           (reviewsRes.data as ReviewRow[]).map((r) => ({
             ...r,
-            reviewer_name: profiles.get(r.reviewer_id) || undefined,
+            reviewer_name: profiles.get(r.reviewer_id) || r.reviewer_name || undefined,
             event_name: events.get(r.event_id) || undefined,
           }))
         )
@@ -69,7 +69,7 @@ export function ReviewsList({ userId, eventId }: { userId: string; eventId?: str
           <div key={review.id} style={{ background: 'var(--color-surface-2)', borderRadius: 'var(--radius-md)', padding: 'var(--space-4)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-2)' }}>
               <div>
-                <span style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>{review.reviewer_name || 'Anonymous'}</span>
+                    <span style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>{review.reviewer_name || review.reviewer_name || 'Anonymous'}</span>
                 {review.event_name && <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginLeft: 'var(--space-2)' }}>— {review.event_name}</span>}
               </div>
               <div style={{ display: 'flex', gap: 2 }}>
