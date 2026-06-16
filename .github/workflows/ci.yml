@@ -67,12 +67,6 @@ jobs:
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
           VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
-      - name: Disable captcha for E2E tests
-        run: |
-          curl -X PATCH "https://api.supabase.com/v1/projects/menmpyyrqevonepbpfai/config/auth" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_ACCESS_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d '{"security_captcha_enabled": false}'
       - name: Run E2E tests
         run: npx playwright test
         env:
@@ -81,13 +75,6 @@ jobs:
           E2E_TEST_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
           E2E_TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
           E2E_APP_URL: ${{ vars.E2E_APP_URL || 'http://localhost:4173' }}
-      - name: Re-enable captcha
-        if: always()
-        run: |
-          curl -X PATCH "https://api.supabase.com/v1/projects/menmpyyrqevonepbpfai/config/auth" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_ACCESS_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d '{"security_captcha_enabled": true}'
       - uses: actions/upload-artifact@v4
         if: always()
         with:

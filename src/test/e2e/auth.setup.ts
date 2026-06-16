@@ -22,9 +22,15 @@ async function globalSetup(_config: FullConfig) {
   // Derive the Supabase project ref from the URL (subdomain of supabase.co)
   const projectRef = new URL(supabaseUrl).hostname.split('.')[0]
 
-  // Use the Supabase client directly to authenticate
+  // Use the Supabase client directly to authenticate.
+  // The Supabase project's Turnstile secret is set to the test key
+  // (1x00000000000000000000AB), which accepts ANY captcha token.
   const supabase = createClient(supabaseUrl, supabaseAnonKey)
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+    options: { captchaToken: 'ci-e2e-test-token' },
+  })
 
   if (error || !data.session) {
     console.error('Supabase login failed:', error?.message || 'No session returned')
