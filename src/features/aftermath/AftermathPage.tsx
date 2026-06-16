@@ -24,6 +24,8 @@ const TABS: { key: Tab; label: string; icon: React.ComponentType<{ size?: number
 export function AftermathPage() {
   const { eventId, paramId, loading: idLoading } = useResolvedEventId()
   const user = useAuthStore((s) => s.user)
+  const [eventName, setEventName] = useState('')
+  const [activeTab, setActiveTab] = useState<Tab>('summary')
   const [summary, setSummary] = useState({ guestCount: 0, checkedIn: 0, vendorCount: 0, issueCount: 0, mediaCount: 0, completedPhases: 0, totalPhases: 9 })
 
   useEffect(() => {
