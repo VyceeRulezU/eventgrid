@@ -17,7 +17,7 @@ const TOPICS = [
         <p>EventGrid is a planning platform for event professionals. You can manage vendors, track finances, coordinate your team, handle guest lists, run live event operations, and share updates with clients — all in one place.</p>
 
         <h4>Logging In</h4>
-        <p>Go to <strong>/login</strong>. You can sign in with email + password, Google, or Apple. If you don't have an account, click <strong>Create Account</strong>.</p>
+        <p>Go to <strong>/login</strong>. You can sign in with email + password, Google, or Facebook. If you don't have an account, click <strong>Create Account</strong>.</p>
 
         <h4>User Roles</h4>
         <p>Your role determines what you see and can do:</p>

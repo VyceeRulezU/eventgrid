@@ -68,6 +68,8 @@ export function PrivacyPage() {
                 <p>Photographs, documents, and files you upload (such as event photos, contracts, proposals, and receipts).</p>
                 <h3 className={styles.subTitle}>3.5 Usage and Device Information</h3>
                 <p>Information about how you use the Platform, including log data, device type, browser type, and approximate location (derived from IP address), for security and product improvement purposes.</p>
+                <h3 className={styles.subTitle}>3.6 Third-Party Authentication Data</h3>
+                <p>If you sign up or log in using Google or Facebook, we receive your name, email address, and profile picture from that provider. We use this information solely to create and authenticate your EventGrid account. We do not store tokens or access additional data from these providers beyond what is necessary for authentication. Google and Facebook are independent data controllers for the information they process on your behalf — please refer to their privacy policies for details on how they handle your data.</p>
               </section>
 
               <section id="use" className={styles.textSection}>
@@ -104,6 +106,8 @@ export function PrivacyPage() {
                     <tr><td>Cloudflare (R2)</td><td>Media and file storage</td><td>Global CDN</td></tr>
                     <tr><td>Paystack / Flutterwave</td><td>Payment processing</td><td>Nigeria-licensed payment processors</td></tr>
                     <tr><td>Resend</td><td>Transactional email delivery</td><td>Cloud infrastructure</td></tr>
+                    <tr><td>Google</td><td>OAuth authentication (sign-up and sign-in via Google)</td><td>Global</td></tr>
+                    <tr><td>Facebook</td><td>OAuth authentication (sign-up and sign-in via Facebook)</td><td>Global</td></tr>
                     <tr><td>Vercel</td><td>Website and application hosting</td><td>Global CDN</td></tr>
                   </tbody>
                 </table>
