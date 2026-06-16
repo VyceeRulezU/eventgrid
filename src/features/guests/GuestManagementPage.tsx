@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback, lazy, Suspense } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useResolvedEventId } from '@/hooks/useResolvedEventId'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
@@ -11,9 +11,9 @@ import {
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { Tabs } from '@/components/ui/Tabs'
 import { sendInvite } from '@/lib/edgeFunctions'
+import { SeatingPage } from '@/features/guests/seating/SeatingPage'
 import type { Guest, SeatingTable } from '@/types'
 
-const FloorPlanCanvas = lazy(() => import('./FloorPlanCanvas').then((m) => ({ default: m.FloorPlanCanvas })))
 import { Checkbox } from '@/components/ui/Checkbox'
 import { PageHero } from '@/components/shared/PageHero'
 import { useSearch } from '@/hooks/useSearch'
@@ -40,8 +40,6 @@ export function GuestManagementPage() {
   const [showCSV, setShowCSV] = useState(false)
   const [newGuest, setNewGuest] = useState({ first_name: '', last_name: '', phone: '', email: '', group_name: '', is_vip: false, plus_one: false })
   const [csvPreview, setCsvPreview] = useState<Record<string, string>[]>([])
-  const [showTableForm, setShowTableForm] = useState(false)
-  const [tableForm, setTableForm] = useState({ table_name: '', capacity: 8 })
   const [selectedGuest, setSelectedGuest] = useState<(Guest & { table_name?: string }) | null>(null)
   const [editGuest, setEditGuest] = useState<Partial<Guest> | null>(null)
   const [saving, setSaving] = useState(false)
@@ -49,7 +47,6 @@ export function GuestManagementPage() {
   const [addConsent, setAddConsent] = useState(false)
   const [csvConsent, setCsvConsent] = useState(false)
   const [showDetail, setShowDetail] = useState(false)
-  const [floorPlan, setFloorPlan] = useState(false)
 
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth < 768)
@@ -166,18 +163,6 @@ export function GuestManagementPage() {
     const { data } = await supabase.from('guests').select('*').eq('event_id', eventId).order('created_at')
     setGuests((data || []) as unknown as Guest[])
   }
-
-  const handleAddTable = async () => {
-    if (!tableForm.table_name.trim() || !eventId) return
-    const { error } = await supabase.from('seating_tables').insert({ event_id: eventId, table_name: tableForm.table_name, capacity: tableForm.capacity })
-    if (error) { showToast({ type: 'error', title: 'Failed to add table', body: error.message }); return }
-    setShowTableForm(false)
-    setTableForm({ table_name: '', capacity: 8 })
-    const { data } = await supabase.from('seating_tables').select('*').eq('event_id', eventId).order('table_name')
-    setTables((data || []) as unknown as SeatingTable[])
-  }
-
-  const getTableOccupancy = (tableId: string) => guests.filter(g => g.table_id === tableId).length
 
   const handleSelectGuest = useCallback((guest: Guest & { table_name?: string }) => {
     setSelectedGuest(guest)
@@ -514,37 +499,8 @@ export function GuestManagementPage() {
         </div>
       )}
 
-      {tab === 'seating' && (
-        <>
-          <div className={styles.seatingHeader}>
-            <button className="btn btn-secondary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => setShowTableForm(true)}><Plus size={14} /> Add Table</button>
-            <button className="btn btn-secondary btn-sm" style={{ borderRadius: 'var(--radius-sm)', marginLeft: 'var(--space-2)' }} onClick={() => setFloorPlan(!floorPlan)}>
-              <LayoutGrid size={14} /> {floorPlan ? 'Cards' : 'Floor Plan'}
-            </button>
-          </div>
-          {floorPlan ? (
-            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
-              <FloorPlanCanvas eventId={eventId} tables={tables} onTablesChange={setTables} />
-            </Suspense>
-          ) : (
-            <div className={styles.seatingGrid}>
-              {tables.map((t) => {
-                const occ = getTableOccupancy(t.id)
-                const pct = occ / t.capacity
-                return (
-                  <div key={t.id} className={`${styles.tableCard} ${pct >= 1 ? styles.tableCardFull : ''} ${t.is_vip ? styles.tableCardVIP : ''}`}>
-                    <div className={styles.tableHeader}>
-                      <span className={styles.tableName}>{t.table_name}</span>
-                      {t.is_vip && <span className={styles.vipTag}>VIP</span>}
-                    </div>
-                    <div className={styles.tableOccupancy}>{occ}/{t.capacity}</div>
-                    <div className={styles.tableBar}><div className={styles.tableBarFill} style={{ width: `${Math.min(pct * 100, 100)}%` }} /></div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </>
+      {tab === 'seating' && eventId && (
+        <SeatingPage eventId={eventId} />
       )}
 
       {showAdd && (
@@ -604,18 +560,6 @@ export function GuestManagementPage() {
         </div>
       )}
 
-      {showTableForm && (
-        <div className={styles.overlay} onClick={() => setShowTableForm(false)}>
-          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}><h3>Add Table</h3><button className={styles.closeBtn} onClick={() => setShowTableForm(false)} data-tooltip="Close"><X size={18} /></button></div>
-            <div className={styles.modalBody}>
-              <div className="input-wrapper" style={{ marginBottom: 'var(--space-3)' }}><label className="input-label">Table Name</label><input className="input" value={tableForm.table_name} onChange={(e) => setTableForm({ ...tableForm, table_name: e.target.value })} placeholder="e.g. Table 1" /></div>
-              <div className="input-wrapper" style={{ marginBottom: 'var(--space-4)' }}><label className="input-label">Capacity</label><input className="input" type="number" min={1} value={tableForm.capacity} onChange={(e) => setTableForm({ ...tableForm, capacity: Number(e.target.value) })} /></div>
-              <button className={`btn btn-primary ${styles.fullBtn}`} onClick={handleAddTable}>Add Table</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
     </div>
   )
