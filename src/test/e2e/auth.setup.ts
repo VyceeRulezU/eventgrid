@@ -1,6 +1,28 @@
 import 'dotenv/config'
-import { chromium, type FullConfig } from '@playwright/test'
+import { chromium, type Page, type FullConfig } from '@playwright/test'
 import { createClient } from '@supabase/supabase-js'
+
+const TURNSTILE_SITE_KEY = '0x4AAAAAADlDWkKAkkc1Zy9n'
+
+async function getTurnstileToken(page: Page): Promise<string> {
+  const html = `<!DOCTYPE html><html><head>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+</head><body>
+<div id="captcha"></div>
+<script>
+window.onloadTurnstileCallback = function () {
+  turnstile.render('#captcha', {
+    sitekey: '${TURNSTILE_SITE_KEY}',
+    callback: function(token) { window.captchaToken = token; },
+  });
+};
+</script>
+</body></html>`
+
+  await page.goto('data:text/html,' + encodeURIComponent(html), { waitUntil: 'networkidle' })
+  await page.waitForFunction(() => (window as any).captchaToken, { timeout: 30000 })
+  return await page.evaluate(() => (window as any).captchaToken)
+}
 
 async function globalSetup(_config: FullConfig) {
   const email = process.env.E2E_TEST_EMAIL
@@ -19,34 +41,30 @@ async function globalSetup(_config: FullConfig) {
     return
   }
 
-  // Derive the Supabase project ref from the URL (subdomain of supabase.co)
   const projectRef = new URL(supabaseUrl).hostname.split('.')[0]
-
-  // Use the Supabase client directly to authenticate.
-  // The Supabase project's Turnstile secret is set to the test key
-  // (1x00000000000000000000AB), which accepts ANY captcha token.
-  const supabase = createClient(supabaseUrl, supabaseAnonKey)
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-    options: { captchaToken: 'ci-e2e-test-token' },
-  })
-
-  if (error || !data.session) {
-    console.error('Supabase login failed:', error?.message || 'No session returned')
-    throw new Error(`Supabase login failed: ${error?.message || 'No session returned'}`)
-  }
-
-  console.log('Supabase login succeeded, setting up browser session...')
 
   const browser = await chromium.launch()
   const page = await browser.newPage()
 
   try {
-    // Navigate to any page on the app to establish the origin
-    await page.goto(appUrl, { waitUntil: 'domcontentloaded' })
+    const captchaToken = await getTurnstileToken(page)
+    console.log('Got Turnstile token')
 
-    // Inject the Supabase session into localStorage
+    const supabase = createClient(supabaseUrl, supabaseAnonKey)
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+      options: { captchaToken },
+    })
+
+    if (error || !data.session) {
+      console.error('Supabase login failed:', error?.message || 'No session returned')
+      throw new Error(`Supabase login failed: ${error?.message || 'No session returned'}`)
+    }
+
+    console.log('Supabase login succeeded, setting up browser session...')
+
+    await page.goto(appUrl, { waitUntil: 'domcontentloaded' })
     await page.evaluate(
       ({ key, session }: { key: string; session: string }) => {
         localStorage.setItem(key, session)
@@ -54,7 +72,6 @@ async function globalSetup(_config: FullConfig) {
       { key: `sb-${projectRef}-auth-token`, session: JSON.stringify(data.session) }
     )
 
-    // Navigate to the app to verify the session is recognized
     await page.goto(appUrl, { waitUntil: 'networkidle' })
 
     const finalUrl = page.url()
