@@ -244,7 +244,7 @@ export function GuestManagementPage() {
     <div className={styles.page}>
       <PageHero
         icon={Users}
-        title="Guests"
+        title={`Guests${eventName ? ` | ${eventName}` : ''}`}
         subtitle={`${guests.length} guest${guests.length !== 1 ? 's' : ''} on this event`}
       />
 

@@ -26,6 +26,7 @@ export function LiveFeedPage() {
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [eventName, setEventName] = useState('')
   const [profileMap, setProfileMap] = useState<Record<string, ProfileInfo>>({})
   const [showIssues, setShowIssues] = useState(false)
 
@@ -56,6 +57,7 @@ export function LiveFeedPage() {
 
   useEffect(() => {
     if (!eventId) return
+    supabase.from('events').select('name').eq('id', eventId).single().then(({ data }) => { if (data) setEventName(data.name) })
 
     async function loadData() {
       setLoading(true)
@@ -169,7 +171,7 @@ export function LiveFeedPage() {
     <div className={styles.page}>
       <PageHero
         icon={Radio}
-        title="Live Feed"
+        title={`Live Feed${eventName ? ` | ${eventName}` : ''}`}
         subtitle="Real-time event updates from the team"
         backTo={`/events/${paramId}`}
         actions={

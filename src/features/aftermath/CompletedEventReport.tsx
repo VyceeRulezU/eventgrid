@@ -156,8 +156,8 @@ export function CompletedEventReport() {
     <div className={styles.page}>
       <PageHero
         icon={CheckCircle}
-        title="Event Report"
-        subtitle={`${data.event.name} · ${data.event.event_type}`}
+        title={`Event Report | ${data.event.name}`}
+        subtitle={data.event.event_type || undefined}
         backTo={`/events/${paramId}`}
         actions={
           <button className="btn btn-primary btn-sm" onClick={handleGenerate} disabled={showPreview || generating}>

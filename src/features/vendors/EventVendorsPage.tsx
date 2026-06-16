@@ -56,6 +56,7 @@ export function EventVendorsPage({ standalone = true }: { standalone?: boolean }
   const { eventId } = useResolvedEventId()
   const showNotification = useUIStore((s) => s.showNotification)
 
+  const [eventName, setEventName] = useState('')
   const [vendors, setVendors] = useState<EventVendor[]>([])
   const [loading, setLoading] = useState(true)
   const [showAddModal, setShowAddModal] = useState(false)
@@ -64,6 +65,7 @@ export function EventVendorsPage({ standalone = true }: { standalone?: boolean }
   async function loadVendors() {
     if (!eventId) return
     setLoading(true)
+    supabase.from('events').select('name').eq('id', eventId).single().then(({ data }) => { if (data) setEventName(data.name) })
     const { data } = await supabase
       .from('event_vendors')
       .select('*')
@@ -98,7 +100,7 @@ export function EventVendorsPage({ standalone = true }: { standalone?: boolean }
 
   return (
     <div className={styles.page}>
-      {standalone && <PageHero icon={Users} title="Event Vendors" subtitle={`${vendors.length} vendor${vendors.length !== 1 ? 's' : ''} assigned`} />}
+      {standalone && <PageHero icon={Users} title={`Event Vendors${eventName ? ` | ${eventName}` : ''}`} subtitle={`${vendors.length} vendor${vendors.length !== 1 ? 's' : ''} assigned`} />}
 
       <div className={styles.content}>
         <div className={styles.toolbar}>

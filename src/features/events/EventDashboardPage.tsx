@@ -20,6 +20,7 @@ import { EditEventModal } from '@/features/events/EditEventModal'
 import { Tabs } from '@/components/ui/Tabs'
 import { processPayment, getEventPrice } from '@/lib/payment'
 import { UUID_RE } from '@/lib/slug'
+import { compressImage } from '@/lib/compressImage'
 import type { Event, EventPhase, EventActivity } from '@/types'
 import styles from './EventDashboardPage.module.css'
 
@@ -156,21 +157,19 @@ export function EventDashboardPage() {
     if (!file || !activeEvent) return
     setUploadingHeader(true)
     try {
-      const ext = file.name.split('.').pop() || 'jpg'
-      const path = `${activeEvent.id}/header/${crypto.randomUUID()}.${ext}`
-      const { error: uploadErr } = await supabase.storage
-        .from('event-media')
-        .upload(path, file, { contentType: file.type, upsert: true })
-      if (uploadErr) throw uploadErr
-      const { data: pubUrlData } = supabase.storage.from('event-media').getPublicUrl(path)
-      const url = pubUrlData?.publicUrl
-      if (!url) throw new Error('Failed to get public URL')
-      const { error: updateErr } = await supabase
-        .from('events')
-        .update({ header_image_url: url })
-        .eq('id', activeEvent.id)
-      if (updateErr) throw updateErr
-      setActiveEvent({ ...activeEvent, header_image_url: url })
+      const compressed = await compressImage(file)
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result as string)
+        reader.onerror = reject
+        reader.readAsDataURL(compressed)
+      })
+      const { data, error } = await supabase.functions.invoke('upload-header-image', {
+        body: { file: base64, name: file.name, event_id: activeEvent.id },
+      })
+      if (error) throw new Error(error.message)
+      if (data?.error) throw new Error(data.error)
+      setActiveEvent({ ...activeEvent, header_image_url: data.url })
     } catch (err: any) {
       showNotification({ variant: 'error', title: 'Upload failed', message: err.message || 'Could not upload header image' })
     }

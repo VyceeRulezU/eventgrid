@@ -1,10 +1,12 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Bell, CheckCheck, Search, RefreshCw, Flag, Truck, Eye, MessageSquare, X } from 'lucide-react'
+import { Bell, CheckCheck, Search, RefreshCw, Flag, Truck, MessageSquare, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth.store'
 import { getNotifications, markAsRead, markAllAsRead, navigateFromNotification } from '@/lib/notifications'
 import { FeedbackChat } from '@/components/shared/FeedbackChat'
 import { PageHero } from '@/components/shared/PageHero'
+import { Table } from '@/components/ui/Table'
+import type { TableColumn } from '@/components/ui/Table'
 import type { Notification } from '@/types'
 import styles from './NotificationsPage.module.css'
 
@@ -33,6 +35,14 @@ const TYPE_COLORS: Record<string, string> = {
   vendor_confirmed: '#2ecc71',
   feedback_reply: '#D4A017',
 }
+
+const columns: TableColumn[] = [
+  { key: 'check', label: '' },
+  { key: 'notification', label: 'Notification' },
+  { key: 'type', label: 'Type' },
+  { key: 'time', label: '' },
+  { key: 'actions', label: '' },
+]
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime()
@@ -120,8 +130,7 @@ export function NotificationsPage() {
     setSelected(new Set())
   }
 
-  const toggleSelect = (id: string, e?: React.MouseEvent) => {
-    e?.stopPropagation()
+  const toggleSelect = (id: string) => {
     setSelected((prev) => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
@@ -131,113 +140,6 @@ export function NotificationsPage() {
   }
 
   const hasSelection = selected.size > 0
-  const hasThread = splitOpen
-  const IconComponent = tab === 'replies' ? MessageSquare : Bell
-
-  const notificationList = (
-    <>
-      <div className={styles.searchWrapper}>
-        <Search size={14} className={styles.searchIcon} />
-        <input
-          className={`input ${styles.searchInput}`}
-          placeholder="Search notifications..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
-
-      {hasSelection && (
-        <div className={styles.bulkBar}>
-          <span className={styles.bulkCount}>{selected.size} selected</span>
-          <button className="btn btn-ghost btn-sm" onClick={handleBulkMarkRead}>
-            <Eye size={12} /> Mark Read
-          </button>
-          <button className="btn btn-ghost btn-sm" onClick={() => { setSelected(new Set()) }}>
-            Clear
-          </button>
-        </div>
-      )}
-
-      {loading ? (
-        <div className={styles.skeletonList}>
-          {[1,2,3,4,5].map((i) => (
-            <div key={i} className={styles.skeletonCard} />
-          ))}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className={`empty-state ${styles.emptyState}`}>
-          <div className="empty-state__icon">
-            <IconComponent size={32} />
-          </div>
-          <div className="empty-state__title">No {tab === 'unread' ? 'unread' : tab === 'replies' ? 'reply' : ''} notifications</div>
-          <div className="empty-state__description">
-            {tab === 'replies' ? "Admin replies to your feedback will appear here." : "You're all caught up!"}
-          </div>
-        </div>
-      ) : (
-        <div className={styles.list}>
-          {filtered.map((n) => {
-            const TypeIcon = TYPE_ICONS[n.type] || Bell
-            const typeColor = TYPE_COLORS[n.type] || 'var(--color-accent)'
-            const isFeedbackReply = n.type === 'feedback_reply'
-            const isActive = isFeedbackReply && n.id === activeNotifId
-            const { text: displayBody } = parseFeedbackBody(n.body)
-            const isSelected = selected.has(n.id)
-
-            return (
-              <div
-                key={n.id}
-                className={`${styles.card} ${n.is_read ? styles.cardRead : styles.cardUnread} ${isActive ? styles.cardActive : ''}`}
-              >
-                <div className={styles.cardCheck} onClick={(e) => toggleSelect(n.id, e)}>
-                  <input
-                    type="checkbox"
-                    className={styles.checkbox}
-                    checked={isSelected}
-                    onChange={() => {}}
-                  />
-                </div>
-
-                <div className={styles.cardIcon} style={{ background: typeColor }}>
-                  <TypeIcon size={16} />
-                </div>
-
-                <div className={styles.cardBody} onClick={() => handleClick(n)}>
-                  <div className={styles.cardTop}>
-                    <span className={`${styles.cardTitle} ${!n.is_read ? styles.cardTitleBold : styles.cardTitleNormal}`}>
-                      {n.title}
-                    </span>
-                  </div>
-                  {displayBody && (
-                    <div className={`${styles.cardSnippet} ${isFeedbackReply ? styles.cardSnippetGold : ''}`}>
-                      {displayBody}
-                    </div>
-                  )}
-                  <div className={styles.cardMeta}>
-                    <span className={`${styles.metaTag} ${styles.metaTagType}`}>{n.type.replace(/_/g, ' ')}</span>
-                    {n.event_id && <span className={`${styles.metaTag} ${styles.metaTagEvent}`}>event</span>}
-                    <span className={styles.metaDate}>{timeAgo(n.created_at)}</span>
-                  </div>
-                </div>
-
-                <div className={styles.cardActions}>
-                  {isFeedbackReply && (
-                    <button
-                      className={styles.replyBtn}
-                      onClick={(e) => { e.stopPropagation(); handleClick(n) }}
-                      title="Reply to this conversation"
-                    >
-                      <MessageSquare size={14} />
-                    </button>
-                  )}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
-    </>
-  )
 
   return (
     <div className={styles.page}>
@@ -275,10 +177,136 @@ export function NotificationsPage() {
       />
 
       <div className={styles.content}>
-        {hasThread ? (
+        {splitOpen ? (
           <div className={styles.splitLayout}>
             <div className={styles.splitLeft}>
-              {notificationList}
+              <Table
+                columns={columns}
+                minWidth="500px"
+                loading={loading}
+                empty={!loading && filtered.length === 0}
+                emptyIcon={tab === 'replies' ? MessageSquare : Bell}
+                emptyTitle={`No ${tab === 'unread' ? 'unread' : tab === 'replies' ? 'reply' : ''} notifications`}
+                emptyDescription={tab === 'replies' ? "Admin replies to your feedback will appear here." : "You're all caught up!"}
+                toolbar={
+                  <div className={styles.searchWrapper}>
+                    <Search size={14} className={styles.searchIcon} />
+                    <input
+                      className={`input ${styles.searchInput}`}
+                      placeholder="Search notifications..."
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                    />
+                  </div>
+                }
+                bulkBar={hasSelection ? (
+                  <div className={styles.bulkBar}>
+                    <span className={styles.bulkCount}>{selected.size} selected</span>
+                    <button className="btn btn-ghost btn-sm" onClick={handleBulkMarkRead}>
+                      <CheckCheck size={12} /> Mark Read
+                    </button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => { setSelected(new Set()) }}>
+                      Clear
+                    </button>
+                  </div>
+                ) : undefined}
+              >
+                {filtered.map((n) => {
+                  const TypeIcon = TYPE_ICONS[n.type] || Bell
+                  const typeColor = TYPE_COLORS[n.type] || 'var(--color-accent)'
+                  const isFeedbackReply = n.type === 'feedback_reply'
+                  const isActive = isFeedbackReply && n.id === activeNotifId
+                  const { text: displayBody } = parseFeedbackBody(n.body)
+                  const isSelected = selected.has(n.id)
+
+                  return (
+                    <tr
+                      key={n.id}
+                      onClick={() => handleClick(n)}
+                      className={isActive ? styles.rowActive : undefined}
+                      style={{ cursor: 'pointer', background: !n.is_read ? 'var(--color-accent-muted)' : undefined }}
+                    >
+                      <td style={{ padding: 'var(--space-4)', verticalAlign: 'middle', width: 40 }} onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleSelect(n.id)}
+                          style={{ accentColor: 'var(--color-accent)', cursor: 'pointer' }}
+                        />
+                      </td>
+                      <td style={{ padding: 'var(--space-4)', verticalAlign: 'middle', minWidth: 260 }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-3)' }}>
+                          <div style={{
+                            width: 32, height: 32, borderRadius: '50%',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            background: typeColor, color: '#fff', flexShrink: 0, marginTop: 1,
+                          }}>
+                            <TypeIcon size={14} />
+                          </div>
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{
+                              fontWeight: n.is_read ? 400 : 700,
+                              fontSize: 'var(--text-sm)',
+                              color: n.is_read ? 'var(--color-text-secondary)' : 'var(--color-text-primary)',
+                              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                            }}>
+                              {n.title}
+                            </div>
+                            {displayBody && (
+                              <div style={{
+                                fontSize: 'var(--text-xs)',
+                                color: isFeedbackReply ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
+                                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                                marginTop: 2, maxWidth: 300,
+                              }}>
+                                {displayBody}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td style={{ padding: 'var(--space-4)', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+                          <span style={{
+                            fontSize: 9, fontWeight: 600, textTransform: 'capitalize',
+                            padding: '0 6px', borderRadius: 4, lineHeight: '16px',
+                            color: 'var(--color-text-muted)', background: 'var(--color-surface-3)',
+                          }}>
+                            {n.type.replace(/_/g, ' ')}
+                          </span>
+                          {n.event_id && (
+                            <span style={{
+                              fontSize: 9, fontWeight: 600, textTransform: 'capitalize',
+                              padding: '0 6px', borderRadius: 4, lineHeight: '16px',
+                              color: 'var(--color-accent)', background: 'var(--color-accent-muted)',
+                            }}>
+                              event
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td style={{ padding: 'var(--space-4)', verticalAlign: 'middle', whiteSpace: 'nowrap', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                        {timeAgo(n.created_at)}
+                      </td>
+                      <td style={{ padding: 'var(--space-4)', verticalAlign: 'middle', width: 50 }} onClick={(e) => e.stopPropagation()}>
+                        {isFeedbackReply && (
+                          <button
+                            onClick={() => handleClick(n)}
+                            style={{
+                              width: 30, height: 30, borderRadius: '50%', border: 'none',
+                              background: 'var(--color-accent-muted)', color: 'var(--color-accent)',
+                              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            }}
+                            title="Open conversation"
+                          >
+                            <MessageSquare size={14} />
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </Table>
             </div>
             <div className={styles.splitRight}>
               <div className={styles.splitRightHeader}>
@@ -293,7 +321,133 @@ export function NotificationsPage() {
             </div>
           </div>
         ) : (
-          notificationList
+          <Table
+            columns={columns}
+            minWidth="500px"
+            loading={loading}
+            empty={!loading && filtered.length === 0}
+            emptyIcon={tab === 'replies' ? MessageSquare : Bell}
+            emptyTitle={`No ${tab === 'unread' ? 'unread' : tab === 'replies' ? 'reply' : ''} notifications`}
+            emptyDescription={tab === 'replies' ? "Admin replies to your feedback will appear here." : "You're all caught up!"}
+            toolbar={
+              <div className={styles.searchWrapper}>
+                <Search size={14} className={styles.searchIcon} />
+                <input
+                  className={`input ${styles.searchInput}`}
+                  placeholder="Search notifications..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+            }
+            bulkBar={hasSelection ? (
+              <div className={styles.bulkBar}>
+                <span className={styles.bulkCount}>{selected.size} selected</span>
+                <button className="btn btn-ghost btn-sm" onClick={handleBulkMarkRead}>
+                  <CheckCheck size={12} /> Mark Read
+                </button>
+                <button className="btn btn-ghost btn-sm" onClick={() => { setSelected(new Set()) }}>
+                  Clear
+                </button>
+              </div>
+            ) : undefined}
+          >
+            {filtered.map((n) => {
+              const TypeIcon = TYPE_ICONS[n.type] || Bell
+              const typeColor = TYPE_COLORS[n.type] || 'var(--color-accent)'
+              const isFeedbackReply = n.type === 'feedback_reply'
+              const isActive = isFeedbackReply && n.id === activeNotifId
+              const { text: displayBody } = parseFeedbackBody(n.body)
+              const isSelected = selected.has(n.id)
+
+              return (
+                <tr
+                  key={n.id}
+                  onClick={() => handleClick(n)}
+                  className={isActive ? styles.rowActive : undefined}
+                  style={{ cursor: 'pointer', background: !n.is_read ? 'var(--color-accent-muted)' : undefined }}
+                >
+                  <td style={{ padding: 'var(--space-4)', verticalAlign: 'middle', width: 40 }} onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleSelect(n.id)}
+                      style={{ accentColor: 'var(--color-accent)', cursor: 'pointer' }}
+                    />
+                  </td>
+                  <td style={{ padding: 'var(--space-4)', verticalAlign: 'middle', minWidth: 260 }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-3)' }}>
+                      <div style={{
+                        width: 32, height: 32, borderRadius: '50%',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        background: typeColor, color: '#fff', flexShrink: 0, marginTop: 1,
+                      }}>
+                        <TypeIcon size={14} />
+                      </div>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{
+                          fontWeight: n.is_read ? 400 : 700,
+                          fontSize: 'var(--text-sm)',
+                          color: n.is_read ? 'var(--color-text-secondary)' : 'var(--color-text-primary)',
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        }}>
+                          {n.title}
+                        </div>
+                        {displayBody && (
+                          <div style={{
+                            fontSize: 'var(--text-xs)',
+                            color: isFeedbackReply ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
+                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                            marginTop: 2, maxWidth: 300,
+                          }}>
+                            {displayBody}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                  <td style={{ padding: 'var(--space-4)', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+                      <span style={{
+                        fontSize: 9, fontWeight: 600, textTransform: 'capitalize',
+                        padding: '0 6px', borderRadius: 4, lineHeight: '16px',
+                        color: 'var(--color-text-muted)', background: 'var(--color-surface-3)',
+                      }}>
+                        {n.type.replace(/_/g, ' ')}
+                      </span>
+                      {n.event_id && (
+                        <span style={{
+                          fontSize: 9, fontWeight: 600,
+                          padding: '0 6px', borderRadius: 4, lineHeight: '16px',
+                          color: 'var(--color-accent)', background: 'var(--color-accent-muted)',
+                        }}>
+                          event
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td style={{ padding: 'var(--space-4)', verticalAlign: 'middle', whiteSpace: 'nowrap', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                    {timeAgo(n.created_at)}
+                  </td>
+                  <td style={{ padding: 'var(--space-4)', verticalAlign: 'middle', width: 50 }} onClick={(e) => e.stopPropagation()}>
+                    {isFeedbackReply && (
+                      <button
+                        onClick={() => handleClick(n)}
+                        style={{
+                          width: 30, height: 30, borderRadius: '50%', border: 'none',
+                          background: 'var(--color-accent-muted)', color: 'var(--color-accent)',
+                          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}
+                        title="Open conversation"
+                      >
+                        <MessageSquare size={14} />
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              )
+            })}
+          </Table>
         )}
       </div>
     </div>

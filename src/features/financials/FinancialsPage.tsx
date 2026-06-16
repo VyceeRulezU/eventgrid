@@ -393,8 +393,7 @@ export function FinancialsPage() {
     <div>
       <PageHero
         icon={Wallet}
-        title="Financials"
-        subtitle={activeEventName || undefined}
+        title={`Financials${activeEventName ? ` | ${activeEventName}` : ''}`}
         actions={
           <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', flexWrap: 'wrap' }}>
             <div className={styles.hideTablet}><SearchBar value={query} onChange={setQuery} placeholder="Search vendors..." containerStyle={{ flex: 1, maxWidth: 320 }} /></div>

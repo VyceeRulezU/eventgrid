@@ -84,6 +84,7 @@ export function TeamPage() {
   const role = useAuthStore((s) => s.role)
   const showNotification = useUIStore((s) => s.showModal)
 
+  const [eventName, setEventName] = useState('')
   const [members, setMembers] = useState<TeamMemberRow[]>([])
   const [loading, setLoading] = useState(true)
   const [showInvite, setShowInvite] = useState(false)
@@ -109,6 +110,7 @@ export function TeamPage() {
 
   useEffect(() => {
     if (!eventId) return
+    supabase.from('events').select('name').eq('id', eventId).single().then(({ data }) => { if (data) setEventName(data.name) })
     loadData()
   }, [eventId])
 
@@ -325,7 +327,7 @@ export function TeamPage() {
     <div className={styles.page}>
       <PageHero
         icon={Users}
-        title="Team"
+        title={`Team${eventName ? ` | ${eventName}` : ''}`}
         subtitle={`${members.length} member${members.length !== 1 ? 's' : ''} · ${reports.length} report${reports.length !== 1 ? 's' : ''}`}
         actions={
           <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>

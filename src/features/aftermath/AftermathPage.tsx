@@ -21,11 +21,13 @@ const TABS: { key: Tab; label: string; icon: React.ComponentType<{ size?: number
 export function AftermathPage() {
   const { eventId, paramId, loading: idLoading } = useResolvedEventId()
   const [activeTab, setActiveTab] = useState<Tab>('summary')
+  const [eventName, setEventName] = useState('')
   const [summary, setSummary] = useState({ guestCount: 0, checkedIn: 0, vendorCount: 0, issueCount: 0, mediaCount: 0, completedPhases: 0, totalPhases: 9 })
 
   useEffect(() => {
     if (!eventId) return
     Promise.all([
+      supabase.from('events').select('name').eq('id', eventId).single().then(({ data }) => { if (data) setEventName(data.name) }),
       supabase.from('guests').select('id, checked_in', { count: 'exact' }).eq('event_id', eventId),
       supabase.from('event_vendors').select('id', { count: 'exact', head: true }).eq('event_id', eventId),
       supabase.from('issues').select('id', { count: 'exact', head: true }).eq('event_id', eventId),
@@ -58,7 +60,7 @@ export function AftermathPage() {
     <div className={styles.page}>
       <PageHero
         icon={FileText}
-        title="Aftermath & Reports"
+        title={`Aftermath & Reports${eventName ? ` | ${eventName}` : ''}`}
         backTo={`/events/${paramId}`}
         actions={
           <Link to={`/events/${paramId}/report`} className="btn btn-primary btn-sm">

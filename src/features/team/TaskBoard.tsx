@@ -29,6 +29,7 @@ const COLUMNS = [
 export function TaskBoard() {
   const { eventId, paramId } = useResolvedEventId()
   const showNotification = useUIStore((s) => s.showNotification)
+  const [eventName, setEventName] = useState('')
   const [tasks, setTasks] = useState<TaskWithAssignee[]>([])
   const [phases, setPhases] = useState<EventPhase[]>([])
   const [loading, setLoading] = useState(true)
@@ -39,6 +40,7 @@ export function TaskBoard() {
 
   useEffect(() => {
     if (!eventId) return
+    supabase.from('events').select('name').eq('id', eventId).single().then(({ data }) => { if (data) setEventName(data.name) })
     loadData()
   }, [eventId])
 
@@ -138,7 +140,7 @@ export function TaskBoard() {
   if (loading) {
     return (
       <div className={styles.page}>
-        <PageHero icon={ListChecks} title="Task Board" subtitle="Loading tasks..." backTo={`/events/${paramId}`} />
+        <PageHero icon={ListChecks} title={`Task Board${eventName ? ` | ${eventName}` : ''}`} subtitle="Loading tasks..." backTo={`/events/${paramId}`} />
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 200, gap: 'var(--space-4)' }}>
           <img src="/EventGrid-favicon.svg" alt="Loading" style={{ width: 48, height: 48, opacity: 0.5 }} />
           <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>Loading tasks...</div>
@@ -149,11 +151,11 @@ export function TaskBoard() {
 
   return (
     <div className={styles.page}>
-      <PageHero
-        icon={ListChecks}
-        title="Task Board"
-        subtitle={`${tasks.length} task${tasks.length !== 1 ? 's' : ''}`}
-        backTo={`/events/${paramId}`}
+        <PageHero
+          icon={ListChecks}
+          title={`Task Board${eventName ? ` | ${eventName}` : ''}`}
+          subtitle={`${tasks.length} task${tasks.length !== 1 ? 's' : ''}`}
+          backTo={`/events/${paramId}`}
         actions={
           <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
             <div className={styles.viewToggle}>
