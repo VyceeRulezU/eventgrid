@@ -57,6 +57,7 @@ import { TermsPage } from '@/pages/info/TermsPage'
 import { CookiesPage } from '@/pages/info/CookiesPage'
 import { SecurityPage } from '@/pages/info/SecurityPage'
 import { SurveyPage } from '@/pages/info/SurveyPage'
+import { DataDeletionPage } from '@/pages/info/DataDeletionPage'
 import { ScrollToTop } from '@/components/shared/ScrollToTop'
 import { CookieNotice } from '@/components/CookieNotice'
 
@@ -475,6 +476,7 @@ export function App() {
           <Route path="/cookies" element={<CookiesPage />} />
           <Route path="/security" element={<SecurityPage />} />
           <Route path="/survey" element={<SurveyPage />} />
+          <Route path="/data-deletion" element={<DataDeletionPage />} />
         <Route path="/portal/:token" element={
           <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
             <ClientPortalPage />

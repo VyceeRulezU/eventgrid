@@ -207,7 +207,7 @@
   opacity: 1;
 }
 
-@media (max-width: 375px) {
+@media (max-width: 768px) {
   .adminAuthContainer {
     padding: 0;
   }
