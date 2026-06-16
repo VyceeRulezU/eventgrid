@@ -26,24 +26,38 @@ async function globalSetup(_config: FullConfig) {
   }
 
   const projectRef = new URL(supabaseUrl).hostname.split('.')[0]
+  const authUrl = `${supabaseUrl}/auth/v1`
 
-  // Use the admin API (service_role key) to generate a magic link, bypassing captcha
-  const adminClient = createClient(supabaseUrl, serviceRoleKey)
-  const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
-    type: 'magiclink',
-    email,
+  // Generate a magic link via the GoTrue admin API (bypasses captcha)
+  const linkRes = await fetch(`${authUrl}/admin/generate_link`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: serviceRoleKey,
+      Authorization: `Bearer ${serviceRoleKey}`,
+    },
+    body: JSON.stringify({ type: 'magiclink', email }),
   })
 
-  if (linkError || !linkData?.properties?.hashed_token) {
-    console.error('Failed to generate magic link:', linkError?.message || 'No token returned')
-    throw new Error(`Failed to generate magic link: ${linkError?.message || 'No token returned'}`)
+  if (!linkRes.ok) {
+    const body = await linkRes.text()
+    console.error('generate_link failed:', linkRes.status, body)
+    throw new Error(`generate_link failed (${linkRes.status}): ${body}`)
   }
 
-  // Exchange the magic link token for a full session (public endpoint, no captcha)
+  const linkData = await linkRes.json()
+  const hashedToken = linkData.hashed_token ?? linkData.properties?.hashed_token
+
+  if (!hashedToken) {
+    console.error('No hashed_token in response:', JSON.stringify(linkData))
+    throw new Error('No hashed_token in generate_link response')
+  }
+
+  // Exchange the magic link token for a full session
   const anonClient = createClient(supabaseUrl, supabaseAnonKey)
   const { data: sessionData, error: sessionError } = await anonClient.auth.verifyOtp({
     email,
-    token: linkData.properties.hashed_token,
+    token: hashedToken,
     type: 'magiclink',
   })
 
@@ -52,7 +66,7 @@ async function globalSetup(_config: FullConfig) {
     throw new Error(`Failed to verify magic link: ${sessionError?.message || 'No session returned'}`)
   }
 
-  console.log('Supabase login succeeded, setting up browser session...')
+  console.log('Supabase login succeeded')
 
   const browser = await chromium.launch()
   const page = await browser.newPage()
