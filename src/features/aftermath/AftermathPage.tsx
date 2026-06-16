@@ -26,8 +26,8 @@ export function AftermathPage() {
 
   useEffect(() => {
     if (!eventId) return
+    supabase.from('events').select('name').eq('id', eventId).single().then(({ data }) => { if (data) setEventName(data.name) })
     Promise.all([
-      supabase.from('events').select('name').eq('id', eventId).single().then(({ data }) => { if (data) setEventName(data.name) }),
       supabase.from('guests').select('id, checked_in', { count: 'exact' }).eq('event_id', eventId),
       supabase.from('event_vendors').select('id', { count: 'exact', head: true }).eq('event_id', eventId),
       supabase.from('issues').select('id', { count: 'exact', head: true }).eq('event_id', eventId),

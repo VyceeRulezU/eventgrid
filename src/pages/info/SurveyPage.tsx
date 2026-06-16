@@ -56,15 +56,19 @@ export function SurveyPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!form.respondent_name.trim() || !form.respondent_email.trim() || !form.pay_per_event.trim()) {
+      alert('Please fill in your name, email, and per-event amount.')
+      return
+    }
     setSending(true)
     const { error } = await supabase.from('survey_responses').insert({
-      respondent_name: form.respondent_name || null,
-      respondent_email: form.respondent_email || null,
+      respondent_name: form.respondent_name.trim(),
+      respondent_email: form.respondent_email.trim(),
       respondent_role: form.respondent_role || null,
       open_to_software: form.open_to_software,
       currently_using: form.currently_using,
       current_software_names: form.current_software_names || null,
-      pay_per_event: form.pay_per_event || null,
+      pay_per_event: form.pay_per_event.trim(),
       important_features: form.important_features,
       wanted_features: form.wanted_features || null,
       additional_feedback: form.additional_feedback || null,
@@ -74,6 +78,9 @@ export function SurveyPage() {
       alert(`Something went wrong: ${error.message}`)
       return
     }
+    supabase.functions.invoke('send-survey-acknowledgment', {
+      body: { name: form.respondent_name.trim(), email: form.respondent_email.trim() },
+    }).catch(() => {})
     setSubmitted(true)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -93,7 +100,7 @@ export function SurveyPage() {
             <div className={styles.thankYouIcon}><Sparkles size={32} /></div>
             <h2 className={styles.thankYouTitle}>Thank You!</h2>
             <p className={styles.thankYouDesc}>
-              Your response has been recorded. We appreciate your time and feedback — it helps us build a better platform for event professionals.
+              Your response has been recorded. We've sent a confirmation email with your exclusive code <strong>BETA-NALIGRID</strong> to the address you provided.
             </p>
           </div>
         </div>
@@ -164,23 +171,25 @@ export function SurveyPage() {
             <h2 className={styles.sectionTitle}>About You</h2>
             <div className={styles.row}>
               <div className={styles.field}>
-                <label className={styles.label}>Name <span className={styles.optional}>(optional)</span></label>
+                <label className={styles.label}>Name</label>
                 <input
                   type="text"
                   className={styles.input}
                   value={form.respondent_name}
                   onChange={(e) => setForm((p) => ({ ...p, respondent_name: e.target.value }))}
                   placeholder="Your name"
+                  required
                 />
               </div>
               <div className={styles.field}>
-                <label className={styles.label}>Email <span className={styles.optional}>(optional)</span></label>
+                <label className={styles.label}>Email</label>
                 <input
                   type="email"
                   className={styles.input}
                   value={form.respondent_email}
                   onChange={(e) => setForm((p) => ({ ...p, respondent_email: e.target.value }))}
                   placeholder="your@email.com"
+                  required
                 />
               </div>
             </div>
@@ -200,13 +209,14 @@ export function SurveyPage() {
 
             <div className={styles.field}>
               <label className={styles.label}>How much would you be willing to pay <strong>per event</strong> for the services?</label>
-              <input
-                type="text"
-                className={styles.input}
-                value={form.pay_per_event}
-                onChange={(e) => setForm((p) => ({ ...p, pay_per_event: e.target.value }))}
-                placeholder="e.g. ₦15,000"
-              />
+                <input
+                  type="text"
+                  className={styles.input}
+                  value={form.pay_per_event}
+                  onChange={(e) => setForm((p) => ({ ...p, pay_per_event: e.target.value }))}
+                  placeholder="e.g. ₦15,000"
+                  required
+                />
             </div>
           </div>
 
