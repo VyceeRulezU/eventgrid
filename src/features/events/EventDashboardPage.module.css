@@ -1210,7 +1210,19 @@
 .overviewStatsGrid {
   display: grid;
   gap: var(--space-3);
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
+}
+
+@media (max-width: 1024px) {
+  .overviewStatsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 400px) {
+  .overviewStatsGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .statCard {

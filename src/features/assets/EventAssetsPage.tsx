@@ -241,6 +241,16 @@ export function EventAssetsPage() {
     if (isImg && asset.file_url) {
       return <img src={asset.file_url} alt={asset.name} className={styles.cardThumbImg} />
     }
+    if (asset.mime_type === 'application/pdf' && asset.file_url) {
+      return (
+        <iframe
+          src={asset.file_url}
+          className={styles.cardThumbImg}
+          title={asset.name}
+          style={{ border: 'none' }}
+        />
+      )
+    }
     return (
       <div className={styles.docThumb}>
         <FileText size={32} />

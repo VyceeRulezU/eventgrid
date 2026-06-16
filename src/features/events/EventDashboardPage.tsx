@@ -786,7 +786,7 @@ export function EventDashboardPage() {
           { key: 'phases', label: 'Phases', icon: <ListChecks size={15} /> },
           { key: 'vendors', label: 'Vendors', icon: <Users size={15} /> },
           { key: 'modules', label: 'Modules', icon: <Radio size={15} /> },
-          { key: 'assets', label: 'Assets', icon: <Image size={15} /> },
+          { key: 'assets', label: 'Gallery', icon: <Image size={15} /> },
         ]}
         activeTab={activeTab}
         onChange={handleTabChange}

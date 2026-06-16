@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ListChecks, Plus, Eye, Calendar, User, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ListChecks, Plus, Eye, Calendar, User, ChevronLeft, ChevronRight, Trash2, AlertTriangle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -54,6 +54,8 @@ export function MyTasksPage() {
   const [filterEventId, setFilterEventId] = useState<string | null>(null)
   const [detailTask, setDetailTask] = useState<TaskDetail | null>(null)
   const [showCreate, setShowCreate] = useState(false)
+  const [profiles, setProfiles] = useState<{ id: string; display_name: string | null; email: string }[]>([])
+  const [confirmDelete, setConfirmDelete] = useState<TaskDetail | null>(null)
   const [page, setPage] = useState(1)
   const PAGE_SIZE = 10
 
@@ -96,6 +98,37 @@ export function MyTasksPage() {
       console.error('MyTasks load exception:', err)
     }
     setLoading(false)
+  }
+
+  useEffect(() => {
+    if (isPlanner) {
+      supabase
+        .from('profiles')
+        .select('id, display_name, email')
+        .in('role', ['team_member', 'planner', 'coordinator'])
+        .then(({ data }) => {
+          if (data) setProfiles(data.map((p: any) => ({ id: p.id, display_name: p.display_name, email: p.email })))
+        })
+    }
+  }, [])
+
+  async function handleReassign(taskId: string, userId: string) {
+    setUpdatingId(taskId)
+    const { error } = await supabase.from('tasks').update({ assignee_id: userId || null }).eq('id', taskId)
+    if (error) showNotification({ variant: 'error', title: 'Reassign failed', message: error.message })
+    setUpdatingId(null)
+    loadTasks()
+  }
+
+  async function handleDeleteTask(taskId: string) {
+    const { error } = await supabase.from('tasks').delete().eq('id', taskId)
+    if (error) {
+      showNotification({ variant: 'error', title: 'Delete failed', message: error.message })
+      return
+    }
+    showNotification({ variant: 'success', title: 'Task deleted' })
+    setConfirmDelete(null)
+    loadTasks()
   }
 
   async function handleStatusChange(task: TaskDetail, newStatus: string) {
@@ -233,11 +266,31 @@ export function MyTasksPage() {
                   <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>—</span>
                 )}
               </td>
-              <td style={{ padding: 'var(--space-4)', verticalAlign: 'middle', fontSize: 'var(--text-sm)' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>
-                  <User size={12} />
-                  {task.assignee?.display_name || 'Unassigned'}
-                </span>
+              <td style={{ padding: 'var(--space-4)', verticalAlign: 'middle', fontSize: 'var(--text-sm)' }} onClick={(e) => e.stopPropagation()}>
+                {isPlanner ? (
+                  <DropdownMenu
+                    trigger={
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', cursor: 'pointer' }}>
+                        <User size={12} />
+                        {task.assignee?.display_name || 'Unassigned'}
+                      </span>
+                    }
+                    items={[
+                      { label: 'Unassigned', value: '' },
+                      ...profiles.map((p) => ({
+                        label: p.display_name || p.email,
+                        value: p.id,
+                      })),
+                    ]}
+                    onSelect={(item) => handleReassign(task.id, item.value)}
+                    disabled={updatingId === task.id}
+                  />
+                ) : (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>
+                    <User size={12} />
+                    {task.assignee?.display_name || 'Unassigned'}
+                  </span>
+                )}
               </td>
               <td style={{ padding: 'var(--space-4)', verticalAlign: 'middle', fontSize: 'var(--text-sm)' }}>
                 <span className={`badge ${PRIORITY_BADGE[task.priority] || 'badge-medium'}`}>
@@ -270,19 +323,36 @@ export function MyTasksPage() {
                 </div>
               </td>
               <td style={{ padding: 'var(--space-4)', verticalAlign: 'middle', textAlign: 'right' }}>
-                <button
-                  type="button"
-                  onClick={() => setDetailTask(task)}
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                    width: 36, height: 36, border: '1px solid var(--color-border-subtle)',
-                    borderRadius: 'var(--radius-sm)', background: 'var(--color-surface-1)',
-                    color: 'var(--color-text-secondary)', cursor: 'pointer',
-                  }}
-                  aria-label="View details"
-                >
-                  <Eye size={16} />
-                </button>
+                <div style={{ display: 'flex', gap: 'var(--space-1)', justifyContent: 'flex-end' }}>
+                  {isPlanner && (
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDelete(task)}
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                        width: 36, height: 36, border: '1px solid var(--color-border-subtle)',
+                        borderRadius: 'var(--radius-sm)', background: 'var(--color-surface-1)',
+                        color: 'var(--color-error)', cursor: 'pointer',
+                      }}
+                      aria-label="Delete task"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setDetailTask(task)}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                      width: 36, height: 36, border: '1px solid var(--color-border-subtle)',
+                      borderRadius: 'var(--radius-sm)', background: 'var(--color-surface-1)',
+                      color: 'var(--color-text-secondary)', cursor: 'pointer',
+                    }}
+                    aria-label="View details"
+                  >
+                    <Eye size={16} />
+                  </button>
+                </div>
               </td>
             </tr>
           )
@@ -302,6 +372,33 @@ export function MyTasksPage() {
           onClose={() => setDetailTask(null)}
           onUpdate={() => loadTasks()}
         />
+      )}
+
+      {confirmDelete && (
+        <div className="modal-overlay" onClick={() => setConfirmDelete(null)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 400 }}>
+            <div className="modal-card__header">
+              <h3 className="modal-card__title"><AlertTriangle size={16} /> Delete Task</h3>
+              <button className="modal-card__close" onClick={() => setConfirmDelete(null)}><Trash2 size={18} /></button>
+            </div>
+            <div className="modal-card__body" style={{ textAlign: 'center', padding: 'var(--space-6)' }}>
+              <p style={{ margin: '0 0 var(--space-1)', fontSize: 'var(--text-sm)', fontWeight: 600 }}>
+                Delete "{confirmDelete.title}"?
+              </p>
+              <p style={{ margin: 0, fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                This action cannot be undone. All task data will be permanently removed.
+              </p>
+            </div>
+            <div className="modal-card__footer">
+              <button className="btn btn-danger btn-sm" onClick={() => handleDeleteTask(confirmDelete.id)}>
+                <Trash2 size={14} /> Delete
+              </button>
+              <button className="btn btn-ghost btn-sm" onClick={() => setConfirmDelete(null)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
