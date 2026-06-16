@@ -709,7 +709,7 @@ export function EventDashboardPage() {
       {/* ── 1. Command Header ── */}
       <PageHero
         icon={Calendar}
-        title={activeEvent.name}
+        title={`Overview | ${activeEvent.name}`}
         backgroundImage={activeEvent.header_image_url || undefined}
         subtitle={[
           activeEvent.event_type,
@@ -786,7 +786,7 @@ export function EventDashboardPage() {
           { key: 'phases', label: 'Phases', icon: <ListChecks size={15} /> },
           { key: 'vendors', label: 'Vendors', icon: <Users size={15} /> },
           { key: 'modules', label: 'Modules', icon: <Radio size={15} /> },
-          { key: 'assets', label: 'Gallery', icon: <Image size={15} /> },
+          { key: 'assets', label: 'Moodboard', icon: <Image size={15} /> },
         ]}
         activeTab={activeTab}
         onChange={handleTabChange}
@@ -1381,7 +1381,6 @@ export function EventDashboardPage() {
 
               {payStatus === 'processing' && (
                 <div className={styles.payProcessing}>
-                  <span className="spinner-loader" style={{ width: 36, height: 36 }} />
                   <div className={styles.payStatusMsg}>Opening secure payment window…</div>
                   <div className={styles.payAutoClose}>A Paystack / Flutterwave popup will appear. Complete payment there.</div>
                 </div>

@@ -73,6 +73,7 @@
 
 .adminHeroText {
   flex: 1;
+  min-width: 0;
 }
 
 .adminHeroTitle {
@@ -81,6 +82,9 @@
   color: var(--color-text-primary);
   margin: 0 0 0.25rem;
   letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .adminHeroSubtitle {

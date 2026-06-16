@@ -1089,6 +1089,7 @@
   align-items: center;
   gap: var(--space-4);
   padding: var(--space-8) 0;
+  border-top: 2px solid var(--color-accent);
 }
 
 .payStatusMsg {
@@ -1597,7 +1598,7 @@
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 1024px) {
   .contentGrid { grid-template-columns: 1fr; }
 }
 

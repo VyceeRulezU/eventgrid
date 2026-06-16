@@ -397,7 +397,7 @@ export function FinancialsPage() {
         subtitle={activeEventName || undefined}
         actions={
           <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', flexWrap: 'wrap' }}>
-            <SearchBar value={query} onChange={setQuery} placeholder="Search vendors..." containerStyle={{ flex: 1, maxWidth: 320 }} />
+            <div className={styles.hideTablet}><SearchBar value={query} onChange={setQuery} placeholder="Search vendors..." containerStyle={{ flex: 1, maxWidth: 320 }} /></div>
             <div className={styles.dropdownFilterWrap}>
               <DropdownMenu
                 trigger={
@@ -420,14 +420,16 @@ export function FinancialsPage() {
                 e.target.value = ''
               }}
             />
-            <button
-              className={`btn btn-secondary btn-sm ${styles.toolbarBtn}`}
-              onClick={() => importRef.current?.click()}
-              id="import-csv-btn"
-            >
-              <Upload size={16} />
-              Import CSV
-            </button>
+            <div className={styles.hideTablet}>
+              <button
+                className={`btn btn-secondary btn-sm ${styles.toolbarBtn}`}
+                onClick={() => importRef.current?.click()}
+                id="import-csv-btn"
+              >
+                <Upload size={16} />
+                Import CSV
+              </button>
+            </div>
             <button className={`btn btn-primary btn-sm ${styles.toolbarBtn}`} onClick={() => setShowForm(!showForm)} id="add-entry-btn">
               <Plus size={16} />
               Add Entry

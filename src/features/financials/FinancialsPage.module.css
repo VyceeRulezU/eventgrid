@@ -84,6 +84,12 @@
   min-width: 180px;
 }
 
+@media (max-width: 1024px) {
+  .hideTablet {
+    display: none;
+  }
+}
+
 /* ── Summary Cards ── */
 .summaryGrid {
   display: grid;

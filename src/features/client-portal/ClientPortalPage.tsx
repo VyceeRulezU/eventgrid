@@ -22,7 +22,7 @@ interface PortalAsset {
   category: string
   file_size: number | null
   mime_type: string | null
-  url: string | null
+  file_url: string | null
   created_at: string
 }
 import styles from './ClientPortalPage.module.css'
@@ -72,6 +72,7 @@ export function ClientPortalPage() {
   const [portalAssets, setPortalAssets] = useState<PortalAsset[]>([])
   const [guests, setGuests] = useState<Guest[]>([])
   const [previewMedia, setPreviewMedia] = useState<Media | null>(null)
+  const [previewAsset, setPreviewAsset] = useState<PortalAsset | null>(null)
   const [showInviteForm, setShowInviteForm] = useState(false)
   const [inviteFirstName, setInviteFirstName] = useState('')
   const [inviteEmail, setInviteEmail] = useState('')
@@ -227,7 +228,7 @@ export function ClientPortalPage() {
       <div className={styles.portalBody}>
         <PageHero
           icon={LayoutGrid}
-          title={event.name}
+          title={`Event Portal | ${event.name}`}
           subtitle={heroSubtitle}
           breadcrumbs={[{ label: event.event_type || 'Event' }]}
           actions={
@@ -289,7 +290,7 @@ export function ClientPortalPage() {
             ['gallery', 'Gallery', media.length > 0 ? media.length : null],
             ['financials', 'Financials', null],
             ['vendors', 'Vendors', eventVendors.length > 0 ? eventVendors.length : null],
-            ['assets', 'Assets', portalAssets.length > 0 ? portalAssets.length : null],
+            ['assets', 'Moodboard', portalAssets.length > 0 ? portalAssets.length : null],
             ['guests', 'Guests', guests.length > 0 ? guests.length : null],
           ] as const).map(([key, label, badge]) => (
             <button
@@ -399,20 +400,34 @@ export function ClientPortalPage() {
             </div>
             {eventVendors.filter(v => v.total_amount > 0).length > 0 && (
               <div>
-                <h4 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-3)', color: 'var(--color-text-primary)' }}>Vendor Breakdown</h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-                  {eventVendors.filter(v => v.total_amount > 0).map((v) => (
-                    <div key={v.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'var(--space-2) var(--space-3)', background: 'var(--color-surface-2)', borderRadius: 'var(--radius-md)' }}>
-                      <div>
-                        <div style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>{v.vendor_name}</div>
-                        <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>{v.category}</div>
-                      </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>₦{v.total_amount.toLocaleString()}</div>
-                        <span className={`badge ${v.payment_status === 'paid' ? 'badge-success' : v.payment_status === 'advance' ? 'badge-medium' : 'badge-error'}`} style={{ fontSize: 10 }}>{v.payment_status}</span>
-                      </div>
-                    </div>
-                  ))}
+                <h4 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-3)', color: 'var(--color-text-primary)' }}>Vendor Payments</h4>
+                <div className={styles.finTableWrap}>
+                  <table className={styles.finTable}>
+                    <thead>
+                      <tr>
+                        <th>Vendor</th>
+                        <th>Category</th>
+                        <th>Total</th>
+                        <th>Advance Paid</th>
+                        <th>Balance</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {eventVendors.filter(v => v.total_amount > 0).map((v) => (
+                        <tr key={v.id}>
+                          <td style={{ fontWeight: 600 }}>{v.vendor_name}</td>
+                          <td style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--text-xs)' }}>{v.category}</td>
+                          <td>₦{v.total_amount.toLocaleString()}</td>
+                          <td style={{ color: 'var(--color-success)' }}>₦{(v.advance_paid || 0).toLocaleString()}</td>
+                          <td style={{ color: 'var(--color-warning)' }}>₦{(v.balance || 0).toLocaleString()}</td>
+                          <td>
+                            <span className={`badge ${v.payment_status === 'paid' ? 'badge-success' : v.payment_status === 'advance' ? 'badge-medium' : 'badge-error'}`} style={{ fontSize: 10 }}>{v.payment_status}</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             )}
@@ -471,9 +486,16 @@ export function ClientPortalPage() {
                 {portalAssets.map((asset) => {
                   const isImg = asset.mime_type?.startsWith('image/')
                   return (
-                    <div key={asset.id} className={styles.mediaCard}>
-                      {isImg && asset.url ? (
-                        <img src={asset.url} alt={asset.name} className={styles.mediaImg} loading="lazy" />
+                    <div key={asset.id} className={styles.mediaCard} onClick={() => setPreviewAsset(asset)} style={{ cursor: 'pointer' }}>
+                      {isImg && asset.file_url ? (
+                        <img src={asset.file_url} alt={asset.name} className={styles.mediaImg} loading="lazy" />
+                      ) : asset.mime_type === 'application/pdf' && asset.file_url ? (
+                        <iframe
+                          src={asset.file_url}
+                          className={styles.mediaImg}
+                          title={asset.name}
+                          style={{ border: 'none' }}
+                        />
                       ) : (
                         <div style={{ height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-surface-3)' }}>
                           <FileText size={36} style={{ opacity: 0.4 }} />
@@ -488,9 +510,9 @@ export function ClientPortalPage() {
                           ) : null}
                         </div>
                       </div>
-                      {asset.url && (
+                      {asset.file_url && (
                         <a
-                          href={asset.url}
+                          href={asset.file_url}
                           target="_blank"
                           rel="noopener noreferrer"
                           style={{
@@ -510,6 +532,49 @@ export function ClientPortalPage() {
               </div>
             )}
           </>
+        )}
+
+        {/* Asset Preview Modal */}
+        {previewAsset && (
+          <div className={styles.modalOverlay} onClick={() => setPreviewAsset(null)}>
+            <div className={styles.mediaPreviewCard} onClick={(e) => e.stopPropagation()}>
+              <div className={styles.modalHeader}>
+                <div className={styles.modalTitle}>{previewAsset.name}</div>
+                <button type="button" className={styles.modalClose} onClick={() => setPreviewAsset(null)}>
+                  <X size={18} />
+                </button>
+              </div>
+              {previewAsset.mime_type?.startsWith('image/') && previewAsset.file_url ? (
+                <img src={previewAsset.file_url} alt={previewAsset.name} className={styles.mediaPreviewFull} />
+              ) : previewAsset.mime_type === 'application/pdf' && previewAsset.file_url ? (
+                <iframe
+                  src={previewAsset.file_url}
+                  style={{ width: '100%', height: '70vh', border: 'none' }}
+                  title={previewAsset.name}
+                />
+              ) : (
+                <div style={{ padding: 'var(--space-8)', textAlign: 'center' }}>
+                  <FileText size={48} style={{ opacity: 0.4, marginBottom: 'var(--space-4)' }} />
+                  <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-4)' }}>Preview not available for this file type.</p>
+                  {previewAsset.file_url && (
+                    <a href={previewAsset.file_url} target="_blank" rel="noopener noreferrer" className="btn btn-primary">
+                      <ExternalLink size={14} /> Open File
+                    </a>
+                  )}
+                </div>
+              )}
+              <div className={styles.modalFooter}>
+                {previewAsset.file_url && (
+                  <a href={previewAsset.file_url} download className="btn btn-primary">
+                    <Download size={14} /> Download
+                  </a>
+                )}
+                <button type="button" className="btn btn-secondary" onClick={() => setPreviewAsset(null)}>
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Vendors */}
