@@ -140,9 +140,7 @@ export function GeneratePortalModal({ eventId, onClose }: GeneratePortalModalPro
         </div>
 
         {checking ? (
-          <div className={styles.body} style={{ textAlign: 'center', padding: 'var(--space-8) 0' }}>
-            <span className="spinner-loader" />
-          </div>
+          <div className={styles.body} />
         ) : !token ? (
           /* ── Create form ── */
           <div className={styles.body}>

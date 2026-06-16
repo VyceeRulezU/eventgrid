@@ -13,11 +13,7 @@ interface SurveyResponse {
   open_to_software: boolean
   currently_using: boolean
   current_software_names: string | null
-  preferred_billing: string | null
   pay_per_event: string | null
-  monthly_amount: string | null
-  quarterly_amount: string | null
-  yearly_amount: string | null
   important_features: string[]
   wanted_features: string | null
   additional_feedback: string | null
@@ -33,13 +29,6 @@ const ROLE_LABELS: Record<string, string> = {
   coordinator: 'Coordinator',
   both: 'Both',
   other: 'Other',
-}
-
-const BILLING_LABELS: Record<string, string> = {
-  per_event: 'Per Event',
-  monthly: 'Monthly',
-  quarterly: 'Quarterly',
-  yearly: 'Yearly',
 }
 
 const TABS = [
@@ -74,7 +63,12 @@ function OverviewTab({ responses }: { responses: SurveyResponse[] }) {
 
   const billingCounts = useMemo(() => {
     const map: Record<string, number> = {}
-    responses.forEach(r => { const k = r.preferred_billing || 'unspecified'; map[k] = (map[k] || 0) + 1 })
+    responses.forEach(r => {
+      if (r.pay_per_event) {
+        const k = 'per_event'
+        map[k] = (map[k] || 0) + 1
+      }
+    })
     return map
   }, [responses])
 
@@ -130,10 +124,11 @@ function OverviewTab({ responses }: { responses: SurveyResponse[] }) {
       </div>
 
       <div className="overview-card">
-        <h3 className="overview-card__title">Billing Preference</h3>
+        <h3 className="overview-card__title">Per-Event Pricing</h3>
         {Object.entries(billingCounts).map(([key, count]) => (
-          <Bar key={key} label={BILLING_LABELS[key] || key} count={count} total={total} color="#6366f1" />
+          <Bar key={key} label="Per Event" count={count} total={total} color="#6366f1" />
         ))}
+        {Object.keys(billingCounts).length === 0 && <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>No data</div>}
       </div>
 
       <div className="overview-card">
@@ -212,8 +207,7 @@ export function AdminSurveyResponsesPage() {
               { key: 'date', label: 'Date' },
               { key: 'name', label: 'Name' },
               { key: 'role', label: 'Role' },
-              { key: 'billing', label: 'Billing' },
-              { key: 'amount', label: 'Amt' },
+              { key: 'pricing', label: 'Per Event' },
               { key: 'features', label: 'Features' },
               { key: 'actions', label: '' },
             ]}
@@ -240,15 +234,8 @@ export function AdminSurveyResponsesPage() {
                 <td style={{ padding: 'var(--space-3) var(--space-4)', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
                   {ROLE_LABELS[r.respondent_role || ''] || r.respondent_role || '—'}
                 </td>
-                <td style={{ padding: 'var(--space-3) var(--space-4)', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
-                  {BILLING_LABELS[r.preferred_billing || ''] || '—'}
-                </td>
                 <td style={{ padding: 'var(--space-3) var(--space-4)', fontSize: 'var(--text-sm)', fontWeight: 600 }}>
-                  {r.preferred_billing === 'per_event' ? (r.pay_per_event || '—') : ''}
-                  {r.preferred_billing === 'monthly' ? (r.monthly_amount || '—') : ''}
-                  {r.preferred_billing === 'quarterly' ? (r.quarterly_amount || '—') : ''}
-                  {r.preferred_billing === 'yearly' ? (r.yearly_amount || '—') : ''}
-                  {!r.preferred_billing ? '—' : ''}
+                  {r.pay_per_event || '—'}
                 </td>
                 <td style={{ padding: 'var(--space-3) var(--space-4)', fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>
                   {r.important_features?.length || 0} selected
@@ -323,35 +310,9 @@ export function AdminSurveyResponsesPage() {
               )}
               <hr style={{ border: 'none', borderTop: '1px solid var(--color-border-subtle)', margin: 0 }} />
               <div>
-                <div className="input-label">Billing Preference</div>
-                <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>
-                  {BILLING_LABELS[selected.preferred_billing || ''] || '—'}
-                </div>
+                <div className="input-label">Per Event Amount</div>
+                <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>{selected.pay_per_event || '—'}</div>
               </div>
-              {selected.preferred_billing === 'per_event' && (
-                <div>
-                  <div className="input-label">Per Event Amount</div>
-                  <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>{selected.pay_per_event || '—'}</div>
-                </div>
-              )}
-              {selected.preferred_billing === 'monthly' && (
-                <div>
-                  <div className="input-label">Monthly Amount</div>
-                  <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>{selected.monthly_amount || '—'}</div>
-                </div>
-              )}
-              {selected.preferred_billing === 'quarterly' && (
-                <div>
-                  <div className="input-label">Quarterly Amount</div>
-                  <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>{selected.quarterly_amount || '—'}</div>
-                </div>
-              )}
-              {selected.preferred_billing === 'yearly' && (
-                <div>
-                  <div className="input-label">Yearly Amount</div>
-                  <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>{selected.yearly_amount || '—'}</div>
-                </div>
-              )}
               <hr style={{ border: 'none', borderTop: '1px solid var(--color-border-subtle)', margin: 0 }} />
               <div>
                 <div className="input-label">Important Features</div>

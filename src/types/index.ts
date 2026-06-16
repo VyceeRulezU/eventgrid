@@ -54,6 +54,7 @@ export interface Event {
   coordinator_id: string | null
   notes: string | null
   slug: string | null
+  header_image_url: string | null
   deleted_at: string | null
   created_at: string
   updated_at: string

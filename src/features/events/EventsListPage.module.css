@@ -99,6 +99,7 @@
 .tr {
   border-bottom: 1px solid var(--color-border-subtle);
   transition: background-color var(--transition-fast);
+  cursor: pointer;
 }
 
 .tr:nth-child(odd) {

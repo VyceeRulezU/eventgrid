@@ -55,6 +55,7 @@ interface TaskDetailModalProps {
 
 export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProps) {
   const user = useAuthStore((s) => s.user)
+  const role = useAuthStore((s) => s.role)
   const showNotification = useUIStore((s) => s.showNotification)
 
   const [comments, setComments] = useState<TaskComment[]>([])
@@ -64,10 +65,39 @@ export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProp
   const [photoFiles, setPhotoFiles] = useState<{ file: File; preview: string }[]>([])
   const [notes, setNotes] = useState(task.notes || '')
   const [savingNotes, setSavingNotes] = useState(false)
+  const [members, setMembers] = useState<{ user_id: string; display_name: string | null; email: string }[]>([])
+  const [reassigning, setReassigning] = useState(false)
 
   useEffect(() => {
     loadComments()
+    loadMembers()
   }, [])
+
+  async function loadMembers() {
+    const { data } = await supabase
+      .from('event_access')
+      .select('user_id, profile:profiles!event_access_user_id_fkey(display_name, email)')
+      .eq('event_id', task.event_id)
+    if (data) {
+      setMembers(data.map((m: any) => ({
+        user_id: m.user_id,
+        display_name: m.profile?.display_name || null,
+        email: m.profile?.email || '',
+      })))
+    }
+  }
+
+  async function handleReassign(userId: string) {
+    setReassigning(true)
+    const { error } = await supabase.from('tasks').update({ assignee_id: userId || null }).eq('id', task.id)
+    if (error) {
+      showNotification({ variant: 'error', title: 'Reassign failed', message: error.message })
+    } else {
+      showNotification({ variant: 'success', title: 'Task reassigned' })
+      onUpdate()
+    }
+    setReassigning(false)
+  }
 
   async function loadComments() {
     const { data } = await supabase
@@ -178,10 +208,29 @@ export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProp
             </div>
             <div>
               <span style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)' }}>Assignee</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--color-text-primary)' }}>
-                <User size={12} />
-                {task.assignee?.display_name || 'Unassigned'}
-              </div>
+              {(role === 'planner' || role === 'coordinator') && !reassigning ? (
+                <DropdownMenu
+                  trigger={
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', color: 'var(--color-text-primary)' }}>
+                      <User size={12} />
+                      {task.assignee?.display_name || 'Unassigned'}
+                    </span>
+                  }
+                  items={[
+                    { label: 'Unassigned', value: '' },
+                    ...members.map((m) => ({
+                      label: m.display_name || m.email,
+                      value: m.user_id,
+                    })),
+                  ]}
+                  onSelect={(item) => handleReassign(item.value)}
+                />
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--color-text-primary)' }}>
+                  <User size={12} />
+                  {reassigning ? 'Reassigning...' : (task.assignee?.display_name || 'Unassigned')}
+                </div>
+              )}
             </div>
             <div>
               <span style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)' }}>Priority</span>

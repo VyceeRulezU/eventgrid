@@ -236,33 +236,16 @@ export function EventAssetsPage() {
     })
   }
 
-  function getAssetQuery(asset: EventAsset): string {
-    const cat = (asset.category || '').toLowerCase()
-    const name = asset.name.trim().slice(0, 40)
-    if (cat === 'moodboard' || asset.asset_type === 'moodboard') {
-      return encodeURIComponent(`event decor ${name}`)
-    }
-    const raw = (name + ' ' + asset.category).trim().slice(0, 50)
-    return raw ? encodeURIComponent(raw) : asset.asset_type
-  }
-
   const renderThumbnail = (asset: EventAsset) => {
     const isImg = isImageType(asset.mime_type)
     if (isImg && asset.file_url) {
       return <img src={asset.file_url} alt={asset.name} className={styles.cardThumbImg} />
     }
-    const q = getAssetQuery(asset)
     return (
-      <img
-        src={`https://source.unsplash.com/400x300/?${q}`}
-        alt={asset.name}
-        className={styles.cardThumbImg}
-        onError={(e) => {
-          const img = e.currentTarget
-          img.onerror = null
-          img.src = `https://picsum.photos/seed/${encodeURIComponent(asset.name)}/400/300`
-        }}
-      />
+      <div className={styles.docThumb}>
+        <FileText size={32} />
+        <span className={styles.docThumbName}>{asset.name}</span>
+      </div>
     )
   }
 

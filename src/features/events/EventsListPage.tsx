@@ -272,9 +272,10 @@ export function EventsListPage() {
                   <tr
                     key={event.id}
                     className={`${styles.tr} ${isSelected ? styles.trSelected : ''}`}
+                    onClick={() => navigate(`/events/${event.slug || event.id}`)}
                   >
                     {org && (
-                      <td className={`${styles.td} ${styles.tdCheck}`}>
+                      <td className={`${styles.td} ${styles.tdCheck}`} onClick={(e) => e.stopPropagation()}>
                         <Checkbox
                           checked={isSelected}
                           onChange={() => toggleOne(event.id)}
@@ -325,7 +326,7 @@ export function EventsListPage() {
                       </span>
                     </td>
                     {org && (
-                      <td className={styles.td}>
+                      <td className={styles.td} onClick={(e) => e.stopPropagation()}>
                         <div className={styles.rowActions}>
                           <button
                             type="button"

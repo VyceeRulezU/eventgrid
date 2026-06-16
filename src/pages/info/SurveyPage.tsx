@@ -15,13 +15,6 @@ const roleItems: DropdownItem[] = [
   { label: 'Other', value: 'other' },
 ]
 
-const billingItems: DropdownItem[] = [
-  { label: 'Per event', value: 'per_event' },
-  { label: 'Monthly', value: 'monthly' },
-  { label: 'Quarterly', value: 'quarterly' },
-  { label: 'Yearly', value: 'yearly' },
-]
-
 const CURRENT_FEATURES = [
   'Event Pipeline & Timeline Management',
   'Task Management with Team Collaboration',
@@ -46,11 +39,7 @@ export function SurveyPage() {
     open_to_software: false,
     currently_using: false,
     current_software_names: '',
-    preferred_billing: '',
     pay_per_event: '',
-    monthly_amount: '',
-    quarterly_amount: '',
-    yearly_amount: '',
     important_features: [] as string[],
     wanted_features: '',
     additional_feedback: '',
@@ -75,11 +64,7 @@ export function SurveyPage() {
       open_to_software: form.open_to_software,
       currently_using: form.currently_using,
       current_software_names: form.current_software_names || null,
-      preferred_billing: form.preferred_billing || null,
       pay_per_event: form.pay_per_event || null,
-      monthly_amount: form.monthly_amount || null,
-      quarterly_amount: form.quarterly_amount || null,
-      yearly_amount: form.yearly_amount || null,
       important_features: form.important_features,
       wanted_features: form.wanted_features || null,
       additional_feedback: form.additional_feedback || null,
@@ -214,65 +199,15 @@ export function SurveyPage() {
             <h2 className={styles.sectionTitle}>Pricing</h2>
 
             <div className={styles.field}>
-              <label className={styles.label}>Would you rather pay for the service per event, monthly, quarterly or yearly?</label>
-              <DropdownMenu
-                trigger={<span>{form.preferred_billing ? billingItems.find(i => i.value === form.preferred_billing)?.label : 'Select billing preference'}</span>}
-                items={billingItems}
-                onSelect={(item) => setForm((p) => ({ ...p, preferred_billing: item.value }))}
+              <label className={styles.label}>How much would you be willing to pay <strong>per event</strong> for the services?</label>
+              <input
+                type="text"
+                className={styles.input}
+                value={form.pay_per_event}
+                onChange={(e) => setForm((p) => ({ ...p, pay_per_event: e.target.value }))}
+                placeholder="e.g. ₦15,000"
               />
             </div>
-
-            {form.preferred_billing === 'per_event' && (
-              <div className={styles.field}>
-                <label className={styles.label}>How much would you be willing to pay <strong>per event</strong>?</label>
-                <input
-                  type="text"
-                  className={styles.input}
-                  value={form.pay_per_event}
-                  onChange={(e) => setForm((p) => ({ ...p, pay_per_event: e.target.value }))}
-                  placeholder="e.g. ₦15,000"
-                />
-              </div>
-            )}
-
-            {form.preferred_billing === 'monthly' && (
-              <div className={styles.field}>
-                <label className={styles.label}>How much would you be willing to pay <strong>monthly</strong>?</label>
-                <input
-                  type="text"
-                  className={styles.input}
-                  value={form.monthly_amount}
-                  onChange={(e) => setForm((p) => ({ ...p, monthly_amount: e.target.value }))}
-                  placeholder="e.g. ₦10,000"
-                />
-              </div>
-            )}
-
-            {form.preferred_billing === 'quarterly' && (
-              <div className={styles.field}>
-                <label className={styles.label}>How much would you be willing to pay <strong>quarterly</strong>?</label>
-                <input
-                  type="text"
-                  className={styles.input}
-                  value={form.quarterly_amount}
-                  onChange={(e) => setForm((p) => ({ ...p, quarterly_amount: e.target.value }))}
-                  placeholder="e.g. ₦25,000"
-                />
-              </div>
-            )}
-
-            {form.preferred_billing === 'yearly' && (
-              <div className={styles.field}>
-                <label className={styles.label}>How much would you be willing to pay <strong>yearly</strong>?</label>
-                <input
-                  type="text"
-                  className={styles.input}
-                  value={form.yearly_amount}
-                  onChange={(e) => setForm((p) => ({ ...p, yearly_amount: e.target.value }))}
-                  placeholder="e.g. ₦100,000"
-                />
-              </div>
-            )}
           </div>
 
           {/* ── Features ── */}

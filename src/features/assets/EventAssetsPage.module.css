@@ -60,6 +60,27 @@
   object-fit: cover;
 }
 
+.docThumb {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  background: var(--color-surface-1);
+}
+
+.docThumbName {
+  font-size: var(--text-xs);
+  text-align: center;
+  max-width: 90%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .docIcon {
   color: var(--color-text-muted);
   opacity: 0.6;

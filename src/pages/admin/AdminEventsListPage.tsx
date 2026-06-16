@@ -198,7 +198,7 @@ export function AdminEventsListPage() {
               {displayed.map((event) => {
                 const badge = STATUS_BADGE[event.status] || 'grey'
                 return (
-                  <tr key={event.id}>
+                  <tr key={event.id} onClick={() => navigate(`/events/${event.slug || event.id}`)}>
                     <td className={`${styles.td} ${styles.eventCell}`}>
                       <button
                         type="button"

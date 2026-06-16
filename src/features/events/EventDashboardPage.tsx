@@ -114,6 +114,9 @@ export function EventDashboardPage() {
   const { activeEvent, setActiveEvent, phases, setPhases } = useEventStore()
   const showNotification = useUIStore((s) => s.showNotification)
 
+  const headerInputRef = useRef<HTMLInputElement>(null)
+  const [uploadingHeader, setUploadingHeader] = useState(false)
+
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [stats, setStats] = useState({ vendors: 0, tasksDue: 0, openIssues: 0 })
@@ -146,6 +149,33 @@ export function EventDashboardPage() {
     params.set('tab', tab)
     const newUrl = `${window.location.pathname}?${params.toString()}`
     window.history.pushState(null, '', newUrl)
+  }
+
+  const handleHeaderUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !activeEvent) return
+    setUploadingHeader(true)
+    try {
+      const ext = file.name.split('.').pop() || 'jpg'
+      const path = `${activeEvent.id}/header/${crypto.randomUUID()}.${ext}`
+      const { error: uploadErr } = await supabase.storage
+        .from('event-media')
+        .upload(path, file, { contentType: file.type, upsert: true })
+      if (uploadErr) throw uploadErr
+      const { data: pubUrlData } = supabase.storage.from('event-media').getPublicUrl(path)
+      const url = pubUrlData?.publicUrl
+      if (!url) throw new Error('Failed to get public URL')
+      const { error: updateErr } = await supabase
+        .from('events')
+        .update({ header_image_url: url })
+        .eq('id', activeEvent.id)
+      if (updateErr) throw updateErr
+      setActiveEvent({ ...activeEvent, header_image_url: url })
+    } catch (err: any) {
+      showNotification({ variant: 'error', title: 'Upload failed', message: err.message || 'Could not upload header image' })
+    }
+    setUploadingHeader(false)
+    if (headerInputRef.current) headerInputRef.current.value = ''
   }
 
   const paySucceededRef = useRef(false)
@@ -680,6 +710,7 @@ export function EventDashboardPage() {
       <PageHero
         icon={Calendar}
         title={activeEvent.name}
+        backgroundImage={activeEvent.header_image_url || undefined}
         subtitle={[
           activeEvent.event_type,
           eventDateLabel,
@@ -689,6 +720,27 @@ export function EventDashboardPage() {
         backTo="/events"
         actions={
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+            {(role === 'planner' || role === 'coordinator') && (
+              <>
+                <input
+                  ref={headerInputRef}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={handleHeaderUpload}
+                />
+                <button
+                  type="button"
+                  className={styles.headerEditBtn}
+                  onClick={() => headerInputRef.current?.click()}
+                  disabled={uploadingHeader}
+                  aria-label="Change header image"
+                  title="Change header image"
+                >
+                  {uploadingHeader ? <span className="spinner-loader" style={{ width: 14, height: 14 }} /> : <Image size={14} />}
+                </button>
+              </>
+            )}
             <button type="button" className={styles.headerEditBtn} onClick={() => setShowEditModal(true)} aria-label="Edit event">
               <Pencil size={14} />
             </button>

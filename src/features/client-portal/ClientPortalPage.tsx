@@ -34,7 +34,7 @@ interface PortalData {
   media: Media[]
 }
 
-type ClientTab = 'timeline' | 'all' | 'active' | 'done' | 'gallery' | 'vendors' | 'assets' | 'guests'
+type ClientTab = 'timeline' | 'all' | 'active' | 'done' | 'gallery' | 'financials' | 'vendors' | 'assets' | 'guests'
 
 /* ── SVG Progress ring ─────────────────────────── */
 function ProgressRing({ pct }: { pct: number }) {
@@ -287,6 +287,7 @@ export function ClientPortalPage() {
             ['active', 'Active', activeCount > 0 ? activeCount : null],
             ['done', 'Done', completed > 0 ? completed : null],
             ['gallery', 'Gallery', media.length > 0 ? media.length : null],
+            ['financials', 'Financials', null],
             ['vendors', 'Vendors', eventVendors.length > 0 ? eventVendors.length : null],
             ['assets', 'Assets', portalAssets.length > 0 ? portalAssets.length : null],
             ['guests', 'Guests', guests.length > 0 ? guests.length : null],
@@ -369,6 +370,53 @@ export function ClientPortalPage() {
               )
             })}
           </Table>
+        )}
+
+        {/* Financials */}
+        {activeTab === 'financials' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--space-4)' }}>
+              <div className={styles.finCard}>
+                <div className={styles.finLabel}>Total Budget</div>
+                <div className={styles.finValue}>₦{(event.budget_total || 0).toLocaleString()}</div>
+              </div>
+              <div className={styles.finCard}>
+                <div className={styles.finLabel}>Total Vendor Cost</div>
+                <div className={styles.finValue}>₦{eventVendors.reduce((s, v) => s + (v.total_amount || 0), 0).toLocaleString()}</div>
+              </div>
+              <div className={styles.finCard}>
+                <div className={styles.finLabel}>Paid</div>
+                <div className={styles.finValue} style={{ color: 'var(--color-success)' }}>
+                  ₦{eventVendors.filter(v => v.payment_status === 'paid').reduce((s, v) => s + (v.total_amount || 0), 0).toLocaleString()}
+                </div>
+              </div>
+              <div className={styles.finCard}>
+                <div className={styles.finLabel}>Outstanding</div>
+                <div className={styles.finValue} style={{ color: 'var(--color-warning)' }}>
+                  ₦{eventVendors.filter(v => v.payment_status !== 'paid').reduce((s, v) => s + (v.total_amount || 0), 0).toLocaleString()}
+                </div>
+              </div>
+            </div>
+            {eventVendors.filter(v => v.total_amount > 0).length > 0 && (
+              <div>
+                <h4 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-3)', color: 'var(--color-text-primary)' }}>Vendor Breakdown</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                  {eventVendors.filter(v => v.total_amount > 0).map((v) => (
+                    <div key={v.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'var(--space-2) var(--space-3)', background: 'var(--color-surface-2)', borderRadius: 'var(--radius-md)' }}>
+                      <div>
+                        <div style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>{v.vendor_name}</div>
+                        <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>{v.category}</div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>₦{v.total_amount.toLocaleString()}</div>
+                        <span className={`badge ${v.payment_status === 'paid' ? 'badge-success' : v.payment_status === 'advance' ? 'badge-medium' : 'badge-error'}`} style={{ fontSize: 10 }}>{v.payment_status}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         )}
 
         {/* Gallery */}
