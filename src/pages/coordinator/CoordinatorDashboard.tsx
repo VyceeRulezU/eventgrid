@@ -10,6 +10,7 @@ import { useAuthStore } from '@/store/auth.store'
 import { Pagination } from '@/components/ui/Pagination'
 import { SEO } from '@/components/shared/SEO'
 import { MyFeedback } from '@/components/shared/MyFeedback'
+import { ReviewsList } from '@/features/reviews/ReviewsList'
 import type { Event, EventPhase, Task } from '@/types'
 import styles from './CoordinatorDashboard.module.css'
 
@@ -724,6 +725,10 @@ export function CoordinatorDashboard() {
 
       <div style={{ marginTop: 'var(--space-6)' }}>
         <MyFeedback />
+      </div>
+
+      <div style={{ marginTop: 'var(--space-6)' }}>
+        <ReviewsList userId={user?.id || ''} />
       </div>
     </div>
   )

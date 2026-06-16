@@ -10,14 +10,17 @@ interface ReviewWithReviewer extends ReviewRow {
   event_name?: string
 }
 
-export function ReviewsList({ userId }: { userId: string }) {
+export function ReviewsList({ userId, eventId }: { userId: string; eventId?: string }) {
   const [reviews, setReviews] = useState<ReviewWithReviewer[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!userId) return
+    let query = supabase.from('reviews').select('*').eq('reviewed_id', userId)
+    if (eventId) query = query.eq('event_id', eventId)
+    query = query.order('created_at', { ascending: false })
     Promise.all([
-      supabase.from('reviews').select('*').eq('reviewed_id', userId).order('created_at', { ascending: false }),
+      query,
       supabase.from('profiles').select('id, display_name'),
       supabase.from('events').select('id, name'),
     ]).then(([reviewsRes, profilesRes, eventsRes]) => {

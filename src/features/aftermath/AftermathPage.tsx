@@ -5,23 +5,25 @@ import { PageHero } from '@/components/shared/PageHero'
 import { MediaLibrary } from './MediaLibrary'
 import { IssueLogReview } from './IssueLogReview'
 import { EventReportBuilder } from './EventReportBuilder'
+import { ReviewsList } from '@/features/reviews/ReviewsList'
 import { useResolvedEventId } from '@/hooks/useResolvedEventId'
+import { useAuthStore } from '@/store/auth.store'
 import { supabase } from '@/lib/supabase'
 import styles from './Aftermath.module.css'
 
-type Tab = 'summary' | 'media' | 'issues' | 'report'
+type Tab = 'summary' | 'media' | 'issues' | 'report' | 'reviews'
 
 const TABS: { key: Tab; label: string; icon: React.ComponentType<{ size?: number }> }[] = [
   { key: 'summary', label: 'Summary', icon: LayoutDashboard },
   { key: 'media', label: 'Media', icon: Image },
   { key: 'issues', label: 'Issues', icon: MessageSquare },
   { key: 'report', label: 'Report', icon: FileText },
+  { key: 'reviews', label: 'Reviews', icon: Star },
 ]
 
 export function AftermathPage() {
   const { eventId, paramId, loading: idLoading } = useResolvedEventId()
-  const [activeTab, setActiveTab] = useState<Tab>('summary')
-  const [eventName, setEventName] = useState('')
+  const user = useAuthStore((s) => s.user)
   const [summary, setSummary] = useState({ guestCount: 0, checkedIn: 0, vendorCount: 0, issueCount: 0, mediaCount: 0, completedPhases: 0, totalPhases: 9 })
 
   useEffect(() => {
@@ -133,6 +135,7 @@ export function AftermathPage() {
       {activeTab === 'media' && <MediaLibrary eventId={eventId} />}
       {activeTab === 'issues' && <IssueLogReview eventId={eventId} />}
       {activeTab === 'report' && <EventReportBuilder eventId={eventId} />}
+      {activeTab === 'reviews' && <ReviewsList userId={user?.id || ''} eventId={eventId} />}
     </div>
   )
 }
