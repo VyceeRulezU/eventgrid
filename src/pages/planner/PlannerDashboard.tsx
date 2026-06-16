@@ -14,6 +14,7 @@ import { Pagination } from '@/components/ui/Pagination'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { SEO } from '@/components/shared/SEO'
 import { MyFeedback } from '@/components/shared/MyFeedback'
+import { ReviewsList } from '@/features/reviews/ReviewsList'
 import type { Event, EventPhase, Task } from '@/types'
 import styles from './PlannerDashboard.module.css'
 
@@ -930,6 +931,10 @@ export function PlannerDashboard() {
 
       <div style={{ marginTop: 'var(--space-6)' }}>
         <MyFeedback />
+      </div>
+
+      <div style={{ marginTop: 'var(--space-6)' }}>
+        <ReviewsList userId={user?.id || ''} />
       </div>
 
       {showInviteClient && (

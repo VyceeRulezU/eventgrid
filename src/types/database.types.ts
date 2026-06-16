@@ -802,6 +802,36 @@ export interface Database {
           additional_feedback?: string | null
         }
       }
+      reviews: {
+        Row: {
+          id: string
+          reviewed_id: string
+          reviewer_id: string
+          event_id: string
+          reviewer_role: string
+          rating: number
+          comment: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          reviewed_id: string
+          reviewer_id: string
+          event_id: string
+          reviewer_role: string
+          rating: number
+          comment?: string | null
+        }
+        Update: {
+          id?: string
+          reviewed_id?: string
+          reviewer_id?: string
+          event_id?: string
+          reviewer_role?: string
+          rating?: number
+          comment?: string | null
+        }
+      }
     }
     Views: Record<string, never>
     Functions: {
