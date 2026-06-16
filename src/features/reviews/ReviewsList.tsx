@@ -29,7 +29,7 @@ export function ReviewsList({ userId, eventId }: { userId: string; eventId?: str
         setReviews(
           (reviewsRes.data as ReviewRow[]).map((r) => ({
             ...r,
-            reviewer_name: profiles.get(r.reviewer_id) || r.reviewer_name,
+            reviewer_name: profiles.get(r.reviewer_id) || r.reviewer_name || null,
             event_name: events.get(r.event_id) || undefined,
           }))
         )
