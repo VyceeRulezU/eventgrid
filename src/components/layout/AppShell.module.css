@@ -14,15 +14,9 @@
   flex-direction: column;
 }
 
-@media (min-width: 768px) {
-  .main {
-    padding-bottom: 0;
-    margin-left: var(--sidebar-collapsed-width);
-  }
-}
-
 @media (min-width: 1024px) {
   .main {
+    padding-bottom: 0;
     margin-left: calc(var(--sidebar-width) + var(--space-4) + 1rem);
     margin-right: var(--space-4);
     padding-top: var(--space-4);

@@ -46,7 +46,7 @@
   color: var(--color-text-primary);
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .menuBtn { display: none; }
 }
 
@@ -70,7 +70,7 @@
   user-select: none;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
   .pipe { display: none; }
 }
 
@@ -83,7 +83,7 @@
   white-space: nowrap;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
   .subtitle { display: none; }
 }
 
@@ -206,6 +206,6 @@
   user-select: none;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .userName { display: block; }
 }

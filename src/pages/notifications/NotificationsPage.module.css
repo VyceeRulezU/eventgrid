@@ -329,7 +329,7 @@
   min-height: 0;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 820px) {
   .splitLayout {
     flex-direction: column;
   }
