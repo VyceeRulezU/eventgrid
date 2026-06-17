@@ -51,9 +51,9 @@ test.describe('register page', () => {
 
   test('shows role selection step', async ({ page }) => {
     await page.goto('/register')
-    await expect(page.getByText(/i am a/i)).toBeVisible()
-    await expect(page.getByText(/planner/i)).toBeVisible()
-    await expect(page.getByText(/coordinator/i)).toBeVisible()
+    // Role cards use labels: 'Event Planner', 'Coordinator', 'Client / Guest'
+    await expect(page.getByText(/Event Planner/i)).toBeVisible()
+    await expect(page.getByText(/Coordinator/i)).toBeVisible()
   })
 
   test('shows registration form after role selection', async ({ page }) => {
@@ -67,10 +67,10 @@ test.describe('register page', () => {
 
   test('requires password of at least 6 characters', async ({ page }) => {
     await page.goto('/register')
-    await page.getByText(/planner/i).first().click()
+    await page.getByText(/Event Planner/i).first().click()
     await page.locator('#password').fill('abc')
-    // submit should be disabled due to weak password
-    await expect(page.getByRole('button', { name: /create account|get started|sign up/i })).toBeDisabled()
+    // submit button says 'Register Now' and is disabled when password score < 15
+    await expect(page.getByRole('button', { name: /register now/i })).toBeDisabled()
   })
 })
 
@@ -97,10 +97,11 @@ test.describe('logout', () => {
   test.skip(!process.env.E2E_TEST_EMAIL, 'E2E_TEST_EMAIL not set')
 
   test('logout button exists in sidebar', async ({ page }) => {
-    await page.goto('/')
-    // Wait for redirect after login — app lands on /home not /dashboard
-    await page.waitForURL(/\/(home|dashboard)/, { timeout: 15000 })
-    // Open sidebar
+    // Navigate directly to a dashboard page — the sidebar with 'Log out' lives
+    // inside the app layout, not on the public /home landing page.
+    await page.goto('/events')
+    await page.waitForURL(/\/events/, { timeout: 15000 })
+    // Open sidebar if there's a toggle (mobile/collapsed)
     const sidebarToggle = page.locator('[aria-label="Open sidebar"], [aria-label="Menu"]').first()
     if (await sidebarToggle.isVisible()) await sidebarToggle.click()
     await expect(page.getByText(/log out/i)).toBeVisible()
