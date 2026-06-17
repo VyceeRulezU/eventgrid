@@ -68,7 +68,8 @@ jobs:
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
           VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
-          VITE_TURNSTILE_SITE_KEY: 0x4AAAAAADlDWkKAkkc1Zy9n
+          # Cloudflare's official always-pass test key — auto-verifies in headless CI
+          VITE_TURNSTILE_SITE_KEY: 1x00000000000000000000AA
       - name: Run E2E tests
         run: npx playwright test
         env:
