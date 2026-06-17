@@ -153,6 +153,44 @@ function vendorInviteEmail(opts: {
   }
 }
 
+function vendorWelcomeEmail(opts: {
+  vendorName: string
+  plannerName: string
+  appUrl: string
+}): { subject: string; html: string } {
+  return {
+    subject: `Welcome to NaliGrid, ${opts.vendorName}!`,
+    html: emailShell('Welcome to NaliGrid', `
+              <h1 style="margin:0 0 12px;font-size:24px;font-weight:300;color:#F9FAFB;line-height:1.3;letter-spacing:-0.02em;">
+                You're on NaliGrid!
+              </h1>
+              <p style="margin:0 0 16px;font-size:15px;color:#9CA3AF;line-height:1.6;">
+                Hi <strong style="color:#F9FAFB;">${opts.vendorName}</strong>,<br/>
+                <strong style="color:#F9FAFB;">${opts.plannerName}</strong> has added you to their vendor network on NaliGrid.
+              </p>
+              <p style="margin:0 0 20px;font-size:14px;color:#9CA3AF;line-height:1.6;">
+                Your profile is now visible to event planners looking for vendors like you. 
+                You can log in to manage your services, update your portfolio, and receive booking requests.
+              </p>
+              <table cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+                <tr>
+                  <td style="background-color:#D4A017;border-radius:10px;">
+                    <a href="${opts.appUrl}/vendors-landing" class="button"
+                       style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:400;color:#111827;text-decoration:none;border-radius:10px;box-shadow:0 4px 12px rgba(212,160,23,0.25);">
+                      Explore NaliGrid &rarr;
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:0 0 8px;font-size:13px;color:#9CA3AF;line-height:1.5;">
+                Not sure where to start? Browse our vendor guide or update your profile settings anytime.
+              </p>
+              <p style="margin:0;font-size:12px;color:#6B7280;">
+                Vendor home: <a href="${opts.appUrl}/vendors-landing" style="color:#D4A017;">${opts.appUrl}/vendors-landing</a>
+              </p>`),
+  }
+}
+
 function guestInviteEmail(opts: {
   eventName: string
   guestName: string
@@ -282,6 +320,8 @@ Deno.serve(async (req) => {
       vendor_name,
       service_name,
       portal_link,
+      service_name,
+      portal_link,
       // client portal specific
       client_name,
       event_date,
@@ -297,7 +337,7 @@ Deno.serve(async (req) => {
     }
 
     // coordinator_invite and admin_monitor don't require event_id
-    const needsEventId = !['admin_monitor', 'coordinator_invite'].includes(type)
+    const needsEventId = !['admin_monitor', 'coordinator_invite', 'vendor_welcome'].includes(type)
     if (needsEventId && !event_id) {
       return new Response(
         JSON.stringify({ error: 'event_id is required for this invite type' }),
@@ -513,6 +553,15 @@ Deno.serve(async (req) => {
         subject = template.subject
         html = template.html
       }
+
+    } else if (type === 'vendor_welcome') {
+      const template = vendorWelcomeEmail({
+        vendorName: vendor_name ?? 'Vendor',
+        plannerName: invited_by_name ?? 'A planner',
+        appUrl: APP_URL,
+      })
+      subject = template.subject
+      html = template.html
 
     } else if (type === 'vendor') {
       const link = portal_link ?? `${APP_URL}/vendor-portal/${event_id}`

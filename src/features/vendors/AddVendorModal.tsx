@@ -2,7 +2,9 @@ import { useState, useEffect, useRef } from 'react'
 import { X, Search, Plus } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
+import { useAuthStore } from '@/store/auth.store'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
+import { sendInvite } from '@/lib/edgeFunctions'
 
 interface AddVendorModalProps {
   orgId: string
@@ -24,6 +26,7 @@ const RATINGS = [
 
 export function AddVendorModal({ orgId, availableTypes, defaultCategory, onClose, onSaved }: AddVendorModalProps) {
   const showNotification = useUIStore((s) => s.showNotification)
+  const user = useAuthStore((s) => s.user)
   const [mode, setMode] = useState<'search' | 'create'>('search')
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<import('@/types').Vendor[]>([])
@@ -78,6 +81,10 @@ export function AddVendorModal({ orgId, availableTypes, defaultCategory, onClose
 
   const handleSave = async () => {
     if (!form.name.trim()) return
+    if (!form.email.trim()) {
+      showNotification({ variant: 'warning', title: 'Email required', message: 'An email address is needed to notify the vendor.' })
+      return
+    }
     setSaving(true)
     const { data, error } = await supabase
       .from('vendors')
@@ -97,10 +104,22 @@ export function AddVendorModal({ orgId, availableTypes, defaultCategory, onClose
     setSaving(false)
     if (error) {
       showNotification({ variant: 'error', title: 'Failed to add vendor', message: error.message })
+      setSaving(false)
       return
     }
     onSaved(data as unknown as import('@/types').Vendor)
     showNotification({ variant: 'success', title: `"${form.name.trim()}" added` })
+
+    const { error: inviteError } = await sendInvite({
+      type: 'vendor_welcome',
+      email: form.email.trim(),
+      vendor_name: form.name.trim(),
+      invited_by_name: user?.user_metadata?.display_name || user?.email || 'A planner',
+    })
+    if (inviteError) {
+      console.error('Failed to send vendor welcome email:', inviteError)
+    }
+
     onClose()
   }
 

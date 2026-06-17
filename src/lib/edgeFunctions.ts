@@ -36,6 +36,13 @@ interface CoordinatorInviteParams {
   org_name?: string
 }
 
+interface VendorWelcomeParams {
+  type: 'vendor_welcome'
+  email: string
+  vendor_name: string
+  invited_by_name: string
+}
+
 interface AdminInviteParams {
   type: 'admin_monitor'
   email: string
@@ -52,6 +59,7 @@ interface GuestInviteParams extends BaseInviteParams {
 export type SendInviteParams =
   | TeamInviteParams
   | VendorInviteParams
+  | VendorWelcomeParams
   | ClientPortalInviteParams
   | CoordinatorInviteParams
   | AdminInviteParams

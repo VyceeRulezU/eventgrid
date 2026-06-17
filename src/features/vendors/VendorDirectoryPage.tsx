@@ -7,6 +7,7 @@ import { PageHero } from '@/components/shared/PageHero'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { useSearch } from '@/hooks/useSearch'
 import { SearchBar } from '@/components/shared/SearchBar'
+import { sendInvite } from '@/lib/edgeFunctions'
 import type { Vendor } from '@/types'
 import styles from './VendorDirectoryPage.module.css'
 
@@ -127,6 +128,10 @@ export function VendorDirectoryPage() {
       showNotification({ variant: 'warning', title: 'Missing fields', message: 'Vendor name is required' })
       return
     }
+    if (!form.email.trim()) {
+      showNotification({ variant: 'warning', title: 'Email required', message: 'An email address is needed to notify the vendor.' })
+      return
+    }
 
     const duplicate = vendors.find(
       (v) =>
@@ -190,6 +195,16 @@ export function VendorDirectoryPage() {
       if (data) {
         const newVendor = { ...data as unknown as Vendor, org_name: org?.name || 'My Organization' }
         setVendors([newVendor, ...vendors])
+
+        const { error: inviteError } = await sendInvite({
+          type: 'vendor_welcome',
+          email: form.email.trim(),
+          vendor_name: form.name.trim(),
+          invited_by_name: user?.user_metadata?.display_name || user?.email || 'A planner',
+        })
+        if (inviteError) {
+          console.error('Failed to send vendor welcome email:', inviteError)
+        }
       }
       showNotification({ variant: 'success', title: 'Vendor added' })
     }
