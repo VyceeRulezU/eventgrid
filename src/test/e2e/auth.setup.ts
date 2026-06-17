@@ -1,48 +1,43 @@
 import 'dotenv/config'
-import { chromium, type FullConfig } from '@playwright/test'
+import { test as setup } from '@playwright/test'
+import * as fs from 'node:fs'
 
-async function globalSetup(_config: FullConfig) {
+const authFile = 'playwright/.auth.json'
+
+setup('authenticate', async ({ page, baseURL }) => {
   const email = process.env.E2E_TEST_EMAIL
   const password = process.env.E2E_TEST_PASSWORD
-  const appUrl = process.env.E2E_APP_URL || 'http://localhost:4173'
 
   if (!email || !password) {
     console.log('E2E_TEST_EMAIL / E2E_TEST_PASSWORD not set — skipping auth setup')
+    // Write an empty storage state so dependent projects don't fail
+    fs.mkdirSync('playwright', { recursive: true })
+    fs.writeFileSync(authFile, JSON.stringify({ cookies: [], origins: [] }))
     return
   }
 
-  const browser = await chromium.launch()
-  const page = await browser.newPage()
+  const appUrl = baseURL || process.env.E2E_APP_URL || 'http://localhost:4173'
+
+  await page.goto(appUrl + '/login', { waitUntil: 'networkidle' })
+  await page.waitForSelector('#email', { timeout: 10000 })
+  await page.fill('#email', email)
+  await page.fill('#password', password)
+  await page.click('button[type="submit"]')
 
   try {
-    await page.goto(appUrl + '/login', { waitUntil: 'networkidle', timeout: 15000 })
-    await page.waitForSelector('#email', { timeout: 10000 })
-    await page.fill('#email', email)
-    await page.fill('#password', password)
-    await page.click('button[type="submit"]')
-
-    try {
-      await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 30000 })
-    } catch {
-      await page.screenshot({ path: 'playwright/login-failed.png', fullPage: true })
-      const title = await page.title()
-      const html = await page.content()
-      console.error('Still on /login. Title:', title)
-      console.error('HTML:', html.substring(0, 2000))
-      throw new Error('Login failed — page did not navigate away from /login')
-    }
-
-    const finalUrl = page.url()
-    console.log('Post-login URL:', finalUrl)
-
-    await page.context().storageState({ path: 'playwright/.auth.json' })
-    console.log('Auth setup complete')
-  } catch (err) {
-    console.error('Auth setup failed:', err)
-    throw err
-  } finally {
-    await browser.close()
+    await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 30000 })
+  } catch {
+    await page.screenshot({ path: 'playwright/login-failed.png', fullPage: true })
+    const title = await page.title()
+    const html = await page.content()
+    console.error('Still on /login. Title:', title)
+    console.error('HTML:', html.substring(0, 2000))
+    throw new Error('Login failed — page did not navigate away from /login')
   }
-}
 
-export default globalSetup
+  console.log('Post-login URL:', page.url())
+
+  fs.mkdirSync('playwright', { recursive: true })
+  await page.context().storageState({ path: authFile })
+  console.log('Auth setup complete')
+})
