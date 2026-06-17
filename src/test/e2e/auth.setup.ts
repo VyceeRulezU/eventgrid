@@ -1,39 +1,47 @@
 import 'dotenv/config'
 import { test as setup } from '@playwright/test'
+import { createClient } from '@supabase/supabase-js'
 import * as fs from 'node:fs'
 
 const authFile = 'playwright/.auth.json'
 
 setup('authenticate', async ({ page, baseURL }) => {
   const email = process.env.E2E_TEST_EMAIL
-  const password = process.env.E2E_TEST_PASSWORD
+  const supabaseUrl = process.env.VITE_SUPABASE_URL
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const appUrl = baseURL || process.env.E2E_APP_URL || 'http://localhost:4173'
 
-  if (!email || !password) {
-    console.log('E2E_TEST_EMAIL / E2E_TEST_PASSWORD not set — skipping auth setup')
-    // Write an empty storage state so dependent projects don't fail
+  if (!email || !supabaseUrl || !serviceRoleKey) {
+    console.log('E2E_TEST_EMAIL / VITE_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY not set — skipping auth setup')
     fs.mkdirSync('playwright', { recursive: true })
     fs.writeFileSync(authFile, JSON.stringify({ cookies: [], origins: [] }))
     return
   }
 
-  const appUrl = baseURL || process.env.E2E_APP_URL || 'http://localhost:4173'
+  // Use the admin API to generate a one-time magic link — bypasses Turnstile entirely.
+  // No CAPTCHA token is involved, so Supabase's server-side verification is never triggered.
+  const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  })
 
-  await page.goto(appUrl + '/login', { waitUntil: 'load' })
-  await page.waitForSelector('#email', { timeout: 10000 })
-  await page.fill('#email', email)
-  await page.fill('#password', password)
-  await page.click('button[type="submit"]')
+  const { data, error } = await adminClient.auth.admin.generateLink({
+    type: 'magiclink',
+    email,
+    options: { redirectTo: appUrl },
+  })
 
-  try {
-    await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 30000 })
-  } catch {
-    await page.screenshot({ path: 'playwright/login-failed.png', fullPage: true })
-    const title = await page.title()
-    const html = await page.content()
-    console.error('Still on /login. Title:', title)
-    console.error('HTML:', html.substring(0, 2000))
-    throw new Error('Login failed — page did not navigate away from /login')
+  if (error || !data?.properties?.action_link) {
+    throw new Error(`Failed to generate magic link: ${error?.message ?? 'no action_link returned'}`)
   }
+
+  const actionLink = data.properties.action_link
+  console.log('Navigating browser to magic link...')
+
+  // Supabase verifies the token and HTTP-redirects the browser to appUrl with session in hash.
+  await page.goto(actionLink, { waitUntil: 'load' })
+
+  // Safety wait: ensure we've left the Supabase auth server domain
+  await page.waitForURL((url) => !url.href.includes('supabase.co'), { timeout: 30000 })
 
   console.log('Post-login URL:', page.url())
 
