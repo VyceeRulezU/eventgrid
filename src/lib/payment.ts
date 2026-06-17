@@ -1,7 +1,7 @@
 import { loadPaystackScript, initPaystackPayment } from './paystack'
-import { loadFlutterwaveScript, initFlutterwavePayment } from './flutterwave'
+import { loadKorapayScript, initKorapayPayment } from './korapay'
 
-export type PaymentProvider = 'paystack' | 'flutterwave'
+export type PaymentProvider = 'paystack' | 'korapay'
 
 export interface PaymentConfig {
   provider: PaymentProvider
@@ -10,6 +10,7 @@ export interface PaymentConfig {
   metadata: Record<string, unknown>
   onSuccess: (reference: string) => void
   onClose: () => void
+  onFailed?: (message: string) => void
 }
 
 export function getEventPrice(_sizeTier: string): number {
@@ -27,17 +28,19 @@ export async function processPayment(config: PaymentConfig): Promise<void> {
       onSuccess: config.onSuccess,
       onClose: config.onClose,
     })
-  } else if (config.provider === 'flutterwave') {
-    await loadFlutterwaveScript()
-    initFlutterwavePayment({
-      public_key: import.meta.env.VITE_FLUTTERWAVE_PUBLIC_KEY,
-      tx_ref: `evt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+  } else if (config.provider === 'korapay') {
+    await loadKorapayScript()
+    initKorapayPayment({
+      key: import.meta.env.VITE_KORAPAY_PUBLIC_KEY,
+      reference: `evt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       amount: config.amount / 100,
       currency: 'NGN',
       email: config.email,
-      meta: config.metadata as Record<string, unknown>,
-      onSuccess: (response) => config.onSuccess(response.transaction_id),
+      customerName: (config.metadata?.customer_name as string) || undefined,
+      metadata: config.metadata as Record<string, unknown>,
+      onSuccess: (data) => config.onSuccess(data.reference),
       onClose: () => config.onClose(),
+      onFailed: (data) => config.onFailed?.(data.status || 'Payment verification failed at gateway'),
     })
   }
 }

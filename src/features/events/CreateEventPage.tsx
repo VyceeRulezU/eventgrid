@@ -328,7 +328,8 @@ export function CreateEventPage() {
     navigate(`/events/${data.slug || data.id}`)
   }
 
-  const handlePaymentSuccess = async (provider: 'paystack' | 'flutterwave', reference: string) => {
+  const handlePaymentSuccess = async (provider: 'paystack' | 'korapay', reference: string) => {
+    if (paySucceededRef.current) return
     paySucceededRef.current = true
     setPaying(true)
     if (createdEventId) {
@@ -403,19 +404,25 @@ export function CreateEventPage() {
     }
   }
 
-  const handlePayWithFlutterwave = async () => {
+  const handlePayWithKorapay = async () => {
     if (!user || !createdEventId) return
     setPaying(true)
     setPaymentStatus('idle')
     paySucceededRef.current = false
     try {
       await processPayment({
-        provider: 'flutterwave',
+        provider: 'korapay',
         email: user.email || '',
         amount: getEventPrice('standard'),
         metadata: { event_id: createdEventId },
-        onSuccess: (reference) => handlePaymentSuccess('flutterwave', reference),
+        onSuccess: (reference) => handlePaymentSuccess('korapay', reference),
         onClose: handlePaymentCancel,
+        onFailed: (message) => {
+          paySucceededRef.current = true
+          setPaymentStatus('failed')
+          showToast({ type: 'error', title: 'Payment failed', body: message })
+          setPaying(false)
+        },
       })
     } catch {
       if (!paySucceededRef.current) {
@@ -727,17 +734,18 @@ export function CreateEventPage() {
             <button className="btn btn-primary btn-lg" onClick={handlePayWithPaystack} disabled={paying}>
               {paying ? 'Processing...' : <><CreditCard size={18} /> Pay with Paystack</>}
             </button>
-            <button className="btn btn-secondary btn-lg" onClick={handlePayWithFlutterwave} disabled={paying}>
-              {paying ? 'Processing...' : 'Pay with Flutterwave'}
+            <button className="btn btn-secondary btn-lg" onClick={handlePayWithKorapay} disabled={paying}>
+              {paying ? 'Processing...' : 'Pay with Korapay'}
             </button>
           </div>
 
-          <div className="card" style={{ marginTop: 'var(--space-5)', padding: 'var(--space-3)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', background: 'var(--color-surface-1)', lineHeight: 1.6 }}>
-            <strong style={{ color: 'var(--color-text-secondary)' }}>Testing (Demo Mode):</strong><br />
-            Use Flutterwave test card: <strong style={{ color: 'var(--color-text-primary)' }}>4181 0000 0000 0007</strong><br />
-            Expiry: any future date · CVV: any 3 digits · PIN: <strong style={{ color: 'var(--color-text-primary)' }}>0000</strong><br />
-            OTP: <strong style={{ color: 'var(--color-text-primary)' }}>123456</strong>
-          </div>
+          <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', textAlign: 'center', margin: 'var(--space-3) 0' }}>
+            By activating this event, you agree to our{' '}
+            <a href="/terms" target="_blank" style={{ color: 'var(--color-accent)' }}>Terms of Service</a>
+            {' '}and{' '}
+            <a href="/privacy" target="_blank" style={{ color: 'var(--color-accent)' }}>Privacy Policy</a>.
+            Payments are processed securely by Paystack and Korapay.
+          </p>
 
           <button className="btn btn-ghost" style={{ marginTop: 'var(--space-4)', width: '100%' }} onClick={handleSaveDraft}>
             Skip — Save as Draft

@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
     const updates: Record<string, unknown> = {
       payment_status: 'paid',
       paystack_ref: reference,
-      amount_paid: amount,
+      amount_paid: amount * 100,
       paid_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }

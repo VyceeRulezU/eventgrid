@@ -8,7 +8,7 @@ import { PhaseTimelineTracker } from '@/components/shared/PhaseTimelineTracker'
 import {
   Calendar, Users, Wallet, AlertTriangle,
   ExternalLink, FileText, CheckCircle2, Circle,
-  CreditCard, ShieldCheck, Radio, ListChecks, BarChart3,
+  CreditCard, Radio, ListChecks, BarChart3,
   Clock, ArrowRight, Zap, X, Pencil, Gift, Image,
 } from 'lucide-react'
 import { PageHero } from '@/components/shared/PageHero'
@@ -362,7 +362,7 @@ export function EventDashboardPage() {
 
   const PAYMENT_TIMEOUT = 120000 // 2 minutes
 
-  const handlePayNow = useCallback(async (provider: 'paystack' | 'flutterwave') => {
+  const handlePayNow = useCallback(async (provider: 'paystack' | 'korapay') => {
     if (!user || !id || !activeEvent) return
     const currentEvent = activeEvent
     paySucceededRef.current = false
@@ -386,6 +386,7 @@ export function EventDashboardPage() {
         metadata: { event_id: activeEvent.id, ...promoMeta },
 
         onSuccess: async (reference: string) => {
+          if (paySucceededRef.current) return
           clearTimeout(timeoutId)
           paySucceededRef.current = true
 
@@ -423,6 +424,12 @@ export function EventDashboardPage() {
         onClose: () => {
           clearTimeout(timeoutId)
           if (!paySucceededRef.current) setPayStatus('cancelled')
+        },
+        onFailed: (message) => {
+          clearTimeout(timeoutId)
+          paySucceededRef.current = true
+          setPayStatus('failed')
+          showNotification({ variant: 'error', title: 'Payment failed', message })
         },
       })
     } catch {
@@ -481,7 +488,7 @@ export function EventDashboardPage() {
     setShowPromoInput(false)
     setShowPaymentModal(true)
     import('@/lib/paystack').then(({ loadPaystackScript }) => loadPaystackScript().catch(() => {}))
-    import('@/lib/flutterwave').then(({ loadFlutterwaveScript }) => loadFlutterwaveScript().catch(() => {}))
+    import('@/lib/korapay').then(({ loadKorapayScript }) => loadKorapayScript().catch(() => {}))
   }
 
   const closePayment = () => {
@@ -1381,7 +1388,7 @@ export function EventDashboardPage() {
               {payStatus === 'processing' && (
                 <div className={styles.payProcessing}>
                   <div className={styles.payStatusMsg}>Opening secure payment window…</div>
-                  <div className={styles.payAutoClose}>A Paystack / Flutterwave popup will appear. Complete payment there.</div>
+                  <div className={styles.payAutoClose}>A Paystack / Korapay popup will appear. Complete payment there.</div>
                 </div>
               )}
 
@@ -1451,24 +1458,17 @@ export function EventDashboardPage() {
                     <button className="btn btn-primary btn-lg" onClick={() => handlePayNow('paystack')}>
                       <CreditCard size={18} /> Pay with Paystack
                     </button>
-                    <button className="btn btn-secondary btn-lg" onClick={() => handlePayNow('flutterwave')}>
-                      Pay with Flutterwave
+                    <button className="btn btn-secondary btn-lg" onClick={() => handlePayNow('korapay')}>
+                      Pay with Korapay
                     </button>
                   </div>
-
-                  <div className={styles.payTestInfo}>
-                    <div className={styles.payTestTitle}>
-                      <ShieldCheck size={14} /> Test / Demo Mode
-                    </div>
-                    <div>
-                      <strong>Paystack:</strong> Card <span className={styles.payCardNum}>4084 0828 0408 4081</span><br />
-                      Expiry: any future · CVV: any 3 digits · OTP: <strong>123456</strong>
-                    </div>
-                    <div style={{ marginTop: 'var(--space-2)' }}>
-                      <strong>Flutterwave:</strong> Card <span className={styles.payCardNum}>4181 0000 0000 0007</span><br />
-                      Expiry: any future · CVV: any 3 digits · PIN: <strong>0000</strong> · OTP: <strong>123456</strong>
-                    </div>
-                  </div>
+                  <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', textAlign: 'center', margin: 'var(--space-3) 0 0' }}>
+                    By activating this event, you agree to our{' '}
+                    <a href="/terms" target="_blank" style={{ color: 'var(--color-accent)' }}>Terms of Service</a>
+                    {' '}and{' '}
+                    <a href="/privacy" target="_blank" style={{ color: 'var(--color-accent)' }}>Privacy Policy</a>.
+                    Payments are processed securely by Paystack and Korapay.
+                  </p>
                 </>
               )}
             </div>

@@ -82,7 +82,8 @@ Deno.serve(async (req) => {
     }
 
     // -- Delete super_admins entry --
-    await supabaseAdmin.from('super_admins').delete().eq('user_id', user_id)
+    const { error: saErr } = await supabaseAdmin.from('super_admins').delete().eq('user_id', user_id)
+    if (saErr) errors.push('super_admins: ' + saErr.message)
 
     // -- Delete profile (cascades to event_access, notifications, push_subscriptions) --
     const { error: profileErr } = await supabaseAdmin.from('profiles').delete().eq('id', user_id)

@@ -75,6 +75,27 @@ Deno.serve(async (req) => {
           promoCodeId = payload.data.meta?.promo_code_id || null
         }
       }
+    } else if (provider === 'korapay') {
+      const secretKey = Deno.env.get('KORAPAY_SECRET_KEY')
+      if (!secretKey) {
+        throw new Error('KORAPAY_SECRET_KEY is not configured')
+      }
+
+      const res = await fetch(`https://api.korapay.com/merchant/api/v1/charges/${reference}`, {
+        headers: {
+          'Authorization': `Bearer ${secretKey}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (res.ok) {
+        const payload = await res.json()
+        if (payload.status && payload.data && payload.data.status === 'success') {
+          isSuccess = true
+          amountPaid = Number(payload.data.amount) || 0
+          promoCodeId = payload.data.metadata?.promo_code_id || null
+        }
+      }
     }
 
     if (!isSuccess) {
@@ -86,7 +107,7 @@ Deno.serve(async (req) => {
 
     // --- Server-side amount validation ---
     // If a promo code was used, calculate expected amount from the database
-    // (never trust the frontend — verified via Paystack API metadata)
+    // (never trust the frontend — verified via payment provider API metadata)
     let expectedAmount: number
     if (promoCodeId) {
       const { data: expectedResult } = await supabaseAdmin.rpc('get_promo_expected_amount', {
@@ -178,7 +199,7 @@ Deno.serve(async (req) => {
               meta: {
                 amount: `₦${amountPaid.toLocaleString()}`,
                 event_name: updatedEvent.name,
-                payment_method: provider === 'paystack' ? 'Paystack' : 'Flutterwave'
+                payment_method: provider === 'paystack' ? 'Paystack' : 'Korapay'
               }
             })
           })

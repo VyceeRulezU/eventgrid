@@ -400,7 +400,7 @@ export function SettingsPage() {
           <h3 className={styles.cardTitle}>Payment Providers</h3>
           <div className={styles.providers}>
             <span>Paystack: <span className={styles.providerOk}>Configured</span></span>
-            <span>Flutterwave: <span className={styles.providerOk}>Configured</span></span>
+            <span>Korapay: <span className={styles.providerOk}>Configured</span></span>
           </div>
         </div>
 
