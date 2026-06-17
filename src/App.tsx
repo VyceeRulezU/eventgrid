@@ -20,6 +20,8 @@ import { RegisterPage } from '@/pages/auth/RegisterPage'
 import { AcceptAdminInvite } from '@/pages/auth/AcceptAdminInvite'
 import { AdminLoginPage } from '@/pages/admin/AdminLoginPage'
 import { VerifyEmailPage } from '@/pages/auth/VerifyEmailPage'
+import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
+import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage'
 import NotFoundPage from '@/pages/error/NotFoundPage'
 import { PlannerOnboarding } from '@/pages/onboarding/PlannerOnboarding'
 import { CoordinatorOnboarding } from '@/pages/onboarding/CoordinatorOnboarding'
@@ -456,6 +458,8 @@ export function App() {
           <Route path="/accept-admin-invite" element={<AcceptAdminInvite />} />
           <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/pricing" element={<PricingPage />} />
           <Route path="/coordinators" element={<CoordinatorsLandingPage />} />
           <Route path="/planners" element={<PlannersLandingPage />} />

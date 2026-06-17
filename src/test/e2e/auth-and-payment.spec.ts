@@ -12,6 +12,9 @@ async function hasTurnstile(page: Page) {
 /* ─── Auth: login page ─── */
 
 test.describe('login page', () => {
+  // These tests inspect the login page UI — run without auth so the app
+  // doesn't redirect an already-logged-in user away from /login.
+  test.use({ storageState: { cookies: [], origins: [] } })
 
   test('shows email and password fields', async ({ page }) => {
     await page.goto('/login')
@@ -22,7 +25,7 @@ test.describe('login page', () => {
 
   test('shows OAuth provider buttons', async ({ page }) => {
     await page.goto('/login')
-    await expect(page.getByText(/continue with google/i)).toBeVisible()
+    await expect(page.getByRole('button', { name: /google/i })).toBeVisible()
   })
 
   test('shows validation error on empty submit', async ({ page }) => {
@@ -36,13 +39,15 @@ test.describe('login page', () => {
 
   test('has link to register page', async ({ page }) => {
     await page.goto('/login')
-    await expect(page.getByRole('link', { name: /create account/i })).toBeVisible()
+    await expect(page.getByRole('link', { name: /create an account/i })).toBeVisible()
   })
 })
 
 /* ─── Auth: register page ─── */
 
 test.describe('register page', () => {
+  // Same reason — needs a clean unauthenticated context.
+  test.use({ storageState: { cookies: [], origins: [] } })
 
   test('shows role selection step', async ({ page }) => {
     await page.goto('/register')
@@ -93,8 +98,8 @@ test.describe('logout', () => {
 
   test('logout button exists in sidebar', async ({ page }) => {
     await page.goto('/')
-    // Wait for dashboard redirect after login
-    await page.waitForURL(/dashboard/, { timeout: 15000 })
+    // Wait for redirect after login — app lands on /home not /dashboard
+    await page.waitForURL(/\/(home|dashboard)/, { timeout: 15000 })
     // Open sidebar
     const sidebarToggle = page.locator('[aria-label="Open sidebar"], [aria-label="Menu"]').first()
     if (await sidebarToggle.isVisible()) await sidebarToggle.click()

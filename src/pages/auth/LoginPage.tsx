@@ -246,6 +246,12 @@ export function LoginPage() {
               </div>
             )}
 
+            <div style={{ marginTop: 'var(--space-1)', textAlign: 'right' }}>
+              <Link to="/forgot-password" className={styles.formLink} style={{ fontSize: 'var(--text-xs)' }}>
+                Forgot password?
+              </Link>
+            </div>
+
             <CaptchaField onToken={setCaptchaToken} />
             <button
               type="submit"
