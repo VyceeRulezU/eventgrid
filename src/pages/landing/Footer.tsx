@@ -115,10 +115,8 @@ export default function Footer() {
       </div>
 
       {/* ── Giant wordmark ── */}
-      <div className={styles.container}>
-        <div className={styles.wordmarkBlock}>
-          <span className={styles.wordmark} aria-hidden>NaliGrid</span>
-        </div>
+      <div className={styles.wordmarkBlock}>
+        <span className={styles.wordmark} aria-hidden>NaliGrid</span>
       </div>
 
       {/* ── Bottom bar — legal + city image ── */}

@@ -311,24 +311,20 @@
 .wordmarkBlock {
   position: relative;
   z-index: 1;
-  padding: 120px 0 0 0;
+  width: 100%;
+  overflow: hidden;
   line-height: 1;
-}
-
-@media (max-width: 768px) {
-  .wordmarkBlock {
-    padding: 24px 16px 0 16px;
-  }
 }
 
 .wordmark {
   display: block;
+  width: 100%;
   font-family: var(--font-base);
-  font-size: clamp(3rem, 18.5vw, 32.5rem);
+  font-size: clamp(3rem, 22vw, 40rem);
   font-weight: var(--weight-extrabold);
   line-height: 0.88;
   letter-spacing: -0.04em;
-  white-space: nowrap;
+  text-align: center;
 
   /* Gold shimmer gradient */
   background: linear-gradient(
