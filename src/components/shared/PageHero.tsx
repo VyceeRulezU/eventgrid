@@ -42,12 +42,14 @@ export function PageHero({ icon: Icon, title, subtitle, breadcrumbs, actions, ba
       )}
 
       <div className={styles.heroContent}>
-        <div className={styles.heroIcon}>
-          <Icon size={24} />
-        </div>
-        <div className={styles.heroText}>
-          <h1 className={styles.heroTitle}>{title}</h1>
-          {subtitle && <p className={styles.heroSubtitle}>{subtitle}</p>}
+        <div className={styles.iconTitleGroup}>
+          <div className={styles.heroIcon}>
+            <Icon size={24} />
+          </div>
+          <div className={styles.heroText}>
+            <h1 className={styles.heroTitle}>{title}</h1>
+            {subtitle && <p className={styles.heroSubtitle}>{subtitle}</p>}
+          </div>
         </div>
         <div className={styles.heroActions}>
           {actions}

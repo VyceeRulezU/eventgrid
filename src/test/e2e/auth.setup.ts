@@ -6,7 +6,7 @@ import * as fs from 'node:fs'
 const authFile = 'playwright/.auth.json'
 
 setup('authenticate', async ({ page, baseURL }) => {
-  const email = process.env.E2E_TEST_EMAIL
+  const email = process.env.E2E_TEST_EMAIL?.trim()
   const supabaseUrl = process.env.VITE_SUPABASE_URL
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   const appUrl = baseURL || process.env.E2E_APP_URL || 'http://localhost:4173'

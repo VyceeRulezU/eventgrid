@@ -58,6 +58,14 @@
   gap: 1.25rem;
 }
 
+.iconTitleGroup {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  flex: 1;
+  min-width: 0;
+}
+
 .adminHeroIcon {
   display: flex;
   align-items: center;
@@ -122,6 +130,31 @@
   transform: translateX(-2px);
 }
 
+/* ── Tablet (≤ 1240px) ── */
+@media (max-width: 1240px) {
+  .adminHeroContent {
+    gap: 0.75rem;
+  }
+
+  .iconTitleGroup {
+    gap: 0.75rem;
+  }
+
+  .adminHeroIcon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .adminHeroIcon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .adminHeroTitle {
+    font-size: 1.5rem;
+  }
+}
+
 @media (max-width: 768px) {
   .adminHero {
     padding: 1.25rem 1rem;
@@ -141,7 +174,11 @@
   }
 
   .adminHeroContent {
-    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .iconTitleGroup {
     align-items: center;
     gap: 0.75rem;
   }

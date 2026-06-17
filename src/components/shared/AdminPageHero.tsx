@@ -42,12 +42,14 @@ export function AdminPageHero({ icon: Icon, title, subtitle, breadcrumbs, action
       )}
 
       <div className={styles.adminHeroContent}>
-        <div className={styles.adminHeroIcon}>
-          <Icon size={24} />
-        </div>
-        <div className={styles.adminHeroText}>
-          <h1 className={styles.adminHeroTitle}>{title}</h1>
-          {subtitle && <p className={styles.adminHeroSubtitle}>{subtitle}</p>}
+        <div className={styles.iconTitleGroup}>
+          <div className={styles.adminHeroIcon}>
+            <Icon size={24} />
+          </div>
+          <div className={styles.adminHeroText}>
+            <h1 className={styles.adminHeroTitle}>{title}</h1>
+            {subtitle && <p className={styles.adminHeroSubtitle}>{subtitle}</p>}
+          </div>
         </div>
         <div className={styles.adminHeroActions}>
           {actions}

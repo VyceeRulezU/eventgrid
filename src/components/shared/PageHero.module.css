@@ -58,6 +58,14 @@
   gap: 1.25rem;
 }
 
+.iconTitleGroup {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  flex: 1;
+  min-width: 0;
+}
+
 .heroIcon {
   display: flex;
   align-items: center;
@@ -122,6 +130,31 @@
   transform: translateX(-2px);
 }
 
+/* ── Tablet (≤ 1240px) ── */
+@media (max-width: 1240px) {
+  .heroContent {
+    gap: 0.75rem;
+  }
+
+  .iconTitleGroup {
+    gap: 0.75rem;
+  }
+
+  .heroIcon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .heroIcon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .heroTitle {
+    font-size: 1.5rem;
+  }
+}
+
 /* ── Mobile (≤ 768px) ── */
 @media (max-width: 768px) {
   .hero {
@@ -142,7 +175,11 @@
   }
 
   .heroContent {
-    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .iconTitleGroup {
     align-items: center;
     gap: 0.75rem;
   }

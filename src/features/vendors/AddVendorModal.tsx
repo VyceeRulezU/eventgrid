@@ -81,10 +81,6 @@ export function AddVendorModal({ orgId, availableTypes, defaultCategory, onClose
 
   const handleSave = async () => {
     if (!form.name.trim()) return
-    if (!form.email.trim()) {
-      showNotification({ variant: 'warning', title: 'Email required', message: 'An email address is needed to notify the vendor.' })
-      return
-    }
     setSaving(true)
     const { data, error } = await supabase
       .from('vendors')
@@ -110,14 +106,16 @@ export function AddVendorModal({ orgId, availableTypes, defaultCategory, onClose
     onSaved(data as unknown as import('@/types').Vendor)
     showNotification({ variant: 'success', title: `"${form.name.trim()}" added` })
 
-    const { error: inviteError } = await sendInvite({
-      type: 'vendor_welcome',
-      email: form.email.trim(),
-      vendor_name: form.name.trim(),
-      invited_by_name: user?.user_metadata?.display_name || user?.email || 'A planner',
-    })
-    if (inviteError) {
-      console.error('Failed to send vendor welcome email:', inviteError)
+    if (form.email.trim()) {
+      const { error: inviteError } = await sendInvite({
+        type: 'vendor_welcome',
+        email: form.email.trim(),
+        vendor_name: form.name.trim(),
+        invited_by_name: user?.user_metadata?.display_name || user?.email || 'A planner',
+      })
+      if (inviteError) {
+        console.error('Failed to send vendor welcome email:', inviteError)
+      }
     }
 
     onClose()
