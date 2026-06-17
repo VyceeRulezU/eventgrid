@@ -17,7 +17,7 @@ export function TrialReminderEmail({ first_name, financials_url }: TrialReminder
       </p>
 
       <p style={{ margin: '0 0 24px', fontSize: '15px', color: '#9CA3AF', lineHeight: 1.6 }}>
-        With EventGrid's Naira Financials and Budget dashboards, you can:
+        With NaliGrid's Naira Financials and Budget dashboards, you can:
       </p>
 
       <ul style={{ margin: '0 0 28px', paddingLeft: '20px', fontSize: '14px', color: '#D1D5DB', lineHeight: 1.6 }}>
@@ -47,7 +47,7 @@ export function TrialReminderEmail({ first_name, financials_url }: TrialReminder
         <br /><br />
         Cheers,
         <br />
-        <strong>The EventGrid Team</strong>
+        <strong>The NaliGrid Team</strong>
       </p>
     </EmailWrapper>
   )

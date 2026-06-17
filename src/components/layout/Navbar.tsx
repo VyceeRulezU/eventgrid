@@ -96,8 +96,8 @@ export default function Navbar() {
       ref={menuRef}
     >
       <div className={styles.container}>
-        <Link to="/home" className={styles.logo} aria-label="EventGrid home">
-          <img src="/EventGrid-logo-white.svg" alt="EventGrid Logo" className={styles.logoImg} />
+        <Link to="/home" className={styles.logo} aria-label="NaliGrid home">
+          <img src="/EventGrid-logo-white.svg" alt="NaliGrid" className={styles.logoImg} />
         </Link>
 
         {/* Desktop nav links */}

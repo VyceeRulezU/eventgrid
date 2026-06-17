@@ -6,7 +6,7 @@ export default function BentoFeaturesSection() {
       <div className={styles.container}>
         {/* Section Header */}
         <div className={styles.header}>
-          <h2 className={styles.headline}>Why event pros choose EventGrid</h2>
+          <h2 className={styles.headline}>Why event pros choose NaliGrid</h2>
           <p className={styles.subtext}>
             Built for Nigerian planners, coordinators, and vendors who need
             more than a spreadsheet.

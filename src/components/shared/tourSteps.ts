@@ -12,8 +12,8 @@ export const TOUR_STEPS: Record<TourRole, TourStep[]> = {
   planner: [
     {
       targetId: null,
-      title: 'Welcome to EventGrid',
-      body: 'EventGrid is your all-in-one command centre for planning, coordinating, and executing unforgettable events. Let\'s take a quick tour to get you started.',
+      title: 'Welcome to NaliGrid',
+      body: 'NaliGrid is your all-in-one command centre for planning, coordinating, and executing unforgettable events. Let\'s take a quick tour to get you started.',
       placement: 'bottom',
     },
     {
@@ -25,7 +25,7 @@ export const TOUR_STEPS: Record<TourRole, TourStep[]> = {
     {
       targetId: 'tour-create-event',
       title: 'Create Your First Event',
-      body: 'Click here to create a new event. EventGrid walks you through 9 operational phases — from booking to aftermath review.',
+      body: 'Click here to create a new event. NaliGrid walks you through 9 operational phases — from booking to aftermath review.',
       placement: 'bottom',
     },
     {
@@ -58,7 +58,7 @@ export const TOUR_STEPS: Record<TourRole, TourStep[]> = {
     {
       targetId: null,
       title: 'Welcome, Coordinator!',
-      body: 'EventGrid gives you everything you need to coordinate events efficiently. Your planner has added you to their organisation — here\'s a quick tour.',
+      body: 'NaliGrid gives you everything you need to coordinate events efficiently. Your planner has added you to their organisation — here\'s a quick tour.',
       placement: 'bottom',
     },
     {
@@ -117,7 +117,7 @@ export const TOUR_STEPS: Record<TourRole, TourStep[]> = {
   vendor: [
     {
       targetId: null,
-      title: 'Welcome to EventGrid!',
+      title: 'Welcome to NaliGrid!',
       body: 'Your vendor portal gives you visibility into event bookings, your contract status, and payment progress.',
       placement: 'bottom',
     },
@@ -138,7 +138,7 @@ export const TOUR_STEPS: Record<TourRole, TourStep[]> = {
   super_admin: [
     {
       targetId: null,
-      title: 'EventGrid Admin Panel',
+      title: 'NaliGrid Admin Panel',
       body: 'Welcome to the super admin dashboard. You have full visibility across all organisations, users, and feedback on this platform.',
       placement: 'bottom',
     },

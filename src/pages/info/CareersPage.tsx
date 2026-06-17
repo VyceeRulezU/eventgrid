@@ -31,7 +31,7 @@ export function CareersPage() {
   return (
     <div className={styles.pageWrapper}>
       <SEO
-        title="Careers at EventGrid — Join Our Team"
+        title="Careers at NaliGrid — Join Our Team"
         description="Work with curious, driven team members to eliminate friction from event day operations. Remote roles across Nigeria in engineering, design, and operations."
         url="/careers"
       />
@@ -87,7 +87,7 @@ export function CareersPage() {
           }
         ]}
         header="Frequently Asked Questions"
-        summary="Common questions about working at EventGrid."
+        summary="Common questions about working at NaliGrid."
       />
 
       <LandingCTA

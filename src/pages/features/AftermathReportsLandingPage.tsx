@@ -11,7 +11,7 @@ export function AftermathReportsLandingPage() {
   return (
     <div className={styles.pageWrapper}>
       <SEO
-        title="Automated Aftermath Reports — EventGrid"
+        title="Automated Aftermath Reports — NaliGrid"
         description="Consolidate financial statements, guest feedback, vendor parameters, and timeline metrics into one professional PDF in under 30 seconds."
         url="/features/aftermath-reports"
       />

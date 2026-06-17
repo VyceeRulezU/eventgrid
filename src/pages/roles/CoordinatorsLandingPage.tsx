@@ -11,7 +11,7 @@ export function CoordinatorsLandingPage() {
   return (
     <div className={styles.pageWrapper}>
       <SEO
-        title="Event Coordination Software — EventGrid"
+        title="Event Coordination Software — NaliGrid"
         description="Empower on-site teams with instant task updates, interactive schedules, and real-time synchronization tools for flawless event day execution."
         url="/coordinators"
       />
@@ -101,18 +101,18 @@ export function CoordinatorsLandingPage() {
             category: 'Coordinators',
             items: [
               {
-                question: 'Do I need a separate app to use EventGrid?',
-                answer: 'No, EventGrid works entirely in your mobile browser. Checklists and timelines are fully responsive on phones and tablets.'
+                question: 'Do I need a separate app to use NaliGrid?',
+                answer: 'No, NaliGrid works entirely in your mobile browser. Checklists and timelines are fully responsive on phones and tablets.'
               },
               {
-                question: 'Can I use EventGrid offline?',
+                question: 'Can I use NaliGrid offline?',
                 answer: 'Yes, our offline mode lets you check tasks and update checklists even without internet. Everything syncs automatically when you reconnect.'
               }
             ]
           }
         ]}
         header="Frequently Asked Questions"
-        summary="Common questions about coordinating with EventGrid."
+        summary="Common questions about coordinating with NaliGrid."
       />
 
       <LandingCTA

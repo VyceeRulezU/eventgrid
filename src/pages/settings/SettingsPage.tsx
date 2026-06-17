@@ -252,7 +252,7 @@ export function SettingsPage() {
 
   return (
     <div className={styles.page}>
-      <SEO title="Settings" description="Manage your EventGrid profile, business organization parameters, team invitations, and integration preferences." />
+      <SEO title="Settings" description="Manage your NaliGrid profile, business organization parameters, team invitations, and integration preferences." />
       <div className={styles.pageHeader}>
         <h2 className={styles.pageTitle}>Settings</h2>
       </div>
@@ -319,7 +319,7 @@ export function SettingsPage() {
               Organisation Profile
             </h3>
             <p className={styles.orgDesc}>
-              Your business name and logo appear in the top bar and across EventGrid.
+              Your business name and logo appear in the top bar and across NaliGrid.
             </p>
 
             <div className={styles.orgRow}>
@@ -434,7 +434,7 @@ export function SettingsPage() {
           <div className={styles.linkList}>
             <a href="https://eventgrid.ng" target="_blank" rel="noopener noreferrer" className={styles.externalLink}>
               <ExternalLink size={14} />
-              Visit EventGrid website
+              Visit NaliGrid website
             </a>
             <a href="/terms" target="_blank" rel="noopener noreferrer" className={styles.externalLink}>
               <ExternalLink size={14} />
@@ -461,7 +461,7 @@ export function SettingsPage() {
             Feedback
           </h3>
           <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-3)', lineHeight: 1.55 }}>
-            Have a complaint, suggestion, or idea? Share it with the EventGrid team directly.
+            Have a complaint, suggestion, or idea? Share it with the NaliGrid team directly.
           </p>
           <button type="button" className="btn btn-primary" onClick={() => setShowFeedback(true)}>
             <Send size={16} />
@@ -476,7 +476,7 @@ export function SettingsPage() {
             Help & Onboarding
           </h3>
           <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-3)', lineHeight: 1.55 }}>
-            Take a guided tour of EventGrid — walks you through all key features for your role.
+            Take a guided tour of NaliGrid — walks you through all key features for your role.
           </p>
           <button
             type="button"
@@ -510,7 +510,7 @@ export function SettingsPage() {
         </div>
 
         <div className="card">
-          <div className={styles.version}>EventGrid v0.2.0</div>
+          <div className={styles.version}>NaliGrid v0.2.0</div>
         </div>
       </div>
 

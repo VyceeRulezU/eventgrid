@@ -21,7 +21,7 @@ export function LandingPage() {
   return (
     <div className={styles.page}>
       <SEO 
-        title="EventGrid — Software for Event Pros" 
+        title="NaliGrid — Software for Event Pros" 
         description="The premium event management platform built for Nigerian planners, coordinators, vendors, and clients." 
       />
 
@@ -63,8 +63,8 @@ export function LandingPage() {
                   category: 'Getting Started',
                   items: [
                     {
-                      question: 'What is EventGrid?',
-                      answer: 'EventGrid is a premium, multi-role event management workspace. We help planners, venue coordinators, and vendors collaborate in real-time, trace phase milestones, and manage secure contract payouts.'
+                      question: 'What is NaliGrid?',
+                      answer: 'NaliGrid is a premium, multi-role event management workspace. We help planners, venue coordinators, and vendors collaborate in real-time, trace phase milestones, and manage secure contract payouts.'
                     },
                     {
                       question: 'How do I get started?',
@@ -76,7 +76,7 @@ export function LandingPage() {
                   category: 'Platform',
                   items: [
                     {
-                      question: 'Can I try EventGrid before paying?',
+                      question: 'Can I try NaliGrid before paying?',
                       answer: 'Yes. We offer a free draft account that lets you explore the workspace and invite up to 2 coordinators. Pricing tiers launching Q3 2026.'
                     },
                     {
@@ -87,7 +87,7 @@ export function LandingPage() {
                 }
               ]}
               header="Frequently Asked Questions"
-              summary="Quick answers to common questions about EventGrid."
+              summary="Quick answers to common questions about NaliGrid."
             />
             <TestimonialsSection />
           </div>

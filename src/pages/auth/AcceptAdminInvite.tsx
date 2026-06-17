@@ -94,11 +94,11 @@ export function AcceptAdminInvite() {
 
   return (
     <>
-      <SEO title={`Accept ${config.label} Invite — EventGrid`} />
+      <SEO title={`Accept ${config.label} Invite — NaliGrid`} />
       <div className="adminAuthContainer">
         <div className="adminAuthLeft">
           <div className="adminAuthTopBar">
-            <img src="/EventGrid-logo-white.svg" alt="EventGrid" style={{ height: 36, width: 'auto', zIndex: 2, position: 'relative' }} />
+            <img src="/EventGrid-logo-white.svg" alt="NaliGrid" style={{ height: 36, width: 'auto', zIndex: 2, position: 'relative' }} />
           </div>
 
           <div className="adminAuthCenter">
@@ -109,7 +109,7 @@ export function AcceptAdminInvite() {
               </div>
               <h1 className="adminAuthTitle">Platform Invitation</h1>
               <p className="adminAuthDesc">
-                You have been invited to join EventGrid as a <strong style={{ color: config.color }}>{config.label}</strong>. {config.desc}
+                You have been invited to join NaliGrid as a <strong style={{ color: config.color }}>{config.label}</strong>. {config.desc}
               </p>
             </div>
           </div>

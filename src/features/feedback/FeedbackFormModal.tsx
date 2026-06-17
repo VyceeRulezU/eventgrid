@@ -97,7 +97,7 @@ export function FeedbackFormModal({ open, onClose }: FeedbackFormModalProps) {
         <form onSubmit={handleSubmit}>
           <div className="modal-card-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
             <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginTop: 0, lineHeight: 1.5 }}>
-              Have a complaint, suggestion, or idea? Share it with the EventGrid team directly.
+              Have a complaint, suggestion, or idea? Share it with the NaliGrid team directly.
             </p>
 
             <div className="input-wrapper" style={{ marginBottom: 'var(--space-4)' }}>

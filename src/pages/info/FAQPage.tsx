@@ -11,8 +11,8 @@ const FAQS = [
     category: 'General',
     items: [
       {
-        question: 'What is EventGrid?',
-        answer: 'EventGrid is a premium, multi-role event management workspace. We help planners, venue coordinators, and vendors collaborate in real-time, trace phase milestones, and manage secure contract payouts.'
+        question: 'What is NaliGrid?',
+        answer: 'NaliGrid is a premium, multi-role event management workspace. We help planners, venue coordinators, and vendors collaborate in real-time, trace phase milestones, and manage secure contract payouts.'
       },
       {
         question: 'How do I invite team members?',
@@ -52,8 +52,8 @@ export function FAQPage() {
   return (
     <div className={styles.pageWrapper}>
       <SEO
-        title="FAQ — EventGrid Help Center"
-        description="Find answers about EventGrid's event management platform — team invites, live board, payments, security, and vendor coordination."
+        title="FAQ — NaliGrid Help Center"
+        description="Find answers about NaliGrid's event management platform — team invites, live board, payments, security, and vendor coordination."
         url="/faq"
       />
       <Navbar />

@@ -16,7 +16,7 @@ export function LandingNavbar() {
     <header className={styles.header}>
       <div className={styles.inner}>
         <Link to="/" className={styles.logo}>
-          EventGrid
+          NaliGrid
         </Link>
 
         <nav className={styles.nav} aria-label="Main navigation">

@@ -8,8 +8,8 @@ export function TermsPage() {
   return (
     <div className={styles.pageWrapper}>
       <SEO
-        title="Terms of Service — EventGrid"
-        description="Read the terms governing your access to and use of the EventGrid platform for event management."
+        title="Terms of Service — NaliGrid"
+        description="Read the terms governing your access to and use of the NaliGrid platform for event management."
         url="/terms"
       />
       <Navbar />
@@ -17,7 +17,7 @@ export function TermsPage() {
       <LandingPageHero
         eyebrow="Legal Documents"
         title="Terms of Service"
-        subtitle="Last updated: June 9, 2026. These terms govern your access to and use of the EventGrid platform."
+        subtitle="Last updated: June 9, 2026. These terms govern your access to and use of the NaliGrid platform."
       />
 
       <section className={styles.legalSection} aria-label="Terms of Service">
@@ -27,7 +27,7 @@ export function TermsPage() {
               <ul>
                 <li><a href="#about">1. About These Terms</a></li>
                 <li><a href="#beta">2. Beta / Early Access Status</a></li>
-                <li><a href="#who">3. Who Can Use EventGrid</a></li>
+                <li><a href="#who">3. Who Can Use NaliGrid</a></li>
                 <li><a href="#roles">4. Account Roles</a></li>
                 <li><a href="#responsibilities">5. Your Responsibilities</a></li>
                 <li><a href="#data">6. Data You Add to the Platform</a></li>
@@ -47,7 +47,7 @@ export function TermsPage() {
             <div className={styles.textContent}>
               <section id="about" className={styles.textSection}>
                 <h2 className={styles.sectionTitle}>1. About These Terms</h2>
-                <p>These Terms of Service ("Terms") govern your access to and use of the EventGrid platform, including our website, web application, and any related services (collectively, the "Platform"). The Platform is owned and operated by NaliTech Consults Limited, a company registered in Nigeria.</p>
+                <p>These Terms of Service ("Terms") govern your access to and use of the NaliGrid platform, including our website, web application, and any related services (collectively, the "Platform"). The Platform is owned and operated by NaliTech Consults Limited, a company registered in Nigeria.</p>
                 <p><strong>Brand name note:</strong> The Platform may currently or in future operate under the name "EventGrid" or another brand name. References to "EventGrid" in these Terms refer to the Platform as operated by NaliTech Consults Limited regardless of the brand name in use at any given time. A change of brand name does not affect the validity of these Terms or any agreement formed under them.</p>
                 <p>By creating an account or using the Platform, you agree to these Terms. If you do not agree, do not use the Platform.</p>
               </section>
@@ -64,7 +64,7 @@ export function TermsPage() {
               </section>
 
               <section id="who" className={styles.textSection}>
-                <h2 className={styles.sectionTitle}>3. Who Can Use EventGrid</h2>
+                <h2 className={styles.sectionTitle}>3. Who Can Use NaliGrid</h2>
                 <p>You must be at least 18 years old (or the age of majority in your jurisdiction) and able to enter into a binding contract to create an account. By registering, you confirm that the information you provide is accurate and that you have the authority to act on behalf of any business or organisation you represent.</p>
               </section>
 
@@ -108,7 +108,7 @@ export function TermsPage() {
 
               <section id="fees" className={styles.textSection}>
                 <h2 className={styles.sectionTitle}>7. Fees and Payments</h2>
-                <p><strong>7.1 Pricing Model.</strong> EventGrid currently uses a per-event activation model. Planners pay a one-time fee to activate full features for a specific event, based on the event's size tier. Coordinators using standalone projects pay per project. Pricing is displayed in Nigerian Naira (₦) at the time of activation.</p>
+                <p><strong>7.1 Pricing Model.</strong> NaliGrid currently uses a per-event activation model. Planners pay a one-time fee to activate full features for a specific event, based on the event's size tier. Coordinators using standalone projects pay per project. Pricing is displayed in Nigerian Naira (₦) at the time of activation.</p>
                 <p><strong>7.2 Payment Processing.</strong> Payments are processed through third-party payment processors (currently Paystack and/or Flutterwave). NaliTech does not store your card details. Your payment information is subject to the relevant processor's terms and privacy policy.</p>
                 <p><strong>7.3 Refunds.</strong> Activation fees are generally non-refundable once an event has been activated and Platform features have been unlocked. If you experience a technical issue that prevented you from using the Platform as intended, contact us and we will review refund requests on a case-by-case basis.</p>
                 <p><strong>7.4 Beta Pricing.</strong> During the beta period, certain users may be offered free or discounted activation via promotional codes. These promotions are offered at our discretion and may be withdrawn or changed at any time.</p>

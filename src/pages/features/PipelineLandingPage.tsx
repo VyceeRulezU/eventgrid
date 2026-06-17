@@ -11,7 +11,7 @@ export function PipelineLandingPage() {
   return (
     <div className={styles.pageWrapper}>
       <SEO
-        title="Visual Event Pipeline — EventGrid"
+        title="Visual Event Pipeline — NaliGrid"
         description="Structure your event workflow from booking to closeout with 9 default timeline phases, 1-click PDF exports, and full audit trails for every task."
         url="/features/pipeline"
       />

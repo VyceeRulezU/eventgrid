@@ -88,7 +88,7 @@ export function SurveyPage() {
   if (submitted) {
     return (
       <div className={styles.pageWrapper}>
-        <SEO title="Thank You — EventGrid Survey" />
+        <SEO title="Thank You — NaliGrid Survey" />
         <Navbar />
         <LandingPageHero
           eyebrow="Survey"
@@ -112,7 +112,7 @@ export function SurveyPage() {
   return (
     <div className={styles.pageWrapper}>
       <SEO
-        title="EventGrid Survey — Help Shape the Future of Event Management"
+        title="NaliGrid Survey — Help Shape the Future of Event Management"
         description="Take our 3-minute survey and help us build the best event management platform for planners and coordinators in Nigeria."
         url="/survey"
       />
@@ -120,8 +120,8 @@ export function SurveyPage() {
 
       <LandingPageHero
         eyebrow="Survey"
-        title="Help Shape EventGrid"
-        subtitle="EventGrid is a comprehensive event management platform built for Nigerian event planners and coordinators. We handle everything from pipeline tracking and vendor management to guest RSVPs and post-event reports. This short survey helps us understand what matters most to you so we can build the right product at the right price."
+        title="Help Shape NaliGrid"
+        subtitle="NaliGrid is a comprehensive event management platform built for Nigerian event planners and coordinators. We handle everything from pipeline tracking and vendor management to guest RSVPs and post-event reports. This short survey helps us understand what matters most to you so we can build the right product at the right price."
       />
 
       <div className={styles.pageContainer}>

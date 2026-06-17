@@ -7,13 +7,13 @@ export interface WelcomeEmailProps {
 
 export function WelcomeEmail({ first_name, dashboard_url }: WelcomeEmailProps) {
   return (
-    <EmailWrapper previewText={`Welcome to EventGrid, ${first_name}! Let's get your first event set up.`}>
+    <EmailWrapper previewText={`Welcome to NaliGrid, ${first_name}! Let's get your first event set up.`}>
       <h1 style={{ margin: '0 0 16px', fontSize: '24px', fontWeight: 800, color: '#F9FAFB', lineHeight: 1.3, letterSpacing: '-0.02em' }}>
         Welcome to the grid, {first_name}! 🥂
       </h1>
 
       <p style={{ margin: '0 0 20px', fontSize: '15px', color: '#9CA3AF', lineHeight: 1.6 }}>
-        We are thrilled to help you elevate your event workflows. EventGrid is built specifically for event professionals to collaborate with teams, vendors, and clients — all from a single dashboard.
+        We are thrilled to help you elevate your event workflows. NaliGrid is built specifically for event professionals to collaborate with teams, vendors, and clients — all from a single dashboard.
       </p>
 
       <p style={{ margin: '0 0 24px', fontSize: '15px', color: '#9CA3AF', lineHeight: 1.6 }}>
@@ -65,7 +65,7 @@ export function WelcomeEmail({ first_name, dashboard_url }: WelcomeEmailProps) {
         <br /><br />
         Cheers,
         <br />
-        <strong>The EventGrid Team</strong>
+        <strong>The NaliGrid Team</strong>
       </p>
     </EmailWrapper>
   )

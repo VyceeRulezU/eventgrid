@@ -177,7 +177,7 @@ export function PlannerOnboarding() {
     }
 
     setOrg(orgData)
-    showToast({ type: 'success', title: 'Welcome to EventGrid!', body: 'Organization set up successfully.' })
+    showToast({ type: 'success', title: 'Welcome to NaliGrid!', body: 'Organization set up successfully.' })
     navigate('/dashboard/planner')
     setLoading(false)
   }
@@ -200,13 +200,13 @@ export function PlannerOnboarding() {
 
   return (
     <div className={styles.container}>
-      <SEO title="Planner Onboarding" description="Set up your event planning organization profile, team collaboration, and workspace configurations on EventGrid." />
+      <SEO title="Planner Onboarding" description="Set up your event planning organization profile, team collaboration, and workspace configurations on NaliGrid." />
       {/* ── Left panel ── */}
       <div className={styles.leftPanel}>
         <div className={styles.topBar}>
           <div className={styles.branding}>
             <Link to="/">
-              <img src="/EventGrid-logo-white.svg" alt="EventGrid Logo" className={styles.brandLogoImage} />
+              <img src="/EventGrid-logo-white.svg" alt="NaliGrid Logo" className={styles.brandLogoImage} />
             </Link>
           </div>
           <div className={styles.topRightActions}>
@@ -233,7 +233,7 @@ export function PlannerOnboarding() {
               ))}
             </div>
             <p className={styles.testimonialQuote}>
-              "EventGrid scaled our wedding coordination efficiency. We managed 25 premium weddings in Lagos last year alone!"
+              "NaliGrid scaled our wedding coordination efficiency. We managed 25 premium weddings in Lagos last year alone!"
             </p>
             <div className={styles.testimonialUser}>
               <img className={styles.testimonialAvatar} src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&h=100&fit=crop&crop=face" alt="Funmi Oladipupo" />
@@ -525,11 +525,11 @@ export function PlannerOnboarding() {
               <div className={styles.infoBox}>
                 <Sparkles size={16} className={styles.infoIcon} />
                 <p style={{ margin: 0 }}>
-                  You are all set! Review your details below to finalize setting up your premium EventGrid workspace.
+                  You are all set! Review your details below to finalize setting up your premium NaliGrid workspace.
                 </p>
               </div>
 
-              <h2 className={styles.question}>Welcome to EventGrid!</h2>
+              <h2 className={styles.question}>Welcome to NaliGrid!</h2>
 
               <div className={styles.summaryCard}>
                 <div className={styles.summaryHeader}>

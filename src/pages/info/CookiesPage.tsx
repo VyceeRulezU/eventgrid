@@ -8,8 +8,8 @@ export function CookiesPage() {
   return (
     <div className={styles.pageWrapper}>
       <SEO
-        title="Cookie Policy — EventGrid"
-        description="Learn how EventGrid uses cookies and local storage to enhance your experience on the platform."
+        title="Cookie Policy — NaliGrid"
+        description="Learn how NaliGrid uses cookies and local storage to enhance your experience on the platform."
         url="/cookies"
       />
       <Navbar />
@@ -17,7 +17,7 @@ export function CookiesPage() {
       <LandingPageHero
         eyebrow="Legal Documents"
         title="Cookie Policy"
-        subtitle="Last updated: June 9, 2026. This policy explains how EventGrid uses cookies and local storage."
+        subtitle="Last updated: June 9, 2026. This policy explains how NaliGrid uses cookies and local storage."
       />
 
       <section className={styles.legalSection} aria-label="Cookie Policy">
@@ -38,7 +38,7 @@ export function CookiesPage() {
             <div className={styles.textContent}>
               <section id="what" className={styles.textSection}>
                 <h2 className={styles.sectionTitle}>1. What This Policy Covers</h2>
-                <p>This Cookie Policy explains how NaliTech Consults Limited ("we," "us," "our") uses cookies and similar technologies (such as local storage) on the EventGrid platform ("Platform").</p>
+                <p>This Cookie Policy explains how NaliTech Consults Limited ("we," "us," "our") uses cookies and similar technologies (such as local storage) on the NaliGrid platform ("Platform").</p>
               </section>
 
               <section id="cookies" className={styles.textSection}>

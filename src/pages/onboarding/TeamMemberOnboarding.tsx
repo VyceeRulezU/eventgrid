@@ -119,12 +119,12 @@ export function TeamMemberOnboarding() {
 
   return (
     <div className={styles.container}>
-      <SEO title="Accept Invitation" description="Join an event team on EventGrid." />
+      <SEO title="Accept Invitation" description="Join an event team on NaliGrid." />
       <div className={styles.leftPanel}>
         <div className={styles.topBar}>
           <div className={styles.branding}>
             <Link to="/">
-              <img src="/EventGrid-logo-white.svg" alt="EventGrid Logo" className={styles.brandLogoImage} />
+              <img src="/EventGrid-logo-white.svg" alt="NaliGrid Logo" className={styles.brandLogoImage} />
             </Link>
           </div>
         </div>

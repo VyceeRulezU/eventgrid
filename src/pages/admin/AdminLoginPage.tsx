@@ -48,11 +48,11 @@ export function AdminLoginPage() {
 
   return (
     <>
-      <SEO title="Admin Login — EventGrid" />
+      <SEO title="Admin Login — NaliGrid" />
       <div className="adminAuthContainer">
         <div className="adminAuthLeft">
           <div className="adminAuthTopBar">
-            <img src="/EventGrid-logo-white.svg" alt="EventGrid" style={{ height: 36, width: 'auto', zIndex: 2, position: 'relative' }} />
+            <img src="/EventGrid-logo-white.svg" alt="NaliGrid" style={{ height: 36, width: 'auto', zIndex: 2, position: 'relative' }} />
           </div>
 
           <div className="adminAuthCenter">
@@ -63,7 +63,7 @@ export function AdminLoginPage() {
               </div>
               <h1 className="adminAuthTitle">Admin Sign In</h1>
               <p className="adminAuthDesc">
-                Sign in to manage EventGrid platform settings, users, and analytics.
+                Sign in to manage NaliGrid platform settings, users, and analytics.
               </p>
             </div>
           </div>

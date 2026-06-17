@@ -18,7 +18,7 @@ export function EmailWrapper({
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>EventGrid</title>
+        <title>NaliGrid</title>
         <style>{`
           @media only screen and (max-width: 600px) {
             .container { width: 100% !important; max-width: 100% !important; }
@@ -45,7 +45,7 @@ export function EmailWrapper({
                           <td style={{ width: '44px', height: '3px', backgroundColor: '#D4A017', borderRadius: '2px' }} />
                         </tr>
                       </table>
-                      <img src={appUrl + '/EventGrid-logo-white.svg'} alt="EventGrid" style={{ maxWidth: '180px', height: 'auto', display: 'block', margin: '0 auto' }} />
+                       <img src={appUrl + '/EventGrid-logo-white.svg'} alt="NaliGrid" style={{ maxWidth: '180px', height: 'auto', display: 'block', margin: '0 auto' }} />
                     </div>
                   </td>
                 </tr>
@@ -60,16 +60,16 @@ export function EmailWrapper({
                 {/* Footer */}
                 <tr>
                   <td style={{ padding: '24px 32px', borderTop: '1px solid #2a3a4e', backgroundColor: '#141e2a', textAlign: 'center' }}>
-                    <img src={appUrl + '/EventGrid-logo-white.svg'} alt="EventGrid" style={{ maxWidth: '120px', height: 'auto', display: 'block', margin: '0 auto 16px' }} />
+                    <img src={appUrl + '/EventGrid-logo-white.svg'} alt="NaliGrid" style={{ maxWidth: '120px', height: 'auto', display: 'block', margin: '0 auto 16px' }} />
                     <p style={{ margin: '0 0 4px', fontSize: '12px', color: '#6B7280', lineHeight: 1.6 }}>
-                      EventGrid &mdash; Software for Event Pros
+                      NaliGrid &mdash; Software for Event Pros
                     </p>
                     <p style={{ margin: 0, fontSize: '11px', color: '#4B5563', lineHeight: 1.6 }}>
                       This email was sent to you because you have an account on{' '}
                       <a href={appUrl} style={{ color: '#D4A017', textDecoration: 'none', fontWeight: 600 }}>eventgrid.ng</a>.
                     </p>
                     <p style={{ margin: '8px 0 0', fontSize: '11px', color: '#4B5563' }}>
-                      &copy; {new Date().getFullYear()} EventGrid. All rights reserved.
+                      &copy; {new Date().getFullYear()} NaliGrid. All rights reserved.
                     </p>
                   </td>
                 </tr>

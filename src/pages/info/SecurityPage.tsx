@@ -8,7 +8,7 @@ export function SecurityPage() {
   return (
     <div className={styles.pageWrapper}>
       <SEO
-        title="Security Infrastructure — EventGrid"
+        title="Security Infrastructure — NaliGrid"
         description="Enterprise-grade row-level database security, server-validated payment gateways, and strict authorization protocols."
         url="/security"
       />
@@ -16,7 +16,7 @@ export function SecurityPage() {
       
       <LandingPageHero
         eyebrow="Trust & Safety"
-        title="EventGrid Security Infrastructure"
+        title="NaliGrid Security Infrastructure"
         subtitle="We implement enterprise-grade row-level database security, server-validated gateways, and strict authorization protocols."
       />
 

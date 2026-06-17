@@ -527,7 +527,7 @@ export function GuestManagementPage() {
               </div>
               <label className={styles.checkboxLabel} style={{ marginBottom: 'var(--space-3)', fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>
                 <Checkbox checked={addConsent} onChange={(e) => setAddConsent(e.target.checked)} />
-                I confirm that I have obtained consent from this guest to store their data on EventGrid
+                I confirm that I have obtained consent from this guest to store their data on NaliGrid
               </label>
               <button className={`btn btn-primary ${styles.fullBtn}`} onClick={handleAddGuest} disabled={!addConsent}>Add Guest</button>
             </div>
@@ -552,7 +552,7 @@ export function GuestManagementPage() {
               )}
               <label className={styles.checkboxLabel} style={{ marginBottom: 'var(--space-3)', fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>
                 <Checkbox checked={csvConsent} onChange={(e) => setCsvConsent(e.target.checked)} />
-                I confirm that I have obtained consent from each guest to store their data on EventGrid
+                I confirm that I have obtained consent from each guest to store their data on NaliGrid
               </label>
               <button className={`btn btn-primary ${styles.fullBtn}`} onClick={handleCSVImport} disabled={csvPreview.length === 0 || !csvConsent}>Import {csvPreview.length} Guests</button>
             </div>

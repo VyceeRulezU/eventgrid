@@ -11,7 +11,7 @@ export function VendorsLandingPage() {
   return (
     <div className={styles.pageWrapper}>
       <SEO
-        title="Vendor Marketplace for Events — EventGrid"
+        title="Vendor Marketplace for Events — NaliGrid"
         description="Connect with top planners, receive verified bookings, manage milestones, and secure escrow payments on Nigeria's premium event vendor network."
         url="/vendors-landing"
       />
@@ -112,7 +112,7 @@ export function VendorsLandingPage() {
           }
         ]}
         header="Frequently Asked Questions"
-        summary="Common questions about selling on EventGrid."
+        summary="Common questions about selling on NaliGrid."
       />
 
       <LandingCTA

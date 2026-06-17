@@ -12,7 +12,7 @@ const TESTIMONIALS = [
   },
   {
     quote:
-      "EventGrid's financial tracker replaced a spreadsheet I'd been updating manually for 3 years. The balance column calculates itself. I could cry.",
+      "NaliGrid's financial tracker replaced a spreadsheet I'd been updating manually for 3 years. The balance column calculates itself. I could cry.",
     name: 'Chisom Okafor',
     role: 'Event Planner',
     location: 'Abuja',

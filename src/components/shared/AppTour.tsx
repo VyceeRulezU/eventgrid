@@ -200,7 +200,7 @@ export function AppTour() {
               </span>
             </div>
             
-            <h2 className={styles.welcomeTitle}>Welcome to EventGrid, {firstName}</h2>
+            <h2 className={styles.welcomeTitle}>Welcome to NaliGrid, {firstName}</h2>
             <p className={styles.welcomeBody}>
               Your all-in-one command centre for planning, coordinating, and executing unforgettable events. Let's take a quick tour to get you oriented.
             </p>

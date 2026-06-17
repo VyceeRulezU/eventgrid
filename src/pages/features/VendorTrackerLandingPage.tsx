@@ -11,7 +11,7 @@ export function VendorTrackerLandingPage() {
   return (
     <div className={styles.pageWrapper}>
       <SEO
-        title="Vendor Logistics & Payment Tracker — EventGrid"
+        title="Vendor Logistics & Payment Tracker — NaliGrid"
         description="Manage vendor relationships, contracts, deposits, and delivery schedules from one workspace. Zero booking conflicts with milestone payment tracking."
         url="/features/vendor-tracker"
       />

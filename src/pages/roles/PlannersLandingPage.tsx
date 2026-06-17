@@ -11,7 +11,7 @@ export function PlannersLandingPage() {
   return (
     <div className={styles.pageWrapper}>
       <SEO
-        title="Event Planning Software — EventGrid"
+        title="Event Planning Software — NaliGrid"
         description="Design timelines, assign tasks, control budgets, and manage vendors from one dashboard. 10x faster event setup with reusable templates."
         url="/planners"
       />
@@ -112,7 +112,7 @@ export function PlannersLandingPage() {
           }
         ]}
         header="Frequently Asked Questions"
-        summary="Common questions about planning with EventGrid."
+        summary="Common questions about planning with NaliGrid."
       />
 
       <LandingCTA

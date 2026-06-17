@@ -7,7 +7,7 @@ export interface FeedbackEmailProps {
 
 export function FeedbackEmail({ first_name, feedback_url }: FeedbackEmailProps) {
   return (
-    <EmailWrapper previewText={`How is your experience with EventGrid, ${first_name}? Let us know!`}>
+    <EmailWrapper previewText={`How is your experience with NaliGrid, ${first_name}? Let us know!`}>
       <h1 style={{ margin: '0 0 16px', fontSize: '24px', fontWeight: 800, color: '#F9FAFB', lineHeight: 1.3, letterSpacing: '-0.02em' }}>
         How are we doing? 💬
       </h1>
@@ -17,7 +17,7 @@ export function FeedbackEmail({ first_name, feedback_url }: FeedbackEmailProps) 
       </p>
 
       <p style={{ margin: '0 0 20px', fontSize: '15px', color: '#9CA3AF', lineHeight: 1.6 }}>
-        You've been on EventGrid for about a week now, and we hope it has helped clear up your checklists and simplify your communications.
+        You've been on NaliGrid for about a week now, and we hope it has helped clear up your checklists and simplify your communications.
       </p>
 
       <p style={{ margin: '0 0 24px', fontSize: '15px', color: '#9CA3AF', lineHeight: 1.6 }}>
@@ -35,11 +35,11 @@ export function FeedbackEmail({ first_name, feedback_url }: FeedbackEmailProps) 
       </table>
 
       <p style={{ margin: '24px 0 0', fontSize: '13px', color: '#6B7280', lineHeight: 1.5 }}>
-        It takes less than 2 minutes and directly impacts our product roadmap. Thank you for helping us make EventGrid better!
+        It takes less than 2 minutes and directly impacts our product roadmap. Thank you for helping us make NaliGrid better!
         <br /><br />
         Warmly,
         <br />
-        <strong>The EventGrid Team</strong>
+        <strong>The NaliGrid Team</strong>
       </p>
     </EmailWrapper>
   )

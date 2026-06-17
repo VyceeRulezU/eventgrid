@@ -2,7 +2,7 @@ import { Helmet } from 'react-helmet-async'
 
 const SITE_URL = import.meta.env.VITE_APP_URL || 'https://eventgrid.ng'
 const SITE_IMAGE = `${SITE_URL}/favicon/EventGrid-logo.png`
-const DEFAULT_TITLE = 'EventGrid — Event Management Platform'
+const DEFAULT_TITLE = 'NaliGrid — Event Management Platform'
 const DEFAULT_DESC = 'The premium event management platform built for event planners, coordinators, vendors, and clients.'
 const DEFAULT_KEYWORDS = 'event planning, event management, nigeria events, wedding coordinator, corporate event planner, budget tracker, live board, paystack, flutterwave'
 
@@ -29,14 +29,14 @@ export function SEO({
   author,
   noindex = false,
 }: SEOProps) {
-  const fullTitle = title.includes('EventGrid') ? title : `${title} | EventGrid`
+  const fullTitle = title.includes('NaliGrid') ? title : `${title} | NaliGrid`
   const canonicalUrl = url ? `${SITE_URL}${url}` : SITE_URL
   const imageUrl = image.startsWith('http') ? image : `${SITE_URL}${image}`
 
   const schemaOrg = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'EventGrid',
+    name: 'NaliGrid',
     url: SITE_URL,
     logo: `${SITE_URL}/EventGrid-logo.svg`,
     description: DEFAULT_DESC,
@@ -66,7 +66,7 @@ export function SEO({
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description} />
       <meta property="og:url" content={canonicalUrl} />
-      <meta property="og:site_name" content="EventGrid" />
+      <meta property="og:site_name" content="NaliGrid" />
       <meta property="og:image" content={imageUrl} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />

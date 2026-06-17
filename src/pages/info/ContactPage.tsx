@@ -53,8 +53,8 @@ export function ContactPage() {
   return (
     <div className={styles.pageWrapper}>
       <SEO
-        title="Contact EventGrid — Get in Touch"
-        description="Have questions about onboarding, vendor listing verifications, pricing, or API customizations? Contact the EventGrid team."
+        title="Contact NaliGrid — Get in Touch"
+        description="Have questions about onboarding, vendor listing verifications, pricing, or API customizations? Contact the NaliGrid team."
         url="/contact"
       />
       <Navbar />

@@ -37,7 +37,7 @@ export function BlogPage() {
   return (
     <div className={styles.pageWrapper}>
       <SEO
-        title="EventGrid Blog — Event Management Insights"
+        title="NaliGrid Blog — Event Management Insights"
         description="Tips on escrow payments, event day coordination, aftermath reports, and more for Nigerian event planners and coordinators."
         url="/blog"
       />
@@ -45,7 +45,7 @@ export function BlogPage() {
       
       <LandingPageHero
         eyebrow="Editorial Blog"
-        title="EventGrid Insights & Resources"
+        title="NaliGrid Insights & Resources"
         subtitle="Proactive tips, architectural advice, and execution strategies compiled by top event coordinators and designers."
       />
 

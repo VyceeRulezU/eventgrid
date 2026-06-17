@@ -16,7 +16,7 @@ import traditionalImg from '@/assets/images/traditional_event.png'
 const slides = [
   {
     image: weddingImg,
-    quote: "EventGrid has completely changed how we coordinate weddings in Lagos. Our clients love the live timeline tracker!",
+    quote: "NaliGrid has completely changed how we coordinate weddings in Lagos. Our clients love the live timeline tracker!",
     author: "Tolu & Chioma",
     role: "Founders, Premium Nuptials",
     stars: 5,
@@ -185,7 +185,7 @@ export function RegisterPage() {
 
   return (
     <div className={styles.container}>
-      <SEO title="Create Your EventGrid Account" description="Join EventGrid to manage event setups, timelines, budget tracking, teams, and vendors as an event planner or coordinator." />
+      <SEO title="Create Your NaliGrid Account" description="Join NaliGrid to manage event setups, timelines, budget tracking, teams, and vendors as an event planner or coordinator." />
       <div className={styles.leftPanel}>
         <div className={styles.floatingCard}>
           <div className={styles.sliderContainer}>
@@ -202,7 +202,7 @@ export function RegisterPage() {
           <div className={styles.leftContent}>
             <div className={styles.branding}>
               <Link to="/">
-                <img src="/EventGrid-logo-white.svg" alt="EventGrid Logo" className={styles.brandLogoImage} />
+                <img src="/EventGrid-logo-white.svg" alt="NaliGrid Logo" className={styles.brandLogoImage} />
               </Link>
             </div>
 
@@ -251,7 +251,7 @@ export function RegisterPage() {
           {step === 'role' ? (
             <>
               <div className={styles.formHeader}>
-                <h1>Join EventGrid</h1>
+                <h1>Join NaliGrid</h1>
                 <p className={styles.formSubtitle}>
                   Choose your account type to get started, or{' '}
                   <Link to="/login" className={styles.formLink}>

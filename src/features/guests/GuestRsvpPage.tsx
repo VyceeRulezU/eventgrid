@@ -190,7 +190,7 @@ export function GuestRsvpPage() {
             `url('${HERO_URL}') center/cover no-repeat`,
         }}>
           <table cellPadding={0} cellSpacing={0} style={{ margin: '0 auto 14px' }}><tbody><tr><td style={{ width: 44, height: 3, backgroundColor: '#D4A017', borderRadius: 2 }} /></tr></tbody></table>
-          <img src={LOGO_URL} alt="EventGrid" style={{ maxWidth: 160, height: 'auto', display: 'block', margin: '0 auto' }} />
+          <img src={LOGO_URL} alt="NaliGrid" style={{ maxWidth: 160, height: 'auto', display: 'block', margin: '0 auto' }} />
         </div>
 
         <div style={{ padding: '28px 28px 32px' }}>

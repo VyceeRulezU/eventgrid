@@ -44,7 +44,7 @@ export default function FeatureSpotlightD() {
               Every event builds something.<br />Make sure it's your reputation.
             </h2>
             <p className={styles.subtext}>
-              EventGrid turns every event into a portfolio entry — with photos, vendor ratings, budget performance, and client satisfaction. Run better events. Grow faster.
+              NaliGrid turns every event into a portfolio entry — with photos, vendor ratings, budget performance, and client satisfaction. Run better events. Grow faster.
             </p>
             <div className={styles.cardStack}>
               {CARDS.map((card) => (

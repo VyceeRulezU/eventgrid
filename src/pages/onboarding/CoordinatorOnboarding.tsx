@@ -103,7 +103,7 @@ export function CoordinatorOnboarding() {
       if (orgData) setOrg({ ...orgData, show_beta_label: orgData.show_beta_label ?? true })
     }
 
-    showToast({ type: 'success', title: 'Profile completed!', body: 'Welcome to the EventGrid team.' })
+    showToast({ type: 'success', title: 'Profile completed!', body: 'Welcome to the NaliGrid team.' })
     navigate('/dashboard/coordinator')
     setLoading(false)
   }
@@ -127,13 +127,13 @@ export function CoordinatorOnboarding() {
 
   return (
     <div className={styles.container}>
-      <SEO title="Coordinator Onboarding" description="Set up your coordinator profile and area of event day expertise on EventGrid." />
+      <SEO title="Coordinator Onboarding" description="Set up your coordinator profile and area of event day expertise on NaliGrid." />
       {/* ── Left panel ── */}
       <div className={styles.leftPanel}>
         <div className={styles.topBar}>
           <div className={styles.branding}>
             <Link to="/">
-              <img src="/EventGrid-logo-white.svg" alt="EventGrid Logo" className={styles.brandLogoImage} />
+              <img src="/EventGrid-logo-white.svg" alt="NaliGrid Logo" className={styles.brandLogoImage} />
             </Link>
           </div>
           <div className={styles.topRightActions}>
@@ -160,7 +160,7 @@ export function CoordinatorOnboarding() {
               ))}
             </div>
             <p className={styles.testimonialQuote}>
-              "EventGrid keeps my event day tasks completely organized. I can view the timeline on my phone and update checklists in real-time."
+              "NaliGrid keeps my event day tasks completely organized. I can view the timeline on my phone and update checklists in real-time."
             </p>
             <div className={styles.testimonialUser}>
               <img className={styles.testimonialAvatar} src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face" alt="Tobi Adeleke" />

@@ -93,7 +93,7 @@ export function Sidebar() {
       <aside className={`${styles.sidebar} ${sidebarOpen ? styles.open : ''}`}>
         <div className={styles.header}>
           <Link to="/home" className={styles.logo} onClick={() => setSidebarOpen(false)}>
-            <img src="/EventGrid-logo-white.svg" alt="EventGrid" className={styles.logoImg} />
+            <img src="/EventGrid-logo-white.svg" alt="NaliGrid" className={styles.logoImg} />
           </Link>
           <button
             className={styles.closeBtn}

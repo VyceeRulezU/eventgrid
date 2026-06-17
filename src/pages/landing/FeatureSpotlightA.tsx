@@ -129,7 +129,7 @@ export default function FeatureSpotlightA() {
           viewport={{ once: true }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
         >
-          <span className={styles.eyebrow}>The EventGrid Way</span>
+          <span className={styles.eyebrow}>The NaliGrid Way</span>
           <h2 className={styles.sectionTitle}>
             Three phases. One platform. <br />Zero chaos.
           </h2>

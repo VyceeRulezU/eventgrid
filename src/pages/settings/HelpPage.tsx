@@ -13,8 +13,8 @@ const TOPICS = [
     label: 'Getting Started',
     content: (
       <>
-        <h4>What is EventGrid?</h4>
-        <p>EventGrid is a planning platform for event professionals. You can manage vendors, track finances, coordinate your team, handle guest lists, run live event operations, and share updates with clients — all in one place.</p>
+        <h4>What is NaliGrid?</h4>
+        <p>NaliGrid is a planning platform for event professionals. You can manage vendors, track finances, coordinate your team, handle guest lists, run live event operations, and share updates with clients — all in one place.</p>
 
         <h4>Logging In</h4>
         <p>Go to <strong>/login</strong>. You can sign in with email + password, Google, or Facebook. If you don't have an account, click <strong>Create Account</strong>.</p>
@@ -383,7 +383,7 @@ export function HelpPage() {
       <PageHero
         icon={Book}
         title="User Manual"
-        subtitle="Everything you need to know about using EventGrid"
+        subtitle="Everything you need to know about using NaliGrid"
         backgroundImage={corporateImg}
         breadcrumbs={[
           { label: 'Settings', to: '/settings' },

@@ -117,7 +117,7 @@ export default function Footer() {
       {/* ── Giant wordmark ── */}
       <div className={styles.container}>
         <div className={styles.wordmarkBlock}>
-          <span className={styles.wordmark} aria-hidden>EventGrid</span>
+          <span className={styles.wordmark} aria-hidden>NaliGrid</span>
         </div>
       </div>
 
@@ -148,7 +148,7 @@ export default function Footer() {
               ))}
             </div>
             <p className={styles.copyright}>
-              © 2026 EventGrid by NaliTech Consults · Nigeria 🇳🇬
+              © 2026 NaliGrid by NaliTech Consults · Nigeria 🇳🇬
             </p>
           </div>
         </div>

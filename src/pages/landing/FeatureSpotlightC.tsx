@@ -31,7 +31,7 @@ export default function FeatureSpotlightC() {
               Your job is execution.<br />We built the execution layer.
             </h2>
             <p className={styles.subtext}>
-              Coordinators live on-site, on the phone, on their feet. EventGrid gives you a mobile-first operations hub that shows you everything, instantly.
+              Coordinators live on-site, on the phone, on their feet. NaliGrid gives you a mobile-first operations hub that shows you everything, instantly.
             </p>
             <div className={styles.cardStack}>
               {CARDS.map((card) => (

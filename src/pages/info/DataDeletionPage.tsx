@@ -8,8 +8,8 @@ export function DataDeletionPage() {
   return (
     <div className={styles.pageWrapper}>
       <SEO
-        title="Data Deletion Request — EventGrid"
-        description="Learn how to request deletion of your personal data from EventGrid in compliance with the Nigeria Data Protection Act."
+        title="Data Deletion Request — NaliGrid"
+        description="Learn how to request deletion of your personal data from NaliGrid in compliance with the Nigeria Data Protection Act."
         url="/data-deletion"
       />
       <Navbar />
@@ -17,7 +17,7 @@ export function DataDeletionPage() {
       <LandingPageHero
         eyebrow="Privacy"
         title="Data Deletion Request"
-        subtitle="How to request the deletion of your personal information from EventGrid."
+        subtitle="How to request the deletion of your personal information from NaliGrid."
       />
 
       <section className={styles.legalSection} aria-label="Data deletion instructions">
@@ -37,14 +37,14 @@ export function DataDeletionPage() {
             <div className={styles.textContent}>
               <section id="overview" className={styles.textSection}>
                 <h2 className={styles.sectionTitle}>1. Overview</h2>
-                <p>EventGrid (NaliTech Consults Limited) respects your right to control your personal data. If you wish to have your personal information deleted from our platform, you may submit a deletion request using one of the methods below. We will process your request in accordance with the Nigeria Data Protection Act 2023.</p>
+                <p>NaliGrid (NaliTech Consults Limited) respects your right to control your personal data. If you wish to have your personal information deleted from our platform, you may submit a deletion request using one of the methods below. We will process your request in accordance with the Nigeria Data Protection Act 2023.</p>
               </section>
 
               <section id="how-to-request" className={styles.textSection}>
                 <h2 className={styles.sectionTitle}>2. How to Request Deletion</h2>
                 <h3 className={styles.subTitle}>Option A — In-App (Recommended)</h3>
-                <p>
-                  Log in to your EventGrid account, go to{' '}
+<p>
+                   Log in to your NaliGrid account, go to{' '}
                   <strong>Settings → Account → Delete Account</strong>, and follow
                   the prompts. This will automatically initiate the deletion process.
                 </p>

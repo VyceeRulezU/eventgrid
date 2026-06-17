@@ -8,8 +8,8 @@ export function PrivacyPage() {
   return (
     <div className={styles.pageWrapper}>
       <SEO
-        title="Privacy Policy — EventGrid"
-        description="Learn how EventGrid collects, protects, and handles your personal information in compliance with the Nigeria Data Protection Act."
+        title="Privacy Policy — NaliGrid"
+        description="Learn how NaliGrid collects, protects, and handles your personal information in compliance with the Nigeria Data Protection Act."
         url="/privacy"
       />
       <Navbar />
@@ -17,7 +17,7 @@ export function PrivacyPage() {
       <LandingPageHero
         eyebrow="Legal Documents"
         title="Privacy Policy"
-        subtitle="Last updated: June 9, 2026. This policy explains how EventGrid collects, protects, and handles your data."
+        subtitle="Last updated: June 9, 2026. This policy explains how NaliGrid collects, protects, and handles your data."
       />
 
       <section className={styles.legalSection} aria-label="Privacy terms">
@@ -44,7 +44,7 @@ export function PrivacyPage() {
             <div className={styles.textContent}>
               <section id="intro" className={styles.textSection}>
                 <h2 className={styles.sectionTitle}>1. Introduction</h2>
-                <p>This Privacy Policy explains how NaliTech Consults Limited collects, uses, shares, and protects personal information through the EventGrid platform ("Platform").</p>
+                <p>This Privacy Policy explains how NaliTech Consults Limited collects, uses, shares, and protects personal information through the NaliGrid platform ("Platform").</p>
                 <p>We are committed to handling personal information responsibly and in accordance with the Nigeria Data Protection Act 2023 and the Nigeria Data Protection Regulation 2019.</p>
               </section>
 
@@ -69,7 +69,7 @@ export function PrivacyPage() {
                 <h3 className={styles.subTitle}>3.5 Usage and Device Information</h3>
                 <p>Information about how you use the Platform, including log data, device type, browser type, and approximate location (derived from IP address), for security and product improvement purposes.</p>
                 <h3 className={styles.subTitle}>3.6 Third-Party Authentication Data</h3>
-                <p>If you sign up or log in using Google or Facebook, we receive your name, email address, and profile picture from that provider. We use this information solely to create and authenticate your EventGrid account. We do not store tokens or access additional data from these providers beyond what is necessary for authentication. Google and Facebook are independent data controllers for the information they process on your behalf — please refer to their privacy policies for details on how they handle your data.</p>
+                <p>If you sign up or log in using Google or Facebook, we receive your name, email address, and profile picture from that provider. We use this information solely to create and authenticate your NaliGrid account. We do not store tokens or access additional data from these providers beyond what is necessary for authentication. Google and Facebook are independent data controllers for the information they process on your behalf — please refer to their privacy policies for details on how they handle your data.</p>
               </section>
 
               <section id="use" className={styles.textSection}>

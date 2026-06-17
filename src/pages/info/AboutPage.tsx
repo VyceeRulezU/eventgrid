@@ -10,8 +10,8 @@ export function AboutPage() {
   return (
     <div className={styles.pageWrapper}>
       <SEO
-        title="About EventGrid — Our Story"
-        description="EventGrid closes the gap in event management. Over 5,000 events coordinated across Nigeria with ₦5B+ in budgets tracked securely."
+        title="About NaliGrid — Our Story"
+        description="NaliGrid closes the gap in event management. Over 5,000 events coordinated across Nigeria with ₦5B+ in budgets tracked securely."
         url="/about"
       />
       <Navbar />
@@ -19,7 +19,7 @@ export function AboutPage() {
       <LandingPageHero
         eyebrow="About Us"
         title="Closing the Gap in Event Management"
-        subtitle="EventGrid was built out of a simple frustration: managing vendor schedules, budgets, and team checklists shouldn't be chaotic."
+        subtitle="NaliGrid was built out of a simple frustration: managing vendor schedules, budgets, and team checklists shouldn't be chaotic."
       />
 
       {/* Metrics Section */}
@@ -57,7 +57,7 @@ export function AboutPage() {
               <span className={styles.eyebrow}>Our Philosophy</span>
               <h2 className={styles.title}>The best tools feel like modern superpowers.</h2>
               <p className={styles.desc}>
-                EventGrid integrates vendor directories, live activity feeds, secure payment triggers, and aftermath report generation into a single, beautiful workspace. We design with a focus on speed, clarity, and reliability.
+                NaliGrid integrates vendor directories, live activity feeds, secure payment triggers, and aftermath report generation into a single, beautiful workspace. We design with a focus on speed, clarity, and reliability.
               </p>
             </div>
           </div>
@@ -70,23 +70,23 @@ export function AboutPage() {
             category: 'General',
             items: [
               {
-                question: 'What is EventGrid?',
-                answer: 'EventGrid is a premium, multi-role event management workspace that helps planners, venue coordinators, and vendors collaborate in real-time.'
+                question: 'What is NaliGrid?',
+                answer: 'NaliGrid is a premium, multi-role event management workspace that helps planners, venue coordinators, and vendors collaborate in real-time.'
               },
               {
-                question: 'Who is EventGrid for?',
-                answer: 'EventGrid is built for event planners, venue coordinators, vendors, and clients who need a unified workspace to manage events from planning through aftermath.'
+                question: 'Who is NaliGrid for?',
+                answer: 'NaliGrid is built for event planners, venue coordinators, vendors, and clients who need a unified workspace to manage events from planning through aftermath.'
               }
             ]
           }
         ]}
         header="Frequently Asked Questions"
-        summary="Quick answers about EventGrid."
+        summary="Quick answers about NaliGrid."
       />
 
       <LandingCTA
         title="Let's build the future of events."
-        description="Join thousands of event professionals using EventGrid to scale their operational capacity."
+        description="Join thousands of event professionals using NaliGrid to scale their operational capacity."
         primaryText="Get Started Now"
       />
 

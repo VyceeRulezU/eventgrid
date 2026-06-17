@@ -14,7 +14,7 @@ import traditionalImg from '@/assets/images/traditional_event.png'
 const slides = [
   {
     image: weddingImg,
-    quote: "EventGrid has completely changed how we coordinate weddings in Lagos. Our clients love the live timeline tracker!",
+    quote: "NaliGrid has completely changed how we coordinate weddings in Lagos. Our clients love the live timeline tracker!",
     author: "Tolu & Chioma",
     role: "Founders, Premium Nuptials",
     stars: 5,
@@ -115,7 +115,7 @@ export function LoginPage() {
 
   return (
     <div className={styles.container}>
-      <SEO title="Sign In to EventGrid" description="Log in to your EventGrid account to manage your 9-phase event workflow, track financials in Naira, and stay synced with your vendors." />
+      <SEO title="Sign In to NaliGrid" description="Log in to your NaliGrid account to manage your 9-phase event workflow, track financials in Naira, and stay synced with your vendors." />
       <div className={styles.leftPanel}>
         <div className={styles.floatingCard}>
           <div className={styles.sliderContainer}>
@@ -132,7 +132,7 @@ export function LoginPage() {
           <div className={styles.leftContent}>
             <div className={styles.branding}>
               <Link to="/">
-                <img src="/EventGrid-logo-white.svg" alt="EventGrid Logo" className={styles.brandLogoImage} />
+                <img src="/EventGrid-logo-white.svg" alt="NaliGrid Logo" className={styles.brandLogoImage} />
               </Link>
             </div>
 
@@ -180,7 +180,7 @@ export function LoginPage() {
           <div className={styles.formHeader}>
             <h1>Welcome back</h1>
             <p className={styles.formSubtitle}>
-              New to EventGrid?{' '}
+              New to NaliGrid?{' '}
               <Link to="/register" className={styles.formLink}>
                 Create an account
               </Link>

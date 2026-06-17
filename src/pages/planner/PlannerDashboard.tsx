@@ -331,7 +331,7 @@ function AddCoordinatorModal({ onClose }: { onClose: () => void }) {
         {!done && (
           <>
             <p className={styles.modalDesc}>
-              Search for an existing EventGrid user by email or name, or enter an email to send an invitation.
+              Search for an existing NaliGrid user by email or name, or enter an email to send an invitation.
             </p>
 
             {/* Search bar */}
@@ -412,7 +412,7 @@ function AddCoordinatorModal({ onClose }: { onClose: () => void }) {
                 color: 'var(--color-warning)',
               }}>
                 <AlertCircle size={15} />
-                No EventGrid account found for <strong style={{ marginLeft: 4 }}>{query}</strong>.
+                No NaliGrid account found for <strong style={{ marginLeft: 4 }}>{query}</strong>.
                 You can send them an invite email.
               </div>
             )}

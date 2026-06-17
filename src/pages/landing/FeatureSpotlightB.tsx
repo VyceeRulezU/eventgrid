@@ -44,7 +44,7 @@ export default function FeatureSpotlightB() {
               Stop managing chaos.<br />Start running events.
             </h2>
             <p className={styles.subtext}>
-              EventGrid gives planners a single command centre for every event — from the client's first message to final payment.
+              NaliGrid gives planners a single command centre for every event — from the client's first message to final payment.
             </p>
             <div className={styles.cardStack}>
               {CARDS.map((card) => (

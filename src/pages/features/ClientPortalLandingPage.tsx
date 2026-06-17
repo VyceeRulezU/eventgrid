@@ -11,7 +11,7 @@ export function ClientPortalLandingPage() {
   return (
     <div className={styles.pageWrapper}>
       <SEO
-        title="Interactive Client Portal — EventGrid"
+        title="Interactive Client Portal — NaliGrid"
         description="Offer clients a premium read-only dashboard with real-time RSVP numbers, budget breakdowns, and timeline updates — no more email chains."
         url="/features/client-portal"
       />

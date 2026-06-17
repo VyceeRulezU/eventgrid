@@ -109,7 +109,7 @@ function AuthGate() {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', gap: 'var(--space-4)' }}>
         <img src="/EventGrid-favicon.svg" alt="Loading" style={{ width: 56, height: 56, opacity: 0.5 }} />
-        <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>Loading EventGrid...</div>
+        <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>Loading NaliGrid...</div>
       </div>
     )
   }
@@ -164,7 +164,7 @@ function SetupNotice() {
         </div>
 
         <p style={{ fontSize: '15px', lineHeight: 1.6, color: '#D1D5DB', marginBottom: '24px' }}>
-          EventGrid is a multi-role SaaS platform powered by Supabase. To run it locally, you need to configure your local environment variables.
+          NaliGrid is a multi-role SaaS platform powered by Supabase. To run it locally, you need to configure your local environment variables.
         </p>
 
         <div style={{

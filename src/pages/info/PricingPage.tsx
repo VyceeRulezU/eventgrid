@@ -11,7 +11,7 @@ export function PricingPage() {
   return (
     <div className={styles.pageWrapper}>
       <SEO
-        title="Pricing — EventGrid Plans"
+        title="Pricing — NaliGrid Plans"
         description="Predictable event management pricing. Register today to lock in 50% early access when plans launch in Q3 2026."
         url="/pricing"
       />
@@ -108,13 +108,13 @@ export function PricingPage() {
           }
         ]}
         header="Frequently Asked Questions"
-        summary="Common questions about EventGrid pricing."
+        summary="Common questions about NaliGrid pricing."
       />
 
       <LandingCTA
         title="Lock in early-bird access today."
         description="Register a free draft account and secure your discount eligibility immediately."
-        primaryText="Try EventGrid Free"
+        primaryText="Try NaliGrid Free"
       />
 
       <Footer />

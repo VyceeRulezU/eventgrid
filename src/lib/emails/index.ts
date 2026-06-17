@@ -60,7 +60,7 @@ export function renderOnboardingEmail(
 
   switch (type) {
     case 'welcome':
-      subject = `Welcome to EventGrid, ${props.first_name || 'there'}! 🎉`
+      subject = `Welcome to NaliGrid, ${props.first_name || 'there'}! 🎉`
       element = React.createElement(WelcomeEmail, {
         first_name: props.first_name || 'there',
         dashboard_url: props.dashboard_url || 'https://eventgrid.ng/login',
@@ -84,7 +84,7 @@ export function renderOnboardingEmail(
       break
 
     case 'feedback':
-      subject = `How is EventGrid working out for you, ${props.first_name || 'there'}? 💬`
+      subject = `How is NaliGrid working out for you, ${props.first_name || 'there'}? 💬`
       element = React.createElement(FeedbackEmail, {
         first_name: props.first_name || 'there',
         feedback_url: props.feedback_url || 'https://eventgrid.ng/settings',

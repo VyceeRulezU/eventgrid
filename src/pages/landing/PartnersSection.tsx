@@ -51,7 +51,7 @@ export default function PartnersSection() {
         <div className={styles.card}>
           <h2 className={styles.title}>Our Partners</h2>
           <p className={styles.subtitle}>
-            Leading coordinators, venues, and designers trust EventGrid to power their elite event operations.
+            Leading coordinators, venues, and designers trust NaliGrid to power their elite event operations.
           </p>
           <div className={styles.grid}>
             {allPartners.map((partner, index) => (

@@ -24,7 +24,7 @@ export default function RoleSection() {
     },
     {
       title: 'Vendor',
-      desc: 'You deliver the service. EventGrid keeps you informed and on time.',
+      desc: 'You deliver the service. NaliGrid keeps you informed and on time.',
       linkText: 'Join as Vendor →',
       to: '/register',
     },

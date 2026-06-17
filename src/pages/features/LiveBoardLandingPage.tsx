@@ -11,7 +11,7 @@ export function LiveBoardLandingPage() {
   return (
     <div className={styles.pageWrapper}>
       <SEO
-        title="Live Feed & Event Board — EventGrid"
+        title="Live Feed & Event Board — NaliGrid"
         description="Bring event day operations alive with real-time task checkoffs, live program monitoring, and team coordination via secure websockets."
         url="/features/live-board"
       />

@@ -29,7 +29,7 @@ export function LandingFooter() {
         <div className={styles.top}>
           <div className={styles.brand}>
             <Link to="/" className={styles.brandLink}>
-              EventGrid
+              NaliGrid
             </Link>
             <p className={styles.brandDesc}>
               The premium event management platform built for Nigerian professionals.
@@ -77,7 +77,7 @@ export function LandingFooter() {
 
         <div className={styles.bottom}>
           <p className={styles.copyright}>
-            © {year} EventGrid. Built for Nigerian event professionals.
+            © {year} NaliGrid. Built for Nigerian event professionals.
           </p>
           <div className={styles.legal}>
             <span className={styles.legalItem}>Privacy Policy</span>

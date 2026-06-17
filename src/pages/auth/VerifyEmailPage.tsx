@@ -11,7 +11,7 @@ import traditionalImg from '@/assets/images/traditional_event.png'
 const slides = [
   {
     image: weddingImg,
-    quote: "EventGrid has completely changed how we coordinate weddings in Lagos. Our clients love the live timeline tracker!",
+    quote: "NaliGrid has completely changed how we coordinate weddings in Lagos. Our clients love the live timeline tracker!",
     author: "Tolu & Chioma",
     role: "Founders, Premium Nuptials",
     stars: 5,
@@ -47,7 +47,7 @@ export function VerifyEmailPage() {
 
   return (
     <div className={styles.container}>
-      <SEO title="Verify Your Email" description="Please verify your email address to activate your EventGrid account and start managing your event workflows." />
+      <SEO title="Verify Your Email" description="Please verify your email address to activate your NaliGrid account and start managing your event workflows." />
       
       {/* Left Panel: Testimonial Slideshow */}
       <div className={styles.leftPanel}>
@@ -66,7 +66,7 @@ export function VerifyEmailPage() {
           <div className={styles.leftContent}>
             <div className={styles.branding}>
               <Link to="/">
-                <img src="/EventGrid-logo-white.svg" alt="EventGrid Logo" className={styles.brandLogoImage} />
+                <img src="/EventGrid-logo-white.svg" alt="NaliGrid Logo" className={styles.brandLogoImage} />
               </Link>
             </div>
 
@@ -139,7 +139,7 @@ export function VerifyEmailPage() {
             </p>
 
             <Link to="/login" className={styles.submitBtn} style={{ textDecoration: 'none', textAlign: 'center' }}>
-              Sign In to EventGrid
+              Sign In to NaliGrid
             </Link>
 
             <Link to="/" className={styles.backToLanding}>

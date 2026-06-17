@@ -476,10 +476,7 @@ export function AdminManagePage() {
           label: 'Delete',
           variant: 'danger' as const,
           onClick: async () => {
-            const { error } = await supabase
-              .from('events')
-              .update({ deleted_at: new Date().toISOString() })
-              .eq('id', event.id)
+            const { error } = await supabase.rpc('soft_delete_events', { event_ids: [event.id] })
             if (error) {
               showNotification({ variant: 'error', title: 'Delete failed', message: error.message })
             } else {

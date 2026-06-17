@@ -7,13 +7,13 @@ export interface QuickStartEmailProps {
 
 export function QuickStartEmail({ first_name, create_event_url }: QuickStartEmailProps) {
   return (
-    <EmailWrapper previewText={`Hi ${first_name}, here is your 3-step guide to launch your first event on EventGrid.`}>
+    <EmailWrapper previewText={`Hi ${first_name}, here is your 3-step guide to launch your first event on NaliGrid.`}>
       <h1 style={{ margin: '0 0 16px', fontSize: '24px', fontWeight: 800, color: '#F9FAFB', lineHeight: 1.3, letterSpacing: '-0.02em' }}>
         Let's launch your first event! 🚀
       </h1>
 
       <p style={{ margin: '0 0 20px', fontSize: '15px', color: '#9CA3AF', lineHeight: 1.6 }}>
-        Hi {first_name}, running a successful event requires details, timelines, and clear execution steps. Here is a quick 3-step guide to get your first event up and running on EventGrid today:
+        Hi {first_name}, running a successful event requires details, timelines, and clear execution steps. Here is a quick 3-step guide to get your first event up and running on NaliGrid today:
       </p>
 
       <div style={{ backgroundColor: '#18202F', border: '1px solid #374151', borderRadius: '12px', padding: '24px', marginBottom: '28px' }}>
@@ -69,7 +69,7 @@ export function QuickStartEmail({ first_name, create_event_url }: QuickStartEmai
         <br /><br />
         Best of luck,
         <br />
-        <strong>The EventGrid Team</strong>
+        <strong>The NaliGrid Team</strong>
       </p>
     </EmailWrapper>
   )

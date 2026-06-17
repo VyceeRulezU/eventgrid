@@ -75,7 +75,7 @@ export default function HowItWorksSection() {
           <span className={styles.sectionLabel}>The Process</span>
           <h2 className={styles.headline}>From First Inquiry to Final Report.</h2>
           <p className={styles.subtext}>
-            EventGrid structures your work into 9 phases. Every phase has tasks, owners, and a clear definition of done.
+            NaliGrid structures your work into 9 phases. Every phase has tasks, owners, and a clear definition of done.
           </p>
         </div>
 

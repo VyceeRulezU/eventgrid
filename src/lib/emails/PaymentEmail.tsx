@@ -16,7 +16,7 @@ export function PaymentEmail({
   portal_url,
 }: PaymentEmailProps) {
   return (
-    <EmailWrapper previewText={`Payment of ${amount} confirmed for ${event_name} — EventGrid`}>
+    <EmailWrapper previewText={`Payment of ${amount} confirmed for ${event_name} — NaliGrid`}>
       <h1 style={{ margin: '0 0 16px', fontSize: '24px', fontWeight: 800, color: '#F9FAFB', lineHeight: 1.3, letterSpacing: '-0.02em' }}>
         Payment Confirmed! 💳
       </h1>
@@ -64,7 +64,7 @@ export function PaymentEmail({
         <br /><br />
         Cheers,
         <br />
-        <strong>The EventGrid Team</strong>
+        <strong>The NaliGrid Team</strong>
       </p>
     </EmailWrapper>
   )

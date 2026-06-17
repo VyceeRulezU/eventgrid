@@ -11,15 +11,15 @@ export function PressPage() {
   return (
     <div className={styles.pageWrapper}>
       <SEO
-        title="Press Kit — EventGrid Media Assets"
-        description="Download official EventGrid logos, brand colors, and media assets for press coverage and media publications."
+        title="Press Kit — NaliGrid Media Assets"
+        description="Download official NaliGrid logos, brand colors, and media assets for press coverage and media publications."
         url="/press"
       />
       <Navbar />
       
       <LandingPageHero
         eyebrow="Press Kit"
-        title="EventGrid Media Assets"
+        title="NaliGrid Media Assets"
         subtitle="Access official logos, brand colors, executive headshots, and event operations research papers for media coverage."
       />
 
@@ -66,7 +66,7 @@ export function PressPage() {
                 answer: 'Send an email to press@eventgrid.ng with your publication details, story angle, and deadline.'
               },
               {
-                question: 'Can I use EventGrid logos and assets?',
+                question: 'Can I use NaliGrid logos and assets?',
                 answer: 'Yes, our brand assets are available for download in the Press Kit section above. Please follow our brand guidelines.'
               }
             ]
