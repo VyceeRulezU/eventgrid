@@ -18,7 +18,7 @@ setup('authenticate', async ({ page, baseURL }) => {
 
   const appUrl = baseURL || process.env.E2E_APP_URL || 'http://localhost:4173'
 
-  await page.goto(appUrl + '/login', { waitUntil: 'networkidle' })
+  await page.goto(appUrl + '/login', { waitUntil: 'load' })
   await page.waitForSelector('#email', { timeout: 10000 })
   await page.fill('#email', email)
   await page.fill('#password', password)
