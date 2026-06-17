@@ -1,9 +1,10 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
-const supabaseAdmin = createClient(
-  Deno.env.get('SUPABASE_URL')!,
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-)
+const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!
+
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -23,6 +24,44 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+
+    // ── Authorization check ──────────────────────────────────────────────────
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const supabaseAnon = createClient(supabaseUrl, supabaseAnonKey)
+    const { data: { user: caller }, error: authErr } = await supabaseAnon.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    )
+
+    if (authErr || !caller) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Allow self-deletion or super-admin deletion
+    if (caller.id !== user_id) {
+      const { data: sa } = await supabaseAdmin
+        .from('super_admins')
+        .select('user_id')
+        .eq('user_id', caller.id)
+        .maybeSingle()
+
+      if (!sa) {
+        return new Response(
+          JSON.stringify({ error: 'Forbidden: you can only delete your own account' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+    }
+    // ── End authorization ────────────────────────────────────────────────────
 
     const errors: string[] = []
 

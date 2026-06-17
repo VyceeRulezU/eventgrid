@@ -233,6 +233,52 @@
   color: var(--color-text-primary);
 }
 
+.deleteCard {
+  border-color: rgba(239, 68, 68, 0.2);
+  background: linear-gradient(180deg, var(--color-surface-2) 0%, rgba(239, 68, 68, 0.03) 100%);
+}
+
+.deleteHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.deleteIcon {
+  color: var(--color-error);
+  flex-shrink: 0;
+}
+
+.deleteWarning {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin: 0 0 var(--space-4);
+}
+
+.deleteWarning strong {
+  color: var(--color-error);
+}
+
+.deleteConfirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.deleteConfirmPrompt {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.deleteActions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
+}
+
 .version {
   font-size: var(--text-xs);
   color: var(--color-text-muted);

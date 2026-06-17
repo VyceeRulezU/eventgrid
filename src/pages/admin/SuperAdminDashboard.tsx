@@ -50,12 +50,12 @@ function getMonthRange(): string[] {
   return result
 }
 
-function generateWeekKeys(days: number): string[] {
+function generateYearWeekKeys(year: number): string[] {
   const set = new Set<string>()
-  const now = new Date()
-  for (let i = days; i >= 0; i -= 7) {
-    const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000)
-    set.add(getWeekId(d))
+  const start = new Date(year, 0, 1)
+  const end = new Date(year, 11, 31)
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    set.add(getWeekId(new Date(d)))
   }
   return Array.from(set).sort()
 }
@@ -187,9 +187,10 @@ export function SuperAdminDashboard() {
     async function load() {
       try {
       const now = new Date()
-      const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString()
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
-      const startOfYear = new Date(now.getFullYear(), 0, 1).toISOString()
+      const currentYear = now.getFullYear()
+      const startOfMonth = new Date(currentYear, now.getMonth(), 1).toISOString()
+      const startOfYear = new Date(currentYear, 0, 1).toISOString()
+      const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59).toISOString()
 
       const [
         { count: plannerCount },
@@ -242,19 +243,19 @@ export function SuperAdminDashboard() {
       setRevenueMtd(revenueMtdVal)
       setRevenueYtd(revenueYtdVal)
 
-      const weeks = generateWeekKeys(90)
+      const weeks = generateYearWeekKeys(currentYear)
       const eventsByWeekMap: Record<string, number> = {}
       const revenueByWeekMap: Record<string, number> = {}
       weeks.forEach(w => { eventsByWeekMap[w] = 0; revenueByWeekMap[w] = 0 })
 
-      const ninetyDayEvents = (allEventsData || []).filter(e => e.created_at >= ninetyDaysAgo)
-      const ninetyDayPayments = paidEvents.filter(p => p.paid_at && p.paid_at >= ninetyDaysAgo)
+      const yearEvents = (allEventsData || []).filter(e => e.created_at >= startOfYear && e.created_at <= endOfYear)
+      const yearPayments = paidEvents.filter(p => p.paid_at && p.paid_at >= startOfYear && p.paid_at <= endOfYear)
 
-      ninetyDayEvents.forEach(e => {
+      yearEvents.forEach(e => {
         const wk = getWeekId(new Date(e.created_at))
         if (eventsByWeekMap[wk] !== undefined) eventsByWeekMap[wk]++
       })
-      ninetyDayPayments.forEach(p => {
+      yearPayments.forEach(p => {
         if (p.paid_at) {
           const wk = getWeekId(new Date(p.paid_at))
           if (revenueByWeekMap[wk] !== undefined) revenueByWeekMap[wk] += p.amount_paid
@@ -484,7 +485,7 @@ export function SuperAdminDashboard() {
         <div className="card" style={{ padding: 'var(--space-4) var(--space-5)' }}>
           <h3 style={{ margin: '0 0 var(--space-3) 0', fontSize: 'var(--text-base)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
             <TrendingUp size={16} style={{ color: 'var(--color-accent)' }} />
-            Revenue &amp; Events (Last 90 Days)
+            Revenue &amp; Events ({new Date().getFullYear()})
           </h3>
           {weeklyData.length > 0 ? (
             <ResponsiveContainer width="100%" height={220}>

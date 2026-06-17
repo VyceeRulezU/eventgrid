@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Camera, Upload, ArrowLeft, ExternalLink, LogOut, Building2, LifeBuoy, Book, Bell, Send } from 'lucide-react'
+import { Camera, Upload, ArrowLeft, ExternalLink, LogOut, Building2, LifeBuoy, Book, Bell, Send, Trash2, AlertTriangle } from 'lucide-react'
 import { uploadFile } from '@/lib/storage'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
@@ -36,6 +36,9 @@ export function SettingsPage() {
   const [testingEmail, setTestingEmail] = useState(false)
   const [showFeedback, setShowFeedback] = useState(false)
   const [showBetaLabel, setShowBetaLabel] = useState(betaLabelVisible)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState('')
+  const [deletingAccount, setDeletingAccount] = useState(false)
 
   const handleToggleBetaLabel = async (value: boolean) => {
     setShowBetaLabel(value)
@@ -248,6 +251,30 @@ export function SettingsPage() {
     await supabase?.auth.signOut()
     clearAuth()
     navigate('/login')
+  }
+
+  const handleDeleteAccount = async () => {
+    if (!user) return
+    setDeletingAccount(true)
+    try {
+      const { data, error } = await supabase.functions.invoke('delete-user', {
+        body: { user_id: user.id },
+      })
+      if (error) throw new Error(error.message)
+      if (data?.error) throw new Error(data.error)
+
+      await supabase?.auth.signOut()
+      clearAuth()
+      navigate('/login')
+      showToast({ type: 'success', title: 'Account deleted', body: 'Your account has been permanently deleted.' })
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to delete account'
+      showToast({ type: 'error', title: 'Deletion failed', body: msg })
+    } finally {
+      setDeletingAccount(false)
+      setShowDeleteConfirm(false)
+      setDeleteConfirmText('')
+    }
   }
 
   return (
@@ -507,6 +534,63 @@ export function SettingsPage() {
             <ArrowLeft size={14} />
             Back to site
           </Link>
+        </div>
+
+        <div className={`card ${styles.deleteCard}`}>
+          <div className={styles.deleteHeader}>
+            <AlertTriangle size={18} className={styles.deleteIcon} />
+            <h3 className={styles.cardTitle} style={{ margin: 0 }}>Delete Account</h3>
+          </div>
+          <p className={styles.deleteWarning}>
+            Permanently delete your account and all associated data — events, guests, tasks, and media.
+            This action <strong>cannot</strong> be undone.
+          </p>
+
+          {!showDeleteConfirm ? (
+            <button
+              type="button"
+              className="btn btn-destructive"
+              onClick={() => setShowDeleteConfirm(true)}
+            >
+              <Trash2 size={16} />
+              Delete Account
+            </button>
+          ) : (
+            <div className={styles.deleteConfirm}>
+              <p className={styles.deleteConfirmPrompt}>
+                Type <strong>DELETE</strong> to confirm:
+              </p>
+              <input
+                type="text"
+                className="input"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder="Type DELETE"
+                autoFocus
+              />
+              <div className={styles.deleteActions}>
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={() => {
+                    setShowDeleteConfirm(false)
+                    setDeleteConfirmText('')
+                  }}
+                  disabled={deletingAccount}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-destructive"
+                  onClick={handleDeleteAccount}
+                  disabled={deleteConfirmText !== 'DELETE' || deletingAccount}
+                >
+                  {deletingAccount ? 'Deleting...' : 'Delete My Account'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="card">

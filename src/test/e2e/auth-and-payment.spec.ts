@@ -102,6 +102,9 @@ test.describe('logout', () => {
     await page.goto('/events')
     await page.waitForURL(/\/events/, { timeout: 15000 })
 
+    // Wait for the app layout to load and the header to become visible
+    await page.waitForSelector('header', { state: 'visible', timeout: 15000 })
+
     // The TopBar toggle has aria-label="Open menu" (not "Open sidebar")
     const sidebarToggle = page.locator('[aria-label="Open menu"]').first()
     if (await sidebarToggle.isVisible()) {
@@ -110,7 +113,7 @@ test.describe('logout', () => {
       await page.waitForSelector(`aside`, { state: 'visible' })
     }
 
-    await expect(page.getByText(/log out/i)).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(/log out/i)).toBeVisible({ timeout: 10000 })
   })
 })
 

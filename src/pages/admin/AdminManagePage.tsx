@@ -538,8 +538,50 @@ export function AdminManagePage() {
   }
 
   function renderPersonTable(data: PersonRow[], label: string) {
+    const handleBulkDelete = () => {
+      const count = selectedIds.size
+      showModal({
+        variant: 'confirm',
+        title: `Delete ${count} ${label}?`,
+        message: `This action is permanent and cannot be undone. All data associated with ${count > 1 ? 'these accounts' : 'this account'} will be removed from the platform.`,
+        actions: [
+          { label: 'Cancel', variant: 'secondary' as const, onClick: () => {} },
+          {
+            label: 'Delete',
+            variant: 'danger' as const,
+            onClick: async () => {
+              let failed = 0
+              for (const id of selectedIds) {
+                const { error: e, data: d } = await supabase.functions.invoke('delete-user', { body: { user_id: id } })
+                if (e || d?.error) failed++
+              }
+              if (failed === 0) {
+                showNotification({ variant: 'success', title: 'Deleted', message: `${count} ${label} deleted.` })
+              } else {
+                showNotification({ variant: 'error', title: 'Delete failed', message: `${failed} of ${count} could not be deleted.` })
+              }
+              setSelectedIds(new Set())
+              loadAuthUsers()
+              loadData()
+            },
+          },
+        ],
+      })
+    }
+
     return (
       <div className={styles.tableCard}>
+        {selectedIds.size > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', padding: 'var(--space-3) var(--space-4)', background: 'var(--color-surface-2)', borderBottom: '1px solid var(--color-border)', fontSize: 'var(--text-sm)' }}>
+            <span>{selectedIds.size} selected</span>
+            <button className="btn btn-destructive btn-sm" onClick={handleBulkDelete}>
+              Delete Selected
+            </button>
+            <button className="btn btn-ghost btn-sm" onClick={() => setSelectedIds(new Set())}>
+              Clear
+            </button>
+          </div>
+        )}
         <div className={styles.tableScroll}>
           <table className={styles.table}>
             <thead className={styles.thead}>
@@ -642,8 +684,46 @@ export function AdminManagePage() {
 
   function renderEventsTable() {
     const data = pageData as EventRow[]
+    const handleBulkDeleteEvents = () => {
+      const eventIds = Array.from(selectedIds)
+      const count = eventIds.length
+      showModal({
+        variant: 'confirm',
+        title: `Delete ${count} event${count !== 1 ? 's' : ''}?`,
+        message: `Are you sure you want to delete ${count > 1 ? 'these events' : 'this event'}? This action cannot be undone.`,
+        actions: [
+          { label: 'Cancel', variant: 'secondary' as const, onClick: () => {} },
+          {
+            label: 'Delete',
+            variant: 'danger' as const,
+            onClick: async () => {
+              const { error } = await supabase.rpc('soft_delete_events', { event_ids: eventIds })
+              if (error) {
+                showNotification({ variant: 'error', title: 'Delete failed', message: error.message })
+              } else {
+                showNotification({ variant: 'success', title: 'Deleted', message: `${count} event${count !== 1 ? 's' : ''} deleted.` })
+              }
+              setSelectedIds(new Set())
+              loadData()
+            },
+          },
+        ],
+      })
+    }
+
     return (
       <div className={styles.tableCard}>
+        {selectedIds.size > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', padding: 'var(--space-3) var(--space-4)', background: 'var(--color-surface-2)', borderBottom: '1px solid var(--color-border)', fontSize: 'var(--text-sm)' }}>
+            <span>{selectedIds.size} selected</span>
+            <button className="btn btn-destructive btn-sm" onClick={handleBulkDeleteEvents}>
+              Delete Selected
+            </button>
+            <button className="btn btn-ghost btn-sm" onClick={() => setSelectedIds(new Set())}>
+              Clear
+            </button>
+          </div>
+        )}
         <div className={styles.tableScroll}>
           <table className={styles.table}>
             <thead className={styles.thead}>
@@ -839,8 +919,11 @@ export function AdminManagePage() {
       ) : activeTab === 'users' ? (
         <div className={styles.tableCard}>
           {selectedIds.size > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', padding: 'var(--space-3) var(--space-4)', background: 'var(--color-surface-elevated)', borderBottom: '1px solid var(--color-border)', fontSize: 'var(--text-sm)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', padding: 'var(--space-3) var(--space-4)', background: 'var(--color-surface-2)', borderBottom: '1px solid var(--color-border)', fontSize: 'var(--text-sm)' }}>
               <span>{selectedIds.size} selected</span>
+              <button className="btn btn-ghost btn-sm" onClick={() => setSelectedIds(new Set())}>
+                Clear
+              </button>
               <button
                 className="btn btn-destructive btn-sm"
                 onClick={() => {
