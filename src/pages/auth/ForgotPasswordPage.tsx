@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Star, Mail, ArrowRight } from 'lucide-react'
+import { ArrowLeft, Star, Mail } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
 import { SEO } from '@/components/shared/SEO'

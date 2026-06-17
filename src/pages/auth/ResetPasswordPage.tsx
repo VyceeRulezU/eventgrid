@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { ArrowLeft, Star, Eye, EyeOff, Check, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
@@ -46,7 +46,6 @@ const passwordChecks = [
 ]
 
 export function ResetPasswordPage() {
-  const navigate = useNavigate()
   const showToast = useUIStore((s) => s.showToast)
 
   const [checking, setChecking] = useState(true)
