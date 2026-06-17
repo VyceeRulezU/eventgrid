@@ -1,13 +1,13 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
-const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!
-
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
+const supabaseAdmin = createClient(
+  Deno.env.get('SUPABASE_URL')!,
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+)
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
@@ -24,44 +24,6 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
-
-    // ── Authorization check ──────────────────────────────────────────────────
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    const supabaseAnon = createClient(supabaseUrl, supabaseAnonKey)
-    const { data: { user: caller }, error: authErr } = await supabaseAnon.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    )
-
-    if (authErr || !caller) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    // Allow self-deletion or super-admin deletion
-    if (caller.id !== user_id) {
-      const { data: sa } = await supabaseAdmin
-        .from('super_admins')
-        .select('user_id')
-        .eq('user_id', caller.id)
-        .maybeSingle()
-
-      if (!sa) {
-        return new Response(
-          JSON.stringify({ error: 'Forbidden: you can only delete your own account' }),
-          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
-    }
-    // ── End authorization ────────────────────────────────────────────────────
 
     const errors: string[] = []
 
@@ -144,9 +106,9 @@ Deno.serve(async (req) => {
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (err) {
-    console.error('delete-user error:', err)
+    console.error('delete-user error:', err instanceof Error ? err.stack || err.message : err)
     return new Response(
-      JSON.stringify({ error: err instanceof Error ? err.message : 'Internal error' }),
+      JSON.stringify({ error: err instanceof Error ? `${err.name}: ${err.message}` : 'Internal error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }

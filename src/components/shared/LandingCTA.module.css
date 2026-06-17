@@ -148,7 +148,7 @@
   padding: 18px 36px;
   background-color: var(--color-accent);
   color: #080808;
-  border-radius: 0;
+  border-radius: var(--radius-sm);
   font-size: var(--text-base);
   font-weight: var(--weight-extrabold);
   text-decoration: none;
@@ -162,6 +162,7 @@
   background-color: #e8b020;
   transform: translateY(-2px);
   box-shadow: 0 12px 32px rgba(212, 160, 23, 0.4);
+  color: #080808;
 }
 
 .secondaryBtn {
@@ -170,11 +171,11 @@
   justify-content: center;
   text-align: center;
   gap: var(--space-2);
-  padding: 16px 32px;
+  padding: 18px 36px;
   background-color: transparent;
   color: rgba(255, 255, 255, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 0;
+  border-radius: var(--radius-sm);
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
   text-decoration: none;

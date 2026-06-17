@@ -449,11 +449,22 @@ export function AdminManagePage() {
           label: 'Delete',
           variant: 'danger' as const,
           onClick: async () => {
-            const { data, error: invokeError } = await supabase.functions.invoke('delete-user', {
-              body: { user_id: person.id },
-            })
-            if (invokeError || data?.error) {
-              showNotification({ variant: 'error', title: 'Delete failed', message: invokeError?.message || data?.error || 'Unknown error' })
+            let result
+            try {
+              result = await supabase.functions.invoke('delete-user', {
+                body: { user_id: person.id },
+              })
+            } catch (err) {
+              console.error('[delete-person] unexpected error:', err)
+              showNotification({ variant: 'error', title: 'Delete failed', message: err instanceof Error ? err.message : 'Unexpected error' })
+              return
+            }
+            const { data, error: invokeError } = result
+            if (invokeError) {
+              console.error('[delete-person] invokeError:', invokeError.name, invokeError.message, invokeError.context)
+              showNotification({ variant: 'error', title: 'Delete failed', message: invokeError.message || 'Unknown error' })
+            } else if (data?.error) {
+              showNotification({ variant: 'error', title: 'Delete failed', message: data.error })
             } else {
               showNotification({ variant: 'success', title: 'Deleted', message: `${person.display_name || person.email} has been permanently deleted.` })
               loadAuthUsers()
@@ -539,7 +550,8 @@ export function AdminManagePage() {
 
   function renderPersonTable(data: PersonRow[], label: string) {
     const handleBulkDelete = () => {
-      const count = selectedIds.size
+      const ids = Array.from(selectedIds)
+      const count = ids.length
       showModal({
         variant: 'confirm',
         title: `Delete ${count} ${label}?`,
@@ -551,9 +563,20 @@ export function AdminManagePage() {
             variant: 'danger' as const,
             onClick: async () => {
               let failed = 0
-              for (const id of selectedIds) {
-                const { error: e, data: d } = await supabase.functions.invoke('delete-user', { body: { user_id: id } })
-                if (e || d?.error) failed++
+              for (const id of ids) {
+                try {
+                  const { error: e, data: d } = await supabase.functions.invoke('delete-user', { body: { user_id: id } })
+                  if (e) {
+                    console.error('[bulk-delete] invokeError:', e.name, e.message, e.context)
+                    failed++
+                  } else if (d?.error) {
+                    console.error('[bulk-delete] data error:', d.error)
+                    failed++
+                  }
+                } catch (err) {
+                  console.error('[bulk-delete] unexpected error:', err)
+                  failed++
+                }
               }
               if (failed === 0) {
                 showNotification({ variant: 'success', title: 'Deleted', message: `${count} ${label} deleted.` })
@@ -927,34 +950,46 @@ export function AdminManagePage() {
               <button
                 className="btn btn-destructive btn-sm"
                 onClick={() => {
-                  const count = selectedIds.size
-                  showModal({
-                    variant: 'confirm',
-                    title: `Delete ${count} user${count !== 1 ? 's' : ''}?`,
-                    message: `This action is permanent and cannot be undone. All data associated with ${count > 1 ? 'these accounts' : 'this account'} will be removed from the platform.`,
-                    actions: [
-                      { label: 'Cancel', variant: 'secondary', onClick: () => {} },
-                      {
-                        label: 'Delete',
-                        variant: 'danger',
-                        onClick: async () => {
-                          let failed = 0
-                          for (const id of selectedIds) {
-                            const { error: e, data: d } = await supabase.functions.invoke('delete-user', { body: { user_id: id } })
-                            if (e || d?.error) failed++
-                          }
-                          if (failed === 0) {
-                            showNotification({ variant: 'success', title: 'Deleted', message: `${selectedIds.size} user${selectedIds.size !== 1 ? 's' : ''} deleted.` })
-                          } else {
-                            showNotification({ variant: 'error', title: 'Delete failed', message: `${failed} of ${selectedIds.size} could not be deleted.` })
-                          }
-                          setSelectedIds(new Set())
-                          loadAuthUsers()
-                          loadData()
-                        },
-                      },
-                    ],
-                  })
+                          const ids = Array.from(selectedIds)
+                          const count = ids.length
+                          showModal({
+                            variant: 'confirm',
+                            title: `Delete ${count} user${count !== 1 ? 's' : ''}?`,
+                            message: `This action is permanent and cannot be undone. All data associated with ${count > 1 ? 'these accounts' : 'this account'} will be removed from the platform.`,
+                            actions: [
+                              { label: 'Cancel', variant: 'secondary', onClick: () => {} },
+                              {
+                                label: 'Delete',
+                                variant: 'danger',
+                                onClick: async () => {
+                                  let failed = 0
+                                  for (const id of ids) {
+                                    try {
+                                      const { error: e, data: d } = await supabase.functions.invoke('delete-user', { body: { user_id: id } })
+                                      if (e) {
+                                        console.error('[bulk-delete-users] invokeError:', e.name, e.message, e.context)
+                                        failed++
+                                      } else if (d?.error) {
+                                        console.error('[bulk-delete-users] data error:', d.error)
+                                        failed++
+                                      }
+                                    } catch (err) {
+                                      console.error('[bulk-delete-users] unexpected error:', err)
+                                      failed++
+                                    }
+                                  }
+                                  if (failed === 0) {
+                                    showNotification({ variant: 'success', title: 'Deleted', message: `${count} user${count !== 1 ? 's' : ''} deleted.` })
+                                  } else {
+                                    showNotification({ variant: 'error', title: 'Delete failed', message: `${failed} of ${count} could not be deleted.` })
+                                  }
+                                  setSelectedIds(new Set())
+                                  loadAuthUsers()
+                                  loadData()
+                                },
+                              },
+                            ],
+                          })
                 }}
               >
                 Delete Selected

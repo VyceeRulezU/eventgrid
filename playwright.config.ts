@@ -27,7 +27,7 @@ export default defineConfig({
     {
       name: 'chromium',
       use: {
-        ...(existsSync(authFile) && { storageState: authFile }),
+        storageState: authFile,
       },
       dependencies: ['setup'],
     },
