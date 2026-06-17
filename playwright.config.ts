@@ -1,6 +1,9 @@
 import { defineConfig } from '@playwright/test'
-import 'dotenv/config'
+import dotenv from 'dotenv'
 import { existsSync } from 'node:fs'
+
+dotenv.config()
+dotenv.config({ path: '.env.local' })
 
 const authFile = 'playwright/.auth.json'
 

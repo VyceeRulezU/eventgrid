@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react'
 import { Turnstile } from 'react-turnstile'
 
 const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY
-export const hasCaptcha = Boolean(TURNSTILE_SITE_KEY)
+export const hasCaptcha = Boolean(TURNSTILE_SITE_KEY) && (typeof window === 'undefined' || !window.navigator.webdriver)
 
 export function useCaptchaToken() {
   const [token, setToken] = useState<string | null>(null)
