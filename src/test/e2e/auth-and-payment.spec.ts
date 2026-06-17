@@ -101,10 +101,16 @@ test.describe('logout', () => {
     // inside the app layout, not on the public /home landing page.
     await page.goto('/events')
     await page.waitForURL(/\/events/, { timeout: 15000 })
-    // Open sidebar if there's a toggle (mobile/collapsed)
-    const sidebarToggle = page.locator('[aria-label="Open sidebar"], [aria-label="Menu"]').first()
-    if (await sidebarToggle.isVisible()) await sidebarToggle.click()
-    await expect(page.getByText(/log out/i)).toBeVisible()
+
+    // The TopBar toggle has aria-label="Open menu" (not "Open sidebar")
+    const sidebarToggle = page.locator('[aria-label="Open menu"]').first()
+    if (await sidebarToggle.isVisible()) {
+      await sidebarToggle.click()
+      // Wait for sidebar to slide in
+      await page.waitForSelector(`aside`, { state: 'visible' })
+    }
+
+    await expect(page.getByText(/log out/i)).toBeVisible({ timeout: 5000 })
   })
 })
 
