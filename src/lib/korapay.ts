@@ -21,6 +21,7 @@ declare global {
 }
 
 const KORAPAY_SCRIPT_URL = 'https://korablobstorage.blob.core.windows.net/modal-bucket/korapay-collections.min.js'
+const LOAD_TIMEOUT = 15000
 let loadingPromise: Promise<void> | null = null
 
 export function loadKorapayScript(): Promise<void> {
@@ -41,20 +42,34 @@ export function loadKorapayScript(): Promise<void> {
     script.src = KORAPAY_SCRIPT_URL
     script.async = true
 
+    const timeoutId = setTimeout(() => {
+      script.onload = null
+      script.onerror = null
+      loadingPromise = null
+      reject(new Error('Korapay script timed out'))
+    }, LOAD_TIMEOUT)
+
     const checkReady = () => {
       if (window.Korapay) {
+        clearTimeout(timeoutId)
         loadingPromise = null
         resolve()
-      } else {
+      } else if (Date.now() - startTime < LOAD_TIMEOUT) {
         setTimeout(checkReady, 100)
+      } else {
+        loadingPromise = null
+        reject(new Error('Korapay script loaded but Korapay not found'))
       }
     }
+
+    const startTime = Date.now()
 
     script.onload = () => {
       checkReady()
     }
 
     script.onerror = () => {
+      clearTimeout(timeoutId)
       loadingPromise = null
       reject(new Error('Failed to load Korapay script'))
     }

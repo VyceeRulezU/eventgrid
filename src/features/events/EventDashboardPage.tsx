@@ -434,7 +434,10 @@ export function EventDashboardPage() {
       })
     } catch {
       clearTimeout(timeoutId)
-      if (!paySucceededRef.current) setPayStatus('failed')
+      if (!paySucceededRef.current) {
+        setPayStatus('failed')
+        showNotification({ variant: 'error', title: 'Payment failed', message: 'Could not load payment provider. Check your internet connection and try again.' })
+      }
     }
   }, [user, id, activeEvent, setActiveEvent, showNotification, promoResult])
 
