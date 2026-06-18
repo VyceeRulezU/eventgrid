@@ -235,7 +235,7 @@ export function EventDashboardPage() {
         supabase.from('event_vendors').select('id', { count: 'exact' }).eq('event_id', event.id),
         supabase.from('tasks').select('id', { count: 'exact' }).eq('event_id', event.id).not('status', 'eq', 'done').lte('due_datetime', now),
         supabase.from('issues').select('id', { count: 'exact' }).eq('event_id', event.id).is('resolved_at', null),
-        supabase.from('tasks').select('id, title, due_datetime, status, created_at, assignee:profiles(display_name, avatar_url)').eq('event_id', event.id).neq('status', 'done').gte('due_datetime', now).order('due_datetime', { ascending: true }).limit(15),
+        supabase.from('tasks').select('id, title, due_datetime, status, created_at, assignee:profiles(display_name, avatar_url)').eq('event_id', event.id).neq('status', 'done').order('due_datetime', { ascending: true, nullsLast: true }).limit(15),
         supabase.from('event_phases').select('id, phase_name, due_date, status').eq('event_id', event.id).neq('status', 'completed').not('due_date', 'is', null).order('due_date', { ascending: true }).limit(15),
         supabase.from('event_vendors').select('id, vendor_name, payment_date, payment_status').eq('event_id', event.id).in('payment_status', ['unpaid', 'advance']).not('payment_date', 'is', null).order('payment_date', { ascending: true }).limit(15),
         supabase.from('event_activity').select('*').eq('event_id', event.id).order('created_at', { ascending: false }).limit(20),
