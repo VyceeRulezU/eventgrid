@@ -310,8 +310,8 @@ export function EventDashboardPage() {
       if (activityRes.data) setActivity(activityRes.data as unknown as EventActivity[])
       if (finRes.data) {
         setFinancialSummary({
-          paid: finRes.data.reduce((s, e) => s + (e.advance_paid || 0), 0),
-          outstanding: finRes.data.reduce((s, e) => s + (e.balance || 0), 0),
+          paid: finRes.data.reduce((s: number, e: any) => s + (e.advance_paid || 0), 0),
+          outstanding: finRes.data.reduce((s: number, e: any) => s + (e.balance || 0), 0),
         })
       }
       setLoading(false)
