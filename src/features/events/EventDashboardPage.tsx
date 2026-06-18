@@ -247,7 +247,7 @@ export function EventDashboardPage() {
         safeQuery(() => supabase.from('event_vendors').select('id', { count: 'exact' }).eq('event_id', event.id), []),
         safeQuery(() => supabase.from('tasks').select('id', { count: 'exact' }).eq('event_id', event.id).not('status', 'eq', 'done').lte('due_datetime', now), []),
         safeQuery(() => supabase.from('issues').select('id', { count: 'exact' }).eq('event_id', event.id).is('resolved_at', null), []),
-        safeQuery(() => supabase.from('tasks').select('id, title, due_datetime, status, created_at, assignee:profiles(display_name, avatar_url)').eq('event_id', event.id).neq('status', 'done').order('due_datetime', { ascending: true, nullsFirst: false }).limit(15), []),
+        safeQuery(() => supabase.from('tasks').select('id, title, due_datetime, status, created_at, assignee_id').eq('event_id', event.id).neq('status', 'done').order('due_datetime', { ascending: true, nullsFirst: false }).limit(15), []),
         safeQuery(() => supabase.from('event_phases').select('id, phase_name, due_date, status').eq('event_id', event.id).neq('status', 'completed').order('due_date', { ascending: true, nullsFirst: false }).limit(15), []),
         safeQuery(() => supabase.from('event_vendors').select('id, vendor_name, payment_date, payment_status').eq('event_id', event.id).in('payment_status', ['unpaid', 'advance']).not('payment_date', 'is', null).order('payment_date', { ascending: true }).limit(15), []),
         safeQuery(() => supabase.from('event_activity').select('*').eq('event_id', event.id).order('created_at', { ascending: false }).limit(20), []),
@@ -281,7 +281,7 @@ export function EventDashboardPage() {
             label: t.status.replace('_', ' '),
             hasDeadline: !!t.due_datetime,
             dateAssigned: t.due_datetime ? t.created_at : undefined,
-            assignee: t.assignee as unknown as DeadlineItem['assignee'],
+            assignee: null,
           })
         }
       }
