@@ -260,7 +260,11 @@ export function SettingsPage() {
       const { data, error } = await supabase.functions.invoke('delete-user', {
         body: { user_id: user.id },
       })
-      if (error) throw new Error(error.message)
+      if (error) {
+        let detail = error.message
+        try { if (error.context?.json) { const b = await error.context.json(); detail = b?.error || detail } } catch {}
+        throw new Error(detail)
+      }
       if (data?.error) throw new Error(data.error)
 
       await supabase?.auth.signOut()

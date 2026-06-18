@@ -44,7 +44,8 @@ setup('authenticate', async ({ page, baseURL }) => {
   await page.waitForURL((url) => !url.href.includes('supabase.co'), { timeout: 30000 })
 
   const finalUrl = page.url()
-  console.log('Post-login URL:', finalUrl)
+  console.log('appUrl:', appUrl)
+  console.log('finalUrl:', finalUrl)
 
   // If redirected to production site instead of local appUrl due to Supabase redirect restrictions
   if (!finalUrl.includes(appUrl) && finalUrl.includes('#access_token=')) {

@@ -57,6 +57,15 @@ Deno.serve(async (req) => {
       supabaseAdmin.from('petty_cash').update({ logged_by: null }).eq('logged_by', user_id),
     ]) { await q }
 
+    // -- Delete event_vendors referencing vendors in our orgs (FK event_vendors.vendor_id → vendors.id) --
+    if (orgIds.length > 0) {
+      const vendorIds = (await supabaseAdmin.from('vendors').select('id').in('org_id', orgIds)).data?.map(v => v.id) ?? []
+      if (vendorIds.length > 0) {
+        const { error: evErr } = await supabaseAdmin.from('event_vendors').delete().in('vendor_id', vendorIds)
+        if (evErr) errors.push('event_vendors: ' + evErr.message)
+      }
+    }
+
     // -- Delete rows in tables referencing our orgs (these precede org deletion) --
     if (orgIds.length > 0) {
       for (const [table, col] of [
