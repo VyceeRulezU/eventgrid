@@ -462,7 +462,14 @@ export function AdminManagePage() {
             const { data, error: invokeError } = result
             if (invokeError) {
               console.error('[delete-person] invokeError:', invokeError.name, invokeError.message, invokeError.context)
-              showNotification({ variant: 'error', title: 'Delete failed', message: invokeError.message || 'Unknown error' })
+              let detail = invokeError.message
+              try {
+                if (invokeError.context?.json) {
+                  const body = await invokeError.context.json()
+                  detail = body?.error || body?.message || detail
+                }
+              } catch {}
+              showNotification({ variant: 'error', title: 'Delete failed', message: detail })
             } else if (data?.error) {
               showNotification({ variant: 'error', title: 'Delete failed', message: data.error })
             } else {

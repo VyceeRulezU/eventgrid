@@ -43,7 +43,18 @@ setup('authenticate', async ({ page, baseURL }) => {
   // Safety wait: ensure we've left the Supabase auth server domain
   await page.waitForURL((url) => !url.href.includes('supabase.co'), { timeout: 30000 })
 
-  console.log('Post-login URL:', page.url())
+  const finalUrl = page.url()
+  console.log('Post-login URL:', finalUrl)
+
+  // If redirected to production site instead of local appUrl due to Supabase redirect restrictions
+  if (!finalUrl.includes(appUrl) && finalUrl.includes('#access_token=')) {
+    const hash = finalUrl.split('#')[1]
+    console.log('Copying auth hash to local dev URL...')
+    await page.goto(appUrl + '/#' + hash, { waitUntil: 'load' })
+  }
+
+  // Ensure the authentication state is fully loaded and processed locally
+  await page.waitForSelector('header', { state: 'visible', timeout: 15000 })
 
   fs.mkdirSync('playwright', { recursive: true })
   await page.context().storageState({ path: authFile })
