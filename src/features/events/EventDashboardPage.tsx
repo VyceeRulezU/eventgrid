@@ -229,29 +229,29 @@ export function EventDashboardPage() {
 
       const now = new Date().toISOString()
 
-      async function safeQuery<T>(fn: () => PromiseLike<{ data: T; error: any; count?: number | null }>, fallback: T) {
+      async function safeQuery(fn: () => PromiseLike<any>) {
         try {
           const res = await fn()
           if (res.error) console.warn('Dashboard query error:', res.error)
-          return { data: res.data ?? fallback, count: res.count ?? null }
+          return { data: res.data ?? [], count: res.count ?? null }
         } catch (err) {
           console.warn('Dashboard query threw:', err)
-          return { data: fallback, count: null }
+          return { data: [], count: null }
         }
       }
 
       const [phaseRes, taskPhaseRes, vendorCountRes, tasksDueRes, issueRes,
         upcomingTasksRes, phaseDeadlinesRes, vendorPaymentsRes, activityRes, finRes] = await Promise.all([
-        safeQuery(() => supabase.from('event_phases').select('*').eq('event_id', event.id).order('phase_number', { ascending: true }), []),
-        safeQuery(() => supabase.from('tasks').select('phase_id, status').eq('event_id', event.id).not('phase_id', 'is', null), []),
-        safeQuery(() => supabase.from('event_vendors').select('id', { count: 'exact' }).eq('event_id', event.id), []),
-        safeQuery(() => supabase.from('tasks').select('id', { count: 'exact' }).eq('event_id', event.id).not('status', 'eq', 'done').lte('due_datetime', now), []),
-        safeQuery(() => supabase.from('issues').select('id', { count: 'exact' }).eq('event_id', event.id).is('resolved_at', null), []),
-        safeQuery(() => supabase.from('tasks').select('id, title, due_datetime, status, created_at, assignee_id').eq('event_id', event.id).neq('status', 'done').order('due_datetime', { ascending: true, nullsFirst: false }).limit(15), []),
-        safeQuery(() => supabase.from('event_phases').select('id, phase_name, due_date, status').eq('event_id', event.id).neq('status', 'completed').order('due_date', { ascending: true, nullsFirst: false }).limit(15), []),
-        safeQuery(() => supabase.from('event_vendors').select('id, vendor_name, payment_date, payment_status').eq('event_id', event.id).in('payment_status', ['unpaid', 'advance']).not('payment_date', 'is', null).order('payment_date', { ascending: true }).limit(15), []),
-        safeQuery(() => supabase.from('event_activity').select('*').eq('event_id', event.id).order('created_at', { ascending: false }).limit(20), []),
-        safeQuery(() => supabase.from('financial_entries').select('advance_paid, balance').eq('event_id', event.id), []),
+        safeQuery(() => supabase.from('event_phases').select('*').eq('event_id', event.id).order('phase_number', { ascending: true })),
+        safeQuery(() => supabase.from('tasks').select('phase_id, status').eq('event_id', event.id).not('phase_id', 'is', null)),
+        safeQuery(() => supabase.from('event_vendors').select('id', { count: 'exact' }).eq('event_id', event.id)),
+        safeQuery(() => supabase.from('tasks').select('id', { count: 'exact' }).eq('event_id', event.id).not('status', 'eq', 'done').lte('due_datetime', now)),
+        safeQuery(() => supabase.from('issues').select('id', { count: 'exact' }).eq('event_id', event.id).is('resolved_at', null)),
+        safeQuery(() => supabase.from('tasks').select('id, title, due_datetime, status, created_at, assignee_id').eq('event_id', event.id).neq('status', 'done').order('due_datetime', { ascending: true, nullsFirst: false }).limit(15)),
+        safeQuery(() => supabase.from('event_phases').select('id, phase_name, due_date, status').eq('event_id', event.id).neq('status', 'completed').order('due_date', { ascending: true, nullsFirst: false }).limit(15)),
+        safeQuery(() => supabase.from('event_vendors').select('id, vendor_name, payment_date, payment_status').eq('event_id', event.id).in('payment_status', ['unpaid', 'advance']).not('payment_date', 'is', null).order('payment_date', { ascending: true }).limit(15)),
+        safeQuery(() => supabase.from('event_activity').select('*').eq('event_id', event.id).order('created_at', { ascending: false }).limit(20)),
+        safeQuery(() => supabase.from('financial_entries').select('advance_paid, balance').eq('event_id', event.id)),
       ])
 
       if (cancelled) return
