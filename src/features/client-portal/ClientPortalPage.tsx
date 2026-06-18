@@ -26,6 +26,7 @@ interface PortalAsset {
   file_url: string | null
   created_at: string
 }
+import { SEO } from '@/components/shared/SEO'
 import styles from './ClientPortalPage.module.css'
 
 interface PortalData {
@@ -218,6 +219,7 @@ export function ClientPortalPage() {
 
   return (
     <div className={styles.portalPage}>
+      <SEO title={`Event Portal | ${event.name}`} description={`Client portal for ${event.name}`} noindex />
       <header className={styles.portalHeader}>
         <div className={styles.headerLeft}>
           <img src="/EventGrid-logo-white.svg" alt="NaliGrid" className={styles.headerLogoLg} />

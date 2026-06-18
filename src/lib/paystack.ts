@@ -29,14 +29,19 @@ declare global {
   }
 }
 
+let loadingPromise: Promise<void> | null = null
+
 function getExistingScript(): HTMLScriptElement | null {
   return document.querySelector<HTMLScriptElement>(`script[src="${SCRIPT_URL}"]`)
 }
 
 export function loadPaystackScript(): Promise<void> {
-  return new Promise((resolve, reject) => {
+  if (loadingPromise) return loadingPromise
+
+  loadingPromise = new Promise((resolve, reject) => {
     const existing = getExistingScript()
     if (existing && window.PaystackPop) {
+      loadingPromise = null
       resolve()
       return
     }
@@ -51,25 +56,31 @@ export function loadPaystackScript(): Promise<void> {
     const timeoutId = setTimeout(() => {
       script.onload = null
       script.onerror = null
+      loadingPromise = null
       reject(new Error('Paystack script timed out'))
     }, LOAD_TIMEOUT)
 
     script.onload = () => {
       clearTimeout(timeoutId)
       if (window.PaystackPop) {
+        loadingPromise = null
         resolve()
       } else {
+        loadingPromise = null
         reject(new Error('Paystack script loaded but PaystackPop not found'))
       }
     }
 
     script.onerror = () => {
       clearTimeout(timeoutId)
+      loadingPromise = null
       reject(new Error('Failed to load Paystack script'))
     }
 
     document.head.appendChild(script)
   })
+
+  return loadingPromise
 }
 
 export function initPaystackPayment(config: PaystackConfig): void {

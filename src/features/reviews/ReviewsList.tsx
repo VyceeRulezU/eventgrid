@@ -56,7 +56,7 @@ export function ReviewsList({ userId, eventId }: { userId: string; eventId?: str
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-4)' }}>
         <div style={{ display: 'flex', gap: 2 }}>
           {[1, 2, 3, 4, 5].map((star) => (
-            <Star key={star} size={16} fill={avgRating >= star ? '#D4A017' : 'none'} color={avgRating >= star ? '#D4A017' : 'var(--color-border)'} />
+            <Star key={star} size={16} fill={avgRating >= star ? '#D4A017' : 'none'} color={avgRating >= star ? '#D4A017' : 'var(--color-text-muted)'} />
           ))}
         </div>
         <span style={{ fontSize: 'var(--text-lg)', fontWeight: 700 }}>{avgRating.toFixed(1)}</span>
@@ -73,7 +73,7 @@ export function ReviewsList({ userId, eventId }: { userId: string; eventId?: str
               </div>
               <div style={{ display: 'flex', gap: 2 }}>
                 {[1, 2, 3, 4, 5].map((star) => (
-                  <Star key={star} size={12} fill={review.rating >= star ? '#D4A017' : 'none'} color={review.rating >= star ? '#D4A017' : 'var(--color-border)'} />
+                  <Star key={star} size={12} fill={review.rating >= star ? '#D4A017' : 'none'} color={review.rating >= star ? '#D4A017' : 'var(--color-text-muted)'} />
                 ))}
               </div>
             </div>

@@ -123,7 +123,7 @@ export function LoginPage() {
               <div
                 key={idx}
                 className={`${styles.slide} ${idx === currentSlide ? styles.slideActive : ''}`}
-                style={{ backgroundImage: `url(${slide.image})` }}
+                style={idx <= currentSlide ? { backgroundImage: `url(${slide.image})` } : undefined}
               />
             ))}
           </div>
@@ -147,7 +147,7 @@ export function LoginPage() {
                 
                 <div className={styles.authorInfo}>
                   {slides[currentSlide].avatar ? (
-                    <img className={styles.authorAvatar} src={slides[currentSlide].avatar} alt={slides[currentSlide].author} />
+                    <img loading="lazy" className={styles.authorAvatar} src={slides[currentSlide].avatar} alt={slides[currentSlide].author} />
                   ) : (
                     <div className={styles.authorAvatar}>
                       {slides[currentSlide].author.substring(0, 2).toUpperCase()}

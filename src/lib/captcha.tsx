@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Turnstile } from 'react-turnstile'
 
 const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY
@@ -21,18 +21,29 @@ export function CaptchaField({
 }: {
   onToken: (token: string | null) => void
 }) {
+  const [ready, setReady] = useState(false)
+
+  useEffect(() => {
+    const id = requestIdleCallback ? requestIdleCallback(() => setReady(true), { timeout: 2000 }) : setTimeout(() => setReady(true), 500)
+    return () => { if (typeof id === 'number') clearTimeout(id); else cancelIdleCallback(id) }
+  }, [])
+
   if (!hasCaptcha) return null
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', margin: 'var(--space-3) 0' }}>
-      <Turnstile
-        sitekey={TURNSTILE_SITE_KEY!}
-        onVerify={(token) => { onToken(token) }}
-        onError={() => onToken(null)}
-        onExpire={() => onToken(null)}
-        theme="dark"
-        size="normal"
-      />
+      {ready ? (
+        <Turnstile
+          sitekey={TURNSTILE_SITE_KEY!}
+          onVerify={(token) => { onToken(token) }}
+          onError={() => onToken(null)}
+          onExpire={() => onToken(null)}
+          theme="dark"
+          size="normal"
+        />
+      ) : (
+        <div style={{ width: 300, height: 65, background: 'var(--color-surface-2)', borderRadius: 6 }} />
+      )}
     </div>
   )
 }

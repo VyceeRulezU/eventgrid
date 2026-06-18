@@ -93,7 +93,7 @@ export default function HeroSection() {
           >
             <p className={styles.summary}>
               TRUSTED BY TOP PLANNERS TO<br />
-              ORGANIZE, SIMPLIFY, AND GROW
+              ORGANIZE, SIMPLIFY, AND GROW!
             </p>
           </motion.div>
         </div>

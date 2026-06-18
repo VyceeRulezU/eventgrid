@@ -320,8 +320,6 @@ Deno.serve(async (req) => {
       vendor_name,
       service_name,
       portal_link,
-      service_name,
-      portal_link,
       // client portal specific
       client_name,
       event_date,

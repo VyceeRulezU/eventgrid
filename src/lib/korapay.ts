@@ -20,19 +20,49 @@ declare global {
   }
 }
 
+const KORAPAY_SCRIPT_URL = 'https://korablobstorage.blob.core.windows.net/modal-bucket/korapay-collections.min.js'
+let loadingPromise: Promise<void> | null = null
+
 export function loadKorapayScript(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (document.querySelector('script[src*="korapay-collections"]')) {
+  if (loadingPromise) return loadingPromise
+
+  loadingPromise = new Promise((resolve, reject) => {
+    const existing = document.querySelector<HTMLScriptElement>('script[src*="korapay-collections"]')
+    if (existing && window.Korapay) {
+      loadingPromise = null
       resolve()
       return
     }
+    if (existing && !window.Korapay) {
+      existing.remove()
+    }
+
     const script = document.createElement('script')
-    script.src = 'https://korablobstorage.blob.core.windows.net/modal-bucket/korapay-collections.min.js'
+    script.src = KORAPAY_SCRIPT_URL
     script.async = true
-    script.onload = () => resolve()
-    script.onerror = () => reject(new Error('Failed to load Korapay script'))
+
+    const checkReady = () => {
+      if (window.Korapay) {
+        loadingPromise = null
+        resolve()
+      } else {
+        setTimeout(checkReady, 100)
+      }
+    }
+
+    script.onload = () => {
+      checkReady()
+    }
+
+    script.onerror = () => {
+      loadingPromise = null
+      reject(new Error('Failed to load Korapay script'))
+    }
+
     document.head.appendChild(script)
   })
+
+  return loadingPromise
 }
 
 export function initKorapayPayment(config: KorapayConfig): void {

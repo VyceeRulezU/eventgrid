@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { X, Copy, Check, AlertCircle, ExternalLink, RefreshCw, CalendarDays } from 'lucide-react'
+import { X, Copy, Check, AlertCircle, ExternalLink, RefreshCw, CalendarDays, Send } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { CalendarModal } from '@/components/ui/CalendarModal'
+import { sendInvite } from '@/lib/edgeFunctions'
 import styles from './GeneratePortalModal.module.css'
 
 interface GeneratePortalModalProps {
@@ -93,6 +94,20 @@ export function GeneratePortalModal({ eventId, onClose }: GeneratePortalModalPro
     setPortalId(data.id)
     setSaving(false)
     showNotification({ variant: 'success', title: 'Portal link created', duration: 2000 })
+
+    if (email.trim()) {
+      const { error: inviteError } = await sendInvite({
+        type: 'client_portal',
+        event_id: eventId,
+        email: email.trim(),
+        client_name: name.trim(),
+        portal_link: `${window.location.origin}/portal/${newToken}`,
+        invited_by_name: user?.user_metadata?.display_name || user?.email || 'Your event planner',
+      })
+      if (inviteError) {
+        console.error('Failed to send client portal invite:', inviteError)
+      }
+    }
   }
 
   const handleRegenerate = async () => {

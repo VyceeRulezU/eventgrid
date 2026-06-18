@@ -257,7 +257,7 @@ export function ReportPdfDocument({ data, vendorRatings, type, plannerName }: Pd
         <View style={styles.header}>
           <View style={styles.headerRow}>
             <Text style={styles.brand}>
-              <Text style={styles.brandAccent}>Event</Text>Grid
+              NaliGrid
             </Text>
             <Text style={styles.reportBadge}>
               {type === 'internal' ? 'Internal Report' : 'Client Report'}

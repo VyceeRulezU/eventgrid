@@ -78,7 +78,7 @@ export function ReviewForm({ reviewedId, eventId, reviewerRole, onSubmitted, ano
             onClick={() => setRating(star)}
             onMouseEnter={() => setHover(star)}
             onMouseLeave={() => setHover(0)}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: (hover || rating) >= star ? '#D4A017' : 'var(--color-border)' }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: (hover || rating) >= star ? '#D4A017' : 'var(--color-text-muted)' }}
             aria-label={`${star} star${star !== 1 ? 's' : ''}`}
           >
             <Star size={22} fill={(hover || rating) >= star ? '#D4A017' : 'none'} />
