@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { X, Copy, Check, AlertCircle, ExternalLink, RefreshCw, CalendarDays, Send } from 'lucide-react'
+import { X, Copy, Check, AlertCircle, ExternalLink, RefreshCw, CalendarDays } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'

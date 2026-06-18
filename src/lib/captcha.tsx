@@ -24,8 +24,13 @@ export function CaptchaField({
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    const id = requestIdleCallback ? requestIdleCallback(() => setReady(true), { timeout: 2000 }) : setTimeout(() => setReady(true), 500)
-    return () => { if (typeof id === 'number') clearTimeout(id); else cancelIdleCallback(id) }
+    if (typeof requestIdleCallback !== 'undefined') {
+      const id = requestIdleCallback(() => setReady(true), { timeout: 2000 })
+      return () => cancelIdleCallback(id)
+    } else {
+      const id = window.setTimeout(() => setReady(true), 500)
+      return () => clearTimeout(id)
+    }
   }, [])
 
   if (!hasCaptcha) return null
