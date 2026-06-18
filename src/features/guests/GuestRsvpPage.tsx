@@ -19,13 +19,9 @@ interface EventInfo {
 type PageStatus = 'loading' | 'form' | 'done' | 'error'
 
 const APP_URL = import.meta.env.VITE_APP_URL || 'https://eventgrid.ng'
-const isProd = APP_URL.includes('eventgrid.ng')
-const HERO_URL = isProd
-  ? 'https://menmpyyrqevonepbpfai.supabase.co/storage/v1/object/public/org-assets/emails/corporate_event_hall.png'
-  : APP_URL + '/emails/corporate_event_hall.png'
-const LOGO_URL = isProd
-  ? 'https://menmpyyrqevonepbpfai.supabase.co/storage/v1/object/public/org-assets/EventGrid-logo-white.svg'
-  : APP_URL + '/EventGrid-logo-white.svg'
+const STORAGE_URL = import.meta.env.VITE_STORAGE_URL || 'https://pub-962633edede94bf8a4e41b91db2b602a.r2.dev'
+const HERO_URL = `${STORAGE_URL}/emails/corporate_event_hall.png`
+const LOGO_URL = `${STORAGE_URL}/EventGrid-logo-white.svg`
 
 export function GuestRsvpPage() {
   const [params] = useSearchParams()

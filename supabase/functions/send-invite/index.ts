@@ -9,6 +9,10 @@ const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!
 const FROM_EMAIL = Deno.env.get('FROM_EMAIL') ?? 'EventGrid <noreply@eventgrid.ng>'
 const APP_URL = Deno.env.get('APP_URL') ?? 'https://eventgrid.ng'
 
+function proxyInviteLink(actionLink: string): string {
+  return `${APP_URL}/invite/accept?link=${encodeURIComponent(actionLink)}`
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -480,7 +484,7 @@ Deno.serve(async (req) => {
               <table cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
                 <tr>
                   <td style="background-color:#D4A017;border-radius:10px;">
-                    <a href="${linkData.properties.action_link}" class="button"
+                    <a href="${proxyInviteLink(linkData.properties.action_link)}" class="button"
                        style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:400;color:#111827;text-decoration:none;border-radius:10px;box-shadow:0 4px 12px rgba(212,160,23,0.25);">
                       Accept Invitation &rarr;
                     </a>
@@ -489,7 +493,7 @@ Deno.serve(async (req) => {
               </table>
               <p style="margin:0;font-size:12px;color:#6B7280;line-height:1.5;">
                 If the button doesn't work, copy and paste this link:<br/>
-                <a href="${linkData.properties.action_link}" style="color:#D4A017;word-break:break-all;">${linkData.properties.action_link}</a>
+                <a href="${proxyInviteLink(linkData.properties.action_link)}" style="color:#D4A017;word-break:break-all;">${proxyInviteLink(linkData.properties.action_link)}</a>
               </p>`)
 
     } else if (type === 'team_member') {
@@ -546,7 +550,7 @@ Deno.serve(async (req) => {
         const template = teamInviteEmail({
           invitedByName: invited_by_name ?? 'Your event planner',
           eventName: event!.name,
-          inviteLink: linkData.properties.action_link,
+          inviteLink: proxyInviteLink(linkData.properties.action_link),
         })
         subject = template.subject
         html = template.html
