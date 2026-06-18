@@ -572,23 +572,24 @@ export function AdminManagePage() {
               let failed = 0
               for (const id of ids) {
                 try {
-                  const { error: e, data: d } = await supabase.functions.invoke('delete-user', { body: { user_id: id } })
-                  if (e) {
-                    console.error('[bulk-delete] invokeError:', e.name, e.message, e.context)
-                    failed++
-                  } else if (d?.error) {
-                    console.error('[bulk-delete] data error:', d.error)
+                  let errMsg
+                  try {
+                    const { error: e, data: d } = await supabase.functions.invoke('delete-user', { body: { user_id: id } })
+                    if (e) {
+                      console.error('[bulk-delete] invokeError:', e.name, e.message, e.context)
+                      errMsg = e.message
+                      try { if (e.context?.json) { const b = await e.context.json(); errMsg = b?.error || errMsg } } catch {}
+                      failed++
+                    } else if (d?.error) {
+                      console.error('[bulk-delete] data error:', d.error)
+                      errMsg = d.error
+                      failed++
+                    }
+                  } catch (err) {
+                    console.error('[bulk-delete] unexpected error:', err)
+                    errMsg = err instanceof Error ? err.message : 'Unexpected error'
                     failed++
                   }
-                } catch (err) {
-                  console.error('[bulk-delete] unexpected error:', err)
-                  failed++
-                }
-              }
-              if (failed === 0) {
-                showNotification({ variant: 'success', title: 'Deleted', message: `${count} ${label} deleted.` })
-              } else {
-                showNotification({ variant: 'error', title: 'Delete failed', message: `${failed} of ${count} could not be deleted.` })
               }
               setSelectedIds(new Set())
               loadAuthUsers()
