@@ -229,7 +229,7 @@ export function EventDashboardPage() {
 
       const now = new Date().toISOString()
 
-      async function safeQuery<T>(fn: () => Promise<{ data: T | null; error: any; count?: number | null }>, fallback: T) {
+      async function safeQuery<T>(fn: () => PromiseLike<{ data: T; error: any; count?: number | null }>, fallback: T) {
         try {
           const res = await fn()
           if (res.error) console.warn('Dashboard query error:', res.error)
