@@ -6,6 +6,13 @@ import * as fs from 'node:fs'
 const authFile = 'playwright/.auth.json'
 
 setup('authenticate', async ({ page, baseURL }) => {
+  page.on('console', msg => {
+    console.log(`[Browser Console] ${msg.type()}: ${msg.text()}`)
+  })
+  page.on('pageerror', err => {
+    console.error('[Browser Page Error]', err.message)
+  })
+
   const email = process.env.E2E_TEST_EMAIL?.trim()
   const supabaseUrl = process.env.VITE_SUPABASE_URL
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -23,6 +30,67 @@ setup('authenticate', async ({ page, baseURL }) => {
   const adminClient = createClient(supabaseUrl, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   })
+
+  // Ensure user and profile exist with onboarding completed
+  try {
+    const { data: { users }, error: listError } = await adminClient.auth.admin.listUsers()
+    if (listError) throw listError
+
+    let existingUser = users?.find(u => u.email?.toLowerCase() === email.toLowerCase())
+
+    if (!existingUser) {
+      console.log(`Provisioning new E2E test user: ${email}`)
+      const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
+        email,
+        password: process.env.E2E_TEST_PASSWORD || 'Password123!',
+        email_confirm: true,
+        user_metadata: {
+          role: 'planner',
+          display_name: 'E2E Test User',
+          onboarding_completed: true,
+        }
+      })
+      if (createError) throw createError
+      existingUser = newUser.user
+    } else {
+      const needsUpdate = !existingUser.user_metadata?.onboarding_completed || existingUser.user_metadata?.role !== 'planner'
+      if (needsUpdate) {
+        console.log(`Updating E2E test user metadata: ${email}`)
+        const { error: updateError } = await adminClient.auth.admin.updateUserById(existingUser.id, {
+          user_metadata: {
+            ...existingUser.user_metadata,
+            role: 'planner',
+            onboarding_completed: true,
+          }
+        })
+        if (updateError) console.error('Failed to update user metadata:', updateError)
+      }
+    }
+
+    if (existingUser) {
+      const { data: profile } = await adminClient
+        .from('profiles')
+        .select('*')
+        .eq('id', existingUser.id)
+        .single()
+
+      if (!profile) {
+        console.log(`Creating E2E test user profile: ${email}`)
+        const { error: insertError } = await adminClient
+          .from('profiles')
+          .upsert({
+            id: existingUser.id,
+            email,
+            display_name: existingUser.user_metadata?.display_name || 'E2E Test User',
+            role: 'planner',
+            is_active: true,
+          })
+        if (insertError) console.error('Failed to upsert profile:', insertError)
+      }
+    }
+  } catch (provisionError) {
+    console.error('Warning: Error provisioning test user:', provisionError)
+  }
 
   const { data, error } = await adminClient.auth.admin.generateLink({
     type: 'magiclink',
