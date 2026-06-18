@@ -7,6 +7,7 @@ import { compressImage } from '@/lib/compressImage'
 import { uploadFile } from '@/lib/storage'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import type { Task, TaskComment } from '@/types'
+import styles from './TaskCard.module.css'
 
 interface TaskWithAssignee extends Task {
   assignee: { display_name: string | null; avatar_url: string | null } | null
@@ -15,6 +16,12 @@ interface TaskWithAssignee extends Task {
 interface TaskCardProps {
   task: TaskWithAssignee
   onUpdate: () => void
+}
+
+interface Member {
+  user_id: string
+  display_name: string | null
+  email: string | null
 }
 
 const STATUS_OPTIONS = [
@@ -55,6 +62,7 @@ function timeAgo(dateStr: string): string {
 
 export function TaskCard({ task, onUpdate }: TaskCardProps) {
   const user = useAuthStore((s) => s.user)
+  const role = useAuthStore((s) => s.role)
   const showNotification = useUIStore((s) => s.showModal)
   const [expanded, setExpanded] = useState(false)
   const [updating, setUpdating] = useState(false)
@@ -64,13 +72,23 @@ export function TaskCard({ task, onUpdate }: TaskCardProps) {
   const [sending, setSending] = useState(false)
   const [uploadingPhotos, setUploadingPhotos] = useState<File[]>([])
   const [uploadingPreview, setUploadingPreview] = useState<string[]>([])
+  const [members, setMembers] = useState<Member[]>([])
+  const [reassigning, setReassigning] = useState(false)
   const overdue = isOverdue(task)
+
+  const canAssign = role === 'planner' || role === 'coordinator' || role === 'super_admin'
 
   useEffect(() => {
     if (expanded) {
       loadComments()
     }
   }, [expanded])
+
+  useEffect(() => {
+    if (canAssign && task.event_id) {
+      loadMembers()
+    }
+  }, [task.event_id])
 
   async function loadComments() {
     setCommentsLoading(true)
@@ -83,6 +101,20 @@ export function TaskCard({ task, onUpdate }: TaskCardProps) {
       setComments(data as unknown as TaskComment[])
     }
     setCommentsLoading(false)
+  }
+
+  async function loadMembers() {
+    const { data } = await supabase
+      .from('event_access')
+      .select('user_id, role, profiles!inner(display_name, email)')
+      .eq('event_id', task.event_id)
+    if (data) {
+      setMembers(data.map((m: any) => ({
+        user_id: m.user_id,
+        display_name: m.profiles?.display_name || null,
+        email: m.profiles?.email || null,
+      })))
+    }
   }
 
   async function handlePhotoSelect(e: React.ChangeEvent<HTMLInputElement>) {
@@ -161,6 +193,21 @@ export function TaskCard({ task, onUpdate }: TaskCardProps) {
     onUpdate()
   }
 
+  async function handleReassign(userId: string) {
+    setReassigning(true)
+    const { error } = await supabase
+      .from('tasks')
+      .update({ assignee_id: userId || null })
+      .eq('id', task.id)
+    if (error) {
+      showNotification({ variant: 'error', title: 'Reassign failed', message: error.message })
+      setReassigning(false)
+      return
+    }
+    setReassigning(false)
+    onUpdate()
+  }
+
   function handleDragStart(e: React.DragEvent) {
     e.dataTransfer.setData('text/plain', task.id)
     e.dataTransfer.effectAllowed = 'move'
@@ -170,45 +217,50 @@ export function TaskCard({ task, onUpdate }: TaskCardProps) {
 
   return (
     <div
-      className="card"
+      className={`card ${overdue ? styles.cardOverdue : ''} ${styles.card}`}
       draggable
       onDragStart={handleDragStart}
-      style={{
-        padding: 'var(--space-3)',
-        cursor: 'grab',
-        borderColor: overdue ? 'var(--color-error)' : undefined,
-        borderWidth: overdue ? '1px' : undefined,
-      }}
     >
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--space-2)' }} onClick={() => setExpanded(!expanded)}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: 'var(--space-1)' }}>
-            {task.title}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+      <div className={styles.header} onClick={() => setExpanded(!expanded)}>
+        <div className={styles.headerLeft}>
+          <div className={styles.title}>{task.title}</div>
+          <div className={styles.metaRow}>
             <span className={`badge ${priorityBadge[task.priority] || 'badge-medium'}`}>
               {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
             </span>
-            {task.assignee?.display_name && (
-              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: 4 }}>
+            {task.assignee?.display_name && canAssign ? (
+              <DropdownMenu
+                trigger={
+                  <button type="button" className={styles.assigneeBtn} onClick={(e) => e.stopPropagation()}>
+                    <User size={12} />
+                    {reassigning ? 'Reassigning...' : task.assignee.display_name}
+                  </button>
+                }
+                items={[
+                  { label: 'Unassigned', value: '' },
+                  ...members.map((m) => ({
+                    label: m.display_name || m.email || 'Unknown',
+                    value: m.user_id,
+                  })),
+                ]}
+                onSelect={(item) => handleReassign(item.value)}
+                disabled={reassigning}
+              />
+            ) : task.assignee?.display_name ? (
+              <span className={styles.metaItem}>
                 <User size={12} />
                 {task.assignee.display_name}
               </span>
-            )}
+            ) : null}
             {task.due_datetime && (
-              <span style={{
-                fontSize: 'var(--text-xs)',
-                color: overdue ? 'var(--color-error)' : 'var(--color-text-secondary)',
-                display: 'flex', alignItems: 'center', gap: 4,
-                fontWeight: overdue ? 600 : 400,
-              }}>
+              <span className={overdue ? styles.metaItemOverdue : styles.metaItem}>
                 <Calendar size={12} />
                 {formatDate(task.due_datetime)}
               </span>
             )}
           </div>
         </div>
-        <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+        <div className={styles.headerRight}>
           <span className={`badge badge-${task.status === 'done' ? 'green' : task.status === 'blocked' ? 'red' : task.status === 'in_progress' ? 'yellow' : 'grey'}`}>
             <span className="badge-dot" />
             {STATUS_OPTIONS.find((s) => s.value === task.status)?.label || task.status}
@@ -218,17 +270,14 @@ export function TaskCard({ task, onUpdate }: TaskCardProps) {
       </div>
 
       {expanded && (
-        <div style={{ marginTop: 'var(--space-3)', paddingTop: 'var(--space-3)', borderTop: '1px solid var(--color-border)' }}>
+        <div className={styles.expandedBody}>
           {task.description && (
-            <div style={{ fontSize: 'var(--text-base)', color: 'var(--color-text-secondary)', lineHeight: 'var(--leading-relaxed)', marginBottom: 'var(--space-3)', whiteSpace: 'pre-wrap' }}>
-              {task.description}
-            </div>
+            <div className={styles.description}>{task.description}</div>
           )}
 
-          {/* Status change */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-3)' }}>
-            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', fontWeight: 600 }}>Status:</span>
-            <div onClick={(e) => e.stopPropagation()} style={{ minWidth: 140 }}>
+          <div className={styles.statusRow}>
+            <span className={styles.statusLabel}>Status:</span>
+            <div className={styles.statusDropdown} onClick={(e) => e.stopPropagation()}>
               <DropdownMenu
                 trigger={<span>{STATUS_OPTIONS.find((s) => s.value === task.status)?.label || task.status}</span>}
                 items={STATUS_OPTIONS.map((s) => ({ label: s.label, value: s.value }))}
@@ -238,48 +287,38 @@ export function TaskCard({ task, onUpdate }: TaskCardProps) {
             </div>
           </div>
 
-          {/* Comments / Updates */}
-          <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 'var(--space-3)' }}>
-            <div style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 'var(--space-2)' }}>
-              Updates ({comments.length})
-            </div>
+          <div className={styles.commentsSection}>
+            <div className={styles.commentsHeader}>Updates ({comments.length})</div>
 
             {commentsLoading ? (
-              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', padding: 'var(--space-2)' }}>Loading updates...</div>
+              <div className={styles.commentsLoading}>Loading updates...</div>
             ) : comments.length === 0 ? (
-              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', padding: 'var(--space-2)' }}>No updates yet</div>
+              <div className={styles.commentsEmpty}>No updates yet</div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', marginBottom: 'var(--space-3)', maxHeight: 240, overflowY: 'auto' }}>
+              <div className={styles.commentsList}>
                 {comments.map((c) => (
-                  <div key={c.id} style={{
-                    padding: 'var(--space-2)',
-                    background: 'var(--color-surface-2)',
-                    borderRadius: 'var(--radius-md)',
-                    fontSize: 'var(--text-xs)',
-                  }}>
-                    <div style={{ color: 'var(--color-text-primary)', marginBottom: 4 }}>{c.message}</div>
+                  <div key={c.id} className={styles.comment}>
+                    <div className={styles.commentMessage}>{c.message}</div>
                     {c.photo_urls && c.photo_urls.length > 0 && (
-                      <div style={{ display: 'flex', gap: 'var(--space-1)', flexWrap: 'wrap', marginTop: 4 }}>
+                      <div className={styles.commentPhotos}>
                         {(Array.isArray(c.photo_urls) ? c.photo_urls : JSON.parse(c.photo_urls as string)).map((url: string, i: number) => (
                           <a key={i} href={url} target="_blank" rel="noopener noreferrer">
-                            <img src={url} alt="" style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 'var(--radius-sm)' }} />
+                            <img src={url} alt="" className={styles.commentPhoto} />
                           </a>
                         ))}
                       </div>
                     )}
-                    <div style={{ color: 'var(--color-text-muted)', marginTop: 4, fontSize: '10px' }}>{timeAgo(c.created_at)}</div>
+                    <div className={styles.commentTime}>{timeAgo(c.created_at)}</div>
                   </div>
                 ))}
               </div>
             )}
 
-            {/* New update form */}
             <div onClick={(e) => e.stopPropagation()}>
-              <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'flex-end' }}>
-                <div style={{ flex: 1, position: 'relative' }}>
+              <div className={styles.newUpdateForm}>
+                <div className={styles.textareaWrapper}>
                   <textarea
-                    className="input"
-                    style={{ minHeight: 52, resize: 'none', fontSize: 'var(--text-xs)' }}
+                    className={`input ${styles.textarea}`}
                     placeholder={isAssignee ? "Add an update, photo, or change status..." : "Add a comment..."}
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
@@ -291,18 +330,12 @@ export function TaskCard({ task, onUpdate }: TaskCardProps) {
                     }}
                   />
                 </div>
-                <label style={{
-                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  width: 36, height: 36, borderRadius: 'var(--radius-md)',
-                  background: 'var(--color-surface-2)', border: '1px solid var(--color-border)',
-                  color: 'var(--color-text-muted)', flexShrink: 0, transition: 'all var(--transition-fast)',
-                }}>
+                <label className={styles.photoBtn}>
                   <ImageIcon size={14} />
-                  <input type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handlePhotoSelect} />
+                  <input type="file" accept="image/*" multiple className={styles.photoBtnInput} onChange={handlePhotoSelect} />
                 </label>
                 <button
-                  className="btn btn-primary btn-sm"
-                  style={{ borderRadius: 'var(--radius-sm)', minHeight: 36, padding: '0 var(--space-3)' }}
+                  className={`btn btn-primary btn-sm ${styles.sendBtn}`}
                   onClick={handleSendUpdate}
                   disabled={sending || (!newMessage.trim() && uploadingPhotos.length === 0)}
                 >
@@ -311,20 +344,11 @@ export function TaskCard({ task, onUpdate }: TaskCardProps) {
               </div>
 
               {uploadingPreview.length > 0 && (
-                <div style={{ display: 'flex', gap: 'var(--space-1)', marginTop: 'var(--space-2)', flexWrap: 'wrap' }}>
+                <div className={styles.photoPreviews}>
                   {uploadingPreview.map((p, i) => (
-                    <div key={i} style={{ position: 'relative', width: 48, height: 48 }}>
-                      <img src={p} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'var(--radius-sm)' }} />
-                      <button
-                        type="button"
-                        style={{
-                          position: 'absolute', top: -4, right: -4, width: 16, height: 16,
-                          borderRadius: '50%', background: 'var(--color-error)', border: 'none',
-                          color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          cursor: 'pointer', padding: 0, fontSize: 10, lineHeight: 1,
-                        }}
-                        onClick={() => removePhoto(i)}
-                      >
+                    <div key={i} className={styles.photoPreview}>
+                      <img src={p} alt="" className={styles.photoPreviewImg} />
+                      <button type="button" className={styles.removePhotoBtn} onClick={() => removePhoto(i)}>
                         <X size={10} />
                       </button>
                     </div>
