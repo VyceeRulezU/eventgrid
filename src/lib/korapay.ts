@@ -14,7 +14,7 @@ export interface KorapayConfig {
 declare global {
   interface Window {
     Korapay: {
-      initialize: (config: Record<string, unknown>) => void
+      initialize: (config: Record<string, unknown>) => Promise<unknown>
       close: () => void
     }
   }
@@ -80,8 +80,11 @@ export function loadKorapayScript(): Promise<void> {
   return loadingPromise
 }
 
-export function initKorapayPayment(config: KorapayConfig): void {
-  window.Korapay.initialize({
+export async function initKorapayPayment(config: KorapayConfig): Promise<void> {
+  if (!config.key) {
+    throw new Error('Korapay public key is not configured')
+  }
+  await window.Korapay.initialize({
     key: config.key,
     reference: config.reference,
     amount: config.amount,

@@ -19,9 +19,11 @@ export function getEventPrice(_sizeTier: string): number {
 
 export async function processPayment(config: PaymentConfig): Promise<void> {
   if (config.provider === 'paystack') {
+    const key = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY
+    if (!key) throw new Error('Paystack public key is not configured')
     await loadPaystackScript()
     initPaystackPayment({
-      key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
+      key,
       email: config.email,
       amount: config.amount,
       metadata: config.metadata,
@@ -29,9 +31,11 @@ export async function processPayment(config: PaymentConfig): Promise<void> {
       onClose: config.onClose,
     })
   } else if (config.provider === 'korapay') {
+    const key = import.meta.env.VITE_KORAPAY_PUBLIC_KEY
+    if (!key) throw new Error('Korapay public key is not configured')
     await loadKorapayScript()
-    initKorapayPayment({
-      key: import.meta.env.VITE_KORAPAY_PUBLIC_KEY,
+    await initKorapayPayment({
+      key,
       reference: `evt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       amount: config.amount / 100,
       currency: 'NGN',
