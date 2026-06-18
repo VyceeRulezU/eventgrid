@@ -67,6 +67,7 @@ export function Sidebar() {
 
   const eventModules: NavItem[] = eventId
     ? [
+        { to: `/events/${eventId}`, label: 'Overview', icon: LayoutDashboard },
         { to: `/events/${eventId}/team`, label: 'Team', icon: Users },
         { to: `/events/${eventId}/vendors`, label: 'Vendors', icon: Users },
         { to: `/events/${eventId}/guests`, label: 'Guests', icon: Calendar },
@@ -225,6 +226,7 @@ export function Sidebar() {
             </div>
           )}
         </nav>
+        <div className={styles.scrollIndicator} aria-hidden="true" />
 
         {role === 'team_member' && (
           <div className={styles.upgradeBanner}>

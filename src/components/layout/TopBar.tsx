@@ -11,10 +11,12 @@ import styles from './TopBar.module.css'
 const routeMeta: Record<string, { title: string; subtitle: string }> = {
   '/dashboard/planner':   { title: 'Dashboard', subtitle: 'Overview of your events and tasks' },
   '/dashboard/coordinator': { title: 'Dashboard', subtitle: 'Your assigned projects' },
+  '/dashboard/my-tasks':   { title: 'My Tasks', subtitle: 'Tasks assigned to you across all events' },
   '/events':               { title: 'Events', subtitle: 'Manage all your events' },
   '/events/new':           { title: 'Create Event', subtitle: 'Set up a new event' },
   '/financials':           { title: 'Financials', subtitle: 'Track payments and budgets' },
   '/vendors':              { title: 'Vendors', subtitle: 'Manage your vendor directory' },
+  '/vendors/directory':    { title: 'Vendor Directory', subtitle: 'Browse and contact vendors' },
   '/settings':             { title: 'Settings', subtitle: 'Profile and preferences' },
   '/admin':                { title: 'Dashboard', subtitle: 'Platform overview' },
   '/admin/analytics':      { title: 'Analytics', subtitle: 'Platform metrics' },
@@ -49,10 +51,19 @@ export function TopBar() {
 
   const meta = routeMeta[location.pathname] ?? getDynamicMeta(location.pathname)
   const isEventDetail = /^\/events\/[^/]+$/.test(location.pathname)
-  const showBack = isEventDetail
+  const isEventModule = /^\/events\/[^/]+\/(team|tasks|vendors|guests|live-board|aftermath|assets|financials|report)$/.test(location.pathname)
+  const showBack = isEventDetail || isEventModule
 
   function getDynamicMeta(path: string): { title: string; subtitle: string } {
     if (/^\/events\/[^/]+\/financials$/.test(path)) return { title: 'Financials', subtitle: 'Track payments and budgets' }
+    if (/^\/events\/[^/]+\/team$/.test(path)) return { title: 'Team', subtitle: 'Manage your event team' }
+    if (/^\/events\/[^/]+\/tasks$/.test(path)) return { title: 'Task Board', subtitle: 'Track and manage tasks' }
+    if (/^\/events\/[^/]+\/vendors$/.test(path)) return { title: 'Vendors', subtitle: 'Assigned vendors' }
+    if (/^\/events\/[^/]+\/guests$/.test(path)) return { title: 'Guests', subtitle: 'Manage guest list' }
+    if (/^\/events\/[^/]+\/live-board$/.test(path)) return { title: 'Live Feed', subtitle: 'Real-time event updates' }
+    if (/^\/events\/[^/]+\/aftermath$/.test(path)) return { title: 'Aftermath', subtitle: 'Event reports' }
+    if (/^\/events\/[^/]+\/assets$/.test(path)) return { title: 'Moodboard', subtitle: 'Inspiration and assets' }
+    if (/^\/events\/[^/]+\/report$/.test(path)) return { title: 'Event Report', subtitle: '' }
     if (/^\/events\/[^/]+$/.test(path)) return { title: 'Event Dashboard', subtitle: '' }
     return { title: 'NaliGrid', subtitle: '' }
   }
