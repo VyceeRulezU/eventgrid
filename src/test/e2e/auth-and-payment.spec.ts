@@ -77,6 +77,7 @@ test.describe('register page', () => {
 /* ─── Auth: admin login page ─── */
 
 test.describe('admin login page', () => {
+  test.use({ storageState: { cookies: [], origins: [] } })
 
   test('shows admin login form', async ({ page }) => {
     await page.goto('/admin/login')
@@ -120,6 +121,7 @@ test.describe('logout', () => {
 /* ─── Role guard ─── */
 
 test.describe('role guard', () => {
+  test.use({ storageState: { cookies: [], origins: [] } })
 
   test('redirects unauthenticated user to home', async ({ page }) => {
     await page.goto('/dashboard/planner')
@@ -160,6 +162,7 @@ test.describe('role guard', () => {
 /* ─── Role guard: admin routes (requires auth) ─── */
 
 test.describe('admin route access', () => {
+  test.use({ storageState: { cookies: [], origins: [] } })
   const adminRoutes = ['/admin', '/admin/events', '/admin/vendors', '/admin/team', '/admin/feedback', '/admin/analytics', '/admin/my-tasks']
 
   for (const route of adminRoutes) {
@@ -260,6 +263,7 @@ test.describe('activation / payment', () => {
 /* ─── Captcha (Turnstile) ─── */
 
 test.describe('captcha', () => {
+  test.use({ storageState: { cookies: [], origins: [] } })
 
   test('login page renders Turnstile captcha widget', async ({ page }) => {
     await page.goto('/login')
