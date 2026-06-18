@@ -2060,3 +2060,7 @@
 .rowOverdue {
   background: rgba(239, 68, 68, 0.02);
 }
+
+.mutedText {
+  color: var(--color-text-muted);
+}

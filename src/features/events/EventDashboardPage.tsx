@@ -31,6 +31,7 @@ interface DeadlineItem {
   title: string
   date: string
   label: string
+  hasDeadline: boolean
   dateAssigned?: string
   assignee?: {
     display_name: string | null
@@ -228,18 +229,29 @@ export function EventDashboardPage() {
 
       const now = new Date().toISOString()
 
+      async function safeQuery<T>(fn: () => Promise<{ data: T | null; error: any; count?: number | null }>, fallback: T) {
+        try {
+          const res = await fn()
+          if (res.error) console.warn('Dashboard query error:', res.error)
+          return { data: res.data ?? fallback, count: res.count ?? null }
+        } catch (err) {
+          console.warn('Dashboard query threw:', err)
+          return { data: fallback, count: null }
+        }
+      }
+
       const [phaseRes, taskPhaseRes, vendorCountRes, tasksDueRes, issueRes,
         upcomingTasksRes, phaseDeadlinesRes, vendorPaymentsRes, activityRes, finRes] = await Promise.all([
-        supabase.from('event_phases').select('*').eq('event_id', event.id).order('phase_number', { ascending: true }),
-        supabase.from('tasks').select('phase_id, status').eq('event_id', event.id).not('phase_id', 'is', null),
-        supabase.from('event_vendors').select('id', { count: 'exact' }).eq('event_id', event.id),
-        supabase.from('tasks').select('id', { count: 'exact' }).eq('event_id', event.id).not('status', 'eq', 'done').lte('due_datetime', now),
-        supabase.from('issues').select('id', { count: 'exact' }).eq('event_id', event.id).is('resolved_at', null),
-        supabase.from('tasks').select('id, title, due_datetime, status, created_at, assignee:profiles(display_name, avatar_url)').eq('event_id', event.id).neq('status', 'done').order('due_datetime', { ascending: true, nullsFirst: false }).limit(15),
-        supabase.from('event_phases').select('id, phase_name, due_date, status').eq('event_id', event.id).neq('status', 'completed').order('due_date', { ascending: true, nullsFirst: false }).limit(15),
-        supabase.from('event_vendors').select('id, vendor_name, payment_date, payment_status').eq('event_id', event.id).in('payment_status', ['unpaid', 'advance']).not('payment_date', 'is', null).order('payment_date', { ascending: true }).limit(15),
-        supabase.from('event_activity').select('*').eq('event_id', event.id).order('created_at', { ascending: false }).limit(20),
-        supabase.from('financial_entries').select('advance_paid, balance').eq('event_id', event.id),
+        safeQuery(() => supabase.from('event_phases').select('*').eq('event_id', event.id).order('phase_number', { ascending: true }), []),
+        safeQuery(() => supabase.from('tasks').select('phase_id, status').eq('event_id', event.id).not('phase_id', 'is', null), []),
+        safeQuery(() => supabase.from('event_vendors').select('id', { count: 'exact' }).eq('event_id', event.id), []),
+        safeQuery(() => supabase.from('tasks').select('id', { count: 'exact' }).eq('event_id', event.id).not('status', 'eq', 'done').lte('due_datetime', now), []),
+        safeQuery(() => supabase.from('issues').select('id', { count: 'exact' }).eq('event_id', event.id).is('resolved_at', null), []),
+        safeQuery(() => supabase.from('tasks').select('id, title, due_datetime, status, created_at, assignee:profiles(display_name, avatar_url)').eq('event_id', event.id).neq('status', 'done').order('due_datetime', { ascending: true, nullsFirst: false }).limit(15), []),
+        safeQuery(() => supabase.from('event_phases').select('id, phase_name, due_date, status').eq('event_id', event.id).neq('status', 'completed').order('due_date', { ascending: true, nullsFirst: false }).limit(15), []),
+        safeQuery(() => supabase.from('event_vendors').select('id, vendor_name, payment_date, payment_status').eq('event_id', event.id).in('payment_status', ['unpaid', 'advance']).not('payment_date', 'is', null).order('payment_date', { ascending: true }).limit(15), []),
+        safeQuery(() => supabase.from('event_activity').select('*').eq('event_id', event.id).order('created_at', { ascending: false }).limit(20), []),
+        safeQuery(() => supabase.from('financial_entries').select('advance_paid, balance').eq('event_id', event.id), []),
       ])
 
       if (cancelled) return
@@ -261,33 +273,37 @@ export function EventDashboardPage() {
 
       if (upcomingTasksRes.data) {
         for (const t of upcomingTasksRes.data) {
-          if (t.due_datetime) {
-            d.push({
-              id: t.id,
-              type: 'task',
-              title: t.title,
-              date: t.due_datetime,
-              label: t.status.replace('_', ' '),
-              dateAssigned: t.created_at,
-              assignee: t.assignee as unknown as DeadlineItem['assignee'],
-            })
-          }
+          d.push({
+            id: t.id,
+            type: 'task',
+            title: t.title,
+            date: t.due_datetime || '9999-12-31',
+            label: t.status.replace('_', ' '),
+            hasDeadline: !!t.due_datetime,
+            dateAssigned: t.due_datetime ? t.created_at : undefined,
+            assignee: t.assignee as unknown as DeadlineItem['assignee'],
+          })
         }
       }
 
       if (phaseDeadlinesRes.data) {
         for (const p of phaseDeadlinesRes.data) {
-          if (p.due_date) d.push({ id: p.id, type: 'phase', title: p.phase_name, date: p.due_date, label: p.status.replace('_', ' ') })
+          if (p.due_date) d.push({ id: p.id, type: 'phase', title: p.phase_name, date: p.due_date, label: p.status.replace('_', ' '), hasDeadline: true })
         }
       }
 
       if (vendorPaymentsRes.data) {
         for (const v of vendorPaymentsRes.data) {
-          if (v.payment_date) d.push({ id: v.id, type: 'vendor_payment', title: v.vendor_name, date: v.payment_date, label: v.payment_status.replace('_', ' ') })
+          if (v.payment_date) d.push({ id: v.id, type: 'vendor_payment', title: v.vendor_name, date: v.payment_date, label: v.payment_status.replace('_', ' '), hasDeadline: true })
         }
       }
 
-      d.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      d.sort((a, b) => {
+        if (!a.hasDeadline && !b.hasDeadline) return a.title.localeCompare(b.title)
+        if (!a.hasDeadline) return 1
+        if (!b.hasDeadline) return -1
+        return new Date(a.date).getTime() - new Date(b.date).getTime()
+      })
 
       setStats({ vendors: vendorCountRes.count || 0, tasksDue: tasksDueRes.count || 0, openIssues: issueRes.count || 0 })
       setDeadlines(d)
@@ -902,7 +918,7 @@ export function EventDashboardPage() {
                       </thead>
                       <tbody>
                         {paginatedDeadlines.map((dl) => {
-                          const isOverdue = new Date(dl.date) < new Date()
+                          const isOverdue = dl.hasDeadline && new Date(dl.date) < new Date()
                           
                           // Format date assigned
                           const dateAssignedStr = dl.dateAssigned 
@@ -910,7 +926,9 @@ export function EventDashboardPage() {
                             : '—'
                           
                           // Format deadline
-                          const deadlineStr = new Date(dl.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+                          const deadlineStr = dl.hasDeadline
+                            ? new Date(dl.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+                            : 'No deadline'
 
                           // Status dot / badge color
                           let statusClass = styles.statusBadgeReady
@@ -958,7 +976,7 @@ export function EventDashboardPage() {
                               </td>
                               <td className={isOverdue ? styles.dateCellOverdue : ''}>
                                 <div className={styles.dateCellWrap}>
-                                  <span className={styles.dateText}>{deadlineStr}</span>
+                                  <span className={dl.hasDeadline ? styles.dateText : styles.mutedText}>{deadlineStr}</span>
                                   {isOverdue && <span className={styles.overdueLabel}>overdue</span>}
                                 </div>
                               </td>
