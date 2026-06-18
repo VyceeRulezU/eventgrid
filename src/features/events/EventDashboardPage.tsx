@@ -432,11 +432,12 @@ export function EventDashboardPage() {
           showNotification({ variant: 'error', title: 'Payment failed', message })
         },
       })
-    } catch {
+    } catch (err) {
       clearTimeout(timeoutId)
       if (!paySucceededRef.current) {
         setPayStatus('failed')
-        showNotification({ variant: 'error', title: 'Payment failed', message: 'Could not load payment provider. Check your internet connection and try again.' })
+        const msg = err instanceof Error ? err.message : 'Could not load payment provider'
+        showNotification({ variant: 'error', title: 'Payment failed', message: msg })
       }
     }
   }, [user, id, activeEvent, setActiveEvent, showNotification, promoResult])

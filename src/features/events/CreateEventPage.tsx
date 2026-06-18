@@ -394,11 +394,11 @@ export function CreateEventPage() {
         onSuccess: (reference) => { clearTimeout(timeoutId); handlePaymentSuccess('paystack', reference) },
         onClose: () => { clearTimeout(timeoutId); handlePaymentCancel() },
       })
-    } catch {
+    } catch (err) {
       clearTimeout(timeoutId)
       if (!paySucceededRef.current) {
         setPaymentStatus('failed')
-        showToast({ type: 'error', title: 'Payment failed', body: 'Could not load payment provider' })
+        showToast({ type: 'error', title: 'Payment failed', body: err instanceof Error ? err.message : 'Could not load payment provider' })
         setPaying(false)
       }
     }
@@ -433,11 +433,11 @@ export function CreateEventPage() {
           setPaying(false)
         },
       })
-    } catch {
+    } catch (err) {
       clearTimeout(timeoutId)
       if (!paySucceededRef.current) {
         setPaymentStatus('failed')
-        showToast({ type: 'error', title: 'Payment failed', body: 'Could not load payment provider' })
+        showToast({ type: 'error', title: 'Payment failed', body: err instanceof Error ? err.message : 'Could not load payment provider' })
         setPaying(false)
       }
     }
