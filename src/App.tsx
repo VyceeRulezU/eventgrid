@@ -50,6 +50,7 @@ import { VendorTrackerLandingPage } from '@/pages/features/VendorTrackerLandingP
 import { AftermathReportsLandingPage } from '@/pages/features/AftermathReportsLandingPage'
 import { AboutPage } from '@/pages/info/AboutPage'
 import { BlogPage } from '@/pages/info/BlogPage'
+import { BlogPostPage } from '@/pages/info/BlogPostPage'
 import { CareersPage } from '@/pages/info/CareersPage'
 import { PressPage } from '@/pages/info/PressPage'
 import { ContactPage } from '@/pages/info/ContactPage'
@@ -473,6 +474,7 @@ export function App() {
           <Route path="/features/aftermath-reports" element={<AftermathReportsLandingPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/blog" element={<BlogPage />} />
+          <Route path="/blog/:slug" element={<BlogPostPage />} />
           <Route path="/careers" element={<CareersPage />} />
           <Route path="/press" element={<PressPage />} />
           <Route path="/contact" element={<ContactPage />} />

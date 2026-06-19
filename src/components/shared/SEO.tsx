@@ -33,7 +33,7 @@ export function SEO({
   const canonicalUrl = url ? `${SITE_URL}${url}` : SITE_URL
   const imageUrl = image.startsWith('http') ? image : `${SITE_URL}${image}`
 
-  const schemaOrg = {
+  const schemaOrg: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'NaliGrid',
@@ -42,6 +42,34 @@ export function SEO({
     description: DEFAULT_DESC,
     sameAs: [],
   }
+
+  const articleSchema = type === 'article' && publishedTime ? {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: fullTitle,
+    description,
+    image: imageUrl,
+    datePublished: publishedTime,
+    author: author ? {
+      '@type': 'Person',
+      name: author,
+    } : {
+      '@type': 'Organization',
+      name: 'NaliGrid',
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'NaliGrid',
+      logo: {
+        '@type': 'ImageObject',
+        url: `${SITE_URL}/EventGrid-logo.svg`,
+      },
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': canonicalUrl,
+    },
+  } : null
 
   return (
     <Helmet>
@@ -84,6 +112,11 @@ export function SEO({
       <script type="application/ld+json">
         {JSON.stringify(schemaOrg)}
       </script>
+      {articleSchema && (
+        <script type="application/ld+json">
+          {JSON.stringify(articleSchema)}
+        </script>
+      )}
     </Helmet>
   )
 }

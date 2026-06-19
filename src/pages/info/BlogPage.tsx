@@ -1,39 +1,31 @@
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { SEO } from '@/components/shared/SEO'
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
 import Footer from '@/pages/landing/Footer'
+import { getPosts, urlFor } from '@/lib/sanity'
+import type { SanityPost } from '@/lib/sanity'
 import styles from './InfoPages.module.css'
 
-const POSTS = [
-  {
-    title: 'The Future of Escrow Payments in Event Sourcing',
-    excerpt: 'How securing vendor contract amounts prevents late deliveries and ensures deposit clarity for premium planners.',
-    category: 'Fintech & Security',
-    date: 'June 2, 2026',
-    readTime: '5 min read',
-    image: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=600&q=80&auto=format&fit=crop'
-  },
-  {
-    title: 'Checklist Blueprint: How to Coordinate Event Day Flawlessly',
-    excerpt: 'A comprehensive checklist layout template for planners managing on-site vendor check-ins and stage cues.',
-    category: 'Coordination',
-    date: 'May 28, 2026',
-    readTime: '8 min read',
-    image: 'https://images.unsplash.com/photo-1469371670807-013ccf25f16a?w=600&q=80&auto=format&fit=crop'
-  },
-  {
-    title: 'Reconciling Aftermath Reports: 5 Financial Mistakes Planners Make',
-    excerpt: 'Avoid invoice anomalies. Learn how to reconcile cash advances, vendor checklists, and seat layouts.',
-    category: 'Analytics',
-    date: 'May 15, 2026',
-    readTime: '6 min read',
-    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&q=80&auto=format&fit=crop'
+function getPostImage(post: SanityPost): string {
+  if (post.featuredImage?.asset) {
+    return urlFor(post.featuredImage.asset).width(600).url()
   }
-]
+  return post.featuredImage?.placeholderUrl || 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=600&q=80&auto=format&fit=crop'
+}
 
 export function BlogPage() {
+  const [posts, setPosts] = useState<SanityPost[]>([])
+
+  useEffect(() => {
+    const projectId = import.meta.env.VITE_SANITY_PROJECT_ID
+    if (!projectId || projectId === 'your-sanity-project-id') return
+    getPosts().then(setPosts).catch(() => {})
+  }, [])
+
   return (
     <div className={styles.pageWrapper}>
       <SEO
@@ -52,25 +44,45 @@ export function BlogPage() {
       {/* Blog Posts Grid */}
       <section className={styles.postsSection} aria-label="Blog posts list">
         <div className={styles.container}>
-          <div className={styles.postsGrid}>
-            {POSTS.map((post) => (
-              <article key={post.title} className={styles.postCard}>
-                <div className={styles.postImgWrap}>
-                  <img src={post.image} alt="" className={styles.postImg} />
-                  <span className={styles.postCat}>{post.category}</span>
-                </div>
-                <div className={styles.postBody}>
-                  <div className={styles.postMeta}>
-                    <span>{post.date}</span>
-                    <span className={styles.metaDot}>·</span>
-                    <span>{post.readTime}</span>
+          {posts.length > 0 ? (
+            <div className={styles.postsGrid}>
+              {posts.map((post) => (
+                <Link
+                  key={post._id}
+                  to={`/blog/${post.slug.current}`}
+                  className={styles.postCard}
+                  style={{ textDecoration: 'none' }}
+                >
+                  <div className={styles.postImgWrap}>
+                    <img src={getPostImage(post)} alt="" className={styles.postImg} />
+                    <span className={styles.postCat}>{post.category}</span>
                   </div>
-                  <h2 className={styles.postTitle}>{post.title}</h2>
-                  <p className={styles.postExcerpt}>{post.excerpt}</p>
-                </div>
-              </article>
-            ))}
-          </div>
+                  <div className={styles.postBody}>
+                    <div className={styles.postMeta}>
+                      <span>
+                        {new Date(post.publishedAt).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        })}
+                      </span>
+                      <span className={styles.metaDot}>·</span>
+                      <span>{post.readTime}</span>
+                    </div>
+                    <h2 className={styles.postTitle}>{post.title}</h2>
+                    <p className={styles.postExcerpt}>{post.excerpt}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '80px 0', color: '#9ca3af' }}>
+              <p style={{ fontSize: 16, marginBottom: 8 }}>No posts published yet.</p>
+              <p style={{ fontSize: 14 }}>
+                Our first article is coming soon. Check back for insights on event planning, coordination, and management.
+              </p>
+            </div>
+          )}
         </div>
       </section>
 

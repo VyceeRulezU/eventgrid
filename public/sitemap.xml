@@ -6,11 +6,6 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://naligrid.com/home</loc>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
     <loc>https://naligrid.com/login</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -73,7 +68,12 @@
   <url>
     <loc>https://naligrid.com/blog</loc>
     <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://naligrid.com/blog/nigerian-event-planners-whatsapp-excel</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://naligrid.com/careers</loc>

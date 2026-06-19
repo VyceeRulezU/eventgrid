@@ -1,0 +1,267 @@
+/* ── Shared page wrapper (same as InfoPages.module.css) ── */
+.pageWrapper {
+  background-color: #0b0b0c;
+  color: #e5e7eb;
+  min-height: 100vh;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Article Layout ── */
+.container {
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 24px;
+  box-sizing: border-box;
+}
+
+.article {
+  padding: 80px 0;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #9ca3af;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 48px;
+  transition: color 0.15s ease;
+}
+
+.backLink:hover {
+  color: #d4a017;
+}
+
+/* ── Header ── */
+.header {
+  margin-bottom: 48px;
+}
+
+.category {
+  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: #d4a017;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.title {
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 300;
+  color: #f9fafb;
+  line-height: 1.2;
+  margin: 0 0 20px 0;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.metaDot {
+  color: #d4a017;
+}
+
+/* ── Featured Image ── */
+.featuredImageWrap {
+  width: 100%;
+  height: 420px;
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 56px;
+  background-color: #121214;
+}
+
+.featuredImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── Body Content (Portable Text) ── */
+.bodyContent {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #d1d5db;
+}
+
+.bodyContent h2 {
+  font-size: clamp(20px, 2.5vw, 26px);
+  font-weight: 300;
+  color: #f9fafb;
+  margin: 56px 0 16px 0;
+  line-height: 1.3;
+}
+
+.bodyContent h3 {
+  font-size: clamp(17px, 2vw, 20px);
+  font-weight: 300;
+  color: #f9fafb;
+  margin: 40px 0 12px 0;
+  line-height: 1.3;
+}
+
+.bodyContent p {
+  margin: 0 0 20px 0;
+}
+
+.bodyContent strong {
+  color: #f9fafb;
+  font-weight: 600;
+}
+
+.bodyContent a {
+  color: #d4a017;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s ease;
+}
+
+.bodyContent a:hover {
+  color: #f0b830;
+}
+
+.bodyContent blockquote {
+  border-left: 3px solid #d4a017;
+  padding: 16px 0 16px 24px;
+  margin: 32px 0;
+  background-color: rgba(212, 160, 23, 0.04);
+  border-radius: 0 8px 8px 0;
+  font-style: italic;
+  color: #9ca3af;
+}
+
+.bodyContent ul,
+.bodyContent ol {
+  margin: 0 0 20px 0;
+  padding-left: 24px;
+}
+
+.bodyContent li {
+  margin-bottom: 8px;
+}
+
+/* ── Section Break Image ── */
+.sectionImageWrap {
+  margin: 56px 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #121214;
+}
+
+.sectionImage {
+  width: 100%;
+  height: auto;
+  max-height: 400px;
+  object-fit: cover;
+  display: block;
+}
+
+.sectionImageCaption {
+  padding: 12px 16px;
+  font-size: 12px;
+  color: #6b7280;
+  text-align: center;
+  font-style: italic;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* ── Inline Body Image ── */
+.inlineImageWrap {
+  margin: 32px 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #121214;
+}
+
+.inlineImage {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.inlineImageCaption {
+  padding: 12px 16px;
+  font-size: 12px;
+  color: #6b7280;
+  text-align: center;
+  font-style: italic;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* ── CTA Section ── */
+.ctaSection {
+  margin-top: 64px;
+  padding: 40px;
+  background-color: #121214;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  text-align: center;
+}
+
+.ctaTitle {
+  font-size: 22px;
+  font-weight: 300;
+  color: #f9fafb;
+  margin: 0 0 12px 0;
+}
+
+.ctaDesc {
+  font-size: 14px;
+  color: #9ca3af;
+  margin: 0 0 24px 0;
+  line-height: 1.6;
+}
+
+.ctaButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #d4a017;
+  color: #111827;
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.ctaButton:hover {
+  background-color: #b8860b;
+}
+
+/* ── Loading ── */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .article {
+    padding: 48px 0;
+  }
+
+  .featuredImageWrap {
+    height: 240px;
+  }
+
+  .ctaSection {
+    padding: 24px;
+  }
+}
