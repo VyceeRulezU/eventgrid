@@ -162,7 +162,7 @@ export function PrivacyPage() {
               <section id="contact" className={styles.textSection}>
                 <h2 className={styles.sectionTitle}>13. Contact Us</h2>
                 <p>For privacy-related questions or to exercise your rights under the NDPA, contact:</p>
-                <p><strong>privacy@eventgrid.ng</strong><br />NaliTech Consults Limited<br />Abuja, Nigeria</p>
+                <p><strong>privacy@naligrid.com</strong><br />NaliTech Consults Limited<br />Abuja, Nigeria</p>
                 <p>You may also lodge a complaint with the <strong>Nigeria Data Protection Commission (NDPC)</strong> via their official channels.</p>
               </section>
             </div>

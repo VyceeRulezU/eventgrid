@@ -180,7 +180,7 @@ export function TermsPage() {
               <section id="contact" className={styles.textSection}>
                 <h2 className={styles.sectionTitle}>16. Contact</h2>
                 <p>For questions about these Terms, contact us at:</p>
-                <p><strong>services@eventgrid.ng</strong><br />NaliTech Consults Limited<br />Abuja, Nigeria</p>
+                <p><strong>services@naligrid.com</strong><br />NaliTech Consults Limited<br />Abuja, Nigeria</p>
               </section>
             </div>
           </div>

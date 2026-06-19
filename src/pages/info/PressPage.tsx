@@ -63,7 +63,7 @@ export function PressPage() {
             items: [
               {
                 question: 'How do I request an interview?',
-                answer: 'Send an email to press@eventgrid.ng with your publication details, story angle, and deadline.'
+                answer: 'Send an email to press@naligrid.com with your publication details, story angle, and deadline.'
               },
               {
                 question: 'Can I use NaliGrid logos and assets?',
@@ -80,7 +80,7 @@ export function PressPage() {
         title="Looking for media comments?"
         description="For press inquiries, exclusive updates, or interview coordination with our leadership, email us."
         primaryText="Contact Press Team"
-        primaryHref="mailto:press@eventgrid.ng"
+        primaryHref="mailto:press@naligrid.com"
       />
 
       <Footer />

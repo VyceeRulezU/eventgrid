@@ -19,8 +19,8 @@ export function LandingCTA({
   eyebrow = 'Ready to run better events?',
   primaryText = 'Get started free',
   primaryHref = '/register',
-  secondaryText = 'hello@eventgrid.ng',
-  secondaryHref = 'mailto:hello@eventgrid.ng',
+  secondaryText = 'hello@naligrid.com',
+  secondaryHref = 'mailto:hello@naligrid.com',
   secondaryOnClick
 }: LandingCTAProps) {
   const isMailto = !secondaryOnClick && secondaryHref.startsWith('mailto:')

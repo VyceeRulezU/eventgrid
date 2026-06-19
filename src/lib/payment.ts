@@ -13,8 +13,10 @@ export interface PaymentConfig {
   onFailed?: (message: string) => void
 }
 
+import { EVENT_FEE_KOBO } from './pricing'
+
 export function getEventPrice(_sizeTier: string): number {
-  return 2000000
+  return EVENT_FEE_KOBO
 }
 
 export async function processPayment(config: PaymentConfig): Promise<void> {

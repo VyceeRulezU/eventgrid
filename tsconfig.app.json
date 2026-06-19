@@ -20,6 +20,5 @@
       "@/*": ["./src/*"]
     }
   },
-  "exclude": ["src/sanity"],
   "include": ["src"]
 }

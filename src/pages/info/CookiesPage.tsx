@@ -78,7 +78,7 @@ export function CookiesPage() {
               <section id="contact" className={styles.textSection}>
                 <h2 className={styles.sectionTitle}>7. Contact Us</h2>
                 <p>Questions about this policy can be directed to:</p>
-                <p><strong>hello@eventgrid.ng</strong><br />NaliTech Consults Limited<br />Abuja, Nigeria</p>
+                <p><strong>hello@naligrid.com</strong><br />NaliTech Consults Limited<br />Abuja, Nigeria</p>
               </section>
             </div>
           </div>

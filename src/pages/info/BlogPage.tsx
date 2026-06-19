@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { SEO } from '@/components/shared/SEO'
 import Navbar from '@/components/layout/Navbar'
@@ -6,26 +5,15 @@ import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
 import Footer from '@/pages/landing/Footer'
-import { getPosts, urlFor } from '@/lib/sanity'
-import type { SanityPost } from '@/lib/sanity'
+import { STATIC_POSTS } from './blogPosts'
+import type { StaticPost } from './blogPosts'
 import styles from './InfoPages.module.css'
 
-function getPostImage(post: SanityPost): string {
-  if (post.featuredImage?.asset) {
-    return urlFor(post.featuredImage.asset).width(600).url()
-  }
+function getPostImage(post: StaticPost): string {
   return post.featuredImage?.placeholderUrl || 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=600&q=80&auto=format&fit=crop'
 }
 
 export function BlogPage() {
-  const [posts, setPosts] = useState<SanityPost[]>([])
-
-  useEffect(() => {
-    const projectId = import.meta.env.VITE_SANITY_PROJECT_ID
-    if (!projectId || projectId === 'your-sanity-project-id') return
-    getPosts().then(setPosts).catch(() => {})
-  }, [])
-
   return (
     <div className={styles.pageWrapper}>
       <SEO
@@ -41,48 +29,38 @@ export function BlogPage() {
         subtitle="Proactive tips, architectural advice, and execution strategies compiled by top event coordinators and designers."
       />
 
-      {/* Blog Posts Grid */}
       <section className={styles.postsSection} aria-label="Blog posts list">
         <div className={styles.container}>
-          {posts.length > 0 ? (
-            <div className={styles.postsGrid}>
-              {posts.map((post) => (
-                <Link
-                  key={post._id}
-                  to={`/blog/${post.slug.current}`}
-                  className={styles.postCard}
-                  style={{ textDecoration: 'none' }}
-                >
-                  <div className={styles.postImgWrap}>
-                    <img src={getPostImage(post)} alt="" className={styles.postImg} />
-                    <span className={styles.postCat}>{post.category}</span>
+          <div className={styles.postsGrid}>
+            {STATIC_POSTS.map((post) => (
+              <Link
+                key={post._id}
+                to={`/blog/${post.slug.current}`}
+                className={styles.postCard}
+                style={{ textDecoration: 'none' }}
+              >
+                <div className={styles.postImgWrap}>
+                  <img src={getPostImage(post)} alt="" className={styles.postImg} />
+                  <span className={styles.postCat}>{post.category}</span>
+                </div>
+                <div className={styles.postBody}>
+                  <div className={styles.postMeta}>
+                    <span>
+                      {new Date(post.publishedAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })}
+                    </span>
+                    <span className={styles.metaDot}>·</span>
+                    <span>{post.readTime}</span>
                   </div>
-                  <div className={styles.postBody}>
-                    <div className={styles.postMeta}>
-                      <span>
-                        {new Date(post.publishedAt).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                        })}
-                      </span>
-                      <span className={styles.metaDot}>·</span>
-                      <span>{post.readTime}</span>
-                    </div>
-                    <h2 className={styles.postTitle}>{post.title}</h2>
-                    <p className={styles.postExcerpt}>{post.excerpt}</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div style={{ textAlign: 'center', padding: '80px 0', color: '#9ca3af' }}>
-              <p style={{ fontSize: 16, marginBottom: 8 }}>No posts published yet.</p>
-              <p style={{ fontSize: 14 }}>
-                Our first article is coming soon. Check back for insights on event planning, coordination, and management.
-              </p>
-            </div>
-          )}
+                  <h2 className={styles.postTitle}>{post.title}</h2>
+                  <p className={styles.postExcerpt}>{post.excerpt}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 

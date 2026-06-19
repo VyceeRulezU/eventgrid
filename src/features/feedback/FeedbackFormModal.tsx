@@ -36,7 +36,7 @@ export function FeedbackFormModal({ open, onClose }: FeedbackFormModalProps) {
 
     const { data: inserted, error } = await supabase.from('feedback').insert({
       user_id: user.id,
-      user_email: user.email || user.user_metadata?.email || 'unknown@eventgrid.ng',
+      user_email: user.email || user.user_metadata?.email || 'unknown@naligrid.com',
       user_role: role || 'unknown',
       type,
       subject: subject.trim(),

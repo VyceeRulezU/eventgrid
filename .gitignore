@@ -12,6 +12,13 @@ dist
 dist-ssr
 *.local
 .env.test
+
+# Environment secrets — never commit these
+.env
+.env.*
+!.env.example
+!.env.test.example
+.env.studio
 playwright/.auth.json
 test-results/
 
@@ -31,3 +38,11 @@ dev_err.txt
 dev_out.txt
 
 .vercel
+
+# Sanity studio (removed from project)
+/studio/
+/env.studio
+
+# Documentation (tracked separately)
+/doc/
+/docs/

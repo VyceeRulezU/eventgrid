@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { ChevronRight, Search, Book, LayoutDashboard, DollarSign, Users, Calendar, Radio, ExternalLink, FileText, MessageSquare, ListChecks } from 'lucide-react'
+import { EVENT_FEE_DISPLAY } from '@/lib/pricing'
 import { PageHero } from '@/components/shared/PageHero'
 import { useSearch } from '@/hooks/useSearch'
 import { SearchBar } from '@/components/shared/SearchBar'
@@ -73,7 +74,7 @@ const TOPICS = [
         </ul>
 
         <h5>Payment / Activation</h5>
-        <p>Draft unpaid events show a gold banner. Click <strong>Pay ₦20,000</strong> to activate. Choose Paystack or Korapay. After success the event becomes active and the modal auto-closes.</p>
+        <p>Draft unpaid events show a gold banner. Click <strong>Pay {EVENT_FEE_DISPLAY}</strong> to activate. Choose Paystack or Korapay. After success the event becomes active and the modal auto-closes.</p>
       </>
     ),
   },

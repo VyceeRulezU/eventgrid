@@ -100,7 +100,7 @@ export function ContactPage() {
                 </p>
                 <div className={styles.infoRow}>
                   <Mail size={16} className={styles.infoIcon} />
-                  <a href="mailto:hello@eventgrid.ng" className={styles.infoLink}>hello@eventgrid.ng</a>
+                  <a href="mailto:hello@naligrid.com" className={styles.infoLink}>hello@naligrid.com</a>
                 </div>
               </div>
 
@@ -111,7 +111,7 @@ export function ContactPage() {
                 </p>
                 <div className={styles.infoRow}>
                   <Phone size={16} className={styles.infoIcon} />
-                  <a href="tel:+2348001234567" className={styles.infoLink}>+234 (800) 123-4567</a>
+                  <a href="tel:+2348176964239" className={styles.infoLink}>+234 817 696 4239</a>
                 </div>
               </div>
 

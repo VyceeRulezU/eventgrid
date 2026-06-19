@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import { Tabs } from '@/components/ui/Tabs'
 import { Checkbox } from '@/components/ui/Checkbox'
 import { Calendar, Users, Building, CreditCard, Eye, ExternalLink, Pencil, Trash2, X } from 'lucide-react'
+import { EVENT_FEE_KOBO } from '@/lib/pricing'
 import { AdminPageHero } from '@/components/shared/AdminPageHero'
 import styles from './AdminManagePage.module.css'
 
@@ -426,7 +427,7 @@ export function AdminManagePage() {
       event_name: e.name,
       organization: orgMap.get(e.org_id) || 'Unknown',
       creator_name: profileMap.get(e.created_by)?.display_name || profileMap.get(e.created_by)?.email || 'Unknown',
-      amount: 2000000,
+      amount: EVENT_FEE_KOBO,
       payment_provider: e.payment_provider || null,
       paystack_ref: e.paystack_ref || null,
       payment_status: e.payment_status,

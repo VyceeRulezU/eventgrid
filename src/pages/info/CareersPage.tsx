@@ -94,7 +94,7 @@ export function CareersPage() {
         title="Don't see your role?"
         description="We're always looking for talented developers, designers, and planners. Send us your portfolio."
         primaryText="Submit General Application"
-        primaryHref="mailto:careers@eventgrid.ng"
+        primaryHref="mailto:careers@naligrid.com"
       />
 
       <Footer />

@@ -89,7 +89,7 @@ export function AdminLoginPage() {
 
             <div className="input-wrapper" style={{ marginBottom: 'var(--space-4)' }}>
               <label className="input-label adminAuthLabel" htmlFor="email">Email Address</label>
-              <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="admin@eventgrid.ng" required className="input adminAuthInput" />
+              <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="admin@naligrid.com" required className="input adminAuthInput" />
             </div>
 
             <div className="input-wrapper" style={{ marginBottom: 'var(--space-5)' }}>

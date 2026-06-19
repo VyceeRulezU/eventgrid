@@ -51,7 +51,7 @@ export function DataDeletionPage() {
                 <h3 className={styles.subTitle}>Option B — Email Request</h3>
                 <p>
                   Send an email from the address associated with your account to{' '}
-                  <strong>privacy@eventgrid.ng</strong> with the subject line
+                  <strong>privacy@naligrid.com</strong> with the subject line
                   "Data Deletion Request" and include your full name and registered
                   email address so we can verify your identity.
                 </p>
@@ -59,7 +59,7 @@ export function DataDeletionPage() {
                 <p>
                   If you signed up using Facebook or Google and no longer have access
                   to your account, please email{' '}
-                  <strong>privacy@eventgrid.ng</strong> from the email address you
+                  <strong>privacy@naligrid.com</strong> from the email address you
                   used for that social login, and we will assist you.
                 </p>
               </section>
@@ -107,7 +107,7 @@ export function DataDeletionPage() {
                 <h2 className={styles.sectionTitle}>6. Contact</h2>
                 <p>For questions about data deletion or to submit a request:</p>
                 <p>
-                  <strong>privacy@eventgrid.ng</strong><br />
+                  <strong>privacy@naligrid.com</strong><br />
                   NaliTech Consults Limited<br />
                   Abuja, Nigeria
                 </p>

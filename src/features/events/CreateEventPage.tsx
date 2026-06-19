@@ -4,6 +4,7 @@ import { Calendar, ArrowLeft, Check, CreditCard, Gift, ShieldCheck } from 'lucid
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
+import { PRO_BONO, EVENT_FEE_DISPLAY } from '@/lib/pricing'
 import { processPayment, getEventPrice } from '@/lib/payment'
 import { generateSlug } from '@/lib/slug'
 import { CalendarModal } from '@/components/ui/CalendarModal'
@@ -612,13 +613,25 @@ export function CreateEventPage() {
           </div>
         </div>
 
-        {profile?.free_tier_used ? (
+        {PRO_BONO ? (
           <div className="card" style={{ marginBottom: 'var(--space-5)', textAlign: 'center', padding: 'var(--space-6)' }}>
             <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-2)' }}>
               Event Activation Fee
             </div>
             <div style={{ fontSize: 'var(--text-display)', fontWeight: 800, color: 'var(--color-accent)', letterSpacing: '-0.02em' }}>
-              ₦20,000
+              {EVENT_FEE_DISPLAY}
+            </div>
+            <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+              One-time payment · All event sizes included
+            </div>
+          </div>
+        ) : profile?.free_tier_used ? (
+          <div className="card" style={{ marginBottom: 'var(--space-5)', textAlign: 'center', padding: 'var(--space-6)' }}>
+            <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-2)' }}>
+              Event Activation Fee
+            </div>
+            <div style={{ fontSize: 'var(--text-display)', fontWeight: 800, color: 'var(--color-accent)', letterSpacing: '-0.02em' }}>
+              {EVENT_FEE_DISPLAY}
             </div>
             <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
               One-time payment · All event sizes included
@@ -652,15 +665,15 @@ export function CreateEventPage() {
             <span>✓ Client portal access</span>
           </div>
           <div style={{ marginTop: 'var(--space-3)', paddingTop: 'var(--space-3)', borderTop: '1px solid var(--color-border-subtle)' }}>
-            <strong>Note:</strong> {profile?.free_tier_used ? 'This is a one-time payment per event. No recurring fees.' : 'Your first activation is free. Subsequent events cost ₦20,000 per event.'} You can save as a draft for free and activate later.
+            <strong>Note:</strong> {PRO_BONO ? 'This is a one-time payment per event. No recurring fees.' : (profile?.free_tier_used ? 'This is a one-time payment per event. No recurring fees.' : 'Your first activation is free. Subsequent events cost ₦20,000 per event.')} You can save as a draft for free and activate later.
           </div>
         </div>
 
-          <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
-          {profile?.free_tier_used ? (
+        <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
+          {PRO_BONO || profile?.free_tier_used ? (
             <button className="btn btn-primary btn-lg" style={{ flex: 1 }} onClick={handleActivate} disabled={saving}>
               <CreditCard size={18} />
-              {saving ? 'Creating...' : 'Activate Event — ₦20,000'}
+              {saving ? 'Creating...' : `Activate Event — ${EVENT_FEE_DISPLAY}`}
             </button>
           ) : (
             <button className="btn btn-primary btn-lg" style={{ flex: 1 }} onClick={handleActivateFree} disabled={saving}>
@@ -673,7 +686,7 @@ export function CreateEventPage() {
           </button>
         </div>
 
-        {!profile?.free_tier_used && (
+        {!PRO_BONO && !profile?.free_tier_used && (
           <div style={{ marginTop: 'var(--space-3)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', textAlign: 'center' }}>
             Your first event activation is free. Subsequent events cost ₦20,000.
           </div>
@@ -721,7 +734,7 @@ export function CreateEventPage() {
               {form.name}
             </div>
             <div style={{ fontSize: 'var(--text-display)', fontWeight: 800, color: 'var(--color-accent)', marginTop: 'var(--space-3)' }}>
-              ₦20,000
+              {EVENT_FEE_DISPLAY}
             </div>
           </div>
 

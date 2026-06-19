@@ -18,6 +18,7 @@ import { EventAssetsPage } from '@/features/assets/EventAssetsPage'
 import { GeneratePortalModal } from '@/features/client-portal/GeneratePortalModal'
 import { EditEventModal } from '@/features/events/EditEventModal'
 import { Tabs } from '@/components/ui/Tabs'
+import { PRO_BONO, EVENT_FEE_DISPLAY, EVENT_FEE_FORMATTED } from '@/lib/pricing'
 import { processPayment, getEventPrice } from '@/lib/payment'
 import { UUID_RE } from '@/lib/slug'
 import { compressImage } from '@/lib/compressImage'
@@ -579,16 +580,17 @@ export function EventDashboardPage() {
   const nextActions: ActionItem[] = []
 
   if (!isPaid) {
+    const showFree = !PRO_BONO && isFreeAvailable
     nextActions.push({
       id: 'activate',
       priority: 'critical',
-      Icon: isFreeAvailable ? Gift : CreditCard,
-      title: isFreeAvailable ? 'Activate Free' : 'Activate this event',
-      subtitle: isFreeAvailable
+      Icon: showFree ? Gift : CreditCard,
+      title: showFree ? 'Activate Free' : 'Activate this event',
+      subtitle: showFree
         ? 'Your first event activation is free. Unlock vendors, guests, finances, tasks, and more.'
         : 'Complete payment to unlock all planning features and start coordinating.',
-      cta: isFreeAvailable ? 'Activate Free — 1 Free Event' : 'Pay ₦20,000',
-      onClick: isFreeAvailable ? handleActivateFree : openPayment,
+      cta: showFree ? 'Activate Free — 1 Free Event' : `Pay ${EVENT_FEE_DISPLAY}`,
+      onClick: showFree ? handleActivateFree : openPayment,
     })
   } else {
     if (countdown && !countdown.past && countdown.days <= 7) {
@@ -688,8 +690,13 @@ export function EventDashboardPage() {
     if (activeEvent.payment_status === 'unpaid') {
       title = 'Activate this event'
       subtitle = 'Complete payment to unlock all planning features and start coordinating.'
-      cta = 'Pay ₦20,000'
+      cta = `Pay ${EVENT_FEE_DISPLAY}`
       onClick = openPayment
+      if (!PRO_BONO && isFreeAvailable) {
+        subtitle = 'Your first event activation is free. Unlock vendors, guests, finances, tasks, and more.'
+        cta = 'Activate Free — 1 Free Event'
+        onClick = handleActivateFree
+      }
     } else if (daysUntilEvent >= 0 && daysUntilEvent <= 7 && currentPhaseNumber === 6 && currentPhase?.status !== 'completed') {
       title = `Event in ${daysUntilEvent} day${daysUntilEvent !== 1 ? 's' : ''}`
       subtitle = 'Your pre-event checklist is still incomplete. Review tasks to ensure a smooth event.'
@@ -1421,7 +1428,7 @@ export function EventDashboardPage() {
                     <span className={styles.payCurrency}>₦</span>
                     {promoResult?.valid && promoResult.final_amount !== undefined
                       ? (promoResult.final_amount / 100).toLocaleString()
-                      : '20,000'}
+                      : EVENT_FEE_FORMATTED}
                   </div>
                   {promoResult?.valid && (
                     <div style={{ textAlign: 'center', fontSize: 'var(--text-xs)', color: 'var(--color-success)', marginBottom: 'var(--space-2)' }}>

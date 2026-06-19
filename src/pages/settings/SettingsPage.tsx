@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
+import { EVENT_FEE_DISPLAY } from '@/lib/pricing'
 import { compressImage } from '@/lib/image'
 import { clearTourForRole } from '@/components/shared/AppTour'
 import { Switch } from '@/components/ui/Switch'
@@ -74,7 +75,7 @@ export function SettingsPage() {
           email: user.email,
           first_name: profile?.display_name || user.user_metadata?.display_name || 'Test User',
           meta: {
-            amount: '₦20,000',
+            amount: EVENT_FEE_DISPLAY,
             event_name: 'Diagnostic Test Event',
             payment_method: 'Paystack Test'
           }
