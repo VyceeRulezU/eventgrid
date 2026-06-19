@@ -1,5 +1,55 @@
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
-import type { ReportData, VendorRating } from './EventReportBuilder'
+import type { ReportData, VendorRating, AiNarrative } from './EventReportBuilder'
+
+function buildFallbackNarrative(data: ReportData, type: 'internal' | 'client', plannerName?: string): AiNarrative {
+  const eventName = data.event?.name || 'this event'
+  const eventType = data.event?.event_type || 'event'
+  const planner = plannerName || 'the planning team'
+  const guestCount = data.guestCount
+  const checkedIn = data.checkedIn
+  const vendorCount = data.vendorCount
+  const totalIssues = data.issues.length
+  const resolvedIssues = data.issuesResolved
+  const completedPhases = data.phases.filter((p) => p.status === 'completed').length
+  const totalPhases = data.phases.length || 9
+
+  return {
+    executiveSummary:
+      type === 'internal'
+        ? `${eventName} was a ${eventType} coordinated by ${planner}. The event had ${guestCount} invited guests with ${checkedIn} checking in. ${vendorCount} vendors supported the event. ${completedPhases} of ${totalPhases} planning phases were completed. ${totalIssues > 0 ? `${resolvedIssues} of ${totalIssues} issues were resolved` : 'No major issues were reported'} during the event lifecycle.`
+        : `${eventName} was a wonderful ${eventType} with ${guestCount} guests in attendance. The event was supported by ${vendorCount} professional vendors. We hope you enjoyed the experience.`,
+    highlights:
+      type === 'internal'
+        ? [
+            `${vendorCount} vendors collaborated to deliver a seamless ${eventType}.`,
+            `${checkedIn} of ${guestCount} guests checked in successfully.`,
+            `${completedPhases} of ${totalPhases} planning phases were completed.`,
+            `${data.mediaCount} media files captured during the event.`,
+            totalIssues > 0
+              ? `${resolvedIssues} issues were resolved during the event lifecycle.`
+              : 'All issues were proactively managed.',
+          ]
+        : [
+            `A beautiful ${eventType} held with ${guestCount} guests attending.`,
+            `${vendorCount} vendors contributed to making the event memorable.`,
+            `${data.mediaCount} photos and media moments captured.`,
+            `The team ensured every detail was taken care of.`,
+          ],
+    vendorNotes:
+      type === 'internal'
+        ? `${vendorCount} vendors were assigned to ${eventName}. Each contributed to the successful delivery of this ${eventType}. Review individual ratings in the vendors section for detailed performance feedback.`
+        : '',
+    issueSummary:
+      totalIssues > 0
+        ? `${totalIssues} ${totalIssues === 1 ? 'issue was' : 'issues were'} logged during ${eventName}. ${resolvedIssues} of ${totalIssues} ${totalIssues === 1 ? 'was' : 'were'} resolved. Lessons learned have been documented for future reference.`
+        : `No significant issues were recorded during ${eventName}. The event ran smoothly from start to finish.`,
+    recommendations: [
+      `Continue documenting vendor performance to build a reliable vendor network for future events.`,
+      `Review guest check-in data to optimise the arrival experience for larger events.`,
+      `Apply lessons learned from completed phases to improve execution in future events.`,
+    ],
+  }
+}
 
 const COLORS = {
   gold: '#D4A017',
@@ -249,6 +299,7 @@ interface PdfDocProps {
 }
 
 export function ReportPdfDocument({ data, vendorRatings, type, plannerName }: PdfDocProps) {
+  const narrative = data.aiNarrative || buildFallbackNarrative(data, type, plannerName)
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -304,32 +355,28 @@ export function ReportPdfDocument({ data, vendorRatings, type, plannerName }: Pd
             )}
           </View>
 
-          {data.aiNarrative && (
-            <>
-              <View style={styles.section}>
-                <View style={styles.sectionHeader}>
-                  <View style={styles.sectionAccent} />
-                  <Text style={styles.sectionTitle}>Executive Summary</Text>
-                </View>
-                <View style={styles.summaryBox}>
-                  <Text style={styles.summaryText}>{data.aiNarrative.executiveSummary}</Text>
-                </View>
-              </View>
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionAccent} />
+              <Text style={styles.sectionTitle}>Executive Summary</Text>
+            </View>
+            <View style={styles.summaryBox}>
+              <Text style={styles.summaryText}>{narrative.executiveSummary}</Text>
+            </View>
+          </View>
 
-              <View style={styles.section}>
-                <View style={styles.sectionHeader}>
-                  <View style={styles.sectionAccent} />
-                  <Text style={styles.sectionTitle}>Highlights</Text>
-                </View>
-                {data.aiNarrative.highlights.map((h, i) => (
-                  <View key={i} style={styles.highlightItem}>
-                    <Text style={styles.highlightBullet}>✦</Text>
-                    <Text style={styles.highlightText}>{h}</Text>
-                  </View>
-                ))}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionAccent} />
+              <Text style={styles.sectionTitle}>Highlights</Text>
+            </View>
+            {narrative.highlights.map((h, i) => (
+              <View key={i} style={styles.highlightItem}>
+                <Text style={styles.highlightBullet}>✦</Text>
+                <Text style={styles.highlightText}>{h}</Text>
               </View>
-            </>
-          )}
+            ))}
+          </View>
 
           {type === 'internal' && (
             <View style={styles.section}>
@@ -390,16 +437,14 @@ export function ReportPdfDocument({ data, vendorRatings, type, plannerName }: Pd
                 <Text style={styles.issueLesson}>Lesson: {i.lessons_learned}</Text>
               </View>
             ))}
-            {data.aiNarrative?.issueSummary && (
-              <View style={{ marginTop: 8 }}>
-                <Text style={styles.summaryText}>{data.aiNarrative.issueSummary}</Text>
-              </View>
-            )}
-            {data.aiNarrative?.vendorNotes && type === 'internal' && (
+            <View style={{ marginTop: 8 }}>
+              <Text style={styles.summaryText}>{narrative.issueSummary}</Text>
+            </View>
+            {type === 'internal' && (
               <View style={{ marginTop: 8 }}>
                 <View style={styles.summaryBox}>
                   <Text style={{ fontSize: 9, fontWeight: 'bold', color: COLORS.muted, marginBottom: 2, textTransform: 'uppercase', letterSpacing: 0.5 }}>Vendor Notes</Text>
-                  <Text style={styles.summaryText}>{data.aiNarrative.vendorNotes}</Text>
+                  <Text style={styles.summaryText}>{narrative.vendorNotes}</Text>
                 </View>
               </View>
             )}
@@ -421,22 +466,20 @@ export function ReportPdfDocument({ data, vendorRatings, type, plannerName }: Pd
             ))}
           </View>
 
-          {data.aiNarrative?.recommendations && data.aiNarrative.recommendations.length > 0 && (
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <View style={styles.sectionAccent} />
-                <Text style={styles.sectionTitle}>Recommendations</Text>
-              </View>
-              {data.aiNarrative.recommendations.map((r, i) => (
-                <View key={i} style={styles.recBox}>
-                  <Text style={styles.recText}>
-                    <Text style={{ fontWeight: 'bold' }}>{i + 1}. </Text>
-                    {r}
-                  </Text>
-                </View>
-              ))}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionAccent} />
+              <Text style={styles.sectionTitle}>Recommendations</Text>
             </View>
-          )}
+            {narrative.recommendations.map((r, i) => (
+              <View key={i} style={styles.recBox}>
+                <Text style={styles.recText}>
+                  <Text style={{ fontWeight: 'bold' }}>{i + 1}. </Text>
+                  {r}
+                </Text>
+              </View>
+            ))}
+          </View>
 
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
