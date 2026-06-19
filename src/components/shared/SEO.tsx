@@ -4,7 +4,7 @@ const SITE_URL = import.meta.env.VITE_APP_URL || 'https://eventgrid.ng'
 const SITE_IMAGE = `${SITE_URL}/favicon/EventGrid-logo.png`
 const DEFAULT_TITLE = 'NaliGrid — Event Management Platform'
 const DEFAULT_DESC = 'The premium event management platform built for event planners, coordinators, vendors, and clients.'
-const DEFAULT_KEYWORDS = 'event planning, event management, nigeria events, wedding coordinator, corporate event planner, budget tracker, live board, paystack, flutterwave'
+const DEFAULT_KEYWORDS = 'event planning, event management, nigeria events, wedding coordinator, corporate event planner, budget tracker, live board, paystack, korapay'
 
 interface SEOProps {
   title?: string

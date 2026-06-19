@@ -1,4 +1,4 @@
-# EventGrid
+# NaliGrid (formerly EventGrid)
 
 [![CI](https://github.com/app-eventgrid/eventgrid/actions/workflows/ci.yml/badge.svg)](https://github.com/app-eventgrid/eventgrid/actions/workflows/ci.yml)
 
@@ -12,7 +12,7 @@ A multi-role SaaS platform for the event industry in Nigeria. Replaces WhatsApp 
 | Styling     | Vanilla CSS + CSS Modules (CSS custom properties) |
 | State       | Zustand 5                                         |
 | Backend     | Supabase (Auth + PostgreSQL + Realtime + Storage) |
-| Payments    | Paystack + Flutterwave                            |
+| Payments    | Paystack + Korapay                                |
 | PDF Export  | @react-pdf/renderer                               |
 | Drag & Drop | @dnd-kit                                          |
 | Charts      | Recharts                                          |
@@ -30,7 +30,7 @@ A multi-role SaaS platform for the event industry in Nigeria. Replaces WhatsApp 
 - **Guest Management** — List, RSVP, seating plan, CSV import, check-in
 - **Client Portal** — Token-based read-only view for clients (no account required)
 - **Aftermath & Reports** — Media library, issue log, PDF report generation
-- **Dual Payment Providers** — Paystack and Flutterwave supported
+- **Dual Payment Providers** — Paystack and Korapay supported
 
 ## Getting Started
 
@@ -39,7 +39,6 @@ A multi-role SaaS platform for the event industry in Nigeria. Replaces WhatsApp 
 - Node.js 18+
 - A Supabase project (free tier works)
 - Paystack account (test keys)
-- Flutterwave account (test keys)
 
 ### Installation
 
@@ -53,7 +52,7 @@ npm install
 
 # Set up environment variables
 cp .env.local.example .env.local
-# Fill in your Supabase, Paystack, and Flutterwave keys
+# Fill in your Supabase and Paystack keys
 
 # Start development server
 npm run dev
@@ -65,12 +64,12 @@ npm run dev
 VITE_SUPABASE_URL=           # Your Supabase project URL
 VITE_SUPABASE_ANON_KEY=      # Your Supabase anon/public key
 VITE_PAYSTACK_PUBLIC_KEY=    # Paystack public key (live or test)
-VITE_FLUTTERWAVE_PUBLIC_KEY= # Flutterwave public key (live or test)
+VITE_KORAPAY_PUBLIC_KEY=     # Korapay public key
 ```
 
 ## Theme
 
-EventGrid supports both dark and light themes:
+NaliGrid supports both dark and light themes:
 
 - **Dark** (default) — `#111827` base background with gold (#D4A017) accents
 - **Light** — `#f5f2eb` base background with matching light surfaces
@@ -117,8 +116,8 @@ eventgrid/
 │   ├── store/                 # Zustand stores
 │   ├── lib/
 │   │   ├── supabase.ts        # Supabase client
+│   │   ├── korapay.ts         # Korapay integration
 │   │   ├── paystack.ts        # Paystack integration
-│   │   ├── flutterwave.ts     # Flutterwave integration
 │   │   ├── payment.ts         # Unified payment abstraction
 │   │   └── utils.ts           # Utility functions
 │   ├── types/
@@ -156,20 +155,16 @@ eventgrid/
 
 ## Payment System
 
-EventGrid supports two payment providers:
+NaliGrid supports two payment providers:
 
 - **Paystack** — Inline popup integration. Loads `js.paystack.co/v1/inline.js` on demand.
-- **Flutterwave** — Checkout modal integration. Loads `checkout.flutterwave.com/v3.js` on demand.
+- **Korapay** — Checkout modal integration. Loads Korapay collections script on demand.
 
 Both are abstracted behind a unified `processPayment()` function in `src/lib/payment.ts`. The provider can be selected per transaction.
 
 ### Pricing (Planner Events)
 
-| Size     | Guests           | Price   |
-| -------- | ---------------- | ------- |
-| Intimate | Under 100        | ₦5,000  |
-| Standard | 100–300          | ₦10,000 |
-| Large    | 300+ / Corporate | ₦15,000 |
+Flat activation fee of ₦20,000 per event.
 
 ## Available Scripts
 
@@ -182,7 +177,7 @@ npm run lint      # Run ESLint
 
 ## Architecture
 
-EventGrid is a React SPA powered entirely by Supabase — no custom API server:
+NaliGrid is a React SPA powered entirely by Supabase — no custom API server:
 
 ```
 Browser (React + Vite)

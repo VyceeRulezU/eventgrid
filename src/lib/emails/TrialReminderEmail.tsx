@@ -28,7 +28,7 @@ export function TrialReminderEmail({ first_name, financials_url }: TrialReminder
           <strong>Lock In Vendor Rates:</strong> Upload vendor contracts and associate payments directly with milestone tasks.
         </li>
         <li style={{ marginBottom: '0px' }}>
-          <strong>Integrated Gateways:</strong> Initiate instant payments via Paystack and Flutterwave right from the platform.
+          <strong>Integrated Gateways:</strong> Initiate instant payments via Paystack and Korapay right from the platform.
         </li>
       </ul>
 

@@ -63,7 +63,7 @@ export function PrivacyPage() {
                 <h3 className={styles.subTitle}>3.2 Event Data</h3>
                 <p>Information entered by Planners and Coordinators about events, including event details, vendor records, task assignments, guest lists (names, contact details, RSVP status, dietary or accessibility notes, table assignments), team member information, and budget/financial entries.</p>
                 <h3 className={styles.subTitle}>3.3 Payment Information</h3>
-                <p>When you activate an event, payment is processed by third-party processors (Paystack and/or Flutterwave). We receive confirmation of payment status and a transaction reference, but we do not collect or store your full card details.</p>
+                <p>When you activate an event, payment is processed by third-party processors (Paystack and/or Korapay). We receive confirmation of payment status and a transaction reference, but we do not collect or store your full card details.</p>
                 <h3 className={styles.subTitle}>3.4 Media and Documents</h3>
                 <p>Photographs, documents, and files you upload (such as event photos, contracts, proposals, and receipts).</p>
                 <h3 className={styles.subTitle}>3.5 Usage and Device Information</h3>
@@ -104,7 +104,7 @@ export function PrivacyPage() {
                   <tbody>
                     <tr><td>Supabase</td><td>Database hosting, authentication, file storage</td><td>Cloud infrastructure (region varies)</td></tr>
                     <tr><td>Cloudflare (R2)</td><td>Media and file storage</td><td>Global CDN</td></tr>
-                    <tr><td>Paystack / Flutterwave</td><td>Payment processing</td><td>Nigeria-licensed payment processors</td></tr>
+                    <tr><td>Paystack / Korapay</td><td>Payment processing</td><td>Nigeria-licensed payment processors</td></tr>
                     <tr><td>Resend</td><td>Transactional email delivery</td><td>Cloud infrastructure</td></tr>
                     <tr><td>Google</td><td>OAuth authentication (sign-up and sign-in via Google)</td><td>Global</td></tr>
                     <tr><td>Facebook</td><td>OAuth authentication (sign-up and sign-in via Facebook)</td><td>Global</td></tr>

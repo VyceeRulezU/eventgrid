@@ -109,7 +109,7 @@ export function TermsPage() {
               <section id="fees" className={styles.textSection}>
                 <h2 className={styles.sectionTitle}>7. Fees and Payments</h2>
                 <p><strong>7.1 Pricing Model.</strong> NaliGrid currently uses a per-event activation model. Planners pay a one-time fee to activate full features for a specific event, based on the event's size tier. Coordinators using standalone projects pay per project. Pricing is displayed in Nigerian Naira (₦) at the time of activation.</p>
-                <p><strong>7.2 Payment Processing.</strong> Payments are processed through third-party payment processors (currently Paystack and/or Flutterwave). NaliTech does not store your card details. Your payment information is subject to the relevant processor's terms and privacy policy.</p>
+                <p><strong>7.2 Payment Processing.</strong> Payments are processed through third-party payment processors (currently Paystack and/or Korapay). NaliTech does not store your card details. Your payment information is subject to the relevant processor's terms and privacy policy.</p>
                 <p><strong>7.3 Refund Policy.</strong> Event activation fees are non-refundable once the Platform features for that event have been accessed and meaningfully used. We define "meaningful use" as any of the following: adding a vendor, importing or adding guests, creating tasks, or inviting a team member or client.</p>
                 <p>We will process a full refund in the following limited circumstances:</p>
                 <ul>

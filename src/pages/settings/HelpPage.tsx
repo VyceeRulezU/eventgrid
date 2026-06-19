@@ -73,7 +73,7 @@ const TOPICS = [
         </ul>
 
         <h5>Payment / Activation</h5>
-        <p>Draft unpaid events show a gold banner. Click <strong>Pay ₦20,000</strong> to activate. Choose Paystack or Flutterwave. After success the event becomes active and the modal auto-closes.</p>
+        <p>Draft unpaid events show a gold banner. Click <strong>Pay ₦20,000</strong> to activate. Choose Paystack or Korapay. After success the event becomes active and the modal auto-closes.</p>
       </>
     ),
   },

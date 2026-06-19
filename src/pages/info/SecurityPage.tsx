@@ -63,7 +63,7 @@ export function SecurityPage() {
                   All integration keys are handled with industry standard protection models:
                 </p>
                 <ul>
-                  <li>Private keys for Resend, Paystack, and Flutterwave are never exposed to the client application or client browser network logs.</li>
+                  <li>Private keys for Resend, Paystack, and Korapay are never exposed to the client application or client browser network logs.</li>
                   <li>Secrets are stored encrypted in the Supabase Vault and are only injected at runtime into isolated Deno Deno.env environments.</li>
                 </ul>
               </section>
