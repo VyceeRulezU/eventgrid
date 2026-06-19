@@ -2,7 +2,7 @@ import { NavLink, useNavigate, Link, useParams } from 'react-router-dom'
 import {
   LayoutDashboard, Calendar, Wallet, Users, BookOpen,
   Settings, LogOut, X, ArrowLeft, ListChecks, Radio,
-  FileText, TrendingUp, Send, MessageSquare, Bell, Image,
+  FileText, TrendingUp, MessageSquare, Bell, Image,
   ClipboardList,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
@@ -285,20 +285,10 @@ export function Sidebar() {
               }
               onClick={() => setSidebarOpen(false)}
             >
-              <Send size={20} />
-              <span>Send Feedback</span>
+              <Settings size={20} />
+              <span>Settings</span>
             </NavLink>
           )}
-          <NavLink
-            to="/settings"
-            className={({ isActive }) =>
-              `${styles.navItem} ${isActive ? styles.active : ''}`
-            }
-            onClick={() => setSidebarOpen(false)}
-          >
-            <Settings size={20} />
-            <span>Settings</span>
-          </NavLink>
           <button className={styles.navItem} onClick={handleLogout}>
             <LogOut size={20} />
             <span>Log out</span>

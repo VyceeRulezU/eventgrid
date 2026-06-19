@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
     }
 
     webpush.setVapidDetails(
-      'mailto:support@eventgrid.ng',
+      'mailto:support@naligrid.com',
       vapidPublicKey,
       vapidPrivateKey
     )

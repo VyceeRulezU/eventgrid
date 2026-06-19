@@ -110,8 +110,16 @@ export function TermsPage() {
                 <h2 className={styles.sectionTitle}>7. Fees and Payments</h2>
                 <p><strong>7.1 Pricing Model.</strong> NaliGrid currently uses a per-event activation model. Planners pay a one-time fee to activate full features for a specific event, based on the event's size tier. Coordinators using standalone projects pay per project. Pricing is displayed in Nigerian Naira (₦) at the time of activation.</p>
                 <p><strong>7.2 Payment Processing.</strong> Payments are processed through third-party payment processors (currently Paystack and/or Flutterwave). NaliTech does not store your card details. Your payment information is subject to the relevant processor's terms and privacy policy.</p>
-                <p><strong>7.3 Refunds.</strong> Activation fees are generally non-refundable once an event has been activated and Platform features have been unlocked. If you experience a technical issue that prevented you from using the Platform as intended, contact us and we will review refund requests on a case-by-case basis.</p>
-                <p><strong>7.4 Beta Pricing.</strong> During the beta period, certain users may be offered free or discounted activation via promotional codes. These promotions are offered at our discretion and may be withdrawn or changed at any time.</p>
+                <p><strong>7.3 Refund Policy.</strong> Event activation fees are non-refundable once the Platform features for that event have been accessed and meaningfully used. We define "meaningful use" as any of the following: adding a vendor, importing or adding guests, creating tasks, or inviting a team member or client.</p>
+                <p>We will process a full refund in the following limited circumstances:</p>
+                <ul>
+                  <li>(a) The activation failed due to a technical error on our part and Platform features were not unlocked despite payment being received; or</li>
+                  <li>(b) The event is cancelled and you request a refund within 48 hours of activation, and no meaningful use (as defined above) has occurred.</li>
+                </ul>
+                <p>No refund will be issued in any other circumstance, including service unavailability, downtime, or dissatisfaction with the product after activation. You are responsible for ensuring the Platform meets your needs before activating an event.</p>
+                <p><strong>7.4 Compassionate Credit (Discretionary).</strong> In cases where a refund is not available, we may — at our sole discretion and without obligation — offer a credit toward a future event activation on the same account. This is not guaranteed and is assessed case-by-case.</p>
+                <p><strong>7.5 How to Request.</strong> To request a refund or credit, contact us at hello@naligrid.com with your event name, activation date, and payment reference. We aim to review and respond within 3 business days.</p>
+                <p><strong>7.6 Beta Pricing.</strong> During the beta period, certain users may be offered free or discounted activation via promotional codes. These promotions are offered at our discretion and may be withdrawn or changed at any time.</p>
               </section>
 
               <section id="vendor" className={styles.textSection}>

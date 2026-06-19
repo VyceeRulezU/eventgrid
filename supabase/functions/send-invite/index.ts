@@ -6,8 +6,8 @@ const supabaseAdmin = createClient(
 )
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!
-const FROM_EMAIL = Deno.env.get('FROM_EMAIL') ?? 'EventGrid <noreply@eventgrid.ng>'
-const APP_URL = Deno.env.get('APP_URL') ?? 'https://eventgrid.ng'
+const FROM_EMAIL = Deno.env.get('FROM_EMAIL') ?? 'NaliGrid <noreply@naligrid.com>'
+const APP_URL = Deno.env.get('APP_URL') ?? 'https://naligrid.com'
 
 function proxyInviteLink(actionLink: string): string {
   return `${APP_URL}/invite/accept?link=${encodeURIComponent(actionLink)}`
@@ -20,7 +20,7 @@ const corsHeaders = {
 
 // ── Shared email shell ──────────────────────────────────────────────────────
 
-const isProdPlaceholder = APP_URL.includes('eventgrid.ng')
+const isProdPlaceholder = APP_URL.includes('naligrid.com')
 const R2_BASE = 'https://pub-962633edede94bf8a4e41b91db2b602a.r2.dev'
 const HERO_IMAGE = isProdPlaceholder
   ? `${R2_BASE}/emails/corporate_event_hall.png`
@@ -55,7 +55,7 @@ function emailShell(title: string, bodyHtml: string): string {
                 <table cellpadding="0" cellspacing="0" style="margin:0 auto 18px;">
                   <tr><td style="width:44px;height:3px;background-color:#D4A017;border-radius:2px;"></td></tr>
                 </table>
-                <img src="${LOGO_IMAGE}" alt="EventGrid" style="max-width:180px;height:auto;display:block;margin:0 auto;" />
+                <img src="${LOGO_IMAGE}" alt="NaliGrid" style="max-width:180px;height:auto;display:block;margin:0 auto;" />
               </div>
             </td>
           </tr>
@@ -66,10 +66,10 @@ function emailShell(title: string, bodyHtml: string): string {
           </tr>
           <tr>
             <td style="padding:24px 32px;border-top:1px solid #2a3a4e;background-color:#141e2a;text-align:center;">
-              <img src="${LOGO_IMAGE}" alt="EventGrid" style="max-width:120px;height:auto;display:block;margin:0 auto 16px;" />
-              <p style="margin:0 0 4px;font-size:12px;color:#6B7280;line-height:1.6;">EventGrid &mdash; Software for Event Pros</p>
-              <p style="margin:0;font-size:11px;color:#4B5563;line-height:1.6;">This email was sent to you because you have an account on <a href="${APP_URL}" style="color:#D4A017;text-decoration:none;font-weight:600;">eventgrid.ng</a>.</p>
-              <p style="margin:8px 0 0;font-size:11px;color:#4B5563;">&copy; 2026 EventGrid. All rights reserved.</p>
+              <img src="${LOGO_IMAGE}" alt="NaliGrid" style="max-width:120px;height:auto;display:block;margin:0 auto 16px;" />
+              <p style="margin:0 0 4px;font-size:12px;color:#6B7280;line-height:1.6;">NaliGrid &mdash; Software for Event Pros</p>
+              <p style="margin:0;font-size:11px;color:#4B5563;line-height:1.6;">This email was sent to you because you have an account on <a href="${APP_URL}" style="color:#D4A017;text-decoration:none;font-weight:600;">naligrid.com</a>.</p>
+              <p style="margin:8px 0 0;font-size:11px;color:#4B5563;">&copy; 2026 NaliGrid. All rights reserved.</p>
             </td>
           </tr>
         </table>
@@ -88,14 +88,14 @@ function teamInviteEmail(opts: {
   inviteLink: string
 }): { subject: string; html: string } {
   return {
-    subject: `You've been invited to join the ${opts.eventName} team on EventGrid`,
+    subject: `You've been invited to join the ${opts.eventName} team on NaliGrid`,
     html: emailShell('Team Invitation', `
               <h1 style="margin:0 0 12px;font-size:24px;font-weight:300;color:#F9FAFB;line-height:1.3;letter-spacing:-0.02em;">
                 You're invited to the team!
               </h1>
               <p style="margin:0 0 20px;font-size:15px;color:#9CA3AF;line-height:1.6;">
                 <strong style="color:#F9FAFB;">${opts.invitedByName}</strong> has invited you to collaborate 
-                on the event <strong style="color:#D4A017;">${opts.eventName}</strong> on EventGrid.
+                on the event <strong style="color:#D4A017;">${opts.eventName}</strong> on NaliGrid.
               </p>
               <p style="margin:0 0 28px;font-size:14px;color:#9CA3AF;line-height:1.6;">
                 Click the button below to accept your invitation and set up your account. 
@@ -126,7 +126,7 @@ function vendorInviteEmail(opts: {
   serviceName: string
 }): { subject: string; html: string } {
   return {
-    subject: `Vendor confirmation for ${opts.eventName} — EventGrid`,
+    subject: `Vendor confirmation for ${opts.eventName} — NaliGrid`,
     html: emailShell('Vendor Confirmation', `
               <h1 style="margin:0 0 12px;font-size:24px;font-weight:300;color:#F9FAFB;line-height:1.3;letter-spacing:-0.02em;">
                 You've been booked for ${opts.eventName}
@@ -401,11 +401,11 @@ Deno.serve(async (req) => {
         : adminRole === 'admin_support' ? 'Support'
         : 'Admin'
       const inviteLink = `${APP_URL}/accept-admin-invite?role=${adminRole}`
-      subject = `You've been invited as ${roleLabel} on EventGrid`
+      subject = `You've been invited as ${roleLabel} on NaliGrid`
       html = emailShell(`${roleLabel} Invitation`, `
               <h1 style="margin:0 0 12px;font-size:24px;font-weight:300;color:#F9FAFB;line-height:1.3;letter-spacing:-0.02em;">${roleLabel} Invitation</h1>
               <p style="margin:0 0 20px;font-size:15px;color:#9CA3AF;line-height:1.6;">
-                You've been invited to join EventGrid as a <strong style="color:#F9FAFB;">${roleLabel}</strong>. ${adminRole === 'super_admin' ? 'You will have full platform-wide access.' : adminRole === 'monitor' ? 'You will have read-only access to analytics and platform data.' : 'You will be able to manage feedback and platform users.'}
+                You've been invited to join NaliGrid as a <strong style="color:#F9FAFB;">${roleLabel}</strong>. ${adminRole === 'super_admin' ? 'You will have full platform-wide access.' : adminRole === 'monitor' ? 'You will have read-only access to analytics and platform data.' : 'You will be able to manage feedback and platform users.'}
               </p>
               <table cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
                 <tr>
@@ -468,14 +468,14 @@ Deno.serve(async (req) => {
       }
 
       const displayOrgName = org_name ?? 'an event planning team'
-      subject = `You've been invited to join ${displayOrgName} on EventGrid`
+      subject = `You've been invited to join ${displayOrgName} on NaliGrid`
       html = emailShell('Coordinator Invitation', `
               <h1 style="margin:0 0 12px;font-size:24px;font-weight:300;color:#F9FAFB;line-height:1.3;letter-spacing:-0.02em;">
                 You're invited as a Coordinator
               </h1>
               <p style="margin:0 0 20px;font-size:15px;color:#9CA3AF;line-height:1.6;">
                 <strong style="color:#F9FAFB;">${invited_by_name ?? 'An event planner'}</strong> has invited you
-                to join <strong style="color:#D4A017;">${displayOrgName}</strong> as a Coordinator on EventGrid.
+                to join <strong style="color:#D4A017;">${displayOrgName}</strong> as a Coordinator on NaliGrid.
               </p>
               <p style="margin:0 0 28px;font-size:14px;color:#9CA3AF;line-height:1.6;">
                 Accept your invitation to set up your profile, receive task assignments, and manage

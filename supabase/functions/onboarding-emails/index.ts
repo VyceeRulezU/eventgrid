@@ -3,8 +3,8 @@ import { renderOnboardingEmail, OnboardingEmailType } from '../../../src/lib/ema
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!
 // Default to verified sender domain
-const FROM_EMAIL = Deno.env.get('FROM_EMAIL') ?? 'EventGrid <onboarding@eventgrid.ng>'
-const APP_URL = Deno.env.get('APP_URL') ?? 'https://eventgrid.ng'
+const FROM_EMAIL = Deno.env.get('FROM_EMAIL') ?? 'NaliGrid <onboarding@naligrid.com>'
+const APP_URL = Deno.env.get('APP_URL') ?? 'https://naligrid.com'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -35,7 +35,7 @@ async function sendOnboardingEmail(
     subject,
     html,
     text,
-    reply_to: 'support@eventgrid.ng'
+    reply_to: 'support@naligrid.com'
   }
 
   const res = await fetch('https://api.resend.com/emails', {

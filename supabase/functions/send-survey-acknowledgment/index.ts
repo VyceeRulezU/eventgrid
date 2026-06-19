@@ -1,5 +1,5 @@
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
-const FROM_EMAIL = Deno.env.get('FROM_EMAIL') ?? 'EventGrid <noreply@eventgrid.ng>'
+const FROM_EMAIL = Deno.env.get('FROM_EMAIL') ?? 'NaliGrid <noreply@naligrid.com>'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',

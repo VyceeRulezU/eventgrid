@@ -1485,6 +1485,8 @@ export function EventDashboardPage() {
                     </button>
                   </div>
                   <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', textAlign: 'center', margin: 'var(--space-3) 0 0' }}>
+                    Activation fees are non-refundable after meaningful use.{' '}
+                    <a href="/terms#fees" target="_blank" style={{ color: 'var(--color-accent)' }}>See our refund policy</a>.
                     By activating this event, you agree to our{' '}
                     <a href="/terms" target="_blank" style={{ color: 'var(--color-accent)' }}>Terms of Service</a>
                     {' '}and{' '}

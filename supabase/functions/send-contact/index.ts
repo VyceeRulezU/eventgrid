@@ -40,8 +40,8 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'EventGrid Contact <contact@eventgrid.ng>',
-        to: ['hello@eventgrid.ng'],
+        from: 'NaliGrid Contact <contact@naligrid.com>',
+        to: ['hello@naligrid.com'],
         subject: `Contact Form: ${name}`,
         html: `
           <h2>New Contact Form Submission</h2>

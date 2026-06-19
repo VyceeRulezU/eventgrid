@@ -11,4 +11,4 @@ Disallow: /admin/
 Disallow: /onboarding/
 Disallow: /portal/
 
-Sitemap: https://eventgrid.ng/sitemap.xml
+Sitemap: https://naligrid.com/sitemap.xml
