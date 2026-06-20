@@ -338,7 +338,8 @@ export function CreateEventPage() {
         body: {
           provider,
           reference,
-          event_id: createdEventId
+          event_id: createdEventId,
+          idempotency_key: `payment_${createdEventId}_${reference}`,
         }
       })
 

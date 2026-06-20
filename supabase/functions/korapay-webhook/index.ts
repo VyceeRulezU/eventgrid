@@ -36,6 +36,27 @@ Deno.serve(async (req) => {
       return new Response('Missing event_id', { status: 400 })
     }
 
+    // Idempotency check using the payment reference as the key
+    const { error: insertError } = await supabaseAdmin
+      .from('payment_idempotency_keys')
+      .insert({
+        idempotency_key: reference,
+        event_id: eventId,
+        reference,
+        status: 'pending',
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      })
+
+    if (insertError && insertError.code === '23505') {
+      console.log(`Webhook for reference ${reference} already processed, skipping`)
+      return new Response('OK', { status: 200 })
+    }
+
+    if (insertError) {
+      console.error('Idempotency insert error:', insertError)
+      return new Response('DB error', { status: 500 })
+    }
+
     const updates: Record<string, unknown> = {
       payment_status: 'paid',
       paystack_ref: reference,
@@ -93,8 +114,19 @@ Deno.serve(async (req) => {
           console.error('Error triggering payment email:', emailErr)
         }
       }
+
+      // Mark idempotency key as completed
+      await supabaseAdmin
+        .from('payment_idempotency_keys')
+        .update({ status: 'completed' })
+        .eq('idempotency_key', reference)
     } else {
       console.log(`Event ${eventId} already marked paid, skipping`)
+      // Mark idempotency key as completed even when event was already paid
+      await supabaseAdmin
+        .from('payment_idempotency_keys')
+        .update({ status: 'completed' })
+        .eq('idempotency_key', reference)
     }
   }
 

@@ -411,7 +411,8 @@ export function EventDashboardPage() {
             body: {
               provider,
               reference,
-              event_id: activeEvent.id
+              event_id: activeEvent.id,
+              idempotency_key: `payment_${activeEvent.id}_${reference}`,
             }
           })
 

@@ -6,12 +6,11 @@ const supabaseAdmin = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 )
 
-const BASE_AMOUNT = Number(Deno.env.get('BASE_ACTIVATION_AMOUNT')) || 2000000  // 2,000,000 kobo = ₦20,000
+const BASE_AMOUNT = Number(Deno.env.get('BASE_ACTIVATION_AMOUNT')) || 2000000
 
 Deno.serve(async (req) => {
   const body = await req.text()
 
-  // Verify Paystack HMAC signature
   const signature = req.headers.get('x-paystack-signature')
   const secretKey = Deno.env.get('PAYSTACK_SECRET_KEY')!
   const hash = createHmac('sha512', secretKey).update(body).digest('hex')
@@ -32,7 +31,27 @@ Deno.serve(async (req) => {
       return new Response('Missing event_id', { status: 400 })
     }
 
-    // Update event if not already paid
+    // Idempotency check using the payment reference as the key
+    const { error: insertError } = await supabaseAdmin
+      .from('payment_idempotency_keys')
+      .insert({
+        idempotency_key: reference,
+        event_id: metadata.event_id,
+        reference,
+        status: 'pending',
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      })
+
+    if (insertError && insertError.code === '23505') {
+      console.log(`Webhook for reference ${reference} already processed, skipping`)
+      return new Response('OK', { status: 200 })
+    }
+
+    if (insertError) {
+      console.error('Idempotency insert error:', insertError)
+      return new Response('DB error', { status: 500 })
+    }
+
     const { data: updatedEvent, error } = await supabaseAdmin
       .from('events')
       .update({
@@ -57,7 +76,6 @@ Deno.serve(async (req) => {
       const amountInNaira = amount / 100
       console.log(`Event ${updatedEvent.id} ("${updatedEvent.name}") activated — ref: ${reference}, amount: ₦${amountInNaira}`)
 
-      // Record promo redemption if promo code was used — best-effort, non-blocking
       const promoCodeId = metadata.promo_code_id || null
       if (promoCodeId) {
         try {
@@ -80,7 +98,6 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Retrieve the planner/creator's profile for email notification
       const { data: profileData } = await supabaseAdmin
         .from('profiles')
         .select('email, display_name')
@@ -120,8 +137,19 @@ Deno.serve(async (req) => {
           console.error('Error calling onboarding-emails from webhook:', emailErr)
         }
       }
+
+      // Mark idempotency key as completed
+      await supabaseAdmin
+        .from('payment_idempotency_keys')
+        .update({ status: 'completed' })
+        .eq('idempotency_key', reference)
     } else {
       console.log(`Event ${metadata.event_id} already marked paid, skipping notification`)
+      // Mark idempotency key as completed even when event was already paid
+      await supabaseAdmin
+        .from('payment_idempotency_keys')
+        .update({ status: 'completed' })
+        .eq('idempotency_key', reference)
     }
   }
 
