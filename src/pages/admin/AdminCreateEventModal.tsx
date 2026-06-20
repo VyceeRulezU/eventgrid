@@ -33,7 +33,7 @@ export function AdminCreateEventModal({ onClose }: Props) {
   const [showCalendar, setShowCalendar] = useState(false)
 
   const [name, setName] = useState('')
-  const [eventType, setEventType] = useState(EVENT_TYPES[0])
+  const [eventType, setEventType] = useState<string>(EVENT_TYPES[0])
   const [eventDate, setEventDate] = useState('')
   const [venueName, setVenueName] = useState('')
   const [guestCount, setGuestCount] = useState('')

@@ -33,14 +33,6 @@ function getMonthLabel(monthStr: string): string {
   return new Date(monthStr + '-01').toLocaleDateString('en-GB', { month: 'short' })
 }
 
-function getWeekId(date: Date): string {
-  const d = new Date(date)
-  const day = d.getDay()
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1)
-  const monday = new Date(d.setDate(diff))
-  return monday.toISOString().substring(0, 10)
-}
-
 function getMonthRange(): string[] {
   const result: string[] = []
   const now = new Date()
@@ -49,16 +41,6 @@ function getMonthRange(): string[] {
     result.push(d.toISOString().substring(0, 7))
   }
   return result
-}
-
-function generateYearWeekKeys(year: number): string[] {
-  const set = new Set<string>()
-  const start = new Date(year, 0, 1)
-  const end = new Date(year, 11, 31)
-  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-    set.add(getWeekId(new Date(d)))
-  }
-  return Array.from(set).sort()
 }
 
 const PIE_COLORS = ['#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#14B8A6', '#EF4444', '#EC4899', '#F97316']
