@@ -14,7 +14,7 @@ interface Testimonial {
   is_featured: boolean
 }
 
-const FALLBACK = [
+const FALLBACK: Testimonial[] = [
   {
     id: 'fb-1',
     quote: 'I used to manage five WhatsApp groups per event. Now everything is in one place and my clients think I\'ve upgraded my whole business. Which I have.',
