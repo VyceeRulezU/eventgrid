@@ -757,9 +757,11 @@ export function CreateEventPage() {
             <button className="btn btn-primary btn-lg" onClick={handlePayWithPaystack} disabled={paying}>
               {paying ? 'Processing...' : <><CreditCard size={18} /> Pay with Paystack</>}
             </button>
-            <button className="btn btn-secondary btn-lg" onClick={handlePayWithKorapay} disabled={paying}>
-              {paying ? 'Processing...' : 'Pay with Korapay'}
-            </button>
+            {false && (
+              <button className="btn btn-secondary btn-lg" onClick={handlePayWithKorapay} disabled={paying}>
+                {paying ? 'Processing...' : 'Pay with Korapay'}
+              </button>
+            )}
           </div>
 
           <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', textAlign: 'center', margin: 'var(--space-3) 0' }}>

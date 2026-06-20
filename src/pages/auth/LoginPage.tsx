@@ -1,42 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Star, Mail, Key, Eye, EyeOff } from 'lucide-react'
+import { ArrowLeft, Mail, Key, Eye, EyeOff } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
 import { SEO } from '@/components/shared/SEO'
+import { AuthTestimonials } from '@/components/auth/AuthTestimonials'
 import { useCaptchaToken, CaptchaField, hasCaptcha } from '@/lib/captcha'
 import styles from './Auth.module.css'
-
-import weddingImg from '@/assets/images/wedding_event_hall.png'
-import corporateImg from '@/assets/images/corporate_event_hall.png'
-import traditionalImg from '@/assets/images/traditional_event.png'
-
-const slides = [
-  {
-    image: weddingImg,
-    quote: "NaliGrid has completely changed how we coordinate weddings in Lagos. Our clients love the live timeline tracker!",
-    author: "Tolu & Chioma",
-    role: "Founders, Premium Nuptials",
-    stars: 5,
-    avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&h=100&fit=crop&crop=face",
-  },
-  {
-    image: corporateImg,
-    quote: "Managing financials and tracking payments for corporate events used to be a nightmare. Now, it's fully automated.",
-    author: "Chinedu",
-    role: "Managing Director, Innovate Africa Events",
-    stars: 5,
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
-  },
-  {
-    image: traditionalImg,
-    quote: "The vendor directory and chat interface saved us days of calls for our Abuja conference.",
-    author: "Halima",
-    role: "Lead Coordinator, Oasis Event Architects",
-    stars: 5,
-    avatar: "https://images.unsplash.com/photo-1594744803329-e58b31de8bf5?w=100&h=100&fit=crop&crop=face",
-  },
-]
 
 export function LoginPage() {
   const [email, setEmail] = useState('')
@@ -45,17 +15,9 @@ export function LoginPage() {
   const { token: captchaTokenValue, setToken: setCaptchaToken, getToken: getCaptchaToken } = useCaptchaToken()
   const [magicLinkMode, setMagicLinkMode] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const [currentSlide, setCurrentSlide] = useState(0)
   
   const navigate = useNavigate()
   const showToast = useUIStore((s) => s.showToast)
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length)
-    }, 5000)
-    return () => clearInterval(timer)
-  }, [])
 
   async function authRequestWithTimeout<T>(promise: Promise<T>, timeoutMs = 15000) {
     let timeoutId: number | null = null
@@ -116,64 +78,7 @@ export function LoginPage() {
   return (
     <div className={styles.container}>
       <SEO title="Sign In to NaliGrid" description="Log in to your NaliGrid account to manage your 9-phase event workflow, track financials in Naira, and stay synced with your vendors." />
-      <div className={styles.leftPanel}>
-        <div className={styles.floatingCard}>
-          <div className={styles.sliderContainer}>
-            {slides.map((slide, idx) => (
-              <div
-                key={idx}
-                className={`${styles.slide} ${idx === currentSlide ? styles.slideActive : ''}`}
-                style={idx <= currentSlide ? { backgroundImage: `url(${slide.image})` } : undefined}
-              />
-            ))}
-          </div>
-          <div className={styles.overlay} />
-
-          <div className={styles.leftContent}>
-            <div className={styles.branding}>
-              <Link to="/">
-                <img src="/EventGrid-logo-white.svg" alt="NaliGrid Logo" className={styles.brandLogoImage} />
-              </Link>
-            </div>
-
-            <div className={styles.testimonialWrapper}>
-              <div className={styles.testimonialCard}>
-                <div className={styles.stars}>
-                  {Array.from({ length: slides[currentSlide].stars }).map((_, i) => (
-                    <Star key={i} size={18} fill="currentColor" />
-                  ))}
-                </div>
-                <p className={styles.quoteText}>"{slides[currentSlide].quote}"</p>
-                
-                <div className={styles.authorInfo}>
-                  {slides[currentSlide].avatar ? (
-                    <img loading="lazy" className={styles.authorAvatar} src={slides[currentSlide].avatar} alt={slides[currentSlide].author} />
-                  ) : (
-                    <div className={styles.authorAvatar}>
-                      {slides[currentSlide].author.substring(0, 2).toUpperCase()}
-                    </div>
-                  )}
-                  <div className={styles.authorDetails}>
-                    <span className={styles.authorName}>{slides[currentSlide].author}</span>
-                    <span className={styles.authorRole}>{slides[currentSlide].role}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className={styles.sliderDots}>
-                {slides.map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setCurrentSlide(idx)}
-                    className={`${styles.dot} ${idx === currentSlide ? styles.dotActive : ''}`}
-                    aria-label={`Go to slide ${idx + 1}`}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <AuthTestimonials />
 
       <div className={styles.rightPanel}>
         <div className={styles.formWrapper}>

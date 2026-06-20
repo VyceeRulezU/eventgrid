@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Calendar, ChevronLeft, ChevronRight,
+  Calendar, ChevronLeft, ChevronRight, Plus,
 } from 'lucide-react'
 import { useSearch } from '@/hooks/useSearch'
 import { SearchBar } from '@/components/shared/SearchBar'
@@ -10,6 +10,7 @@ import { useAuthStore } from '@/store/auth.store'
 import { PhaseSegmentBar } from '@/components/shared/PhasePipeline'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { AdminPageHero } from '@/components/shared/AdminPageHero'
+import { AdminCreateEventModal } from '@/pages/admin/AdminCreateEventModal'
 import type { Event, EventPhase } from '@/types'
 import styles from '@/features/events/EventsListPage.module.css'
 
@@ -40,6 +41,7 @@ export function AdminEventsListPage() {
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState('all')
   const [page, setPage] = useState(1)
+  const [showCreateModal, setShowCreateModal] = useState(false)
   const PAGE_SIZE = 10
   const { query, setQuery, filtered: searched } = useSearch(events, ['name', 'event_type', 'venue_name'])
 
@@ -136,6 +138,11 @@ export function AdminEventsListPage() {
           icon={Calendar}
           title="Events"
           subtitle="Manage all your events in one place"
+          actions={role === 'super_admin' ? (
+            <button className="btn btn-primary btn-sm" onClick={() => setShowCreateModal(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+              <Plus size={16} /> Create Event
+            </button>
+          ) : undefined}
         />
         <div className="empty-state">
           <div className="empty-state__icon"><Calendar size={24} /></div>
@@ -148,6 +155,10 @@ export function AdminEventsListPage() {
             <div className="empty-state__description">You haven't been added to any events yet</div>
           )}
         </div>
+
+        {showCreateModal && (
+          <AdminCreateEventModal onClose={() => setShowCreateModal(false)} />
+        )}
       </div>
     )
   }
@@ -158,6 +169,11 @@ export function AdminEventsListPage() {
         icon={Calendar}
         title="Events"
         subtitle={`${events.length} event${events.length !== 1 ? 's' : ''}${org ? ' in your organisation' : ''}`}
+        actions={role === 'super_admin' ? (
+          <button className="btn btn-primary btn-sm" onClick={() => setShowCreateModal(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+            <Plus size={16} /> Create Event
+          </button>
+        ) : undefined}
       />
 
       <div className={styles.tableCard}>
@@ -286,6 +302,10 @@ export function AdminEventsListPage() {
           )}
         </div>
       </div>
+
+      {showCreateModal && (
+        <AdminCreateEventModal onClose={() => setShowCreateModal(false)} />
+      )}
     </div>
   )
 }

@@ -1487,9 +1487,11 @@ export function EventDashboardPage() {
                     <button className="btn btn-primary btn-lg" onClick={() => handlePayNow('paystack')}>
                       <CreditCard size={18} /> Pay with Paystack
                     </button>
-                    <button className="btn btn-secondary btn-lg" onClick={() => handlePayNow('korapay')}>
-                      Pay with Korapay
-                    </button>
+                    {false && (
+                      <button className="btn btn-secondary btn-lg" onClick={() => handlePayNow('korapay')}>
+                        Pay with Korapay
+                      </button>
+                    )}
                   </div>
                   <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', textAlign: 'center', margin: 'var(--space-3) 0 0' }}>
                     Activation fees are non-refundable after meaningful use.{' '}

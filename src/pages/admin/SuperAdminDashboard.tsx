@@ -6,9 +6,10 @@ import { useNavigate, Link } from 'react-router-dom'
 import {
   Users, Calendar, TrendingUp, BarChart3,
   Activity, Database, HardDrive,
-  CreditCard, Zap, Shield,
+  CreditCard, Zap, Shield, Plus,
 } from 'lucide-react'
 import { AdminPageHero } from '@/components/shared/AdminPageHero'
+import { AdminCreateEventModal } from '@/pages/admin/AdminCreateEventModal'
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
@@ -180,6 +181,7 @@ export function SuperAdminDashboard() {
   const [recentPayments, setRecentPayments] = useState<{ id: string; date: string; event: string; amount: number; method: string; status: string }[]>([])
   const [recentEvents, setRecentEvents] = useState<{ id: string; date: string; name: string; type: string; status: string; planner: string }[]>([])
   const [infra, setInfra] = useState({ totalDbRows: 0, storageUsed: 0, totalUsers: 0, totalEvents: 0 })
+  const [showCreateModal, setShowCreateModal] = useState(false)
 
   useEffect(() => {
     if (role !== 'super_admin') { setLoading(false); return }
@@ -243,29 +245,31 @@ export function SuperAdminDashboard() {
       setRevenueMtd(revenueMtdVal)
       setRevenueYtd(revenueYtdVal)
 
-      const weeks = generateYearWeekKeys(currentYear)
-      const eventsByWeekMap: Record<string, number> = {}
-      const revenueByWeekMap: Record<string, number> = {}
-      weeks.forEach(w => { eventsByWeekMap[w] = 0; revenueByWeekMap[w] = 0 })
-
       const yearEvents = (allEventsData || []).filter(e => e.created_at >= startOfYear && e.created_at <= endOfYear)
       const yearPayments = paidEvents.filter(p => p.paid_at && p.paid_at >= startOfYear && p.paid_at <= endOfYear)
 
+      const yearMonths = getMonthRange()
+      const eventsByMonthMap: Record<string, number> = {}
+      const revenueByMonthMap: Record<string, number> = {}
+      yearMonths.forEach(m => { eventsByMonthMap[m] = 0; revenueByMonthMap[m] = 0 })
+
       yearEvents.forEach(e => {
-        const wk = getWeekId(new Date(e.created_at))
-        if (eventsByWeekMap[wk] !== undefined) eventsByWeekMap[wk]++
+        const d = typeof e.created_at === 'string' ? new Date(e.created_at) : e.created_at
+        const m = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')
+        if (eventsByMonthMap[m] !== undefined) eventsByMonthMap[m]++
       })
       yearPayments.forEach(p => {
         if (p.paid_at) {
-          const wk = getWeekId(new Date(p.paid_at))
-          if (revenueByWeekMap[wk] !== undefined) revenueByWeekMap[wk] += p.amount_paid
+          const d = typeof p.paid_at === 'string' ? new Date(p.paid_at) : p.paid_at
+          const m = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')
+          if (revenueByMonthMap[m] !== undefined) revenueByMonthMap[m] += p.amount_paid
         }
       })
 
-      setWeeklyData(weeks.map(wk => ({
-        week: new Date(wk + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
-        revenue: revenueByWeekMap[wk],
-        events: eventsByWeekMap[wk],
+      setWeeklyData(yearMonths.map(m => ({
+        week: getMonthLabel(m),
+        revenue: revenueByMonthMap[m],
+        events: eventsByMonthMap[m],
       })))
 
       const typeMap: Record<string, number> = {}
@@ -452,10 +456,11 @@ export function SuperAdminDashboard() {
         <div className="skeleton skeleton-title" style={{ width: 240, marginBottom: 'var(--space-6)' }} />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px,1fr))', gap: 'var(--space-3)', marginBottom: 'var(--space-6)' }}>
           {[1,2,3,4,5,6,7].map(i => <div key={i} className="skeleton skeleton-card" style={{ height: 80 }} />)}
-        </div>
       </div>
-    )
-  }
+
+    </div>
+  )
+}
 
   return (
     <div>
@@ -466,6 +471,9 @@ export function SuperAdminDashboard() {
         backTo="/"
         actions={
           <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+            <button className="btn btn-primary btn-sm" onClick={() => setShowCreateModal(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+              <Plus size={16} /> Create Event
+            </button>
             <button className="btn btn-secondary btn-sm" onClick={exportCSV}>Export CSV</button>
             <button className="btn btn-secondary btn-sm" onClick={exportPDF}>Export PDF</button>
           </div>
@@ -785,6 +793,10 @@ export function SuperAdminDashboard() {
           )
         })}
       </div>
+
+      {showCreateModal && (
+        <AdminCreateEventModal onClose={() => setShowCreateModal(false)} />
+      )}
     </div>
   )
 }
