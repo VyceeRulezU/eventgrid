@@ -10,6 +10,7 @@ import FeatureSpotlightB from '@/pages/landing/FeatureSpotlightB'
 import FeatureSpotlightC from '@/pages/landing/FeatureSpotlightC'
 import FeatureSpotlightD from '@/pages/landing/FeatureSpotlightD'
 import RoleSection from '@/pages/landing/RoleSection'
+import BlogSection from '@/pages/landing/BlogSection'
 import { FaqSection } from '@/components/shared/FaqSection'
 import TestimonialsSection from '@/pages/landing/TestimonialsSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
@@ -53,6 +54,9 @@ export function LandingPage() {
 
         {/* SECTION: Role Selector */}
         <RoleSection />
+
+        {/* SECTION: Blog */}
+        <BlogSection />
 
         {/* DARK ZONE: FAQ + Testimonials + CTA + Footer share the same bg */}
         <div className={styles.darkZone}>

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Camera, Upload, ArrowLeft, ExternalLink, LogOut, Building2, LifeBuoy, Book, Bell, Send, Trash2, AlertTriangle } from 'lucide-react'
+import { Camera, Upload, ArrowLeft, ExternalLink, LogOut, Building2, LifeBuoy, Book, Bell, Send, Trash2, AlertTriangle, MessageSquareText } from 'lucide-react'
 import { uploadFile } from '@/lib/storage'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
@@ -488,18 +488,34 @@ export function SettingsPage() {
         </div>
 
         <div className="card">
-          <h3 className={`${styles.cardTitle} ${styles.cardTitleRow}`}>
-            <Send size={18} style={{ color: 'var(--color-accent)' }} />
-            Feedback
-          </h3>
-          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-3)', lineHeight: 1.55 }}>
-            Have a complaint, suggestion, or idea? Share it with the NaliGrid team directly.
-          </p>
-          <button type="button" className="btn btn-primary" onClick={() => setShowFeedback(true)}>
-            <Send size={16} />
-            Send Feedback
-          </button>
-        </div>
+            <h3 className={`${styles.cardTitle} ${styles.cardTitleRow}`}>
+              <Send size={18} style={{ color: 'var(--color-accent)' }} />
+              Feedback
+            </h3>
+            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-3)', lineHeight: 1.55 }}>
+              Have a complaint, suggestion, or idea? Share it with the NaliGrid team directly.
+            </p>
+            <button type="button" className="btn btn-primary" onClick={() => setShowFeedback(true)}>
+              <Send size={16} />
+              Send Feedback
+            </button>
+          </div>
+
+          {role === 'super_admin' && (
+            <div className="card">
+              <h3 className={`${styles.cardTitle} ${styles.cardTitleRow}`}>
+                <MessageSquareText size={18} style={{ color: 'var(--color-accent)' }} />
+                Testimonials
+              </h3>
+              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-3)', lineHeight: 1.55 }}>
+                Manage the social proof quotes displayed on the landing page. Set featured cards and control display order.
+              </p>
+              <Link to="/admin/testimonials" className="btn btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)', textDecoration: 'none' }}>
+                <MessageSquareText size={16} />
+                Manage Testimonials
+              </Link>
+            </div>
+          )}
 
         {/* Help & Onboarding */}
         <div className="card">
@@ -541,25 +557,27 @@ export function SettingsPage() {
           </Link>
         </div>
 
-        <div className={`card ${styles.deleteCard}`}>
+        <div className={`card ${styles.deleteCard}`} style={{ display: 'flex', flexDirection: 'column' }}>
           <div className={styles.deleteHeader}>
             <AlertTriangle size={18} className={styles.deleteIcon} />
             <h3 className={styles.cardTitle} style={{ margin: 0 }}>Delete Account</h3>
           </div>
-          <p className={styles.deleteWarning}>
+          <p className={styles.deleteWarning} style={{ flex: 1 }}>
             Permanently delete your account and all associated data — events, guests, tasks, and media.
             This action <strong>cannot</strong> be undone.
           </p>
 
           {!showDeleteConfirm ? (
-            <button
-              type="button"
-              className="btn btn-destructive"
-              onClick={() => setShowDeleteConfirm(true)}
-            >
-              <Trash2 size={16} />
-              Delete Account
-            </button>
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                className="btn btn-destructive"
+                onClick={() => setShowDeleteConfirm(true)}
+              >
+                <Trash2 size={16} />
+                Delete Account
+              </button>
+            </div>
           ) : (
             <div className={styles.deleteConfirm}>
               <p className={styles.deleteConfirmPrompt}>

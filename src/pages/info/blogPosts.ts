@@ -30,7 +30,7 @@ const POST_WHATSAPP_EXCEL: StaticPost = {
   publishedAt: '2026-06-01T00:00:00.000Z',
   readTime: '6 min read',
   featuredImage: {
-    placeholderUrl: 'https://picsum.photos/seed/nigerian-event-planner/1200/600',
+    placeholderUrl: 'https://i.ibb.co/60gZxNh2/72486.jpg',
     alt: 'Nigerian event planner coordinating with vendors and clients using a smartphone and laptop',
   },
   body: [
@@ -51,7 +51,7 @@ const POST_WHATSAPP_EXCEL: StaticPost = {
       text: 'Nigerian event planners are extraordinarily good at their jobs. The chaos is not a reflection of their skill — it\'s a reflection of the tools available to them.',
     },
 
-    { type: 'sectionImage', placeholderUrl: 'https://picsum.photos/seed/whatsapp-nigeria-planner/800/400', alt: 'Event planner managing multiple WhatsApp group chats', caption: 'WhatsApp became the default communication tool for Nigerian event planners, but group chats are not designed for professional event management.' },
+    { type: 'sectionImage', placeholderUrl: 'https://i.ibb.co/bY81ZSB/96972.jpg', alt: 'Event planner managing multiple WhatsApp group chats', caption: 'WhatsApp became the default communication tool for Nigerian event planners, but group chats are not designed for professional event management.' },
 
     {
       type: 'heading', level: 2, text: 'Why WhatsApp Became the Default',
@@ -73,7 +73,7 @@ const POST_WHATSAPP_EXCEL: StaticPost = {
       text: 'These were reasonable solutions for 2016. The problem is that it\'s now 2025, Nigerian events have grown significantly in scale and complexity, and the tools haven\'t changed.',
     },
 
-    { type: 'sectionImage', placeholderUrl: 'https://picsum.photos/seed/excel-budget-nigeria/800/400', alt: 'Nigerian event budget spreadsheet on a laptop', caption: 'Excel spreadsheets managing event budgets in Naira — fragile when multiple people need real-time access.' },
+    { type: 'sectionImage', placeholderUrl: 'https://i.ibb.co/q3GyQ0j9/Nigerian-event-industry.webp', alt: 'Nigerian event budget spreadsheet on a laptop', caption: 'Excel spreadsheets managing event budgets in Naira — fragile when multiple people need real-time access.' },
 
     {
       type: 'heading', level: 2, text: 'The Real Cost of Managing Events on WhatsApp',
@@ -103,7 +103,7 @@ const POST_WHATSAPP_EXCEL: StaticPost = {
       text: 'After the event ends, the WhatsApp groups go quiet and the Excel sheet closes. What went wrong with that decorator? Why did the AV setup run 45 minutes late? What did you actually spend versus what you budgeted? This information lives in someone\'s memory, which means the same mistakes are available to happen at the next event.',
     },
 
-    { type: 'sectionImage', placeholderUrl: 'https://picsum.photos/seed/nigerian-event-coordination/800/400', alt: 'Nigerian event coordination team meeting', caption: 'Professional event management in Nigeria requires more than just messaging apps and spreadsheets.' },
+    { type: 'sectionImage', placeholderUrl: 'https://i.ibb.co/fG23vYXY/The-Nigerian-events-industry-2.webp', alt: 'Nigerian event coordination team meeting', caption: 'Professional event management in Nigeria requires more than just messaging apps and spreadsheets.' },
 
     {
       type: 'heading', level: 2, text: 'Why Excel Is a Fragile System for Nigerian Event Planners',
@@ -129,7 +129,7 @@ const POST_WHATSAPP_EXCEL: StaticPost = {
       text: 'These are not criticisms of Excel. These are just things a spreadsheet was never designed to do — and Nigerian event professionals deserve tools built for how they actually work.',
     },
 
-    { type: 'sectionImage', placeholderUrl: 'https://picsum.photos/seed/event-management-dashboard/800/400', alt: 'Event management software dashboard showing vendor tracking and budget overview', caption: 'Modern event platforms designed for the Nigerian market provide real-time data without manual spreadsheet updates.' },
+    { type: 'sectionImage', placeholderUrl: 'https://i.ibb.co/VckXyRm7/95806.jpg', alt: 'Event management software dashboard showing vendor tracking and budget overview', caption: 'Modern event platforms designed for the Nigerian market provide real-time data without manual spreadsheet updates.' },
 
     {
       type: 'heading', level: 2, text: 'What Professional Event Management Actually Requires in Nigeria',
@@ -163,7 +163,7 @@ const POST_WHATSAPP_EXCEL: StaticPost = {
       text: 'A client who can see their event\'s progress through a clean portal — without calling you to ask — is a client who refers you to their friends and family.',
     },
 
-    { type: 'sectionImage', placeholderUrl: 'https://picsum.photos/seed/naligrid-platform-showcase/800/400', alt: 'NaliGrid event planning software interface on multiple devices', caption: 'NaliGrid is purpose-built for the Nigerian event industry.' },
+    { type: 'sectionImage', placeholderUrl: 'https://i.ibb.co/BH8HPKY6/2150183724.jpg', alt: 'NaliGrid event planning software interface on multiple devices', caption: 'NaliGrid is purpose-built for the Nigerian event industry.' },
 
     {
       type: 'heading', level: 2, text: 'What Nigerian Planners Are Switching To',
@@ -185,7 +185,7 @@ const POST_WHATSAPP_EXCEL: StaticPost = {
       text: 'It\'s priced per event in Nigerian Naira, starting from ₦5,000 for an intimate event — because Nigerian planners run events, not monthly subscriptions. No dollar pricing. No foreign payment gateways.',
     },
 
-    { type: 'sectionImage', placeholderUrl: 'https://picsum.photos/seed/nigerian-event-celebration/800/400', alt: 'Vibrant Nigerian wedding celebration', caption: 'The Nigerian events industry is professionalising rapidly, and forward-thinking planners are upgrading their tools.' },
+    { type: 'sectionImage', placeholderUrl: 'https://i.ibb.co/p6HCMQGk/50339.jpg', alt: 'Vibrant Nigerian wedding celebration', caption: 'The Nigerian events industry is professionalising rapidly, and forward-thinking planners are upgrading their tools.' },
 
     {
       type: 'heading', level: 2, text: 'The Shift That\'s Coming',

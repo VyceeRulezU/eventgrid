@@ -1,6 +1,7 @@
 import { SEO } from '@/components/shared/SEO'
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
+import BlogSection from '@/pages/landing/BlogSection'
 import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
 import Footer from '@/pages/landing/Footer'
@@ -63,6 +64,8 @@ export function AboutPage() {
           </div>
         </div>
       </section>
+
+      <BlogSection hideEyebrow />
 
       <FaqSection
         items={[

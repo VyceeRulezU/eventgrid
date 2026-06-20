@@ -277,18 +277,16 @@ export function Sidebar() {
               </span>
             )}
           </NavLink>
-          {role !== 'super_admin' && (
-            <NavLink
-              to="/settings"
-              className={({ isActive }) =>
-                `${styles.navItem} ${isActive ? styles.active : ''}`
-              }
-              onClick={() => setSidebarOpen(false)}
-            >
-              <Settings size={20} />
-              <span>Settings</span>
-            </NavLink>
-          )}
+          <NavLink
+            to="/settings"
+            className={({ isActive }) =>
+              `${styles.navItem} ${isActive ? styles.active : ''}`
+            }
+            onClick={() => setSidebarOpen(false)}
+          >
+            <Settings size={20} />
+            <span>Settings</span>
+          </NavLink>
           <button className={styles.navItem} onClick={handleLogout}>
             <LogOut size={20} />
             <span>Log out</span>
