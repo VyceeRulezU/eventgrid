@@ -53,9 +53,13 @@
 }
 
 .logoImg {
-  height: 48px;
+  height: 64px;
   width: auto;
   display: block;
+}
+
+.landingLogo {
+  height: 64px;
 }
 
 /* ── Desktop nav links ── */

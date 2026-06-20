@@ -192,7 +192,7 @@ export function AdminTestimonialsPage() {
       <div className={styles.page}>
         <AdminPageHero icon={MessageSquareText} title="Testimonials" subtitle="Loading..." />
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 200, gap: 'var(--space-4)' }}>
-          <img src="/EventGrid-favicon.svg" alt="" style={{ width: 48, height: 48, opacity: 0.5 }} />
+          <img src="/ng-new-logo.png" alt="" style={{ width: 48, height: 48, opacity: 0.5 }} />
           <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>Loading testimonials...</div>
         </div>
       </div>

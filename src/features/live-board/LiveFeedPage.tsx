@@ -144,7 +144,7 @@ export function LiveFeedPage() {
     return (
       <div className={styles.page}>
         <div className={styles.loadingWrap}>
-          <img src="/EventGrid-favicon.svg" alt="Loading" className={styles.loadingImg} />
+          <img src="/ng-new-logo.png" alt="Loading" className={styles.loadingImg} />
           <div className={styles.loadingText}>Loading live feed...</div>
         </div>
       </div>

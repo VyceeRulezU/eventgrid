@@ -170,7 +170,7 @@ export function ClientPortalPage() {
     <div className={styles.portalPage}>
       <header className={styles.portalHeader}>
         <div className={styles.headerLeft}>
-          <img src="/EventGrid-logo-white.svg" alt="NaliGrid" className={styles.headerLogoLg} />
+          <img src="/ng-logo-wg.svg" alt="NaliGrid" className={styles.headerLogoLg} />
         </div>
       </header>
       <div className={styles.skeletonWrap}>
@@ -185,7 +185,7 @@ export function ClientPortalPage() {
     <div className={styles.portalPage}>
       <header className={styles.portalHeader}>
         <div className={styles.headerLeft}>
-          <img src="/EventGrid-logo-white.svg" alt="NaliGrid" className={styles.headerLogoLg} />
+          <img src="/ng-logo-wg.svg" alt="NaliGrid" className={styles.headerLogoLg} />
         </div>
       </header>
       <div className={styles.errorWrap}>
@@ -222,7 +222,7 @@ export function ClientPortalPage() {
       <SEO title={`Event Portal | ${event.name}`} description={`Client portal for ${event.name}`} noindex />
       <header className={styles.portalHeader}>
         <div className={styles.headerLeft}>
-          <img src="/EventGrid-logo-white.svg" alt="NaliGrid" className={styles.headerLogoLg} />
+          <img src="/ng-logo-wg.svg" alt="NaliGrid" className={styles.headerLogoLg} />
           <div className={styles.headerDivider} />
           <span className={styles.headerPortalBadge}>Client Portal</span>
         </div>

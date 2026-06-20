@@ -49,7 +49,7 @@ export function Table({
       {loading ? (
         loadingIndicator || (
           <div className={styles.loading}>
-            <img src="/EventGrid-favicon.svg" alt="Loading" style={{ width: 48, height: 48, opacity: 0.5 }} />
+            <img src="/ng-new-logo.png" alt="Loading" style={{ width: 48, height: 48, opacity: 0.5 }} />
             <div className={styles.loadingText}>Loading...</div>
           </div>
         )

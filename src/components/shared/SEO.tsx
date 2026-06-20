@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async'
 
 const SITE_URL = import.meta.env.VITE_APP_URL || 'https://eventgrid.ng'
-const SITE_IMAGE = `${SITE_URL}/favicon/EventGrid-logo.png`
+const SITE_IMAGE = `${SITE_URL}/og-image-ng.png`
 const DEFAULT_TITLE = 'NaliGrid — Event Management Platform'
 const DEFAULT_DESC = 'The premium event management platform built for event planners, coordinators, vendors, and clients.'
 const DEFAULT_KEYWORDS = 'event planning, event management, nigeria events, wedding coordinator, corporate event planner, budget tracker, live board, paystack, korapay'
@@ -38,7 +38,7 @@ export function SEO({
     '@type': 'Organization',
     name: 'NaliGrid',
     url: SITE_URL,
-    logo: `${SITE_URL}/EventGrid-logo.svg`,
+    logo: `${SITE_URL}/ng-logo-wg.svg`,
     description: DEFAULT_DESC,
     sameAs: [],
   }
@@ -62,7 +62,7 @@ export function SEO({
       name: 'NaliGrid',
       logo: {
         '@type': 'ImageObject',
-        url: `${SITE_URL}/EventGrid-logo.svg`,
+        url: `${SITE_URL}/ng-logo-wg.svg`,
       },
     },
     mainEntityOfPage: {
@@ -83,11 +83,9 @@ export function SEO({
       <link rel="canonical" href={canonicalUrl} />
 
       {/* Favicon */}
-      <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
-      <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
-      <link rel="shortcut icon" href="/favicon/favicon.ico" />
-      <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
-      <link rel="manifest" href="/favicon/site.webmanifest" />
+      <link rel="icon" type="image/png" sizes="96x96" href="/ng-new-logo.png" />
+      <link rel="shortcut icon" href="/ng-new-logo.png" />
+      <link rel="apple-touch-icon" sizes="180x180" href="/ng-new-logo.png" />
 
       {/* Open Graph / Facebook */}
       <meta property="og:type" content={type} />

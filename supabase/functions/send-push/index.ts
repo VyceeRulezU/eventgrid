@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
       vapidPrivateKey
     )
 
-    const payload = JSON.stringify({ title, body, url: '/', icon: '/favicon/favicon-96x96.png' })
+    const payload = JSON.stringify({ title, body, url: '/', icon: '/ng-new-logo.png' })
     let sent = 0
 
     for (const sub of subs) {

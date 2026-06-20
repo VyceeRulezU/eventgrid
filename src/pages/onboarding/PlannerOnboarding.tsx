@@ -206,7 +206,7 @@ export function PlannerOnboarding() {
         <div className={styles.topBar}>
           <div className={styles.branding}>
             <Link to="/">
-              <img src="/EventGrid-logo-white.svg" alt="NaliGrid Logo" className={styles.brandLogoImage} />
+              <img src="/ng-logo-wg.svg" alt="NaliGrid Logo" className={styles.brandLogoImage} />
             </Link>
           </div>
           <div className={styles.topRightActions}>

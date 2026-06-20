@@ -98,7 +98,7 @@ export function AuthTestimonials() {
         <div className={styles.leftContent}>
           <div className={styles.branding}>
             <Link to="/">
-              <img src="/EventGrid-logo-white.svg" alt="NaliGrid Logo" className={styles.brandLogoImage} />
+              <img src="/ng-logo-wg.svg" alt="NaliGrid Logo" className={styles.brandLogoImage} />
             </Link>
           </div>
 

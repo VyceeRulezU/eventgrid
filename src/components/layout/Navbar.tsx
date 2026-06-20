@@ -17,7 +17,11 @@ const NAV_LINKS: NavLinkItem[] = [
   { label: 'For Coordinators',  href: '/coordinators', isHash: false },
 ]
 
-export default function Navbar() {
+interface NavbarProps {
+  landing?: boolean
+}
+
+export default function Navbar({ landing }: NavbarProps) {
   const [scrolled, setScrolled]     = useState(false)
   const [menuOpen, setMenuOpen]     = useState(false)
   const menuRef                      = useRef<HTMLDivElement>(null)
@@ -97,7 +101,7 @@ export default function Navbar() {
     >
       <div className={styles.container}>
         <Link to="/home" className={styles.logo} aria-label="NaliGrid home">
-          <img src="/EventGrid-logo-white.svg" alt="NaliGrid" className={styles.logoImg} />
+          <img src="/ng-logo-wg.svg" alt="NaliGrid" className={`${styles.logoImg} ${landing ? styles.landingLogo : ''}`} />
         </Link>
 
         {/* Desktop nav links */}

@@ -52,7 +52,7 @@ export function AdminLoginPage() {
       <div className="adminAuthContainer">
         <div className="adminAuthLeft">
           <div className="adminAuthTopBar">
-            <img src="/EventGrid-logo-white.svg" alt="NaliGrid" style={{ height: 36, width: 'auto', zIndex: 2, position: 'relative' }} />
+            <img src="/ng-logo-wg.svg" alt="NaliGrid" style={{ height: 36, width: 'auto', zIndex: 2, position: 'relative' }} />
           </div>
 
           <div className="adminAuthCenter">

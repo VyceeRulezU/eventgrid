@@ -22,6 +22,10 @@
     padding-top: var(--space-4);
     padding-bottom: var(--space-4);
   }
+
+  .mainCollapsed {
+    margin-left: calc(var(--sidebar-collapsed-width) + var(--space-4) + 1rem);
+  }
 }
 
 .content {

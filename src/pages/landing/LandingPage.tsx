@@ -26,7 +26,7 @@ export function LandingPage() {
         description="The premium event management platform built for Nigerian planners, coordinators, vendors, and clients." 
       />
 
-      <Navbar />
+      <Navbar landing />
       
       <main>
         {/* SECTION: Hero */}

@@ -24,12 +24,15 @@ export interface PremiumNotification {
 
 interface UIStore {
   sidebarOpen: boolean
+  sidebarCollapsed: boolean
   activeModal: string | null
   toasts: Toast[]
   theme: 'dark'
   modalNotification: PremiumNotification | null
   toastNotifications: PremiumNotification[]
   setSidebarOpen: (open: boolean) => void
+  toggleSidebarCollapsed: () => void
+  setSidebarCollapsed: (collapsed: boolean) => void
   setActiveModal: (modal: string | null) => void
   showToast: (toast: Omit<Toast, 'id'>) => void
   dismissToast: (id: string) => void
@@ -44,6 +47,7 @@ let notifCounter = 0
 
 export const useUIStore = create<UIStore>((set) => ({
   sidebarOpen: false,
+  sidebarCollapsed: false,
   activeModal: null,
   toasts: [],
   theme: 'dark',
@@ -51,6 +55,8 @@ export const useUIStore = create<UIStore>((set) => ({
   toastNotifications: [],
 
   setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
+  toggleSidebarCollapsed: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
+  setSidebarCollapsed: (sidebarCollapsed) => set({ sidebarCollapsed }),
   setActiveModal: (activeModal) => set({ activeModal }),
 
   showToast: (toast) =>

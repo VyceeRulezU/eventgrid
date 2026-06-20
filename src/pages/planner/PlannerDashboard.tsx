@@ -677,7 +677,7 @@ export function PlannerDashboard() {
     return (
       <div className={styles.dashboard}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: 'var(--space-4)' }}>
-          <img src="/EventGrid-favicon.svg" alt="Loading" style={{ width: 56, height: 56, opacity: 0.4 }} />
+          <img src="/ng-new-logo.png" alt="Loading" style={{ width: 56, height: 56, opacity: 0.4 }} />
           <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>Loading dashboard...</div>
         </div>
       </div>

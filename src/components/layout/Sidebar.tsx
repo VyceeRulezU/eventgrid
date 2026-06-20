@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Calendar, Wallet, Users, BookOpen,
   Settings, LogOut, X, ArrowLeft, ListChecks, Radio,
   FileText, TrendingUp, MessageSquare, Bell, Image,
-  ClipboardList,
+  ClipboardList, PanelLeftClose, PanelLeft,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { useNotificationStore } from '@/store/notification.store'
@@ -26,7 +26,7 @@ type NavCategory = {
 export function Sidebar() {
   const role = useAuthStore((s) => s.role)
   const clearAuth = useAuthStore((s) => s.clearAuth)
-  const { sidebarOpen, setSidebarOpen } = useUIStore()
+  const { sidebarOpen, setSidebarOpen, sidebarCollapsed, toggleSidebarCollapsed } = useUIStore()
   const activeEvent = useEventStore((s) => s.activeEvent)
   const unreadCount = useNotificationStore((s) => s.unreadCount)
   const navigate = useNavigate()
@@ -91,11 +91,19 @@ export function Sidebar() {
   return (
     <>
       {sidebarOpen && <div className={styles.overlay} onClick={() => setSidebarOpen(false)} />}
-      <aside className={`${styles.sidebar} ${sidebarOpen ? styles.open : ''}`}>
+      <aside className={`${styles.sidebar} ${sidebarOpen ? styles.open : ''} ${sidebarCollapsed ? styles.collapsed : ''}`}>
         <div className={styles.header}>
           <Link to="/home" className={styles.logo} onClick={() => setSidebarOpen(false)}>
-            <img src="/EventGrid-logo-white.svg" alt="NaliGrid" className={styles.logoImg} />
+            <img src="/ng-logo-wg.svg" alt="NaliGrid" className={styles.logoImg} />
+            <img src="/ng-new-logo.svg" alt="NaliGrid" className={styles.logoSmall} />
           </Link>
+          <button
+            className={styles.collapseBtn}
+            onClick={toggleSidebarCollapsed}
+            aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {sidebarCollapsed ? <PanelLeft size={20} /> : <PanelLeftClose size={20} />}
+          </button>
           <button
             className={styles.closeBtn}
             onClick={() => setSidebarOpen(false)}

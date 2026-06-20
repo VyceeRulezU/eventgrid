@@ -20,7 +20,7 @@ type PageStatus = 'loading' | 'form' | 'done' | 'error'
 
 const STORAGE_URL = import.meta.env.VITE_STORAGE_URL || 'https://pub-962633edede94bf8a4e41b91db2b602a.r2.dev'
 const HERO_URL = `${STORAGE_URL}/emails/corporate_event_hall.png`
-const LOGO_URL = `${STORAGE_URL}/EventGrid-logo-white.svg`
+const LOGO_URL = `${STORAGE_URL}/ng-logo-wg.svg`
 
 export function GuestRsvpPage() {
   const [params] = useSearchParams()

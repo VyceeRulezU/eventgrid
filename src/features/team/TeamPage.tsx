@@ -314,7 +314,7 @@ export function TeamPage() {
       <div className={styles.page}>
         <div className={styles.header}><h2 className={styles.headerTitle}>Team</h2></div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 200, gap: 'var(--space-4)' }}>
-          <img src="/EventGrid-favicon.svg" alt="Loading" style={{ width: 48, height: 48, opacity: 0.5 }} />
+          <img src="/ng-new-logo.png" alt="Loading" style={{ width: 48, height: 48, opacity: 0.5 }} />
           <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>Loading team...</div>
         </div>
       </div>

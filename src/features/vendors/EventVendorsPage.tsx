@@ -111,7 +111,7 @@ export function EventVendorsPage({ standalone = true }: { standalone?: boolean }
 
         {loading ? (
           <div className={styles.loading}>
-            <img src="/EventGrid-favicon.svg" alt="Loading" style={{ width: 48, height: 48, opacity: 0.5 }} />
+            <img src="/ng-new-logo.png" alt="Loading" style={{ width: 48, height: 48, opacity: 0.5 }} />
           </div>
         ) : vendors.length === 0 ? (
           <div className="empty-state">
@@ -310,7 +310,7 @@ function AddEventVendorModal({ eventId, onClose, onSaved }: {
           <div className="modal-card-body" style={{ maxHeight: 480, overflowY: 'auto', minHeight: 0 }}>
             {loading ? (
               <div style={{ textAlign: 'center', padding: 'var(--space-8)' }}>
-                <img src="/EventGrid-favicon.svg" alt="Loading" style={{ width: 32, height: 32, opacity: 0.5 }} />
+                <img src="/ng-new-logo.png" alt="Loading" style={{ width: 32, height: 32, opacity: 0.5 }} />
               </div>
             ) : (
               <>

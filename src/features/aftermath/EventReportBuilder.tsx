@@ -176,7 +176,7 @@ export function EventReportBuilder({ eventId }: { eventId: string }) {
   if (loading) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 200, gap: 'var(--space-4)' }}>
-        <img src="/EventGrid-favicon.svg" alt="Loading" style={{ width: 48, height: 48, opacity: 0.5 }} />
+        <img src="/ng-new-logo.png" alt="Loading" style={{ width: 48, height: 48, opacity: 0.5 }} />
         <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>Loading report data...</div>
       </div>
     )

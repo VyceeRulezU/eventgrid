@@ -551,7 +551,7 @@ export function EventDashboardPage() {
     return (
       <div className={styles.page}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 320, gap: 'var(--space-4)' }}>
-          <img src="/EventGrid-favicon.svg" alt="" style={{ width: 48, height: 48, opacity: 0.4 }} />
+          <img src="/ng-new-logo.png" alt="" style={{ width: 48, height: 48, opacity: 0.4 }} />
           <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>Loading event...</div>
         </div>
       </div>

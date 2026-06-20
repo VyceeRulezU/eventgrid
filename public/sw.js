@@ -7,15 +7,15 @@ self.addEventListener('activate', (event) => {
 })
 
 self.addEventListener('push', (event) => {
-  let data = { title: 'EventGrid', body: '', icon: '/favicon/favicon-96x96.png', badge: '/favicon/favicon-96x96.png' }
+  let data = { title: 'EventGrid', body: '', icon: '/ng-new-logo.png', badge: '/ng-new-logo.png' }
   try {
     data = event.data ? JSON.parse(event.data.text()) : data
   } catch {}
 
   const options = {
     body: data.body || '',
-    icon: data.icon || '/favicon/favicon-96x96.png',
-    badge: data.badge || '/favicon/favicon-96x96.png',
+    icon: data.icon || '/ng-new-logo.png',
+    badge: data.badge || '/ng-new-logo.png',
     vibrate: [200, 100, 200],
     data: { url: data.url || '/' },
   }
