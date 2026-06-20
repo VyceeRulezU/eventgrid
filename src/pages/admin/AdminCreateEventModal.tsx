@@ -168,7 +168,7 @@ export function AdminCreateEventModal({ onClose }: Props) {
             <input id="modal-event-name" type="text" className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Adebayo & Folake Wedding" required />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)', marginBottom: 'var(--space-4)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-3)', marginBottom: 'var(--space-4)' }}>
             <div className="input-wrapper">
               <label className="input-label">Event Type *</label>
               <DropdownMenu
@@ -242,7 +242,7 @@ export function AdminCreateEventModal({ onClose }: Props) {
             <input id="modal-venue-name" type="text" className="input" value={venueName} onChange={(e) => setVenueName(e.target.value)} placeholder="e.g. Eko Convention Centre, Victoria Island" />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)', marginBottom: 'var(--space-5)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-3)', marginBottom: 'var(--space-5)' }}>
             <div className="input-wrapper">
               <label className="input-label">Event Date</label>
               <button type="button" className="input" onClick={() => setShowCalendar(true)}
