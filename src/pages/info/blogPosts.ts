@@ -235,7 +235,7 @@ const POST_ESCROW: StaticPost = {
       text: 'This is where escrow payments are changing the game for event sourcing in Nigeria.',
     },
 
-    { type: 'sectionImage', placeholderUrl: 'https://picsum.photos/seed/naira-payments/800/400', alt: 'Stack of Nigerian Naira notes representing event vendor deposits', caption: 'Vendor deposit disputes are one of the most common financial issues Nigerian event planners face.' },
+    { type: 'sectionImage', placeholderUrl: 'https://i.ibb.co/8DDtFKR3/317.jpg', alt: 'Stack of Nigerian Naira notes representing event vendor deposits', caption: 'Vendor deposit disputes are one of the most common financial issues Nigerian event planners face.' },
 
     {
       type: 'heading', level: 2, text: 'The Deposit Problem',
@@ -249,7 +249,7 @@ const POST_ESCROW: StaticPost = {
       text: 'Escrow flips this model. Instead of paying vendors directly, the funds are held by a trusted third party and released only when agreed conditions are met — the caterer has delivered the food, the decorator has completed the setup, the photographer has submitted the edited photos.',
     },
 
-    { type: 'sectionImage', placeholderUrl: 'https://picsum.photos/seed/escrow-agreement/800/400', alt: 'Business handshake representing escrow agreement between planner and vendor', caption: 'Escrow agreements protect both planners and vendors by ensuring payment is tied to delivery.' },
+    { type: 'sectionImage', placeholderUrl: 'https://i.ibb.co/sJcgghdm/68537.jpg', alt: 'Business handshake representing escrow agreement between planner and vendor', caption: 'Escrow agreements protect both planners and vendors by ensuring payment is tied to delivery.' },
 
     {
       type: 'heading', level: 2, text: 'How Escrow Protects Nigerian Planners',
@@ -267,7 +267,7 @@ const POST_ESCROW: StaticPost = {
       text: 'When you tell a venue or caterer that their payment is held in escrow and will be released upon delivery, it signals that your business operates professionally. It also gives your clients confidence that their funds are protected.',
     },
 
-    { type: 'sectionImage', placeholderUrl: 'https://picsum.photos/seed/nigeria-event-venue/800/400', alt: 'Elegant event venue in Nigeria with professional setup', caption: 'As Nigerian events grow in scale and budget, secure payment systems become essential.' },
+    { type: 'sectionImage', placeholderUrl: 'https://i.ibb.co/q3HJFnff/8106331-63661.jpg', alt: 'Elegant event venue in Nigeria with professional setup', caption: 'As Nigerian events grow in scale and budget, secure payment systems become essential.' },
 
     {
       type: 'heading', level: 2, text: 'What This Means for the Industry',
@@ -300,7 +300,7 @@ const POST_CHECKLIST: StaticPost = {
   publishedAt: '2026-05-28T00:00:00.000Z',
   readTime: '8 min read',
   featuredImage: {
-    placeholderUrl: 'https://picsum.photos/seed/nigerian-event-coordinator/1200/600',
+    placeholderUrl: 'https://i.ibb.co/G4TjtVcs/blg-4.jpg',
     alt: 'Nigerian event coordinator with headset managing event day operations',
   },
   body: [
@@ -327,7 +327,7 @@ const POST_CHECKLIST: StaticPost = {
       text: 'Confirm all vendor arrival times. Share the final run of show with every vendor and team member. Verify that all equipment, décor, and supplies have been delivered or are scheduled. Confirm guest count with the caterer. Assign team members to specific vendor stations.',
     },
 
-    { type: 'sectionImage', placeholderUrl: 'https://picsum.photos/seed/vendor-checkin/800/400', alt: 'Event vendors checking in at a venue reception', caption: 'Vendor check-in is the first critical coordination milestone on event day.' },
+    { type: 'sectionImage', placeholderUrl: 'https://i.ibb.co/Pv2PVy2y/78794.jpg', alt: 'Event vendors checking in at a venue reception', caption: 'Vendor check-in is the first critical coordination milestone on event day.' },
 
     {
       type: 'heading', level: 2, text: 'Phase 2: Vendor Check-In and Setup',
@@ -341,7 +341,7 @@ const POST_CHECKLIST: StaticPost = {
       text: 'A live coordination board — whether physical or digital — should track the status of every vendor station in real time. Catering: checked in, setting up. Decor: arrived, waiting for AV handover. Photography: on site, ready.',
     },
 
-    { type: 'sectionImage', placeholderUrl: 'https://picsum.photos/seed/live-coordination/800/400', alt: 'Event coordinator using a live board app to track vendor status', caption: 'Real-time vendor tracking transforms chaotic event days into coordinated operations.' },
+    { type: 'sectionImage', placeholderUrl: 'https://i.ibb.co/5xwrXxS9/165463.jpg', alt: 'Event coordinator using a live board app to track vendor status', caption: 'Real-time vendor tracking transforms chaotic event days into coordinated operations.' },
 
     {
       type: 'heading', level: 2, text: 'Phase 3: Guest Arrival and Flow Management',
@@ -367,7 +367,7 @@ const POST_CHECKLIST: StaticPost = {
       text: 'A digital run of show shared with key vendors and team members ensures everyone knows what\'s next. When things inevitably shift — the MC runs long, a guest speaker arrives late — the updated timeline should be visible to everyone immediately, not communicated through a frantic chain of phone calls.',
     },
 
-    { type: 'sectionImage', placeholderUrl: 'https://picsum.photos/seed/nigerian-event-celebration/800/400', alt: 'Nigerian wedding reception with guests celebrating', caption: 'Seamless execution requires every team member to know their role in real time.' },
+    { type: 'sectionImage', placeholderUrl: 'https://i.ibb.co/hRZd30L2/2386.jpg', alt: 'Nigerian wedding reception with guests celebrating', caption: 'Seamless execution requires every team member to know their role in real time.' },
 
     {
       type: 'heading', level: 2, text: 'Why Digital Coordination Tools Matter for Nigerian Events',
@@ -400,7 +400,7 @@ const POST_RECONCILE: StaticPost = {
   publishedAt: '2026-05-15T00:00:00.000Z',
   readTime: '6 min read',
   featuredImage: {
-    placeholderUrl: 'https://picsum.photos/seed/financial-reconciliation/1200/600',
+    placeholderUrl: 'https://i.ibb.co/GbgjCZj/blg-1.jpg',
     alt: 'Nigerian event planner reviewing financial documents and receipts on a desk',
   },
   body: [
@@ -413,7 +413,7 @@ const POST_RECONCILE: StaticPost = {
       text: 'Post-event financial reconciliation is where many Nigerian planners lose money — not through overspending during the event, but through poor tracking and documentation after it. Here are the five most common mistakes and how to avoid them.',
     },
 
-    { type: 'sectionImage', placeholderUrl: 'https://picsum.photos/seed/receipts-naira/800/400', alt: 'Spreadsheet with Nigerian Naira budget tracking and receipts', caption: 'Post-event reconciliation is often the most stressful part of event management for Nigerian planners.' },
+    { type: 'sectionImage', placeholderUrl: 'https://i.ibb.co/jvT5GgDR/blg-2.jpg', alt: 'Spreadsheet with Nigerian Naira budget tracking and receipts', caption: 'Post-event reconciliation is often the most stressful part of event management for Nigerian planners.' },
 
     {
       type: 'heading', level: 2, text: 'Mistake 1: Relying on Bank App Screenshots as Receipts',
@@ -427,7 +427,7 @@ const POST_RECONCILE: StaticPost = {
       text: 'Fix: Record every vendor payment in a structured system at the time you make it. Include the vendor name, amount in Naira, payment type (deposit/balance), payment date, and the event it belongs to.',
     },
 
-    { type: 'sectionImage', placeholderUrl: 'https://picsum.photos/seed/vendor-payment-tracking/800/400', alt: 'Vendor payment tracking showing Naira amounts and payment status', caption: 'Structured payment tracking eliminates the guesswork from financial reconciliation.' },
+    { type: 'sectionImage', placeholderUrl: 'https://i.ibb.co/TxTzFSND/blg-3.jpg', alt: 'Vendor payment tracking showing Naira amounts and payment status', caption: 'Structured payment tracking eliminates the guesswork from financial reconciliation.' },
 
     {
       type: 'heading', level: 2, text: 'Mistake 2: Mixing Personal and Business Expenses',
@@ -453,7 +453,7 @@ const POST_RECONCILE: StaticPost = {
       text: 'Fix: Record the gross amount (what the client paid) and the net amount (what you received) for every transaction. Factor gateway fees into your budget calculations so you\'re not surprised at reconciliation time.',
     },
 
-    { type: 'sectionImage', placeholderUrl: 'https://picsum.photos/seed/budget-analysis-nigeria/800/400', alt: 'Event budget analysis showing Naira amounts with visual charts', caption: 'Accurate budget versus actual analysis helps Nigerian planners price future events correctly.' },
+    { type: 'sectionImage', placeholderUrl: 'https://i.ibb.co/G4TjtVcs/blg-4.jpg', alt: 'Event budget analysis showing Naira amounts with visual charts', caption: 'Accurate budget versus actual analysis helps Nigerian planners price future events correctly.' },
 
     {
       type: 'heading', level: 2, text: 'Mistake 4: Not Reconciling Immediately After the Event',
