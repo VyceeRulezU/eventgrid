@@ -5,9 +5,9 @@ import { useUIStore } from '@/store/ui.store'
 import { AdminPageHero } from '@/components/shared/AdminPageHero'
 import { SearchBar } from '@/components/shared/SearchBar'
 import { Button } from '@/components/ui/Button'
-
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
-import { Gift, Users, TrendingUp, DollarSign, X, Plus, Trash2, ListChecks, Hash } from 'lucide-react'
+import { Gift, Users, TrendingUp, DollarSign, X, Plus, Trash2, ListChecks, Hash, Link2 } from 'lucide-react'
+import { GenerateReferralPortalModal } from '@/features/referrals/GenerateReferralPortalModal'
 import { Tabs, type TabItem } from '@/components/ui/Tabs'
 import type { ReferralPartner, ReferralRedemption, Profile } from '@/types'
 import styles from './AdminReferralsPage.module.css'
@@ -41,6 +41,7 @@ export function AdminReferralsPage() {
   const [commSearch, setCommSearch] = useState('')
   const [commStatusFilter, setCommStatusFilter] = useState<string>('all')
   const [showForm, setShowForm] = useState(false)
+  const [showPortalModal, setShowPortalModal] = useState(false)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({ name: '', email: '', phone: '', code: '' })
   const showModal = useUIStore((s) => s.showModal)
@@ -188,10 +189,16 @@ export function AdminReferralsPage() {
         subtitle="Manage referral partners and commissions"
         actions={
           isAdmin ? (
-            <Button variant="primary" size="sm" onClick={() => { resetForm(); setShowForm(true) }}>
-              <Plus size={16} />
-              Add Referral Code
-            </Button>
+            <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
+              <Button variant="secondary" size="sm" onClick={() => setShowPortalModal(true)}>
+                <Link2 size={16} />
+                Portal Link
+              </Button>
+              <Button variant="primary" size="sm" onClick={() => { resetForm(); setShowForm(true) }}>
+                <Plus size={16} />
+                Add Referral Code
+              </Button>
+            </div>
           ) : undefined
         }
       />
@@ -419,6 +426,15 @@ export function AdminReferralsPage() {
           </div>
         )}
       </div>
+
+      {/* Portal Link Modal */}
+      {showPortalModal && (
+        <GenerateReferralPortalModal
+          partners={partners}
+          onClose={() => setShowPortalModal(false)}
+          onChanged={loadData}
+        />
+      )}
 
       {/* Add Referral Code Modal */}
       {showForm && (

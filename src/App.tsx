@@ -69,6 +69,7 @@ const GuestManagementPage = lazy(() => import('@/features/guests/GuestManagement
 const FinancialsPage = lazy(() => import('@/features/financials/FinancialsPage').then(m => ({ default: m.FinancialsPage })))
 const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage').then(m => ({ default: m.SettingsPage })))
 const ClientPortalPage = lazy(() => import('@/features/client-portal/ClientPortalPage').then(m => ({ default: m.ClientPortalPage })))
+const ReferralPortalPage = lazy(() => import('@/features/referrals/ReferralPortalPage').then(m => ({ default: m.ReferralPortalPage })))
 const SuperAdminDashboard = lazy(() => import('@/pages/admin/SuperAdminDashboard').then(m => ({ default: m.SuperAdminDashboard })))
 const HelpPage = lazy(() => import('@/pages/settings/HelpPage').then(m => ({ default: m.HelpPage })))
 const MyTasksPage = lazy(() => import('@/pages/team/MyTasksPage').then(m => ({ default: m.MyTasksPage })))
@@ -491,6 +492,11 @@ export function App() {
         <Route path="/portal/:token" element={
           <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
             <ClientPortalPage />
+          </Suspense>
+        } />
+        <Route path="/portal/referral/:token" element={
+          <Suspense fallback={<div className="empty-state"><div className="empty-state__title">Loading...</div></div>}>
+            <ReferralPortalPage />
           </Suspense>
         } />
 

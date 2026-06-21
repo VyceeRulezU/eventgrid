@@ -41,6 +41,15 @@ export interface ReferralRedemption {
   created_at: string
 }
 
+export interface ReferralPortal {
+  id: string
+  partner_id: string
+  token: string
+  is_active: boolean
+  created_at: string
+  revoked_at: string | null
+}
+
 export interface Organization {
   id: string
   name: string
