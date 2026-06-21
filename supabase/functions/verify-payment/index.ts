@@ -1,5 +1,6 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { withIdempotency } from '../_shared/idempotency.ts'
+import { recordReferralCommission } from '../_shared/referral.ts'
 
 const supabaseAdmin = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -173,6 +174,13 @@ Deno.serve(async (req) => {
       }
 
       if (updatedEvent) {
+        // Record referral commission (best-effort)
+        try {
+          await recordReferralCommission(updatedEvent.created_by, event_id, reference)
+        } catch {
+          // Non-critical
+        }
+
         const { data: profile } = await supabaseAdmin
           .from('profiles')
           .select('email, display_name')

@@ -1,0 +1,189 @@
+.statsGrid {
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: repeat(4, 1fr);
+  margin-bottom: var(--space-6);
+}
+
+@media (max-width: 1240px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.statCard {
+  background: linear-gradient(180deg, var(--color-surface-2) 0%, rgba(31, 41, 55, 0.6) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 24px;
+  padding: var(--space-5) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  box-shadow: 0 10px 25px -10px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.statCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: transparent;
+}
+
+.statCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.statLabel {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.statValue {
+  font-size: 2.25rem;
+  font-weight: 900;
+  color: var(--color-text-primary);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  background: linear-gradient(135deg, #fff 50%, #d1d5db 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ── Shared planner-style table ── */
+.sectionCard {
+  background: var(--color-surface-2);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.tableScroll {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+}
+
+.tableHead {
+  display: flex;
+  padding: var(--space-4) var(--space-6);
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  background-color: rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  column-gap: var(--space-4);
+}
+
+.tableHead > * {
+  min-width: 0;
+}
+
+.tableBody {
+  display: flex;
+  flex-direction: column;
+}
+
+.tableBody .tableRow {
+  transition: all var(--transition-fast);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.tableBody .tableRow:last-child {
+  border-bottom: none;
+}
+
+.tableBody .tableRow:nth-child(odd) {
+  background-color: rgba(255, 255, 255, 0.005);
+}
+
+.tableBody .tableRow:nth-child(even) {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+.tableRow {
+  display: flex;
+  padding: var(--space-5) var(--space-6);
+  align-items: center;
+  column-gap: var(--space-4);
+}
+
+.tableRow > * {
+  min-width: 0;
+}
+
+.tableRow:hover {
+  background-color: rgba(212, 160, 23, 0.05);
+}
+
+/* Codes table columns (10) */
+.codesHead > *,
+.codesRow > * {
+  min-width: 0;
+}
+
+.codesHead > :nth-child(1),
+.codesRow > :nth-child(1) { flex: 2; }
+.codesHead > :nth-child(2),
+.codesRow > :nth-child(2) { flex: 0.8; }
+.codesHead > :nth-child(3),
+.codesRow > :nth-child(3) { flex: 1.2; }
+.codesHead > :nth-child(4),
+.codesRow > :nth-child(4) { flex: 0.8; }
+.codesHead > :nth-child(5),
+.codesRow > :nth-child(5) { flex: 0.6; text-align: center; }
+.codesHead > :nth-child(6),
+.codesRow > :nth-child(6) { flex: 0.6; text-align: center; }
+.codesHead > :nth-child(7),
+.codesRow > :nth-child(7) { flex: 0.8; text-align: right; }
+.codesHead > :nth-child(8),
+.codesRow > :nth-child(8) { flex: 0.8; text-align: right; }
+.codesHead > :nth-child(9),
+.codesRow > :nth-child(9) { flex: 0.6; text-align: center; }
+.codesHead > :nth-child(10),
+.codesRow > :nth-child(10) { flex: 0.4; text-align: center; }
+
+/* Commissions table columns (8) */
+.commHead > *,
+.commRow > * {
+  min-width: 0;
+}
+
+.commHead > :nth-child(1),
+.commRow > :nth-child(1) { flex: 1.5; }
+.commHead > :nth-child(2),
+.commRow > :nth-child(2) { flex: 2; }
+.commHead > :nth-child(3),
+.commRow > :nth-child(3) { flex: 0.8; }
+.commHead > :nth-child(4),
+.commRow > :nth-child(4) { flex: 0.8; text-align: right; }
+.commHead > :nth-child(5),
+.commRow > :nth-child(5) { flex: 0.6; text-align: center; }
+.commHead > :nth-child(6),
+.commRow > :nth-child(6) { flex: 0.8; }
+.commHead > :nth-child(7),
+.commRow > :nth-child(7) { flex: 0.8; }
+.commHead > :nth-child(8),
+.commRow > :nth-child(8) { flex: 0.5; text-align: center; }

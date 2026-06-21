@@ -82,6 +82,7 @@ const AdminEventsListPage = lazy(() => import('@/pages/admin/AdminEventsListPage
 const AdminVendorsPage = lazy(() => import('@/pages/admin/AdminVendorsPage').then(m => ({ default: m.AdminVendorsPage })))
 const AdminVendorDirectoryPage = lazy(() => import('@/pages/admin/AdminVendorDirectoryPage').then(m => ({ default: m.AdminVendorDirectoryPage })))
 const AdminTestimonialsPage = lazy(() => import('@/pages/admin/AdminTestimonialsPage').then(m => ({ default: m.AdminTestimonialsPage })))
+const AdminReferralsPage = lazy(() => import('@/pages/admin/AdminReferralsPage').then(m => ({ default: m.AdminReferralsPage })))
 
 
 const EventAssetsPage = lazy(() => import('@/features/assets/EventAssetsPage').then(m => ({ default: m.EventAssetsPage })))
@@ -630,6 +631,11 @@ export function App() {
           <Route path="/admin/testimonials" element={
             <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
               <RoleGuard allowedRole="super_admin"><AdminTestimonialsPage /></RoleGuard>
+            </Suspense>
+          } />
+          <Route path="/admin/referrals" element={
+            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
+              <RoleGuard allowedRole="super_admin"><AdminReferralsPage /></RoleGuard>
             </Suspense>
           } />
         </Route>

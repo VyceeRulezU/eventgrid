@@ -33,6 +33,12 @@ export function RegisterPage() {
   const inviteRole = searchParams.get('role')
   const isSuperAdminInvite = inviteRole === 'super_admin'
 
+  // Capture referral code from URL ?ref= parameter
+  const urlRef = searchParams.get('ref') || sessionStorage.getItem('eg-referral-code') || ''
+  if (searchParams.get('ref')) {
+    sessionStorage.setItem('eg-referral-code', searchParams.get('ref')!.toUpperCase())
+  }
+
   const adminRoles = ['super_admin', 'monitor', 'admin_support']
 
   if (inviteRole && adminRoles.includes(inviteRole)) {
@@ -44,6 +50,7 @@ export function RegisterPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
+  const [referralCode, setReferralCode] = useState(urlRef)
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -107,6 +114,9 @@ export function RegisterPage() {
       const metadata: Record<string, any> = { display_name: name, role, phone }
       if (isSuperAdminInvite) {
         metadata.is_super_admin = true
+      }
+      if (referralCode.trim()) {
+        metadata.referred_by_code = referralCode.trim().toUpperCase()
       }
 
       const captchaToken = getCaptchaToken()
@@ -279,6 +289,18 @@ export function RegisterPage() {
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="+234 800 000 0000"
+                  />
+                </div>
+
+                <div className="input-wrapper" style={{ marginTop: 'var(--space-4)' }}>
+                  <label className="input-label" htmlFor="referral">Referral code (optional)</label>
+                  <input
+                    id="referral"
+                    type="text"
+                    className={styles.inputField}
+                    value={referralCode}
+                    onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                    placeholder="e.g. QMARAVIE"
                   />
                 </div>
 

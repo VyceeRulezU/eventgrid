@@ -1,5 +1,6 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { createHmac } from 'node:crypto'
+import { recordReferralCommission } from '../_shared/referral.ts'
 
 const supabaseAdmin = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -113,6 +114,13 @@ Deno.serve(async (req) => {
         } catch (emailErr) {
           console.error('Error triggering payment email:', emailErr)
         }
+      }
+
+      // Record referral commission (best-effort)
+      try {
+        await recordReferralCommission(updatedEvent.created_by, eventId, reference)
+      } catch {
+        // Non-critical
       }
 
       // Mark idempotency key as completed

@@ -11,8 +11,32 @@ export interface Profile {
   is_super_admin?: boolean
   is_active: boolean
   free_tier_used?: boolean
+  referred_by_code?: string | null
   created_at: string
   updated_at: string
+}
+
+export interface ReferralPartner {
+  id: string
+  name: string
+  code: string
+  commission_type: 'per_activation' | 'percentage'
+  commission_amount: number
+  is_active: boolean
+  notes: string | null
+  created_at: string
+}
+
+export interface ReferralRedemption {
+  id: string
+  partner_id: string
+  referred_user_id: string
+  event_id: string | null
+  commission_amount: number
+  status: 'pending' | 'paid' | 'cancelled'
+  activated_at: string | null
+  paid_at: string | null
+  created_at: string
 }
 
 export interface Organization {
