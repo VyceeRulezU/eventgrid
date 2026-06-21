@@ -20,6 +20,8 @@ export interface ReferralPartner {
   id: string
   name: string
   code: string
+  email: string | null
+  phone: string | null
   commission_type: 'per_activation' | 'percentage'
   commission_amount: number
   is_active: boolean

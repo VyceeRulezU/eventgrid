@@ -35,7 +35,7 @@ export function AdminReferralsPage() {
 
   const [partners, setPartners] = useState<ReferralPartner[]>([])
   const [redemptions, setRedemptions] = useState<RedemptionWithUser[]>([])
-  const [loading, setLoading] = useState(true)
+  const [, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'commissions' | 'codes'>('commissions')
   const [searchQuery, setSearchQuery] = useState('')
   const [commSearch, setCommSearch] = useState('')
@@ -162,31 +162,6 @@ export function AdminReferralsPage() {
       ],
     })
   }
-
-  // --- Table columns ---
-  const partnerColumns: TableColumn[] = [
-    { key: 'name', label: 'Name' },
-    { key: 'code', label: 'Code' },
-    { key: 'email', label: 'Email' },
-    { key: 'phone', label: 'Phone' },
-    { key: 'signups', label: 'Signups', className: 'center-align', headerClassName: 'center-align' },
-    { key: 'activations', label: 'Activations', className: 'center-align', headerClassName: 'center-align' },
-    { key: 'earned', label: 'Earned', className: 'right-align', headerClassName: 'right-align' },
-    { key: 'outstanding', label: 'Outstanding', className: 'right-align', headerClassName: 'right-align' },
-    { key: 'status', label: 'Status', className: 'center-align', headerClassName: 'center-align' },
-    { key: 'actions', label: '' },
-  ]
-
-  const columns: TableColumn[] = [
-    { key: 'partner', label: 'Partner' },
-    { key: 'user', label: 'Referred User' },
-    { key: 'event', label: 'Event ID' },
-    { key: 'commission', label: 'Commission', className: 'right-align', headerClassName: 'right-align' },
-    { key: 'status', label: 'Status', className: 'center-align', headerClassName: 'center-align' },
-    { key: 'activated', label: 'Activated' },
-    { key: 'paid_at', label: 'Paid' },
-    { key: 'actions', label: '' },
-  ]
 
   const tabs: TabItem<'commissions' | 'codes'>[] = [
     { key: 'commissions', label: 'Commissions', icon: <ListChecks size={16} /> },
