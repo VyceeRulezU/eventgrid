@@ -20,8 +20,8 @@ export function NextStepCard({ eventId, paymentStatus, daysUntilEvent, preEventC
     content = {
       icon: AlertTriangle,
       title: 'Activate your event',
-      description: 'Complete payment to unlock all event management features.',
-      action: 'Pay Now →',
+      description: 'Activate to unlock all event management features.',
+      action: 'Activate Free →',
       onClick: () => document.getElementById('payment-section')?.click(),
       urgent: true,
     }

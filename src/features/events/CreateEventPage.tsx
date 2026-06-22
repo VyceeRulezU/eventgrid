@@ -307,7 +307,7 @@ export function CreateEventPage() {
         size_tier: 'standard',
         budget_total: form.budgetTotal * 100 || null,
         status: 'active',
-        payment_status: 'unpaid',
+        payment_status: 'paid',
         slug: generateSlug(form.name),
       })
       .select()
@@ -320,7 +320,9 @@ export function CreateEventPage() {
       return
     }
 
-    await supabase.from('profiles').update({ free_tier_used: true }).eq('id', user.id)
+    try {
+      await supabase.from('profiles').update({ free_tier_used: true }).eq('id', user.id)
+    } catch {}
     useAuthStore.setState((s) => ({
       profile: s.profile ? { ...s.profile, free_tier_used: true } : null,
     }))
@@ -614,43 +616,17 @@ export function CreateEventPage() {
           </div>
         </div>
 
-        {PRO_BONO ? (
-          <div className="card" style={{ marginBottom: 'var(--space-5)', textAlign: 'center', padding: 'var(--space-6)' }}>
-            <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-2)' }}>
-              Event Activation Fee
-            </div>
-            <div style={{ fontSize: 'var(--text-display)', fontWeight: 800, color: 'var(--color-accent)', letterSpacing: '-0.02em' }}>
-              {EVENT_FEE_DISPLAY}
-            </div>
-            <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
-              One-time payment · All event sizes included
-            </div>
+        <div className="card" style={{ marginBottom: 'var(--space-5)', textAlign: 'center', padding: 'var(--space-6)' }}>
+          <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--color-success-bg)', color: 'var(--color-success)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto var(--space-3)' }}>
+            <Gift size={24} />
           </div>
-        ) : profile?.free_tier_used ? (
-          <div className="card" style={{ marginBottom: 'var(--space-5)', textAlign: 'center', padding: 'var(--space-6)' }}>
-            <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-2)' }}>
-              Event Activation Fee
-            </div>
-            <div style={{ fontSize: 'var(--text-display)', fontWeight: 800, color: 'var(--color-accent)', letterSpacing: '-0.02em' }}>
-              {EVENT_FEE_DISPLAY}
-            </div>
-            <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
-              One-time payment · All event sizes included
-            </div>
+          <div style={{ fontSize: 'var(--text-display)', fontWeight: 800, color: 'var(--color-accent)', letterSpacing: '-0.02em' }}>
+            Free
           </div>
-        ) : (
-          <div className="card" style={{ marginBottom: 'var(--space-5)', textAlign: 'center', padding: 'var(--space-6)' }}>
-            <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--color-success-bg)', color: 'var(--color-success)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto var(--space-3)' }}>
-              <Gift size={24} />
-            </div>
-            <div style={{ fontSize: 'var(--text-display)', fontWeight: 800, color: 'var(--color-accent)', letterSpacing: '-0.02em' }}>
-              Free
-            </div>
-            <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
-              Your first event activation is on us
-            </div>
+          <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+            Activate for free — no payment required
           </div>
-        )}
+        </div>
 
         <div className="card" style={{ marginBottom: 'var(--space-5)', padding: 'var(--space-4)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', lineHeight: 1.7 }}>
           <div style={{ fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 'var(--space-2)', fontSize: 'var(--text-sm)' }}>
@@ -665,33 +641,17 @@ export function CreateEventPage() {
             <span>✓ Task & phase management</span>
             <span>✓ Client portal access</span>
           </div>
-          <div style={{ marginTop: 'var(--space-3)', paddingTop: 'var(--space-3)', borderTop: '1px solid var(--color-border-subtle)' }}>
-            <strong>Note:</strong> {PRO_BONO ? 'This is a one-time payment per event. No recurring fees.' : (profile?.free_tier_used ? 'This is a one-time payment per event. No recurring fees.' : 'Your first activation is free. Subsequent events cost ₦20,000 per event.')} You can save as a draft for free and activate later.
-          </div>
         </div>
 
         <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
-          {PRO_BONO || profile?.free_tier_used ? (
-            <button className="btn btn-primary btn-lg" style={{ flex: 1 }} onClick={handleActivate} disabled={saving}>
-              <CreditCard size={18} />
-              {saving ? 'Creating...' : `Activate Event — ${EVENT_FEE_DISPLAY}`}
-            </button>
-          ) : (
-            <button className="btn btn-primary btn-lg" style={{ flex: 1 }} onClick={handleActivateFree} disabled={saving}>
-              <Gift size={18} />
-              {saving ? 'Creating...' : 'Activate Free — 1 Free Event'}
-            </button>
-          )}
+          <button className="btn btn-primary btn-lg" style={{ flex: 1 }} onClick={handleActivateFree} disabled={saving}>
+            <Gift size={18} />
+            {saving ? 'Activating...' : 'Activate Free'}
+          </button>
           <button className="btn btn-secondary btn-lg" onClick={handleSaveDraft} disabled={saving}>
             Save Draft (Free)
           </button>
         </div>
-
-        {!PRO_BONO && !profile?.free_tier_used && (
-          <div style={{ marginTop: 'var(--space-3)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', textAlign: 'center' }}>
-            Your first event activation is free. Subsequent events cost ₦20,000.
-          </div>
-        )}
       </div>
     )
   }
@@ -706,78 +666,26 @@ export function CreateEventPage() {
         <button className="btn btn-ghost btn-icon" onClick={() => setStep('activate')} aria-label="Back">
           <ArrowLeft size={20} />
         </button>
-        <h2 style={{ margin: 0 }}>Payment</h2>
+        <h2 style={{ margin: 0 }}>Activation</h2>
       </div>
 
-      {isPaid ? (
-        <div className="card" style={{ textAlign: 'center', padding: 'var(--space-8)' }}>
-          <div style={{
-            width: 64, height: 64, borderRadius: '50%',
-            background: 'var(--color-success-bg)', color: 'var(--color-success)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            margin: '0 auto var(--space-4)',
-          }}>
-            <Check size={32} />
-          </div>
-          <h3 style={{ marginBottom: 'var(--space-2)' }}>Payment Successful!</h3>
-          <p style={{ color: 'var(--color-text-secondary)', marginBottom: 'var(--space-5)', fontSize: 'var(--text-sm)' }}>
-            <strong>{form.name}</strong> has been activated. You can now start planning.
-          </p>
-          <button className="btn btn-primary btn-lg" onClick={handleGoToEvent}>
-            Go to Event
-          </button>
+      <div className="card" style={{ textAlign: 'center', padding: 'var(--space-8)' }}>
+        <div style={{
+          width: 64, height: 64, borderRadius: '50%',
+          background: 'var(--color-success-bg)', color: 'var(--color-success)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          margin: '0 auto var(--space-4)',
+        }}>
+          <Check size={32} />
         </div>
-      ) : (
-        <div className="card" style={{ padding: 'var(--space-6)' }}>
-          <div style={{ textAlign: 'center', marginBottom: 'var(--space-5)' }}>
-            <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>Event Activation</div>
-            <div style={{ fontSize: 'var(--text-title-lg)', fontWeight: 700, marginTop: 'var(--space-1)' }}>
-              {form.name}
-            </div>
-            <div style={{ fontSize: 'var(--text-display)', fontWeight: 800, color: 'var(--color-accent)', marginTop: 'var(--space-3)' }}>
-              {EVENT_FEE_DISPLAY}
-            </div>
-          </div>
-
-          {paymentStatus === 'cancelled' && (
-            <div className="card" style={{ marginBottom: 'var(--space-4)', padding: 'var(--space-3)', textAlign: 'center', background: 'var(--color-warning-bg)', border: '1px solid var(--color-warning-border)', fontSize: 'var(--text-sm)', color: 'var(--color-warning)' }}>
-              Payment was cancelled. You can try again or save as draft.
-            </div>
-          )}
-          {paymentStatus === 'failed' && (
-            <div className="card" style={{ marginBottom: 'var(--space-4)', padding: 'var(--space-3)', textAlign: 'center', background: 'var(--color-error-bg)', border: '1px solid var(--color-error-border)', fontSize: 'var(--text-sm)', color: 'var(--color-error)' }}>
-              Payment provider unavailable. Check your internet and try again.
-            </div>
-          )}
-
-          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', textAlign: 'center', marginBottom: 'var(--space-5)' }}>
-            Choose your payment provider to activate this event
-          </p>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-            <button className="btn btn-primary btn-lg" onClick={handlePayWithPaystack} disabled={paying}>
-              {paying ? 'Processing...' : <><CreditCard size={18} /> Pay with Paystack</>}
-            </button>
-            {false && (
-              <button className="btn btn-secondary btn-lg" onClick={handlePayWithKorapay} disabled={paying}>
-                {paying ? 'Processing...' : 'Pay with Korapay'}
-              </button>
-            )}
-          </div>
-
-          <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', textAlign: 'center', margin: 'var(--space-3) 0' }}>
-            By activating this event, you agree to our{' '}
-            <a href="/terms" target="_blank" style={{ color: 'var(--color-accent)' }}>Terms of Service</a>
-            {' '}and{' '}
-            <a href="/privacy" target="_blank" style={{ color: 'var(--color-accent)' }}>Privacy Policy</a>.
-            Payments are processed securely by Paystack and Korapay.
-          </p>
-
-          <button className="btn btn-ghost" style={{ marginTop: 'var(--space-4)', width: '100%' }} onClick={handleSaveDraft}>
-            Skip — Save as Draft
-          </button>
-        </div>
-      )}
+        <h3 style={{ marginBottom: 'var(--space-2)' }}>{isPaid ? 'Payment Successful!' : 'Event Created!'}</h3>
+        <p style={{ color: 'var(--color-text-secondary)', marginBottom: 'var(--space-5)', fontSize: 'var(--text-sm)' }}>
+          <strong>{form.name}</strong> has been activated. You can now start planning.
+        </p>
+        <button className="btn btn-primary btn-lg" onClick={handleGoToEvent}>
+          Go to Event
+        </button>
+      </div>
     </div>
   )
 }

@@ -475,7 +475,9 @@ export function EventDashboardPage() {
       return
     }
 
-    await supabase.from('profiles').update({ free_tier_used: true }).eq('id', user.id)
+    try {
+      await supabase.from('profiles').update({ free_tier_used: true }).eq('id', user.id)
+    } catch {}
 
     useAuthStore.setState((s) => ({
       profile: s.profile ? { ...s.profile, free_tier_used: true } : null,
@@ -504,13 +506,7 @@ export function EventDashboardPage() {
   }
 
   const openPayment = () => {
-    setPayStatus('idle')
-    setPromoCode('')
-    setPromoResult(null)
-    setShowPromoInput(false)
-    setShowPaymentModal(true)
-    import('@/lib/paystack').then(({ loadPaystackScript }) => loadPaystackScript().catch(() => {}))
-    import('@/lib/korapay').then(({ loadKorapayScript }) => loadKorapayScript().catch(() => {}))
+    handleActivateFree()
   }
 
   const closePayment = () => {
@@ -529,7 +525,6 @@ export function EventDashboardPage() {
   const countdown = activeEvent ? getCountdown(activeEvent.event_date) : null
   const isPaid = activeEvent?.payment_status === 'paid'
   const isActivated = activeEvent?.status !== 'draft'
-  const isFreeAvailable = !profile?.free_tier_used
 
   // Pagination for Deadlines (3 items per page)
   const itemsPerPageDeadlines = 3
@@ -581,17 +576,14 @@ export function EventDashboardPage() {
   const nextActions: ActionItem[] = []
 
   if (!isPaid) {
-    const showFree = !PRO_BONO && isFreeAvailable
     nextActions.push({
       id: 'activate',
       priority: 'critical',
-      Icon: showFree ? Gift : CreditCard,
-      title: showFree ? 'Activate Free' : 'Activate this event',
-      subtitle: showFree
-        ? 'Your first event activation is free. Unlock vendors, guests, finances, tasks, and more.'
-        : 'Complete payment to unlock all planning features and start coordinating.',
-      cta: showFree ? 'Activate Free — 1 Free Event' : `Pay ${EVENT_FEE_DISPLAY}`,
-      onClick: showFree ? handleActivateFree : openPayment,
+      Icon: Gift,
+      title: 'Activate Free',
+      subtitle: 'Activate to unlock vendors, guests, finances, tasks, and more.',
+      cta: 'Activate Free',
+      onClick: handleActivateFree,
     })
   } else {
     if (countdown && !countdown.past && countdown.days <= 7) {
@@ -689,15 +681,10 @@ export function EventDashboardPage() {
     let route: string | undefined
 
     if (activeEvent.payment_status === 'unpaid') {
-      title = 'Activate this event'
-      subtitle = 'Complete payment to unlock all planning features and start coordinating.'
-      cta = `Pay ${EVENT_FEE_DISPLAY}`
-      onClick = openPayment
-      if (!PRO_BONO && isFreeAvailable) {
-        subtitle = 'Your first event activation is free. Unlock vendors, guests, finances, tasks, and more.'
-        cta = 'Activate Free — 1 Free Event'
-        onClick = handleActivateFree
-      }
+      title = 'Activate Free'
+      subtitle = 'Activate to unlock vendors, guests, finances, tasks, and more.'
+      cta = 'Activate Free'
+      onClick = handleActivateFree
     } else if (daysUntilEvent >= 0 && daysUntilEvent <= 7 && currentPhaseNumber === 6 && currentPhase?.status !== 'completed') {
       title = `Event in ${daysUntilEvent} day${daysUntilEvent !== 1 ? 's' : ''}`
       subtitle = 'Your pre-event checklist is still incomplete. Review tasks to ensure a smooth event.'
@@ -1253,7 +1240,7 @@ export function EventDashboardPage() {
           {isActivated ? (
             <EventVendorsPage standalone={false} />
           ) : (
-            <ModuleLock isFreeAvailable={isFreeAvailable} onActivate={openPayment} />
+            <ModuleLock onActivate={openPayment} />
           )}
         </div>
       )}
@@ -1365,7 +1352,7 @@ export function EventDashboardPage() {
           </div>
         </div>
         ) : (
-          <ModuleLock isFreeAvailable={isFreeAvailable} onActivate={openPayment} />
+          <ModuleLock onActivate={openPayment} />
         )
       )}
 
