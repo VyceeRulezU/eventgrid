@@ -6,6 +6,7 @@ import { AdminPageHero } from '@/components/shared/AdminPageHero'
 import { SearchBar } from '@/components/shared/SearchBar'
 import { Button } from '@/components/ui/Button'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
+import { SEO } from '@/components/shared/SEO'
 import { Gift, Users, TrendingUp, DollarSign, X, Plus, Trash2, ListChecks, Hash, Link2 } from 'lucide-react'
 import { GenerateReferralPortalModal } from '@/features/referrals/GenerateReferralPortalModal'
 import { Tabs, type TabItem } from '@/components/ui/Tabs'
@@ -183,6 +184,7 @@ export function AdminReferralsPage() {
 
   return (
     <div>
+      <SEO title="Referral Partners — Admin" description="Manage referral partners, codes, and commission payouts" />
       <AdminPageHero
         icon={Gift}
         title="Referrals"

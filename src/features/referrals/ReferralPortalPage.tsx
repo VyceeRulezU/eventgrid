@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { Gift, Users, TrendingUp, DollarSign, AlertTriangle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { SEO } from '@/components/shared/SEO'
 import type { ReferralPortal, ReferralPartner, ReferralRedemption, Profile } from '@/types'
 import styles from './ReferralPortalPage.module.css'
 
@@ -119,6 +120,7 @@ export function ReferralPortalPage() {
 
   return (
     <div className={styles.portalPage}>
+      <SEO title="Partner Commission Portal" description="View your referral commissions and earnings" noindex />
       {/* Sticky header with logo */}
       <div className={styles.portalHeader}>
         <div className={styles.headerLeft}>

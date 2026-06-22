@@ -82,6 +82,13 @@
 
 .table {
   width: 100%;
+  min-width: 700px;
+}
+
+@media (max-width: 640px) {
+  .table {
+    min-width: 600px;
+  }
 }
 
 .tableHead {
@@ -128,6 +135,25 @@
   padding: var(--space-5) var(--space-6);
   align-items: center;
   column-gap: var(--space-4);
+}
+
+@media (max-width: 640px) {
+  .tableRow {
+    padding: var(--space-3) var(--space-4);
+    column-gap: var(--space-3);
+    font-size: var(--text-xs);
+  }
+  .tableHead {
+    padding: var(--space-3) var(--space-4);
+    column-gap: var(--space-3);
+    font-size: 9px;
+  }
+  .sectionCard {
+    border-radius: 16px;
+  }
+  .tableScroll {
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 .tableRow > * {
