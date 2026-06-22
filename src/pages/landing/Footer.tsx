@@ -146,7 +146,7 @@ export default function Footer() {
               ))}
             </div>
             <p className={styles.copyright}>
-              © 2026 NaliGrid by NaliTech Consults · Nigeria 🇳🇬
+              © 2026 NaliGrid by NaliTech Consults Nig. Ltd. · Nigeria 🇳🇬
             </p>
           </div>
         </div>

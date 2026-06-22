@@ -10,7 +10,7 @@ interface EmailWrapperProps {
 export function EmailWrapper({
   previewText,
   children,
-  appUrl = 'https://eventgrid.ng',
+  appUrl = 'https://naligrid.com',
   heroImage = appUrl + '/emails/corporate_event_hall.png',
 }: EmailWrapperProps) {
   return (
@@ -66,7 +66,7 @@ export function EmailWrapper({
                     </p>
                     <p style={{ margin: 0, fontSize: '11px', color: '#4B5563', lineHeight: 1.6 }}>
                       This email was sent to you because you have an account on{' '}
-                      <a href={appUrl} style={{ color: '#D4A017', textDecoration: 'none', fontWeight: 600 }}>eventgrid.ng</a>.
+                       <a href={appUrl} style={{ color: '#D4A017', textDecoration: 'none', fontWeight: 600 }}>naligrid.com</a>.
                     </p>
                     <p style={{ margin: '8px 0 0', fontSize: '11px', color: '#4B5563' }}>
                       &copy; {new Date().getFullYear()} NaliGrid. All rights reserved.
