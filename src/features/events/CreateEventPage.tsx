@@ -1,11 +1,10 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Calendar, ArrowLeft, Check, CreditCard, Gift, ShieldCheck } from 'lucide-react'
+import { Calendar, ArrowLeft, Check, Gift, ShieldCheck } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
-import { PRO_BONO, EVENT_FEE_DISPLAY } from '@/lib/pricing'
-import { processPayment, getEventPrice } from '@/lib/payment'
+
 import { generateSlug } from '@/lib/slug'
 import { CalendarModal } from '@/components/ui/CalendarModal'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
@@ -113,17 +112,13 @@ export function CreateEventPage() {
   const org = useAuthStore((s) => s.org)
   const setOrg = useAuthStore((s) => s.setOrg)
   const showToast = useUIStore((s) => s.showToast)
-  const [step, setStep] = useState<'details' | 'activate' | 'payment'>('details')
+  const [step, setStep] = useState<'details' | 'activate'>('details')
   const [saving, setSaving] = useState(false)
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [templateMode, setTemplateMode] = useState<'default' | 'copy'>('default')
   const [existingEvents, setExistingEvents] = useState<{ id: string; name: string; event_type: string; event_date: string | null; venue_name: string | null; guest_count: number | null }[]>([])
   const [form, setForm] = useState(DEFAULT_TEMPLATE)
-  const [createdEventId, setCreatedEventId] = useState<string | null>(null)
-  const [createdEventSlug, setCreatedEventSlug] = useState<string | null>(null)
-  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'success' | 'cancelled' | 'failed'>('idle')
-  const [paying, setPaying] = useState(false)
-  const paySucceededRef = useRef(false)
+
 
   useEffect(() => {
     if (!user || !org && !profile?.org_id) return
@@ -223,57 +218,6 @@ export function CreateEventPage() {
     navigate(`/events/${data.slug || data.id}`)
   }
 
-  const handleActivate = async () => {
-    if (!user) {
-      showToast({ type: 'error', title: 'Not authenticated' })
-      return
-    }
-
-    let activeOrg = org
-    if (!activeOrg) {
-      const owned = await ensureOwnOrg(user.id, profile?.display_name || '')
-      if (!owned) {
-        showToast({ type: 'warning', title: 'Organization not set up', body: 'Please complete onboarding first' })
-        return
-      }
-      activeOrg = owned
-      setOrg(owned)
-    }
-
-    setSaving(true)
-
-    const { data, error } = await supabase
-      .from('events')
-      .insert({
-        org_id: activeOrg.id,
-        created_by: user.id,
-        name: form.name,
-        event_type: form.eventType,
-        event_date: form.eventDate || null,
-        venue_name: form.venueName || null,
-        venue_address: form.venueAddress || null,
-        guest_count: form.guestCount || null,
-        size_tier: 'standard',
-        budget_total: form.budgetTotal * 100 || null,
-        status: 'draft',
-        payment_status: 'unpaid',
-        slug: generateSlug(form.name),
-      })
-      .select()
-      .single()
-
-    if (error || !data) {
-      showToast({ type: 'error', title: 'Failed to create event', body: error?.message })
-      setSaving(false)
-      return
-    }
-
-    setCreatedEventId(data.id)
-    setCreatedEventSlug(data.slug ?? null)
-    setSaving(false)
-    setStep('payment')
-  }
-
   const handleActivateFree = async () => {
     if (!user) {
       showToast({ type: 'error', title: 'Not authenticated' })
@@ -331,129 +275,7 @@ export function CreateEventPage() {
     navigate(`/events/${data.slug || data.id}`)
   }
 
-  const handlePaymentSuccess = async (provider: 'paystack' | 'korapay', reference: string) => {
-    if (paySucceededRef.current) return
-    paySucceededRef.current = true
-    setPaying(true)
-    if (createdEventId) {
-      const { data, error: verifyErr } = await supabase.functions.invoke('verify-payment', {
-        body: {
-          provider,
-          reference,
-          event_id: createdEventId,
-          idempotency_key: `payment_${createdEventId}_${reference}`,
-        }
-      })
 
-      if (verifyErr || (data && data.error)) {
-        let errMsg = verifyErr?.message || data?.error || 'Payment verification failed'
-        if (verifyErr && 'context' in verifyErr && verifyErr.context) {
-          try {
-            const res = verifyErr.context as Response
-            const body = await res.clone().json()
-            if (body && body.error) {
-              errMsg = body.error
-            }
-          } catch (e) {
-            console.error('Failed to parse verification error:', e)
-          }
-        }
-        showToast({ type: 'error', title: 'Verification failed', body: errMsg })
-        setPaying(false)
-        setPaymentStatus('failed')
-        return
-      }
-    }
-    setPaying(false)
-    setPaymentStatus('success')
-    showToast({ type: 'success', title: 'Payment successful!', body: 'Your event is now live.' })
-  }
-
-  const handlePaymentCancel = () => {
-    if (paySucceededRef.current) return
-    setPaymentStatus('cancelled')
-    setPaying(false)
-    showToast({ type: 'info', title: 'Payment cancelled', body: 'You can complete payment later from the event page.' })
-  }
-
-  const handlePayWithPaystack = async () => {
-    if (!user || !createdEventId) return
-    setPaying(true)
-    setPaymentStatus('idle')
-    paySucceededRef.current = false
-    const timeoutId = setTimeout(() => {
-      if (!paySucceededRef.current) {
-        paySucceededRef.current = true
-        setPaymentStatus('failed')
-        showToast({ type: 'error', title: 'Payment timed out', body: 'The payment window did not respond. Please try again.' })
-        setPaying(false)
-      }
-    }, 120000)
-    try {
-      await processPayment({
-        provider: 'paystack',
-        email: user.email || '',
-        amount: getEventPrice('standard'),
-        metadata: { event_id: createdEventId },
-        onSuccess: (reference) => { clearTimeout(timeoutId); handlePaymentSuccess('paystack', reference) },
-        onClose: () => { clearTimeout(timeoutId); handlePaymentCancel() },
-      })
-    } catch (err) {
-      clearTimeout(timeoutId)
-      if (!paySucceededRef.current) {
-        setPaymentStatus('failed')
-        showToast({ type: 'error', title: 'Payment failed', body: err instanceof Error ? err.message : 'Could not load payment provider' })
-        setPaying(false)
-      }
-    }
-  }
-
-  const handlePayWithKorapay = async () => {
-    if (!user || !createdEventId) return
-    setPaying(true)
-    setPaymentStatus('idle')
-    paySucceededRef.current = false
-    const timeoutId = setTimeout(() => {
-      if (!paySucceededRef.current) {
-        paySucceededRef.current = true
-        setPaymentStatus('failed')
-        showToast({ type: 'error', title: 'Payment timed out', body: 'The payment window did not respond. Please try again.' })
-        setPaying(false)
-      }
-    }, 120000)
-    try {
-      await processPayment({
-        provider: 'korapay',
-        email: user.email || '',
-        amount: getEventPrice('standard'),
-        metadata: { event_id: createdEventId },
-        onSuccess: (reference) => { clearTimeout(timeoutId); handlePaymentSuccess('korapay', reference) },
-        onClose: () => { clearTimeout(timeoutId); handlePaymentCancel() },
-        onFailed: (message) => {
-          clearTimeout(timeoutId)
-          paySucceededRef.current = true
-          setPaymentStatus('failed')
-          showToast({ type: 'error', title: 'Payment failed', body: message })
-          setPaying(false)
-        },
-      })
-    } catch (err) {
-      clearTimeout(timeoutId)
-      if (!paySucceededRef.current) {
-        setPaymentStatus('failed')
-        showToast({ type: 'error', title: 'Payment failed', body: err instanceof Error ? err.message : 'Could not load payment provider' })
-        setPaying(false)
-      }
-    }
-  }
-
-  const handleGoToEvent = () => {
-    if (createdEventSlug || createdEventId) {
-      navigate(`/events/${createdEventSlug || createdEventId}`)
-    } else {
-      navigate('/events')
-    }
-  }
 
   if (step === 'details') {
     return (
@@ -655,37 +477,4 @@ export function CreateEventPage() {
       </div>
     )
   }
-
-  const isPaid = paymentStatus === 'success'
-
-  return (
-    <div style={{ maxWidth: 560, margin: '0 auto' }}>
-      <StepIndicator stepIndex={stepIndex} />
-
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-5)' }}>
-        <button className="btn btn-ghost btn-icon" onClick={() => setStep('activate')} aria-label="Back">
-          <ArrowLeft size={20} />
-        </button>
-        <h2 style={{ margin: 0 }}>Activation</h2>
-      </div>
-
-      <div className="card" style={{ textAlign: 'center', padding: 'var(--space-8)' }}>
-        <div style={{
-          width: 64, height: 64, borderRadius: '50%',
-          background: 'var(--color-success-bg)', color: 'var(--color-success)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          margin: '0 auto var(--space-4)',
-        }}>
-          <Check size={32} />
-        </div>
-        <h3 style={{ marginBottom: 'var(--space-2)' }}>{isPaid ? 'Payment Successful!' : 'Event Created!'}</h3>
-        <p style={{ color: 'var(--color-text-secondary)', marginBottom: 'var(--space-5)', fontSize: 'var(--text-sm)' }}>
-          <strong>{form.name}</strong> has been activated. You can now start planning.
-        </p>
-        <button className="btn btn-primary btn-lg" onClick={handleGoToEvent}>
-          Go to Event
-        </button>
-      </div>
-    </div>
-  )
 }

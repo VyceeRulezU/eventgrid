@@ -5,7 +5,7 @@ interface ModuleLockProps {
   onActivate: () => void
 }
 
-export function ModuleLock({ isFreeAvailable, onActivate }: ModuleLockProps) {
+export function ModuleLock({ onActivate }: ModuleLockProps) {
   return (
     <div className={styles.lock}>
       <div className={styles.lockIcon}>
