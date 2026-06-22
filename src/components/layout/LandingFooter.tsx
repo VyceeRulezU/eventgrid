@@ -35,9 +35,11 @@ export function LandingFooter() {
               The premium event management platform built for Nigerian professionals.
             </p>
             <div className={styles.social}>
-              <a href="https://instagram.com" className={styles.socialLink} aria-label="Instagram">IG</a>
-              <a href="https://twitter.com" className={styles.socialLink} aria-label="Twitter">X</a>
-              <a href="https://linkedin.com" className={styles.socialLink} aria-label="LinkedIn">in</a>
+              <a href="https://www.instagram.com/naligrid/" className={styles.socialLink} aria-label="Instagram">IG</a>
+              <a href="https://www.tiktok.com/@naligrid" className={styles.socialLink} aria-label="TikTok">TT</a>
+              <a href="https://facebook.com/naligrid" className={styles.socialLink} aria-label="Facebook">FB</a>
+              <a href="https://twitter.com/nalugrid" className={styles.socialLink} aria-label="Twitter">X</a>
+              <a href="https://linkedin.com/company/naligrid" className={styles.socialLink} aria-label="LinkedIn">in</a>
             </div>
           </div>
 

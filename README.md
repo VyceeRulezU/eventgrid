@@ -1,6 +1,11 @@
-# NaliGrid (formerly EventGrid)
+# NaliGrid
 
 [![CI](https://github.com/app-eventgrid/eventgrid/actions/workflows/ci.yml/badge.svg)](https://github.com/app-eventgrid/eventgrid/actions/workflows/ci.yml)
+[![X / Twitter](https://img.shields.io/badge/X-%40nalugrid-000000?style=flat&logo=x)](https://twitter.com/nalugrid)
+[![Instagram](https://img.shields.io/badge/Instagram-%40naligrid-E4405F?style=flat&logo=instagram)](https://www.instagram.com/naligrid/)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-naligrid-0A66C2?style=flat&logo=linkedin)](https://linkedin.com/company/naligrid)
+[![TikTok](https://img.shields.io/badge/TikTok-%40naligrid-000000?style=flat&logo=tiktok)](https://www.tiktok.com/@naligrid)
+[![Facebook](https://img.shields.io/badge/Facebook-naligrid-1877F2?style=flat&logo=facebook)](https://facebook.com/naligrid)
 
 A multi-role SaaS platform for the event industry in Nigeria. Replaces WhatsApp threads, Excel sheets, and phone-call confirmations with one unified platform covering the full event lifecycle — from first client inquiry through to post-event analysis.
 
@@ -208,6 +213,16 @@ See `doc/02_DATABASE_SCHEMA.md` for the full schema including:
 - Storage bucket configuration
 
 Run the SQL in Supabase SQL editor before using the app.
+
+## Connect
+
+| Platform | Link |
+|----------|------|
+| **Instagram** | [@naligrid](https://www.instagram.com/naligrid/) |
+| **TikTok** | [@naligrid](https://www.tiktok.com/@naligrid) |
+| **Facebook** | [naligrid](https://facebook.com/naligrid) |
+| **X / Twitter** | [@nalugrid](https://twitter.com/nalugrid) |
+| **LinkedIn** | [naligrid](https://linkedin.com/company/naligrid) |
 
 ## License
 
