@@ -291,7 +291,7 @@
 
 .table {
   width: 100%;
-  min-width: 600px;
+  min-width: 650px;
 }
 
 .tableHead {
@@ -317,6 +317,8 @@
 
 .tableHead > * {
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tableBody {
@@ -358,6 +360,8 @@
 
 .tableRow > * {
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tableRow:hover {
@@ -373,12 +377,14 @@
 .portalHead > *,
 .portalRow > * {
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .portalHead > :nth-child(1),
 .portalRow > :nth-child(1) { flex: 2.5; }
 .portalHead > :nth-child(2),
-.portalRow > :nth-child(2) { flex: 0.8; }
+.portalRow > :nth-child(2) { flex: 1; }
 .portalHead > :nth-child(3),
 .portalRow > :nth-child(3) { flex: 0.8; text-align: right; }
 .portalHead > :nth-child(4),
