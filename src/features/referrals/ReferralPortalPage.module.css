@@ -31,17 +31,27 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  min-width: 0;
+  overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  .headerLeft {
+    gap: var(--space-2);
+  }
 }
 
 .headerLogo {
-  height: 64px;
+  height: 48px;
   width: auto;
+  flex-shrink: 0;
 }
 
 .headerDivider {
   width: 1px;
   height: 20px;
   background: var(--color-border-subtle);
+  flex-shrink: 0;
 }
 
 .headerBadge {
@@ -53,12 +63,23 @@
   border-radius: var(--radius-full);
   border: 1px solid var(--color-accent-border);
   letter-spacing: 0.04em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .headerBadge {
+    font-size: 9px;
+    padding: 2px 6px;
+  }
 }
 
 .headerRight {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  min-width: 0;
+  overflow: hidden;
 }
 
 .headerPartnerName {
@@ -69,6 +90,13 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 200px;
+}
+
+@media (max-width: 640px) {
+  .headerPartnerName {
+    max-width: 100px;
+    font-size: var(--text-xs);
+  }
 }
 
 /* ── Content area ── */

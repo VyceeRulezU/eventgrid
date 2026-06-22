@@ -14,6 +14,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_referral_portals_active_partner
 ALTER TABLE public.referral_portals ENABLE ROW LEVEL SECURITY;
 
 -- super admins can do everything
+DROP POLICY IF EXISTS referral_portals_admin_all ON public.referral_portals;
 CREATE POLICY referral_portals_admin_all ON public.referral_portals
   FOR ALL
   TO authenticated
@@ -21,9 +22,11 @@ CREATE POLICY referral_portals_admin_all ON public.referral_portals
   WITH CHECK (public.is_super_admin());
 
 -- anyone can read an active portal by token (no auth)
+DROP POLICY IF EXISTS referral_portals_public_read ON public.referral_portals;
 CREATE POLICY referral_portals_public_read ON public.referral_portals
   FOR SELECT
   TO anon, authenticated
   USING (is_active = true);
 
+GRANT ALL ON public.referral_portals TO anon;
 GRANT ALL ON public.referral_portals TO authenticated;
