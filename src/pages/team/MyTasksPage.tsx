@@ -121,8 +121,8 @@ export function MyTasksPage() {
   }
 
   async function handleDeleteTask(taskId: string) {
-    const { data, error } = await supabase.from('tasks').delete().eq('id', taskId)
-    if (error || !data || (Array.isArray(data) && data.length === 0)) {
+    const { data, error } = await supabase.from('tasks').delete().eq('id', taskId).select()
+    if (error || !data || data.length === 0) {
       showNotification({ variant: 'error', title: 'Delete failed', message: error?.message || 'Task not found or permission denied' })
       return
     }

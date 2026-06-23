@@ -132,8 +132,8 @@ export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProp
   }
 
   async function handleDelete() {
-    const { data, error } = await supabase.from('tasks').delete().eq('id', task.id)
-    if (error || !data || (Array.isArray(data) && data.length === 0)) {
+    const { data, error } = await supabase.from('tasks').delete().eq('id', task.id).select()
+    if (error || !data || data.length === 0) {
       showNotification({ variant: 'error', title: 'Delete failed', message: error?.message || 'Task not found or permission denied' })
     } else {
       showNotification({ variant: 'success', title: 'Task deleted' })
