@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useResolvedEventId } from '@/hooks/useResolvedEventId'
-import { Users, X, Mail, UserPlus, FileText, CheckCircle2, AlertTriangle, Clock, Send, Download, Plus, Trash2 } from 'lucide-react'
+import { Users, X, Mail, UserPlus, FileText, CheckCircle2, AlertTriangle, Clock, Send, Download, Plus, Trash2, Eye, Pencil } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -23,6 +23,7 @@ interface TeamMemberRow {
 
 interface TeamReport {
   id: string
+  actor_id: string | null
   actor_name: string | null
   description: string
   action_type: string
@@ -60,6 +61,8 @@ function timeAgo(dateStr: string) {
   if (mins < 60) return `${mins}m ago`
   const hours = Math.floor(mins / 60)
   if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  if (days < 7) return `${days}d ago`
   return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
 }
 
@@ -107,6 +110,10 @@ export function TeamPage() {
   const [submittingReport, setSubmittingReport] = useState(false)
   const [activeTab, setActiveTab] = useState<'members' | 'reports'>('members')
   const [confirmRemove, setConfirmRemove] = useState<{ type: 'member' | 'invite'; id: string; name: string } | null>(null)
+  const [reportModalMode, setReportModalMode] = useState<'create' | 'edit' | null>(null)
+  const [editingReportId, setEditingReportId] = useState<string | null>(null)
+  const [selectedReportForView, setSelectedReportForView] = useState<TeamReport | null>(null)
+  const [reportToDelete, setReportToDelete] = useState<TeamReport | null>(null)
 
   useEffect(() => {
     if (!eventId) return
@@ -130,7 +137,7 @@ export function TeamPage() {
         .eq('event_id', eventId),
       supabase
         .from('event_activity')
-        .select('id, actor_name, description, action_type, created_at, metadata')
+        .select('id, actor_id, actor_name, description, action_type, created_at, metadata')
         .eq('event_id', eventId)
         .eq('action_type', 'team_report')
         .order('created_at', { ascending: false })
@@ -200,7 +207,7 @@ export function TeamPage() {
         description: reportMessage.trim(),
         metadata: { status: reportStatus, message: reportMessage.trim(), status_label: statusLabel },
       })
-      .select()
+      .select('id, actor_id, actor_name, description, action_type, created_at, metadata')
       .single()
 
     if (error) {
@@ -213,8 +220,59 @@ export function TeamPage() {
     showNotification({ variant: 'success', title: 'Report submitted', message: 'Your update has been sent to the planner.' })
     setReportMessage('')
     setReportStatus('update')
-    setShowReportForm(false)
+    setReportModalMode(null)
     setSubmittingReport(false)
+  }
+
+  async function handleUpdateReport() {
+    if (!reportMessage.trim() || !editingReportId || !user) return
+
+    setSubmittingReport(true)
+    const statusLabel = REPORT_STATUS_OPTS.find(o => o.value === reportStatus)?.label || 'Update'
+
+    const { data, error } = await supabase
+      .from('event_activity')
+      .update({
+        description: reportMessage.trim(),
+        metadata: { status: reportStatus, message: reportMessage.trim(), status_label: statusLabel },
+      })
+      .eq('id', editingReportId)
+      .select('id, actor_id, actor_name, description, action_type, created_at, metadata')
+      .single()
+
+    if (error) {
+      showNotification({ variant: 'error', title: 'Failed to update report', message: error.message })
+      setSubmittingReport(false)
+      return
+    }
+
+    if (data) {
+      setReports(reports.map(r => r.id === editingReportId ? (data as unknown as TeamReport) : r))
+    }
+    showNotification({ variant: 'success', title: 'Report updated', message: 'Your update has been modified.' })
+    setReportMessage('')
+    setReportStatus('update')
+    setEditingReportId(null)
+    setReportModalMode(null)
+    setSubmittingReport(false)
+  }
+
+  async function handleDeleteReport() {
+    if (!reportToDelete || !eventId) return
+
+    const { error } = await supabase
+      .from('event_activity')
+      .delete()
+      .eq('id', reportToDelete.id)
+
+    if (error) {
+      showNotification({ variant: 'error', title: 'Failed to delete report', message: error.message })
+      return
+    }
+
+    setReports(reports.filter(r => r.id !== reportToDelete.id))
+    showNotification({ variant: 'success', title: 'Report deleted' })
+    setReportToDelete(null)
   }
 
   async function handleInvite() {
@@ -339,7 +397,7 @@ export function TeamPage() {
         actions={
           <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
             {role !== 'planner' && (
-              <button className="btn btn-secondary btn-sm" onClick={() => { setShowReportForm(true); setActiveTab('reports') }}>
+              <button className="btn btn-secondary btn-sm" onClick={() => { setReportStatus('update'); setReportMessage(''); setEditingReportId(null); setReportModalMode('create'); setActiveTab('reports') }}>
                 <Send size={14} />
                 Submit Report
               </button>
@@ -509,9 +567,8 @@ export function TeamPage() {
       {/* ── Reports tab ── */}
       {activeTab === 'reports' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-          {/* Planner view: export only */}
-          {role === 'planner' && reports.length > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          {reports.length > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
               <button className="btn btn-secondary btn-sm" onClick={exportReportsCsv}>
                 <Download size={14} />
                 Export CSV
@@ -519,69 +576,7 @@ export function TeamPage() {
             </div>
           )}
 
-          {/* Submit report form — non-planners only */}
-          {role !== 'planner' && showReportForm && (
-            <div className="card" style={{ borderLeft: '3px solid var(--color-accent)', padding: 'var(--space-5)' }}>
-              <h3 style={{ margin: '0 0 var(--space-4)', fontSize: 'var(--text-sm)', fontWeight: 700 }}>
-                <Send size={14} style={{ display: 'inline', marginRight: 8, color: 'var(--color-accent)' }} />
-                Submit a Report
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-                <div className="input-wrapper">
-                  <label className="input-label">Status</label>
-                  <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
-                    {REPORT_STATUS_OPTS.map(opt => (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => setReportStatus(opt.value)}
-                        style={{
-                          padding: 'var(--space-2) var(--space-3)',
-                          borderRadius: 'var(--radius-lg)',
-                          border: `1px solid ${reportStatus === opt.value ? 'var(--color-accent)' : 'var(--color-border)'}`,
-                          background: reportStatus === opt.value ? 'var(--color-accent-muted)' : 'transparent',
-                          color: reportStatus === opt.value ? 'var(--color-accent)' : 'var(--color-text-secondary)',
-                          fontFamily: 'var(--font-base)',
-                          fontSize: 'var(--text-xs)',
-                          fontWeight: reportStatus === opt.value ? 600 : 400,
-                          cursor: 'pointer',
-                          transition: 'all var(--transition-fast)',
-                        }}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="input-wrapper">
-                  <label className="input-label">Message</label>
-                  <textarea
-                    className="input"
-                    style={{ minHeight: 80, resize: 'vertical' }}
-                    placeholder="What's your update? e.g. 'Catering confirmed, arriving at 3pm' or 'AV setup delayed by 30 mins, need backup'"
-                    value={reportMessage}
-                    onChange={(e) => setReportMessage(e.target.value)}
-                  />
-                </div>
-                <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-                  <button className="btn btn-primary btn-sm" onClick={handleSubmitReport} disabled={submittingReport || !reportMessage.trim()}>
-                    <Send size={14} />
-                    {submittingReport ? 'Submitting...' : 'Submit Report'}
-                  </button>
-                  <button className="btn btn-ghost btn-sm" onClick={() => setShowReportForm(false)}>Cancel</button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {role !== 'planner' && !showReportForm && (
-            <button className="btn btn-secondary btn-sm" style={{ alignSelf: 'flex-start' }} onClick={() => setShowReportForm(true)}>
-              <Send size={14} />
-              Submit a Report
-            </button>
-          )}
-
-          {/* Reports feed */}
+          {/* Reports table view */}
           {reports.length === 0 ? (
             <div className="empty-state" style={{ padding: 'var(--space-12) var(--space-8)' }}>
               <div className="empty-state__icon"><FileText size={22} /></div>
@@ -589,46 +584,111 @@ export function TeamPage() {
               <div className="empty-state__description">Team members can submit status updates here. Planners see everything in real time.</div>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-              {reports.map(report => (
-                <div
-                  key={report.id}
-                  className="card"
-                  style={{
-                    padding: 'var(--space-4)',
-                    borderLeft: `3px solid ${report.metadata?.status === 'all_good' ? 'var(--color-success)' : report.metadata?.status === 'need_help' ? 'var(--color-warning)' : report.metadata?.status === 'blocked' ? 'var(--color-error)' : 'var(--color-border)'}`,
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-3)' }}>
-                    <div style={{ width: 32, height: 32, borderRadius: 'var(--radius-md)', background: reportStatusColor(report.metadata?.status), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      {reportStatusIcon(report.metadata?.status)}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-1)', flexWrap: 'wrap' }}>
-                        <span style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>{report.actor_name || 'Team member'}</span>
-                        {report.metadata?.status && (
-                          <span style={{ fontSize: 10, fontWeight: 600, padding: '1px 8px', borderRadius: 'var(--radius-full)', background: reportStatusColor(report.metadata.status), color: report.metadata.status === 'all_good' ? 'var(--color-success)' : report.metadata.status === 'need_help' ? 'var(--color-warning)' : report.metadata.status === 'blocked' ? 'var(--color-error)' : 'var(--color-text-muted)' }}>
-                            {REPORT_STATUS_OPTS.find(o => o.value === report.metadata?.status)?.label || report.metadata.status}
-                          </span>
-                        )}
-                        <span style={{ marginLeft: 'auto', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <Clock size={11} />
-                          {timeAgo(report.created_at)}
-                        </span>
-                      </div>
-                      <p style={{ margin: 0, fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>
-                        {report.description}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className={styles.tableCard}>
+              <div className={styles.tableScroll}>
+                <table className={styles.table}>
+                  <thead className={styles.thead}>
+                    <tr>
+                      <th className={styles.th}>Member</th>
+                      <th className={styles.th}>Status</th>
+                      <th className={styles.th}>Message</th>
+                      <th className={styles.th}>Submitted</th>
+                      <th className={styles.th} style={{ width: 140, textAlign: 'right' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {reports.map((report) => {
+                      const canEdit = report.actor_id === user?.id
+                      const canDelete = report.actor_id === user?.id || role === 'planner'
+
+                      return (
+                        <tr key={report.id} className={styles.tr}>
+                          <td className={`${styles.td} ${styles.memberCell}`}>
+                            <div className={styles.memberInfo}>
+                              <div className={styles.avatar} style={{ background: reportStatusColor(report.metadata?.status) }}>
+                                {reportStatusIcon(report.metadata?.status)}
+                              </div>
+                              <div>
+                                <div className={styles.memberName}>{report.actor_name || 'Team member'}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className={styles.td}>
+                            <span className={`badge badge-${
+                              report.metadata?.status === 'all_good' ? 'green' : 
+                              report.metadata?.status === 'need_help' ? 'yellow' : 
+                              report.metadata?.status === 'blocked' ? 'red' : 'grey'
+                            }`}>
+                              <span className="badge-dot" />
+                              {REPORT_STATUS_OPTS.find(o => o.value === report.metadata?.status)?.label?.replace(/[^a-zA-Z0-9 ]/g, '').trim() || report.metadata?.status || 'Update'}
+                            </span>
+                          </td>
+                          <td className={styles.td} style={{ maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            <span title={report.description} style={{ color: 'var(--color-text-secondary)' }}>
+                              {report.description}
+                            </span>
+                          </td>
+                          <td className={styles.td}>
+                            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                              <Clock size={11} />
+                              {timeAgo(report.created_at)}
+                            </span>
+                          </td>
+                          <td className={styles.td} style={{ textAlign: 'right' }}>
+                            <div style={{ display: 'flex', gap: 'var(--space-1)', justifyContent: 'flex-end' }}>
+                              <button
+                                className="btn btn-ghost btn-sm btn-icon"
+                                style={{ width: 32, height: 32, color: 'var(--color-text-muted)' }}
+                                onClick={() => setSelectedReportForView(report)}
+                                title="View Report"
+                                aria-label="View Report"
+                              >
+                                <Eye size={14} />
+                              </button>
+                              {canEdit && (
+                                <button
+                                  className="btn btn-ghost btn-sm btn-icon"
+                                  style={{ width: 32, height: 32, color: 'var(--color-text-muted)' }}
+                                  onClick={() => {
+                                    setReportStatus(report.metadata?.status || 'update')
+                                    setReportMessage(report.description || '')
+                                    setEditingReportId(report.id)
+                                    setReportModalMode('edit')
+                                  }}
+                                  title="Edit Report"
+                                  aria-label="Edit Report"
+                                >
+                                  <Pencil size={14} />
+                                </button>
+                              )}
+                              {canDelete && (
+                                <button
+                                  className="btn btn-ghost btn-sm btn-icon text-danger"
+                                  style={{ width: 32, height: 32, color: 'var(--color-danger, #dc2626)' }}
+                                  onClick={() => setReportToDelete(report)}
+                                  title="Delete Report"
+                                  aria-label="Delete Report"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <div className={styles.tableFooter}>
+                <span>Showing {reports.length} report{reports.length !== 1 ? 's' : ''}</span>
+              </div>
             </div>
           )}
         </div>
       )}
 
-      {/* ── Confirm remove ── */}
+      {/* ── Confirm remove member/invite ── */}
       {confirmRemove && (
         <div className={styles.overlay} onClick={() => setConfirmRemove(null)}>
           <div className={styles.confirmModal} onClick={(e) => e.stopPropagation()}>
@@ -664,6 +724,169 @@ export function TeamPage() {
               >
                 <Trash2 size={14} />
                 {confirmRemove.type === 'invite' ? 'Cancel Invite' : 'Remove'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Submit / Edit Report Modal ── */}
+      {reportModalMode && (
+        <div className={styles.overlay} onClick={() => { setReportModalMode(null); setEditingReportId(null); }}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>
+                {reportModalMode === 'edit' ? 'Edit Report' : 'Submit a Report'}
+              </h3>
+              <button type="button" className={styles.modalClose} onClick={() => { setReportModalMode(null); setEditingReportId(null); }} aria-label="Close">
+                <X size={18} />
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <div className="input-wrapper">
+                <label className="input-label">Status</label>
+                <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+                  {REPORT_STATUS_OPTS.map(opt => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setReportStatus(opt.value)}
+                      style={{
+                        padding: 'var(--space-2) var(--space-3)',
+                        borderRadius: 'var(--radius-lg)',
+                        border: `1px solid ${reportStatus === opt.value ? 'var(--color-accent)' : 'var(--color-border)'}`,
+                        background: reportStatus === opt.value ? 'var(--color-accent-muted)' : 'transparent',
+                        color: reportStatus === opt.value ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+                        fontFamily: 'var(--font-base)',
+                        fontSize: 'var(--text-xs)',
+                        fontWeight: reportStatus === opt.value ? 600 : 400,
+                        cursor: 'pointer',
+                        transition: 'all var(--transition-fast)',
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="input-wrapper">
+                <label className="input-label">Message</label>
+                <textarea
+                  className="input"
+                  style={{ minHeight: 80, resize: 'vertical' }}
+                  placeholder="What's your update? e.g. 'Catering confirmed, arriving at 3pm' or 'AV setup delayed by 30 mins, need backup'"
+                  value={reportMessage}
+                  onChange={(e) => setReportMessage(e.target.value)}
+                />
+              </div>
+              <div className={styles.modalActions}>
+                <button
+                  className="btn btn-primary btn-sm"
+                  onClick={reportModalMode === 'edit' ? handleUpdateReport : handleSubmitReport}
+                  disabled={submittingReport || !reportMessage.trim()}
+                >
+                  <Send size={14} />
+                  {submittingReport ? 'Saving...' : reportModalMode === 'edit' ? 'Save Changes' : 'Submit Report'}
+                </button>
+                <button className="btn btn-ghost btn-sm" onClick={() => { setReportModalMode(null); setEditingReportId(null); }}>Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── View Report Modal ── */}
+      {selectedReportForView && (
+        <div className={styles.overlay} onClick={() => setSelectedReportForView(null)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()} style={{ maxWidth: '520px' }}>
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>Report Details</h3>
+              <button type="button" className={styles.modalClose} onClick={() => setSelectedReportForView(null)} aria-label="Close">
+                <X size={18} />
+              </button>
+            </div>
+            <div className={styles.modalBody} style={{ gap: 'var(--space-4)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+                <div className={styles.avatar} style={{ background: reportStatusColor(selectedReportForView.metadata?.status) }}>
+                  {reportStatusIcon(selectedReportForView.metadata?.status)}
+                </div>
+                <div>
+                  <div className={styles.memberName} style={{ fontSize: 'var(--text-base)' }}>
+                    {selectedReportForView.actor_name || 'Team member'}
+                  </div>
+                  <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
+                    <Clock size={11} />
+                    {new Date(selectedReportForView.created_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: 'var(--space-2)' }}>
+                <label className="input-label" style={{ marginBottom: 'var(--space-1)' }}>Status</label>
+                <div>
+                  <span className={`badge badge-${
+                    selectedReportForView.metadata?.status === 'all_good' ? 'green' : 
+                    selectedReportForView.metadata?.status === 'need_help' ? 'yellow' : 
+                    selectedReportForView.metadata?.status === 'blocked' ? 'red' : 'grey'
+                  }`} style={{ fontSize: 'var(--text-xs)' }}>
+                    <span className="badge-dot" />
+                    {REPORT_STATUS_OPTS.find(o => o.value === selectedReportForView.metadata?.status)?.label || selectedReportForView.metadata?.status || 'Update'}
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ marginTop: 'var(--space-2)' }}>
+                <label className="input-label" style={{ marginBottom: 'var(--space-1)' }}>Update Message</label>
+                <div style={{
+                  padding: 'var(--space-4)',
+                  borderRadius: 'var(--radius-lg)',
+                  background: 'var(--color-surface-3)',
+                  border: '1px solid var(--color-border-subtle)',
+                  color: 'var(--color-text-primary)',
+                  fontSize: 'var(--text-sm)',
+                  lineHeight: 1.6,
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                }}>
+                  {selectedReportForView.description}
+                </div>
+              </div>
+
+              <div className={styles.modalActions} style={{ justifyContent: 'flex-end', marginTop: 'var(--space-2)' }}>
+                <button className="btn btn-secondary btn-sm" onClick={() => setSelectedReportForView(null)}>Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Confirm Delete Report Modal ── */}
+      {reportToDelete && (
+        <div className={styles.overlay} onClick={() => setReportToDelete(null)}>
+          <div className={styles.confirmModal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.confirmAccent} style={{ background: 'var(--color-error)' }} />
+            <button type="button" className={styles.modalClose} onClick={() => setReportToDelete(null)} aria-label="Close" style={{ position: 'absolute', top: 12, right: 12 }}>
+              <X size={16} />
+            </button>
+            <div className={styles.confirmBody}>
+              <div className={styles.confirmIcon} style={{ background: 'var(--color-error-bg)', color: 'var(--color-error)' }}>
+                <Trash2 size={26} />
+              </div>
+              <div className={styles.confirmTitle}>Delete Report?</div>
+              <div className={styles.confirmMessage}>
+                Are you sure you want to delete this report update? This action cannot be undone.
+              </div>
+            </div>
+            <div className={styles.confirmActions}>
+              <button className="btn btn-ghost btn-sm" onClick={() => setReportToDelete(null)} style={{ flex: 1 }}>
+                Cancel
+              </button>
+              <button
+                className="btn btn-destructive btn-sm"
+                style={{ flex: 1 }}
+                onClick={handleDeleteReport}
+              >
+                Delete
               </button>
             </div>
           </div>
