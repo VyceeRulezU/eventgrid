@@ -386,6 +386,7 @@ export function TeamPage() {
                 <tr>
                   <th className={styles.th}>Member</th>
                   <th className={styles.th}>Role</th>
+                  <th className={styles.th}>Status</th>
                   <th className={`${styles.th} ${styles.thTasks}`}>Tasks</th>
                    {canManage && <th className={styles.th} style={{ width: 60 }} />}
                 </tr>
@@ -393,7 +394,7 @@ export function TeamPage() {
               <tbody>
                     {members.length === 0 && pendingInvitations.length === 0 ? (
                   <tr>
-                    <td className={styles.td} colSpan={canManage ? 4 : 3}>
+                    <td className={styles.td} colSpan={canManage ? 5 : 4}>
                       <div style={{ textAlign: 'center', padding: 'var(--space-8) var(--space-4)', color: 'var(--color-text-muted)' }}>
                         <Users size={24} style={{ marginBottom: 'var(--space-2)', opacity: 0.4 }} />
                         <div style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>No team members yet</div>
@@ -420,6 +421,12 @@ export function TeamPage() {
                           <span className={`badge badge-${member.role === 'coordinator' ? 'yellow' : member.role === 'planner' ? 'green' : 'grey'}`}>
                             <span className="badge-dot" />
                             {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
+                          </span>
+                        </td>
+                        <td className={styles.td}>
+                          <span className={`badge badge-${member.accepted_at ? 'green' : 'grey'}`}>
+                            <span className="badge-dot" />
+                            {member.accepted_at ? 'Active' : 'Invited'}
                           </span>
                         </td>
                         <td className={`${styles.td} ${styles.cellCenter}`}>
@@ -452,6 +459,12 @@ export function TeamPage() {
                               <div className={styles.memberEmail}>Invited {timeAgo(inv.created_at)}</div>
                             </div>
                           </div>
+                        </td>
+                        <td className={styles.td}>
+                          <span className={`badge badge-${inv.role === 'coordinator' ? 'yellow' : inv.role === 'planner' ? 'green' : 'grey'}`}>
+                            <span className="badge-dot" />
+                            {inv.role.charAt(0).toUpperCase() + inv.role.slice(1)}
+                          </span>
                         </td>
                         <td className={styles.td}>
                           <span className="badge badge-grey">
