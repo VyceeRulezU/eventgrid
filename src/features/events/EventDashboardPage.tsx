@@ -134,7 +134,6 @@ export function EventDashboardPage() {
   const [applyingPromo, setApplyingPromo] = useState(false)
   const [togglingPhase, setTogglingPhase] = useState<string | null>(null)
   const [taskCounts, setTaskCounts] = useState<Record<string, { total: number; done: number }>>({})
-  const [deadlinePage, setDeadlinePage] = useState(1)
   const [deadlines, setDeadlines] = useState<DeadlineItem[]>([])
   const [activity, setActivity] = useState<EventActivity[]>([])
   const [financialSummary, setFinancialSummary] = useState({ paid: 0, outstanding: 0 })
@@ -525,14 +524,6 @@ export function EventDashboardPage() {
   const isPaid = activeEvent?.payment_status === 'paid'
   const isActivated = activeEvent?.status !== 'draft'
 
-  // Pagination for Deadlines (3 items per page)
-  const itemsPerPageDeadlines = 3
-  const totalDeadlinePages = Math.max(1, Math.ceil(deadlines.length / itemsPerPageDeadlines))
-  const paginatedDeadlines = deadlines.slice(
-    (deadlinePage - 1) * itemsPerPageDeadlines,
-    deadlinePage * itemsPerPageDeadlines
-  )
-
 
 
   /* ── loading / error ── */
@@ -892,20 +883,19 @@ export function EventDashboardPage() {
               {deadlines.length === 0 ? (
                 <div className={styles.feedEmpty}>No upcoming deadlines</div>
               ) : (
-                <>
-                  <div className={styles.tableResponsive}>
-                    <table className={styles.deadlinesTable}>
-                      <thead>
-                        <tr>
-                          <th>Task / Action</th>
-                          <th>Assigned To</th>
-                          <th>Assigned</th>
-                          <th>Deadline</th>
-                          <th>Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {paginatedDeadlines.map((dl) => {
+                <div className={styles.tableResponsive}>
+                  <table className={styles.deadlinesTable}>
+                    <thead>
+                      <tr>
+                        <th>Task / Action</th>
+                        <th>Assigned To</th>
+                        <th>Assigned</th>
+                        <th>Deadline</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {deadlines.map((dl) => {
                           const isOverdue = dl.hasDeadline && new Date(dl.date) < new Date()
                           
                           // Format date assigned
@@ -979,30 +969,6 @@ export function EventDashboardPage() {
                       </tbody>
                     </table>
                   </div>
-                  {totalDeadlinePages > 1 && (
-                    <div className={styles.feedPagination}>
-                      <button
-                        type="button"
-                        className={styles.feedPageBtn}
-                        onClick={() => setDeadlinePage((p) => Math.max(1, p - 1))}
-                        disabled={deadlinePage === 1}
-                      >
-                        ←
-                      </button>
-                      <span className={styles.feedPageInfo}>
-                        {deadlinePage} / {totalDeadlinePages}
-                      </span>
-                      <button
-                        type="button"
-                        className={styles.feedPageBtn}
-                        onClick={() => setDeadlinePage((p) => Math.min(totalDeadlinePages, p + 1))}
-                        disabled={deadlinePage === totalDeadlinePages}
-                      >
-                        →
-                      </button>
-                    </div>
-                  )}
-                </>
               )}
             </div>
 

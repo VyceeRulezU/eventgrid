@@ -202,6 +202,7 @@ export interface LiveFeedPost {
   message: string
   photo_urls: string[]
   location_tag: string | null
+  parent_id: string | null
   created_at: string
 }
 

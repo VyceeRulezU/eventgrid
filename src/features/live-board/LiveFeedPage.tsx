@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useResolvedEventId } from '@/hooks/useResolvedEventId'
 import { supabase } from '@/lib/supabase'
@@ -18,6 +18,12 @@ interface ProfileInfo {
   avatar_url: string | null
 }
 
+interface TeamMember {
+  id: string
+  display_name: string | null
+  avatar_url: string | null
+}
+
 export function LiveFeedPage() {
   const { eventId, paramId } = useResolvedEventId()
   const navigate = useNavigate()
@@ -29,6 +35,7 @@ export function LiveFeedPage() {
   const [eventName, setEventName] = useState('')
   const [profileMap, setProfileMap] = useState<Record<string, ProfileInfo>>({})
   const [showIssues, setShowIssues] = useState(false)
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
 
   const channelRef = useRef<RealtimeChannel | null>(null)
   const profileRef = useRef<Record<string, ProfileInfo>>({})
@@ -54,6 +61,45 @@ export function LiveFeedPage() {
       setProfileMap({ ...profileRef.current })
     }
   }
+
+  async function loadTeamMembers() {
+    if (!eventId) return
+    const { data: eaData } = await supabase
+      .from('event_access')
+      .select('user_id')
+      .eq('event_id', eventId)
+
+    if (!eaData || eaData.length === 0) return
+
+    const userIds = [...new Set(eaData.map((r) => r.user_id))]
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, display_name, avatar_url')
+      .in('id', userIds)
+
+    if (profiles) {
+      setTeamMembers(
+        profiles.map((p) => ({
+          id: p.id,
+          display_name: p.display_name,
+          avatar_url: p.avatar_url,
+        }))
+      )
+      profiles.forEach((p) => {
+        profileRef.current[p.id] = { display_name: p.display_name, avatar_url: p.avatar_url }
+      })
+      setProfileMap({ ...profileRef.current })
+    }
+  }
+
+  const topLevelPosts = useMemo(() => posts.filter((p) => !p.parent_id), [posts])
+
+  const getReplies = (postId: string) =>
+    posts.filter((p) => p.parent_id === postId).sort(
+      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    )
+
+  const getParentPost = (parentId: string) => posts.find((p) => p.id === parentId)
 
   useEffect(() => {
     if (!eventId) return
@@ -99,6 +145,7 @@ export function LiveFeedPage() {
     }
 
     loadData()
+    loadTeamMembers()
 
     const feedChannel = supabase.channel('live_feed:' + eventId)
     feedChannel
@@ -196,7 +243,7 @@ export function LiveFeedPage() {
       <div className={`${styles.feedLayout} ${!showIssues ? styles.feedLayoutFull : ''}`}>
         <div className={styles.feedMain}>
           <div className={styles.feedTimeline} ref={timelineRef}>
-            {posts.length === 0 ? (
+            {topLevelPosts.length === 0 ? (
               <div className="empty-state" style={{ padding: 'var(--space-10) var(--space-4)' }}>
                 <div className="empty-state__icon">
                   <Radio size={20} />
@@ -207,19 +254,23 @@ export function LiveFeedPage() {
                 </div>
               </div>
             ) : (
-              posts.map((post) => (
+              topLevelPosts.map((post) => (
                 <LiveFeedPost
                   key={post.id}
                   post={post}
+                  replies={getReplies(post.id)}
                   eventId={eventId!}
                   displayName={profileMap[post.user_id]?.display_name}
                   avatarUrl={profileMap[post.user_id]?.avatar_url}
+                  profileMap={profileMap}
+                  teamMembers={teamMembers}
+                  getParentPost={getParentPost}
                 />
               ))
             )}
           </div>
 
-          <PostForm eventId={eventId!} />
+          <PostForm eventId={eventId!} teamMembers={teamMembers} />
         </div>
 
         {showIssues && (
