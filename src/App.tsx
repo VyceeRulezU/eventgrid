@@ -65,6 +65,7 @@ import { SurveyPage } from '@/pages/info/SurveyPage'
 import { DataDeletionPage } from '@/pages/info/DataDeletionPage'
 import { ScrollToTop } from '@/components/shared/ScrollToTop'
 import { CookieNotice } from '@/components/CookieNotice'
+import { PushPermissionPrompt } from '@/components/PushPermissionPrompt'
 
 const GuestManagementPage = lazy(() => import('@/features/guests/GuestManagementPage').then(m => ({ default: m.GuestManagementPage })))
 const FinancialsPage = lazy(() => import('@/features/financials/FinancialsPage').then(m => ({ default: m.FinancialsPage })))
@@ -650,6 +651,7 @@ export function App() {
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
         <NotificationsDrawer />
+        <PushPermissionPrompt />
         <CookieNotice />
       </BrowserRouter>
       <PremiumModalContainer />

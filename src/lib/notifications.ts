@@ -2,6 +2,31 @@ import type { NavigateFunction } from 'react-router-dom'
 import { supabase } from './supabase'
 import type { Notification } from '@/types'
 
+export type NotificationEventType =
+  | 'task_assigned'
+  | 'task_overdue'
+  | 'task_completed'
+  | 'issue_raised'
+  | 'issue_resolved'
+  | 'vendor_update'
+  | 'vendor_confirmed'
+  | 'payment_received'
+  | 'payment_overdue'
+  | 'feedback_reply'
+  | 'client_action_required'
+
+export interface NotificationEvent {
+  type: NotificationEventType
+  recipientId: string
+  eventId?: string
+  payload: {
+    title: string
+    body?: string
+    url?: string
+    tag?: string
+  }
+}
+
 export function navigateFromNotification(n: Notification, navigate: NavigateFunction) {
   if (n.event_id) {
     switch (n.type) {
@@ -43,6 +68,63 @@ export async function createNotification(
     })
 
   if (error) console.error('Failed to create notification:', error)
+}
+
+async function sendWebPush(event: NotificationEvent) {
+  try {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('push_enabled, push_tasks, push_issues, push_vendors, push_payments, push_client_actions')
+      .eq('id', event.recipientId)
+      .single()
+
+    if (!profile) return
+    if (!profile.push_enabled) return
+
+    // Check specific preference based on notification type
+    const pushPrefMap: Record<NotificationEventType, keyof typeof profile> = {
+      task_assigned: 'push_tasks',
+      task_overdue: 'push_tasks',
+      task_completed: 'push_tasks',
+      issue_raised: 'push_issues',
+      issue_resolved: 'push_issues',
+      vendor_update: 'push_vendors',
+      vendor_confirmed: 'push_vendors',
+      payment_received: 'push_payments',
+      payment_overdue: 'push_payments',
+      feedback_reply: 'push_client_actions',
+      client_action_required: 'push_client_actions',
+    }
+
+    const prefKey = pushPrefMap[event.type]
+    if (!profile[prefKey]) return
+
+    const { error } = await supabase.functions.invoke('send-push-notification', {
+      body: {
+        userId: event.recipientId,
+        title: event.payload.title,
+        body: event.payload.body || '',
+        url: event.payload.url || '/',
+        tag: event.payload.tag || event.type,
+      },
+    })
+
+    if (error) console.error('sendWebPush error:', error)
+  } catch (err) {
+    console.error('sendWebPush exception:', err)
+  }
+}
+
+export async function notify(event: NotificationEvent) {
+  await createNotification(
+    event.recipientId,
+    event.type,
+    event.payload.title,
+    event.payload.body,
+    event.eventId,
+  )
+
+  await sendWebPush(event)
 }
 
 export function subscribeToNotifications(

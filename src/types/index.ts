@@ -12,6 +12,12 @@ export interface Profile {
   is_active: boolean
   free_tier_used?: boolean
   referred_by_code?: string | null
+  push_enabled?: boolean
+  push_tasks?: boolean
+  push_issues?: boolean
+  push_vendors?: boolean
+  push_payments?: boolean
+  push_client_actions?: boolean
   created_at: string
   updated_at: string
 }

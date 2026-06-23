@@ -7,15 +7,16 @@ self.addEventListener('activate', (event) => {
 })
 
 self.addEventListener('push', (event) => {
-  let data = { title: 'EventGrid', body: '', icon: '/ng-new-logo.png', badge: '/ng-new-logo.png' }
+  let data = { title: 'NaliGrid', body: '', url: '/', icon: '/logo-192.png', badge: '/badge-72.png', tag: '' }
   try {
     data = event.data ? JSON.parse(event.data.text()) : data
   } catch {}
 
   const options = {
     body: data.body || '',
-    icon: data.icon || '/ng-new-logo.png',
-    badge: data.badge || '/ng-new-logo.png',
+    icon: data.icon || '/logo-192.png',
+    badge: data.badge || '/badge-72.png',
+    tag: data.tag || '',
     vibrate: [200, 100, 200],
     data: { url: data.url || '/' },
   }
