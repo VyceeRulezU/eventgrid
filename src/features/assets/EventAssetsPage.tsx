@@ -72,6 +72,27 @@ export function EventAssetsPage() {
   const [uploading, setUploading] = useState(false)
   const [deleting, setDeleting] = useState<string | null>(null)
   const [previewAsset, setPreviewAsset] = useState<EventAsset | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
+
+  useEffect(() => {
+    if (!previewAsset) {
+      setPreviewUrl(null)
+      return
+    }
+    if (isImageType(previewAsset.mime_type) || !previewAsset.storage_path) {
+      setPreviewUrl(previewAsset.file_url)
+      return
+    }
+    setPreviewLoading(true)
+    supabase.storage
+      .from('event-media')
+      .createSignedUrl(previewAsset.storage_path, 3600)
+      .then(({ data }) => {
+        setPreviewUrl(data?.signedUrl ? `${data.signedUrl}&content-disposition=inline` : previewAsset.file_url)
+      })
+      .finally(() => setPreviewLoading(false))
+  }, [previewAsset])
 
   const fileRef = useRef<HTMLInputElement>(null)
   const [formFile, setFormFile] = useState<File | null>(null)
@@ -462,21 +483,33 @@ export function EventAssetsPage() {
             </div>
 
             <div className={styles.previewBody}>
-              {isImageType(previewAsset.mime_type) && previewAsset.file_url ? (
-                <img src={previewAsset.file_url} alt={previewAsset.name} className={styles.previewImage} />
+              {isImageType(previewAsset.mime_type) && previewUrl ? (
+                <img src={previewUrl} alt={previewAsset.name} className={styles.previewImage} />
+              ) : previewAsset.mime_type === 'application/pdf' && previewUrl ? (
+                <iframe
+                  src={previewUrl}
+                  className={styles.previewPdf}
+                  title={previewAsset.name}
+                />
               ) : (
                 <div className={styles.previewFallback}>
                   <FileText size={48} />
-                  <p>Preview not available for this file type.</p>
-                  {previewAsset.file_url && (
-                    <a
-                      href={previewAsset.file_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn btn-primary"
-                    >
-                      <ExternalLink size={14} /> Open File
-                    </a>
+                  {previewLoading ? (
+                    <p>Loading preview...</p>
+                  ) : (
+                    <>
+                      <p>Preview not available for this file type.</p>
+                      {previewUrl && (
+                        <a
+                          href={previewUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn btn-primary"
+                        >
+                          <ExternalLink size={14} /> Open File
+                        </a>
+                      )}
+                    </>
                   )}
                 </div>
               )}
