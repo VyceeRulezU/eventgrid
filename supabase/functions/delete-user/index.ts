@@ -96,6 +96,21 @@ Deno.serve(async (req) => {
       }
     }
 
+    // -- Delete FK rows referencing events (FK lacks CASCADE on notifications, issues, media) --
+    if (orgIds.length > 0) {
+      const eventIds = (await supabaseAdmin.from('events').select('id').in('org_id', orgIds)).data?.map(e => e.id) ?? []
+      if (eventIds.length > 0) {
+        for (const [table, col] of [
+          ['notifications', 'event_id'],
+          ['issues', 'event_id'],
+          ['media', 'event_id'],
+        ] as [string, string][]) {
+          const { error } = await supabaseAdmin.from(table as any).delete().in(col as any, eventIds)
+          if (error) errors.push(`${table}_by_event: ${error.message}`)
+        }
+      }
+    }
+
     // -- Delete rows in tables referencing our orgs (these precede org deletion) --
     if (orgIds.length > 0) {
       for (const [table, col] of [

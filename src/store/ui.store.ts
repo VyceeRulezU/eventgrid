@@ -138,7 +138,6 @@ export const useUIStore = create<UIStore>((set) => ({
   },
 
   showNotification: (notification) => {
-    playNotificationSound(notification.variant)
     set((state) => ({
       toastNotifications: [
         ...state.toastNotifications,
