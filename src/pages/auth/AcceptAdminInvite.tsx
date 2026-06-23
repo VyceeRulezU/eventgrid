@@ -4,6 +4,7 @@ import { Eye, EyeOff, Shield, ShieldCheck, Users } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
 import { SEO } from '@/components/shared/SEO'
+import { ADMIN_LOGIN_PATH } from '@/lib/config'
 import '../admin/admin-auth.css'
 
 const roleConfig: Record<string, { label: string; icon: typeof Shield; desc: string; color: string }> = {
@@ -86,7 +87,7 @@ export function AcceptAdminInvite() {
 
     if (confirmed) {
       showNotification({ variant: 'success', title: 'Account created', message: 'You can now sign in with your password.' })
-      navigate('/admin/login', { replace: true })
+      navigate(ADMIN_LOGIN_PATH, { replace: true })
     } else {
       navigate('/verify-email', { replace: true })
     }
@@ -117,7 +118,7 @@ export function AcceptAdminInvite() {
           <div className="adminAuthFooter">
             <p className="adminAuthFooterText">
               Already have an account?{' '}
-              <a href="/admin/login" className="adminAuthFooterLink" style={{ color: config.color }}>Sign in</a>
+              <a href={ADMIN_LOGIN_PATH} className="adminAuthFooterLink" style={{ color: config.color }}>Sign in</a>
             </p>
           </div>
         </div>

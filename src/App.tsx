@@ -14,6 +14,7 @@ import { AuthGuard } from '@/components/layout/AuthGuard'
 import { RoleGuard } from '@/components/layout/RoleGuard'
 import { AdminGuard } from '@/components/layout/AdminGuard'
 import { AppShell } from '@/components/layout/AppShell'
+import { ADMIN_LOGIN_PATH } from '@/lib/config'
 import { LandingPage } from '@/pages/landing/LandingPage'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
@@ -463,7 +464,7 @@ export function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/accept-admin-invite" element={<AcceptAdminInvite />} />
           <Route path="/invite/accept" element={<InviteAccept />} />
-          <Route path="/admin/login" element={<AdminLoginPage />} />
+          <Route path={ADMIN_LOGIN_PATH} element={<AdminLoginPage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
