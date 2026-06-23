@@ -121,6 +121,34 @@ export function TeamPage() {
     loadData()
   }, [eventId])
 
+  /* ── Realtime subscriptions ── */
+  useEffect(() => {
+    if (!eventId) return
+
+    const channel = supabase.channel('team-page-' + eventId)
+
+    channel
+      .on('postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'event_activity', filter: `event_id=eq.${eventId}` },
+        () => loadData()
+      )
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'invitations', filter: `event_id=eq.${eventId}` },
+        () => loadData()
+      )
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'event_access', filter: `event_id=eq.${eventId}` },
+        () => loadData()
+      )
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'tasks', filter: `event_id=eq.${eventId}` },
+        () => loadData()
+      )
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [eventId])
+
   async function loadData() {
     setLoading(true)
 
@@ -303,6 +331,7 @@ export function TeamPage() {
     setSearchResults([])
     setShowEmailForm(false)
     setInviting(false)
+    loadData()
   }
 
   async function handleAddExisting(candidate: Profile) {
