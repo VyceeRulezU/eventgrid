@@ -6,7 +6,6 @@ import { useUIStore } from '@/store/ui.store'
 import { SEO } from '@/components/shared/SEO'
 import { AuthTestimonials } from '@/components/auth/AuthTestimonials'
 import { useCaptchaToken, CaptchaField, hasCaptcha } from '@/lib/captcha'
-import { ADMIN_LOGIN_PATH } from '@/lib/config'
 import styles from './Auth.module.css'
 
 export function LoginPage() {
@@ -196,11 +195,6 @@ export function LoginPage() {
             </button>
           </div>
 
-          <div style={{ textAlign: 'center', marginTop: 'var(--space-2)' }}>
-            <Link to={ADMIN_LOGIN_PATH} style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', textDecoration: 'none' }}>
-              Admin?
-            </Link>
-          </div>
           <Link to="/" className={styles.backToLanding}>
             <ArrowLeft size={16} />
             Back to main site

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useSearchParams, useNavigate } from 'react-router-dom'
+import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, Shield, ShieldCheck, Users } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
@@ -99,7 +99,7 @@ export function AcceptAdminInvite() {
       <div className="adminAuthContainer">
         <div className="adminAuthLeft">
           <div className="adminAuthTopBar">
-            <img src="/ng-logo-wg.svg" alt="NaliGrid" style={{ height: 36, width: 'auto', zIndex: 2, position: 'relative' }} />
+            <a href="/"><img src="/ng-logo-wg.svg" alt="NaliGrid" style={{ height: 36, width: 'auto', zIndex: 2, position: 'relative' }} /></a>
           </div>
 
           <div className="adminAuthCenter">
@@ -118,7 +118,7 @@ export function AcceptAdminInvite() {
           <div className="adminAuthFooter">
             <p className="adminAuthFooterText">
               Already have an account?{' '}
-              <a href={ADMIN_LOGIN_PATH} className="adminAuthFooterLink" style={{ color: config.color }}>Sign in</a>
+              <Link to={ADMIN_LOGIN_PATH} className="adminAuthFooterLink" style={{ color: config.color }}>Sign in</Link>
             </p>
           </div>
         </div>

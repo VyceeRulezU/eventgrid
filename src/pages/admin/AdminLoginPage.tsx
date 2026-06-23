@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Shield, Eye, EyeOff } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
@@ -52,7 +52,7 @@ export function AdminLoginPage() {
       <div className="adminAuthContainer">
         <div className="adminAuthLeft">
           <div className="adminAuthTopBar">
-            <img src="/ng-logo-wg.svg" alt="NaliGrid" style={{ height: 64, width: 'auto', zIndex: 2, position: 'relative' }} />
+            <a href="/" style={{ display: 'inline-block' }}><img src="/ng-logo-wg.svg" alt="NaliGrid" style={{ height: 64, width: 'auto', zIndex: 2, position: 'relative' }} /></a>
           </div>
 
           <div className="adminAuthCenter">
@@ -71,7 +71,7 @@ export function AdminLoginPage() {
           <div className="adminAuthFooter">
             <p className="adminAuthFooterText">
               Not an admin?{' '}
-              <a href="/login" className="adminAuthFooterLink" style={{ color: '#D4A017' }}>User sign in</a>
+              <Link to="/login" className="adminAuthFooterLink" style={{ color: '#D4A017' }}>User sign in</Link>
             </p>
           </div>
         </div>
