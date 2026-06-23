@@ -60,7 +60,17 @@ export function AddVendorModal({ orgId, availableTypes, defaultCategory, onClose
         .is('deleted_at', null)
         .order('name', { ascending: true })
         .limit(10)
-      setSearchResults((data || []) as unknown as import('@/types').Vendor[])
+      const raw = (data || []) as unknown as import('@/types').Vendor[]
+      const seen = new Set<string>()
+      const deduped = raw.filter((v) => {
+        if (v.category === 'Coordinator' && v.email) {
+          const key = v.email.toLowerCase()
+          if (seen.has(key)) return false
+          seen.add(key)
+        }
+        return true
+      })
+      setSearchResults(deduped)
       setSearching(false)
     }, 300)
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }

@@ -254,7 +254,19 @@ function AddEventVendorModal({ eventId, onClose, onSaved }: {
       .is('deleted_at', null)
       .order('name', { ascending: true })
       .then(({ data }) => {
-        if (data) setDirectory(data as unknown as DirectoryVendor[])
+        if (data) {
+          const raw = data as unknown as DirectoryVendor[]
+          const seen = new Set<string>()
+          const deduped = raw.filter((v) => {
+            if (v.category === 'Coordinator' && v.email) {
+              const key = v.email.toLowerCase()
+              if (seen.has(key)) return false
+              seen.add(key)
+            }
+            return true
+          })
+          setDirectory(deduped)
+        }
         setLoading(false)
       })
   }, [])

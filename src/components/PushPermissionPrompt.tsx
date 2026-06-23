@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Bell, X } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
+import { useUIStore } from '@/store/ui.store'
 import { subscribeToPush, getPushPermissionState } from '@/lib/webPush'
 import styles from './PushPermissionPrompt.module.css'
 
@@ -8,6 +9,7 @@ const DISMISS_KEY = 'eg-push-dismissed-at'
 
 export function PushPermissionPrompt() {
   const user = useAuthStore((s) => s.user)
+  const showNotification = useUIStore((s) => s.showNotification)
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
@@ -36,7 +38,17 @@ export function PushPermissionPrompt() {
   async function handleEnable() {
     if (!user) return
     const ok = await subscribeToPush(user.id)
-    if (ok) setVisible(false)
+    setVisible(false)
+    if (ok) {
+      showNotification({ variant: 'success', title: 'Push notifications enabled', message: 'You will now receive updates even when this tab is closed.' })
+    } else {
+      const state = await getPushPermissionState()
+      if (state === 'denied') {
+        showNotification({ variant: 'error', title: 'Permission blocked', message: 'Please enable notifications in your browser settings.' })
+      } else if (state === 'granted') {
+        showNotification({ variant: 'error', title: 'Setup failed', message: 'Could not complete setup. Try again from Settings.' })
+      }
+    }
   }
 
   function handleDismiss() {
