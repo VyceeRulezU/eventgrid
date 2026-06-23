@@ -390,7 +390,7 @@ export function MyTasksPage() {
               </p>
             </div>
             <div className="modal-card__footer">
-              <button className="btn btn-danger btn-sm" onClick={() => handleDeleteTask(confirmDelete.id)}>
+              <button className="btn btn-destructive btn-sm" onClick={() => handleDeleteTask(confirmDelete.id)}>
                 <Trash2 size={14} /> Delete
               </button>
               <button className="btn btn-ghost btn-sm" onClick={() => setConfirmDelete(null)}>

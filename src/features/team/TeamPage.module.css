@@ -176,11 +176,12 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 9999;
   padding: var(--space-4);
 }
 
@@ -237,4 +238,62 @@
   display: flex;
   gap: var(--space-2);
   margin-top: var(--space-2);
+}
+
+/* ── Confirm Alert Modal ── */
+.confirmModal {
+  background: var(--color-surface-1);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 400px;
+  padding: 0;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.confirmAccent {
+  height: 3px;
+  width: 100%;
+  background: var(--color-warning);
+}
+
+.confirmBody {
+  padding: var(--space-6) var(--space-6) var(--space-5);
+  text-align: center;
+}
+
+.confirmIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--space-4);
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+.confirmTitle {
+  font-size: var(--text-subtitle);
+  font-weight: var(--weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
+  line-height: var(--leading-tight);
+}
+
+.confirmMessage {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-relaxed);
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.confirmActions {
+  display: flex;
+  gap: var(--space-3);
+  padding: 0 var(--space-6) var(--space-6);
 }

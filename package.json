@@ -31,6 +31,7 @@
     "konva": "^10.3.0",
     "lucide-react": "^0.510.0",
     "papaparse": "^5.5.2",
+    "pg": "^8.22.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-helmet-async": "^3.0.0",
