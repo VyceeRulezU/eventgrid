@@ -1,22 +1,100 @@
 import { useState } from 'react'
-import { MapPin, Clock, Flag, User, FileText, ExternalLink, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { MapPin, Clock, Flag, User, FileText, ExternalLink, X, ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react'
 import { IssueForm } from './IssueForm'
+import { PostForm } from './PostForm'
 import type { LiveFeedPost as LiveFeedPostType } from '@/types'
 import styles from './LiveBoardPage.module.css'
 
+interface ProfileInfo {
+  display_name: string | null
+  avatar_url: string | null
+}
+
+interface TeamMember {
+  id: string
+  display_name: string | null
+  avatar_url: string | null
+}
+
 interface LiveFeedPostProps {
   post: LiveFeedPostType
+  replies: LiveFeedPostType[]
   eventId: string
   displayName?: string | null
   avatarUrl?: string | null
+  profileMap: Record<string, ProfileInfo>
+  teamMembers: TeamMember[]
+  getParentPost: (parentId: string) => LiveFeedPostType | undefined
+  isReply?: boolean
 }
 
 function isPdfUrl(url: string): boolean {
   return url.toLowerCase().endsWith('.pdf') || url.includes('pdf')
 }
 
-export function LiveFeedPost({ post, eventId, displayName, avatarUrl }: LiveFeedPostProps) {
+function ReplyPost({ post, eventId, profileMap, teamMembers }: {
+  post: LiveFeedPostType
+  eventId: string
+  profileMap: Record<string, ProfileInfo>
+  teamMembers: TeamMember[]
+}) {
+  const displayName = profileMap[post.user_id]?.display_name
+  const avatarUrl = profileMap[post.user_id]?.avatar_url
+  const timeAgo = calcTimeAgo(post.created_at)
+  const photos: string[] = Array.isArray(post.photo_urls)
+    ? post.photo_urls
+    : typeof post.photo_urls === 'string'
+      ? JSON.parse(post.photo_urls)
+      : []
+
+  return (
+    <div className={styles.feedReply}>
+      <div className={styles.feedPostAvatar}>
+        {avatarUrl ? (
+          <img src={avatarUrl} alt="" className={styles.feedPostAvatarImg} />
+        ) : (
+          <div className={styles.feedPostAvatarPlaceholder}>
+            <User size={14} />
+          </div>
+        )}
+      </div>
+      <div className={styles.feedPostBody}>
+        <div className={styles.feedPostHeader}>
+          <span className={styles.feedPostAuthor}>{displayName || 'User'}</span>
+          <span className={styles.feedPostTime}>
+            <Clock size={12} />
+            {timeAgo}
+          </span>
+        </div>
+        <div className={styles.feedPostMessage}>{post.message}</div>
+        {photos.length > 0 && (
+          <div className={styles.feedPostPhotos} data-count={Math.min(photos.length, 4)}>
+            {photos.slice(0, 4).map((url, i) => (
+              <button key={i} className={styles.feedPostPhotoLink} onClick={() => window.open(url, '_blank')}>
+                <img src={url} alt="" className={styles.feedPostPhoto} />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function calcTimeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return 'Just now'
+  if (mins < 60) return `${mins}m ago`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  return `${days}d ago`
+}
+
+export function LiveFeedPost({ post, replies, eventId, displayName, avatarUrl, profileMap, teamMembers, getParentPost, isReply }: LiveFeedPostProps) {
   const [showIssueForm, setShowIssueForm] = useState(false)
+  const [showReplyForm, setShowReplyForm] = useState(false)
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null)
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null)
 
@@ -26,17 +104,7 @@ export function LiveFeedPost({ post, eventId, displayName, avatarUrl }: LiveFeed
       ? JSON.parse(post.photo_urls)
       : []
 
-  const timeAgo = (() => {
-    const diff = Date.now() - new Date(post.created_at).getTime()
-    const mins = Math.floor(diff / 60000)
-    if (mins < 1) return 'Just now'
-    if (mins < 60) return `${mins}m ago`
-    const hours = Math.floor(mins / 60)
-    if (hours < 24) return `${hours}h ago`
-    const days = Math.floor(hours / 24)
-    return `${days}d ago`
-  })()
-
+  const timeAgo = calcTimeAgo(post.created_at)
   const authorName = displayName || 'User'
 
   const imagePhotos = photos.filter((u) => !isPdfUrl(u))
@@ -46,9 +114,16 @@ export function LiveFeedPost({ post, eventId, displayName, avatarUrl }: LiveFeed
     setPdfPreviewUrl(url)
   }
 
+  const parentPost = post.parent_id ? getParentPost(post.parent_id) : null
+  const parentName = parentPost ? profileMap[parentPost.user_id]?.display_name || 'User' : null
+
+  const handleReplyAdded = () => {
+    setShowReplyForm(false)
+  }
+
   return (
     <>
-      <div className={styles.feedPost}>
+      <div className={`${styles.feedPost} ${isReply ? styles.feedPostReply : ''}`}>
         <div className={styles.feedPostAvatar}>
           {avatarUrl ? (
             <img src={avatarUrl} alt="" className={styles.feedPostAvatarImg} />
@@ -62,6 +137,12 @@ export function LiveFeedPost({ post, eventId, displayName, avatarUrl }: LiveFeed
         <div className={styles.feedPostBody}>
           <div className={styles.feedPostHeader}>
             <span className={styles.feedPostAuthor}>{authorName}</span>
+            {parentName && (
+              <span className={styles.feedPostParentRef}>
+                <MessageCircle size={10} />
+                replying to {parentName}
+              </span>
+            )}
             <span className={styles.feedPostTime}>
               <Clock size={12} />
               {timeAgo}
@@ -102,11 +183,47 @@ export function LiveFeedPost({ post, eventId, displayName, avatarUrl }: LiveFeed
                 {post.location_tag}
               </span>
             )}
+            <button className={styles.feedPostReplyBtn} onClick={() => setShowReplyForm(!showReplyForm)}>
+              <MessageCircle size={12} />
+              {showReplyForm ? 'Cancel' : 'Reply'}
+            </button>
             <button className={styles.feedPostFlagBtn} onClick={() => setShowIssueForm(true)}>
               <Flag size={12} />
               Flag Issue
             </button>
           </div>
+
+          {showReplyForm && (
+            <div className={styles.feedReplyForm}>
+              <PostForm
+                eventId={eventId}
+                parentId={post.id}
+                parentAuthorName={authorName}
+                teamMembers={teamMembers}
+                onSuccess={handleReplyAdded}
+                compact
+              />
+            </div>
+          )}
+
+          {replies.length > 0 && (
+            <div className={styles.feedReplies}>
+              {replies.map((reply) => (
+                <LiveFeedPost
+                  key={reply.id}
+                  post={reply}
+                  replies={[]}
+                  eventId={eventId}
+                  displayName={profileMap[reply.user_id]?.display_name}
+                  avatarUrl={profileMap[reply.user_id]?.avatar_url}
+                  profileMap={profileMap}
+                  teamMembers={teamMembers}
+                  getParentPost={getParentPost}
+                  isReply
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

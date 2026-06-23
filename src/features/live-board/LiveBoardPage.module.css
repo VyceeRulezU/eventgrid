@@ -741,6 +741,166 @@
   padding: 0;
 }
 
+/* ── Reply / Thread Styles ── */
+.feedReplies {
+  margin-top: var(--space-3);
+  padding-left: var(--space-4);
+  border-left: 2px solid var(--color-border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.feedReply {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+}
+
+.feedReply .feedPostAvatarImg,
+.feedReply .feedPostAvatarPlaceholder {
+  width: 28px;
+  height: 28px;
+}
+
+.feedReply .feedPostAvatarPlaceholder {
+  font-size: 12px;
+}
+
+.feedPostReply {
+  border: none !important;
+  background: transparent !important;
+  padding: var(--space-2) 0 !important;
+  animation: none !important;
+}
+
+.feedPostReply:hover {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.feedReplyForm {
+  margin-top: var(--space-3);
+}
+
+.feedPostReplyBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 3px var(--space-2);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  transition: all var(--transition-fast);
+}
+
+.feedPostReplyBtn:hover {
+  color: var(--color-accent);
+  background: var(--color-accent-muted);
+}
+
+.feedPostParentRef {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.feedPostParentRef svg {
+  opacity: 0.6;
+}
+
+.postFormReplyIndicator {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-xs);
+  color: var(--color-accent);
+  background: var(--color-accent-muted);
+  border-bottom: 1px solid var(--color-accent-border);
+  font-weight: 500;
+}
+
+.postFormCompact {
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: none;
+}
+
+.postFormCompact:focus-within {
+  border-color: var(--color-accent-border);
+}
+
+/* ── @Mention Autocomplete ── */
+.postFormMentionWrap {
+  position: relative;
+}
+
+.mentionDropdown {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  max-height: 180px;
+  overflow-y: auto;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  padding: var(--space-1);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mentionItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  text-align: left;
+  transition: background var(--transition-fast);
+}
+
+.mentionItemActive,
+.mentionItem:hover {
+  background: var(--color-accent-muted);
+}
+
+.mentionAvatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.mentionAvatarPlaceholder {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-surface-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
 .inlineTitle {
   font-size: var(--text-sm);
   font-weight: 700;
