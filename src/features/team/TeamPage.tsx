@@ -104,7 +104,7 @@ export function TeamPage() {
 
   /* ── Reports ── */
   const [reports, setReports] = useState<TeamReport[]>([])
-  const [showReportForm, setShowReportForm] = useState(false)
+
   const [reportStatus, setReportStatus] = useState('update')
   const [reportMessage, setReportMessage] = useState('')
   const [submittingReport, setSubmittingReport] = useState(false)
