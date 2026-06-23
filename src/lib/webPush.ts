@@ -16,27 +16,42 @@ export async function subscribeToPush(userId: string): Promise<boolean> {
     const permission = await Notification.requestPermission()
     if (permission !== 'granted') return false
 
-    const registration = await navigator.serviceWorker.ready
+    if (!import.meta.env.VITE_VAPID_PUBLIC_KEY) {
+      console.error('VAPID key is not configured')
+      return false
+    }
+
+    let registration: ServiceWorkerRegistration
+    const existing = await navigator.serviceWorker.getRegistration()
+    if (existing) {
+      registration = existing
+    } else {
+      registration = await navigator.serviceWorker.register('/sw.js')
+    }
+    await navigator.serviceWorker.ready
+
+    const applicationServerKey = urlBase64ToUint8Array(import.meta.env.VITE_VAPID_PUBLIC_KEY)
+
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(import.meta.env.VITE_VAPID_PUBLIC_KEY) as unknown as BufferSource,
+      applicationServerKey: applicationServerKey as unknown as BufferSource,
     })
 
-    // Remove old subscription with same endpoint
-    const sub = subscription.toJSON()
-    if (sub.endpoint) {
-      await supabase
-        .from('push_subscriptions')
-        .delete()
-        .eq('subscription->>endpoint', sub.endpoint)
-    }
+    const subData = subscription.toJSON()
+
+    // Remove old subscriptions for this user with same endpoint
+    await supabase
+      .from('push_subscriptions')
+      .delete()
+      .eq('user_id', userId)
+      .filter('subscription', 'cs', JSON.stringify({ endpoint: subData.endpoint }))
 
     // Insert new subscription
     const { error } = await supabase
       .from('push_subscriptions')
       .insert({
         user_id: userId,
-        subscription: subscription.toJSON(),
+        subscription: subData,
         user_agent: navigator.userAgent,
       })
 
@@ -66,9 +81,8 @@ export async function unsubscribeFromPush(userId: string): Promise<boolean> {
           .from('push_subscriptions')
           .delete()
           .eq('user_id', userId)
-          .eq('subscription->>endpoint', sub.endpoint)
+          .filter('subscription', 'cs', JSON.stringify({ endpoint: sub.endpoint }))
       }
-
       await subscription.unsubscribe()
     }
 

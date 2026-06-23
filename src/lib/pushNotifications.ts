@@ -17,6 +17,8 @@ export async function requestPermission(): Promise<boolean> {
 
 export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (!('serviceWorker' in navigator)) return null
+  const existing = await navigator.serviceWorker.getRegistration()
+  if (existing) return existing
   const registration = await navigator.serviceWorker.register('/sw.js')
   await navigator.serviceWorker.ready
   return registration
@@ -41,23 +43,30 @@ export async function getExistingSubscription(registration: ServiceWorkerRegistr
 
 export async function saveSubscription(subscription: PushSubscription, userId: string) {
   const sub = subscription.toJSON()
+
+  // Remove old subscription with same endpoint for this user
+  await supabase
+    .from('push_subscriptions')
+    .delete()
+    .eq('user_id', userId)
+    .filter('subscription', 'cs', JSON.stringify({ endpoint: sub.endpoint }))
+
   const { error } = await supabase
     .from('push_subscriptions')
-    .upsert({
+    .insert({
       user_id: userId,
-      endpoint: sub.endpoint!,
-      p256dh: sub.keys!.p256dh,
-      auth: sub.keys!.auth,
+      subscription: sub,
       user_agent: navigator.userAgent,
-    }, { onConflict: 'user_id,endpoint' })
+    })
   if (error) console.error('Failed to save push subscription:', error)
 }
 
 export async function removeSubscription(subscription: PushSubscription) {
+  const sub = subscription.toJSON()
   const { error } = await supabase
     .from('push_subscriptions')
     .delete()
-    .eq('endpoint', subscription.endpoint)
+    .filter('subscription', 'cs', JSON.stringify({ endpoint: sub.endpoint }))
   if (error) console.error('Failed to remove push subscription:', error)
 }
 
