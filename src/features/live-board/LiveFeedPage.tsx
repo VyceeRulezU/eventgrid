@@ -258,7 +258,7 @@ export function LiveFeedPage() {
                 <LiveFeedPost
                   key={post.id}
                   post={post}
-                  replies={getReplies(post.id)}
+                  getReplies={getReplies}
                   eventId={eventId!}
                   displayName={profileMap[post.user_id]?.display_name}
                   avatarUrl={profileMap[post.user_id]?.avatar_url}

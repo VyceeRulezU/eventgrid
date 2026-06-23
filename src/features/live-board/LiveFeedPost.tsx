@@ -18,7 +18,7 @@ interface TeamMember {
 
 interface LiveFeedPostProps {
   post: LiveFeedPostType
-  replies: LiveFeedPostType[]
+  getReplies: (postId: string) => LiveFeedPostType[]
   eventId: string
   displayName?: string | null
   avatarUrl?: string | null
@@ -26,6 +26,7 @@ interface LiveFeedPostProps {
   teamMembers: TeamMember[]
   getParentPost: (parentId: string) => LiveFeedPostType | undefined
   isReply?: boolean
+  depth?: number
 }
 
 function isPdfUrl(url: string): boolean {
@@ -43,7 +44,10 @@ function calcTimeAgo(dateStr: string): string {
   return `${days}d ago`
 }
 
-export function LiveFeedPost({ post, replies, eventId, displayName, avatarUrl, profileMap, teamMembers, getParentPost, isReply }: LiveFeedPostProps) {
+const MAX_DEPTH = 5
+
+export function LiveFeedPost({ post, getReplies, eventId, displayName, avatarUrl, profileMap, teamMembers, getParentPost, isReply, depth = 0 }: LiveFeedPostProps) {
+  const childReplies = getReplies(post.id)
   const [showIssueForm, setShowIssueForm] = useState(false)
   const [showReplyForm, setShowReplyForm] = useState(false)
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null)
@@ -157,13 +161,13 @@ export function LiveFeedPost({ post, replies, eventId, displayName, avatarUrl, p
             </div>
           )}
 
-          {replies.length > 0 && (
+          {childReplies.length > 0 && depth < MAX_DEPTH && (
             <div className={styles.feedReplies}>
-              {replies.map((reply) => (
+              {childReplies.map((reply) => (
                 <LiveFeedPost
                   key={reply.id}
                   post={reply}
-                  replies={[]}
+                  getReplies={getReplies}
                   eventId={eventId}
                   displayName={profileMap[reply.user_id]?.display_name}
                   avatarUrl={profileMap[reply.user_id]?.avatar_url}
@@ -171,6 +175,7 @@ export function LiveFeedPost({ post, replies, eventId, displayName, avatarUrl, p
                   teamMembers={teamMembers}
                   getParentPost={getParentPost}
                   isReply
+                  depth={depth + 1}
                 />
               ))}
             </div>
