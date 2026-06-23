@@ -5,10 +5,13 @@ import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { compressImage } from '@/lib/compressImage'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
+import { Document, Page, pdfjs } from 'react-pdf'
 import {
-  Image, FileText, Upload, Trash2, X, Grid3X3, FolderOpen, Download, ExternalLink,
+  Image, FileText, Upload, Trash2, X, Grid3X3, FolderOpen, Download, ExternalLink, ChevronLeft, ChevronRight,
 } from 'lucide-react'
 import styles from './EventAssetsPage.module.css'
+
+pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
 
 interface EventAsset {
   id: string
@@ -74,14 +77,23 @@ export function EventAssetsPage() {
   const [deleting, setDeleting] = useState<string | null>(null)
   const [previewAsset, setPreviewAsset] = useState<EventAsset | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [numPages, setNumPages] = useState<number | null>(null)
+  const [pageNumber, setPageNumber] = useState(1)
 
   useEffect(() => {
     if (!previewAsset) {
       setPreviewUrl(null)
+      setNumPages(null)
+      setPageNumber(1)
       return
     }
     setPreviewUrl(signedUrls[previewAsset.id] || previewAsset.file_url)
   }, [previewAsset, signedUrls])
+
+  function onPdfLoadSuccess({ numPages: n }: { numPages: number }) {
+    setNumPages(n)
+    setPageNumber(1)
+  }
 
   const fileRef = useRef<HTMLInputElement>(null)
   const [formFile, setFormFile] = useState<File | null>(null)
@@ -508,11 +520,40 @@ export function EventAssetsPage() {
               {isImageType(previewAsset.mime_type) && previewUrl ? (
                 <img src={previewUrl} alt={previewAsset.name} className={styles.previewImage} />
               ) : previewAsset.mime_type === 'application/pdf' && previewUrl ? (
-                <iframe
-                  src={previewUrl}
-                  className={styles.previewPdf}
-                  title={previewAsset.name}
-                />
+                <div className={styles.pdfViewer}>
+                  <Document
+                    file={previewUrl}
+                    onLoadSuccess={onPdfLoadSuccess}
+                    loading={<div className={styles.pdfLoading}>Loading PDF...</div>}
+                    error={<div className={styles.pdfError}>Failed to load PDF</div>}
+                  >
+                    <Page
+                      pageNumber={pageNumber}
+                      width={Math.min(window.innerWidth - 80, 700)}
+                      renderTextLayer={false}
+                      renderAnnotationLayer={false}
+                    />
+                  </Document>
+                  {numPages && numPages > 1 && (
+                    <div className={styles.pdfNav}>
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        disabled={pageNumber <= 1}
+                        onClick={() => setPageNumber((p) => Math.max(1, p - 1))}
+                      >
+                        <ChevronLeft size={14} />
+                      </button>
+                      <span className={styles.pdfPageInfo}>{pageNumber} / {numPages}</span>
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        disabled={pageNumber >= numPages}
+                        onClick={() => setPageNumber((p) => Math.min(numPages, p + 1))}
+                      >
+                        <ChevronRight size={14} />
+                      </button>
+                    </div>
+                  )}
+                </div>
               ) : (
                 <div className={styles.previewFallback}>
                   <FileText size={48} />
