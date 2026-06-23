@@ -57,10 +57,6 @@ export function AdminEventsListPage() {
       .is('deleted_at', null)
       .order('created_at', { ascending: false })
 
-    if (role === 'planner' && org) {
-      query = query.eq('org_id', org.id)
-    }
-
     const { data } = await query
 
     if (!data) {

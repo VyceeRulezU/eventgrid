@@ -53,18 +53,11 @@ export function EventsListPage() {
       return
     }
 
-    const { data } = (role === 'planner' && org)
-      ? await supabase
-          .from('events')
-          .select('*')
-          .eq('org_id', org.id)
-          .is('deleted_at', null)
-          .order('created_at', { ascending: false })
-      : await supabase
-          .from('events')
-          .select('*')
-          .is('deleted_at', null)
-          .order('created_at', { ascending: false })
+    const { data } = await supabase
+      .from('events')
+      .select('*')
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false })
 
     if (!data) {
       setLoading(false)
