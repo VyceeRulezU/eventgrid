@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import styles from './EventAssetsPage.module.css'
 
-pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
 
 interface EventAsset {
   id: string
@@ -280,13 +280,15 @@ export function EventAssetsPage() {
     })
   }
 
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+
   const renderThumbnail = (asset: EventAsset) => {
     const isImg = isImageType(asset.mime_type)
     if (isImg && asset.file_url) {
       return <img src={asset.file_url} alt={asset.name} className={styles.cardThumbImg} />
     }
     const thumbUrl = signedUrls[asset.id] || asset.file_url
-    if (asset.mime_type === 'application/pdf' && thumbUrl) {
+    if (asset.mime_type === 'application/pdf' && thumbUrl && !isMobile) {
       return (
         <iframe
           src={thumbUrl}
