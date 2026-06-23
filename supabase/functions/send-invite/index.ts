@@ -78,7 +78,40 @@ function emailShell(title: string, bodyHtml: string): string {
 </html>`
 }
 
-// ── Email builders ──────────────────────────────────────────────────────────
+function teamNotificationEmail(opts: {
+  invitedByName: string
+  eventName: string
+  inviteLink: string
+}): { subject: string; html: string } {
+  return {
+    subject: `You've been added to the ${opts.eventName} team on NaliGrid`,
+    html: emailShell('Team Notification', `
+              <h1 style="margin:0 0 12px;font-size:24px;font-weight:300;color:#F9FAFB;line-height:1.3;letter-spacing:-0.02em;">
+                You've been added to the team!
+              </h1>
+              <p style="margin:0 0 20px;font-size:15px;color:#9CA3AF;line-height:1.6;">
+                <strong style="color:#F9FAFB;">${opts.invitedByName}</strong> has added you to collaborate 
+                on the event <strong style="color:#D4A017;">${opts.eventName}</strong> on NaliGrid.
+              </p>
+              <p style="margin:0 0 28px;font-size:14px;color:#9CA3AF;line-height:1.6;">
+                Click the button below to view the event details and access the dashboard.
+              </p>
+              <table cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+                <tr>
+                  <td style="background-color:#D4A017;border-radius:10px;">
+                    <a href="${opts.inviteLink}" class="button"
+                       style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:400;color:#111827;text-decoration:none;border-radius:10px;box-shadow:0 4px 12px rgba(212,160,23,0.25);">
+                      View Event &rarr;
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:0;font-size:12px;color:#6B7280;line-height:1.5;">
+                If the button doesn't work, copy and paste this link:<br/>
+                <a href="${opts.inviteLink}" style="color:#D4A017;word-break:break-all;">${opts.inviteLink}</a>
+              </p>`),
+  }
+}
 
 function teamInviteEmail(opts: {
   invitedByName: string
@@ -398,7 +431,44 @@ Deno.serve(async (req) => {
         : adminRole === 'monitor' ? 'Monitor'
         : adminRole === 'admin_support' ? 'Support'
         : 'Admin'
-      const inviteLink = `${APP_URL}/accept-admin-invite?role=${adminRole}`
+      const redirectUrl = `${APP_URL}/accept-admin-invite?role=${adminRole}`
+      let linkData: any
+      let linkError: any
+
+      if (userExists) {
+        // User already exists, generate a login link that redirects to admin onboarding
+        const { data, error } = await supabaseAdmin.auth.admin.generateLink({
+          type: 'magiclink',
+          email,
+          options: {
+            redirectTo: redirectUrl,
+          },
+        })
+        linkData = data
+        linkError = error
+      } else {
+        // User does not exist, generate an invite link which also creates the user record
+        const { data, error } = await supabaseAdmin.auth.admin.generateLink({
+          type: 'invite',
+          email,
+          options: {
+            data: { role: 'planner', is_super_admin: true, invite_role: adminRole },
+            redirectTo: redirectUrl,
+          },
+        })
+        linkData = data
+        linkError = error
+      }
+
+      if (linkError || !linkData?.properties?.action_link) {
+        console.error('Admin invite link error:', linkError)
+        return new Response(
+          JSON.stringify({ error: 'Failed to generate invite link: ' + (linkError?.message ?? 'unknown') }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      const inviteLink = proxyInviteLink(linkData.properties.action_link)
       subject = `You've been invited as ${roleLabel} on NaliGrid`
       html = emailShell(`${roleLabel} Invitation`, `
               <h1 style="margin:0 0 12px;font-size:24px;font-weight:300;color:#F9FAFB;line-height:1.3;letter-spacing:-0.02em;">${roleLabel} Invitation</h1>
@@ -518,7 +588,7 @@ Deno.serve(async (req) => {
         }
 
         const inviteLink = `${APP_URL}/events/${event_id}?team=true`
-        const template = teamInviteEmail({
+        const template = teamNotificationEmail({
           invitedByName: invited_by_name ?? 'Your event planner',
           eventName: event!.name,
           inviteLink,

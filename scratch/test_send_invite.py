@@ -1,94 +1,72 @@
+import os
+import re
+import sys
 import json
 import urllib.request
 import urllib.error
 
-# Load env variables from .env.local
-env = {}
-with open('c:/Users/USER/Downloads/app-eventgrid/.env.local', 'r') as f:
-    for line in f:
-        line = line.strip()
-        if line and not line.startswith('#'):
-            parts = line.split('=', 1)
-            if len(parts) == 2:
-                env[parts[0].strip()] = parts[1].strip()
+def load_env():
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    env_path = os.path.abspath(os.path.join(script_dir, "../../../Downloads/app-eventgrid/.env.local"))
+    
+    if not os.path.exists(env_path):
+        print(f"Error: env file not found at {env_path}")
+        sys.exit(1)
+        
+    env = {}
+    with open(env_path, "r", encoding="utf-8") as f:
+        for line in f:
+            match = re.match(r"^\s*([^#=]+)\s*=\s*(.*)\s*$", line)
+            if match:
+                key = match.group(1).strip()
+                val = match.group(2).strip()
+                if val.startswith('"') and val.endswith('"'):
+                    val = val[1:-1]
+                env[key] = val
+    return env
 
-url = env.get('VITE_SUPABASE_URL')
-service_key = env.get('SUPABASE_SERVICE_ROLE_KEY')
-
-print("Supabase URL:", url)
-
-def invoke_edge_function(name, body):
-    # Edge functions URL is typically: https://<project_ref>.supabase.co/functions/v1/<name>
-    # or can be invoked via /functions/v1/ prefix
-    req_url = f"{url}/functions/v1/{name}"
-    headers = {
-        "apikey": service_key,
-        "Authorization": f"Bearer {service_key}",
-        "Content-Type": "application/json"
+def test_send_invite():
+    env = load_env()
+    supabase_url = env.get("VITE_SUPABASE_URL")
+    service_key = env.get("SUPABASE_SERVICE_ROLE_KEY")
+    
+    if not supabase_url or not service_key:
+        print("Error: VITE_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY missing from .env.local")
+        sys.exit(1)
+        
+    func_url = f"{supabase_url}/functions/v1/send-invite"
+    print(f"[TEST] Triggering send-invite Edge Function at: {func_url}")
+    
+    # Test Payload - we will invite a dummy email as a team member on a valid event or admin_monitor
+    payload = {
+        "type": "admin_monitor",
+        "email": f"test_invite_{os.urandom(4).hex()}@example.com",
+        "role": "super_admin",
+        "invited_by_name": "Test Runner",
+        "invited_by": "00000000-0000-0000-0000-000000000000"
     }
     
-    req_data = json.dumps(body).encode('utf-8')
-    req = urllib.request.Request(req_url, data=req_data, headers=headers)
+    req = urllib.request.Request(
+        func_url,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {service_key}"
+        },
+        method="POST"
+    )
     
     try:
         with urllib.request.urlopen(req) as response:
-            res_body = response.read().decode('utf-8')
-            return response.status, json.loads(res_body) if res_body else None
+            res_body = response.read().decode("utf-8")
+            print("[SUCCESS] Response received:")
+            print(json.dumps(json.loads(res_body), indent=2))
     except urllib.error.HTTPError as e:
-        err_body = e.read().decode('utf-8')
-        try:
-            err_json = json.loads(err_body)
-        except:
-            err_json = err_body
-        return e.code, err_json
+        err_body = e.read().decode("utf-8")
+        print(f"[FAIL] HTTP Error {e.code}: {e.reason}")
+        print("Response:", err_body)
     except Exception as e:
-        return 500, str(e)
+        print("[FAIL] Request exception:", e)
 
-# Fetch an event ID to use
-def get_event_id():
-    req_url = f"{url}/rest/v1/events?limit=1"
-    headers = {
-        "apikey": service_key,
-        "Authorization": f"Bearer {service_key}"
-    }
-    req = urllib.request.Request(req_url, headers=headers)
-    with urllib.request.urlopen(req) as r:
-        events = json.loads(r.read().decode('utf-8'))
-        return events[0]['id'] if events else None
-
-event_id = get_event_id()
-if not event_id:
-    print("No events found to test.")
-    exit(1)
-
-print("Testing with event_id:", event_id)
-
-# Test 1: Registered user email (existing user)
-print("\n--- Testing with registered user email ---")
-payload_registered = {
-    "type": "team_member",
-    "email": "dominicchizzy95@gmail.com",  # From our profiles sample
-    "event_id": event_id,
-    "invited_by_name": "Test Planner",
-    "invited_by": "c6ef456e-3617-41ab-8cc0-41905e0f12dc",
-    "role": "team_member"
-}
-status, res = invoke_edge_function("send-invite", payload_registered)
-print("Status:", status)
-print("Response:", json.dumps(res, indent=2))
-
-# Test 2: Non-registered user email (new user)
-print("\n--- Testing with non-registered user email ---")
-import time
-unique_email = f"new-team-member-{int(time.time())}@example.com"
-payload_new = {
-    "type": "team_member",
-    "email": unique_email,
-    "event_id": event_id,
-    "invited_by_name": "Test Planner",
-    "invited_by": "c6ef456e-3617-41ab-8cc0-41905e0f12dc",
-    "role": "team_member"
-}
-status, res = invoke_edge_function("send-invite", payload_new)
-print("Status:", status)
-print("Response:", json.dumps(res, indent=2))
+if __name__ == "__main__":
+    test_send_invite()
