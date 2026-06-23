@@ -103,7 +103,7 @@ export function TaskBoard() {
   async function loadData() {
     setLoading(true)
 
-    const [{ data: tasksData }, { data: membersData }, { data: phasesData }] = await Promise.all([
+    const [{ data: tasksData }, { data: eaData }, { data: phasesData }] = await Promise.all([
       supabase
         .from('tasks')
         .select('*, assignee:profiles!tasks_assignee_id_fkey(display_name, avatar_url)')
@@ -111,7 +111,7 @@ export function TaskBoard() {
         .order('created_at', { ascending: false }),
       supabase
         .from('event_access')
-        .select('user_id, role, profile:profiles!event_access_user_id_fkey(display_name, email)')
+        .select('user_id, role')
         .eq('event_id', eventId),
       supabase
         .from('event_phases')
@@ -122,15 +122,27 @@ export function TaskBoard() {
 
     if (tasksData) setTasks(tasksData as unknown as TaskWithAssignee[])
 
-    if (membersData) {
+    if (eaData) {
+      const userIds = [...new Set(eaData.map((r: any) => r.user_id))]
+      let profileMap: Record<string, { display_name: string | null; email: string }> = {}
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, display_name, email')
+          .in('id', userIds)
+        if (profiles) {
+          for (const p of profiles) {
+            profileMap[p.id] = { display_name: p.display_name, email: p.email }
+          }
+        }
+      }
       setMembers(
-        (membersData as unknown as { user_id: string; profile: { display_name: string | null; email: string } | null; role: string }[])
-          .map((m) => ({
-            user_id: m.user_id,
-            display_name: m.profile?.display_name || null,
-            email: m.profile?.email || '',
-            role: m.role,
-          }))
+        eaData.map((r: any) => ({
+          user_id: r.user_id,
+          display_name: profileMap[r.user_id]?.display_name || null,
+          email: profileMap[r.user_id]?.email || '',
+          role: r.role,
+        }))
       )
     }
 

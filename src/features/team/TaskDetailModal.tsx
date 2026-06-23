@@ -85,18 +85,30 @@ export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProp
   }, [])
 
   async function loadMembers() {
-    const { data } = await supabase
+    const { data: eaData } = await supabase
       .from('event_access')
-      .select('user_id, role, profile:profiles!event_access_user_id_fkey(display_name, email)')
+      .select('user_id, role')
       .eq('event_id', task.event_id)
-    if (data) {
-      setMembers(data.map((m: any) => ({
-        user_id: m.user_id,
-        display_name: m.profile?.display_name || null,
-        email: m.profile?.email || '',
-        role: m.role,
-      })))
+    if (!eaData) return
+    const userIds = [...new Set(eaData.map((r: any) => r.user_id))]
+    let profileMap: Record<string, { display_name: string | null; email: string }> = {}
+    if (userIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, display_name, email')
+        .in('id', userIds)
+      if (profiles) {
+        for (const p of profiles) {
+          profileMap[p.id] = { display_name: p.display_name, email: p.email }
+        }
+      }
     }
+    setMembers(eaData.map((r: any) => ({
+      user_id: r.user_id,
+      display_name: profileMap[r.user_id]?.display_name || null,
+      email: profileMap[r.user_id]?.email || '',
+      role: r.role,
+    })))
   }
 
 

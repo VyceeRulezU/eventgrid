@@ -153,10 +153,10 @@ export function TeamPage() {
     setLoading(true)
 
     try {
-      const [{ data: membersData }, { data: tasksData }, { data: reportsData }, { data: invitationsData }] = await Promise.all([
+      const [{ data: eaData }, { data: tasksData }, { data: reportsData }, { data: invitationsData }] = await Promise.all([
       supabase
         .from('event_access')
-        .select('*, profile:profiles!event_access_user_id_fkey(id, email, display_name, phone, avatar_url)')
+        .select('*')
         .eq('event_id', eventId)
         .order('created_at', { ascending: true }),
       supabase
@@ -178,7 +178,27 @@ export function TeamPage() {
         .order('created_at', { ascending: true }),
     ])
 
-    if (membersData) setMembers(membersData as unknown as TeamMemberRow[])
+    if (eaData) {
+      const userIds = [...new Set(eaData.map((r: any) => r.user_id).filter(Boolean))]
+      let profileMap: Record<string, any> = {}
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, email, display_name, phone, avatar_url')
+          .in('id', userIds)
+        if (profiles) {
+          for (const p of profiles) {
+            profileMap[p.id] = p
+          }
+        }
+      }
+      setMembers(
+        (eaData as any[]).map((r: any) => ({
+          ...r,
+          profile: profileMap[r.user_id] || null,
+        })) as unknown as TeamMemberRow[]
+      )
+    }
     if (reportsData) setReports(reportsData as unknown as TeamReport[])
     if (invitationsData) setPendingInvitations(invitationsData as unknown as PendingInvitation[])
 
