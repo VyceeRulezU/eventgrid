@@ -7,6 +7,8 @@ import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { TaskCard } from './TaskCard'
 import { CreateTaskModal } from './CreateTaskModal'
+import { TaskDetailModal } from './TaskDetailModal'
+import type { TaskDetail } from './TaskDetailModal'
 import type { Task, EventPhase } from '@/types'
 import styles from './TaskBoard.module.css'
 
@@ -41,6 +43,45 @@ export function TaskBoard() {
   const [showCreate, setShowCreate] = useState(false)
   const [members, setMembers] = useState<TeamMember[]>([])
   const [dragOverCol, setDragOverCol] = useState<string | null>(null)
+  const [detailTask, setDetailTask] = useState<TaskDetail | null>(null)
+
+  function openDetails(task: TaskWithAssignee) {
+    const phase = phases.find((p) => p.id === task.phase_id)
+    setDetailTask({
+      ...task,
+      event: { id: eventId!, name: eventName },
+      phase: phase ? { phase_name: phase.phase_name } : null,
+      assignee: task.assignee ? {
+        display_name: task.assignee.display_name,
+        email: members.find((m) => m.user_id === task.assignee_id)?.email || undefined,
+        avatar_url: task.assignee.avatar_url,
+      } : null,
+    })
+  }
+
+  async function handleRefreshDetail(taskId: string) {
+    const { data } = await supabase
+      .from('tasks')
+      .select('*, assignee:profiles!tasks_assignee_id_fkey(display_name, avatar_url)')
+      .eq('id', taskId)
+      .single()
+    if (data) {
+      const updatedTask = data as unknown as TaskWithAssignee
+      const phase = phases.find((p) => p.id === updatedTask.phase_id)
+      setDetailTask({
+        ...updatedTask,
+        event: { id: eventId!, name: eventName },
+        phase: phase ? { phase_name: phase.phase_name } : null,
+        assignee: updatedTask.assignee ? {
+          display_name: updatedTask.assignee.display_name,
+          email: members.find((m) => m.user_id === updatedTask.assignee_id)?.email || undefined,
+          avatar_url: updatedTask.assignee.avatar_url,
+        } : null,
+      })
+    } else {
+      setDetailTask(null)
+    }
+  }
 
   useEffect(() => {
     if (!eventId) return
@@ -233,7 +274,7 @@ export function TaskBoard() {
                 onDrop={(e) => handleDrop(e, col.key)}
               >
                 {(grouped[col.key] || []).map((task) => (
-                  <TaskCard key={task.id} task={task} onUpdate={loadData} />
+                  <TaskCard key={task.id} task={task} onUpdate={loadData} onOpenDetails={openDetails} />
                 ))}
               </div>
             </div>
@@ -251,13 +292,24 @@ export function TaskBoard() {
                 </div>
                 <div className={styles.listSection}>
                   {items.map((task) => (
-                    <TaskCard key={task.id} task={task} onUpdate={loadData} />
+                    <TaskCard key={task.id} task={task} onUpdate={loadData} onOpenDetails={openDetails} />
                   ))}
                 </div>
               </div>
             )
           })}
         </div>
+      )}
+
+      {detailTask && (
+        <TaskDetailModal
+          task={detailTask}
+          onClose={() => setDetailTask(null)}
+          onUpdate={() => {
+            loadData()
+            handleRefreshDetail(detailTask.id)
+          }}
+        />
       )}
     </div>
   )

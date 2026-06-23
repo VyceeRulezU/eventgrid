@@ -13,11 +13,13 @@ CREATE TABLE IF NOT EXISTS public.referral_partners (
 
 ALTER TABLE public.referral_partners ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "referral_partners_select_authenticated" ON public.referral_partners;
 CREATE POLICY "referral_partners_select_authenticated"
   ON public.referral_partners FOR SELECT
   TO authenticated
   USING (true);
 
+DROP POLICY IF EXISTS "referral_partners_all_super_admin" ON public.referral_partners;
 CREATE POLICY "referral_partners_all_super_admin"
   ON public.referral_partners FOR ALL
   TO authenticated
@@ -40,6 +42,7 @@ CREATE TABLE IF NOT EXISTS public.referral_redemptions (
 
 ALTER TABLE public.referral_redemptions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "referral_redemptions_select_partner" ON public.referral_redemptions;
 CREATE POLICY "referral_redemptions_select_partner"
   ON public.referral_redemptions FOR SELECT
   TO authenticated
@@ -48,11 +51,13 @@ CREATE POLICY "referral_redemptions_select_partner"
     OR public.is_super_admin()
   );
 
+DROP POLICY IF EXISTS "referral_redemptions_insert_trigger" ON public.referral_redemptions;
 CREATE POLICY "referral_redemptions_insert_trigger"
   ON public.referral_redemptions FOR INSERT
   TO authenticated
   WITH CHECK (public.is_super_admin());
 
+DROP POLICY IF EXISTS "referral_redemptions_update_super_admin" ON public.referral_redemptions;
 CREATE POLICY "referral_redemptions_update_super_admin"
   ON public.referral_redemptions FOR UPDATE
   TO authenticated

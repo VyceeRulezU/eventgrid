@@ -24,11 +24,11 @@ try {
   console.log('Successfully connected to database!')
   
   const migrationSql = fs.readFileSync(
-    'c:/Users/USER/Downloads/app-eventgrid/supabase/migrations/072_fix_profiles_role_check.sql',
+    'c:/Users/USER/Downloads/app-eventgrid/supabase/migrations/075_consolidated_rls_fixes.sql',
     'utf8'
   )
   
-  console.log('Executing migration 072...')
+  console.log('Executing migration 075...')
   await client.query(migrationSql)
   console.log('Migration executed successfully!')
 } catch (err) {

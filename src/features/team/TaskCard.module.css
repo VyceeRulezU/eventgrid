@@ -1,11 +1,18 @@
 .card {
-  padding: var(--space-3);
+  padding: var(--space-4);
   cursor: grab;
+  border-radius: 16px;
+  transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
+  min-height: 96px;
+}
+
+.card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  border-color: var(--color-accent);
 }
 
 .cardOverdue {
   border-color: var(--color-error);
-  border-width: 1px;
 }
 
 .header {
@@ -25,6 +32,9 @@
   font-weight: 600;
   color: var(--color-text-primary);
   margin-bottom: var(--space-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .metaRow {
@@ -40,6 +50,9 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .metaItemOverdue {

@@ -16,13 +16,7 @@ interface TaskWithAssignee extends Task {
 interface TaskCardProps {
   task: TaskWithAssignee
   onUpdate: () => void
-}
-
-interface Member {
-  user_id: string
-  display_name: string | null
-  email: string | null
-  role: string
+  onOpenDetails?: (task: TaskWithAssignee) => void
 }
 
 const STATUS_OPTIONS = [
@@ -61,9 +55,8 @@ function timeAgo(dateStr: string): string {
   return `${days}d ago`
 }
 
-export function TaskCard({ task, onUpdate }: TaskCardProps) {
+export function TaskCard({ task, onUpdate, onOpenDetails }: TaskCardProps) {
   const user = useAuthStore((s) => s.user)
-  const role = useAuthStore((s) => s.role)
   const showNotification = useUIStore((s) => s.showModal)
   const [expanded, setExpanded] = useState(false)
   const [updating, setUpdating] = useState(false)
@@ -73,24 +66,13 @@ export function TaskCard({ task, onUpdate }: TaskCardProps) {
   const [sending, setSending] = useState(false)
   const [uploadingPhotos, setUploadingPhotos] = useState<File[]>([])
   const [uploadingPreview, setUploadingPreview] = useState<string[]>([])
-  const [members, setMembers] = useState<Member[]>([])
-  const [reassigning, setReassigning] = useState(false)
   const overdue = isOverdue(task)
-
-  const eventRole = members.find(m => m.user_id === user?.id)?.role
-  const canAssign = role === 'planner' || role === 'coordinator' || role === 'super_admin' || eventRole === 'coordinator'
 
   useEffect(() => {
     if (expanded) {
       loadComments()
     }
   }, [expanded])
-
-  useEffect(() => {
-    if (canAssign && task.event_id) {
-      loadMembers()
-    }
-  }, [task.event_id])
 
   async function loadComments() {
     setCommentsLoading(true)
@@ -103,21 +85,6 @@ export function TaskCard({ task, onUpdate }: TaskCardProps) {
       setComments(data as unknown as TaskComment[])
     }
     setCommentsLoading(false)
-  }
-
-  async function loadMembers() {
-    const { data } = await supabase
-      .from('event_access')
-      .select('user_id, role, profiles!inner(display_name, email)')
-      .eq('event_id', task.event_id)
-    if (data) {
-      setMembers(data.map((m: any) => ({
-        user_id: m.user_id,
-        display_name: m.profiles?.display_name || null,
-        email: m.profiles?.email || null,
-        role: m.role,
-      })))
-    }
   }
 
   async function handlePhotoSelect(e: React.ChangeEvent<HTMLInputElement>) {
@@ -196,21 +163,6 @@ export function TaskCard({ task, onUpdate }: TaskCardProps) {
     onUpdate()
   }
 
-  async function handleReassign(userId: string) {
-    setReassigning(true)
-    const { error } = await supabase
-      .from('tasks')
-      .update({ assignee_id: userId || null })
-      .eq('id', task.id)
-    if (error) {
-      showNotification({ variant: 'error', title: 'Reassign failed', message: error.message })
-      setReassigning(false)
-      return
-    }
-    setReassigning(false)
-    onUpdate()
-  }
-
   function handleDragStart(e: React.DragEvent) {
     e.dataTransfer.setData('text/plain', task.id)
     e.dataTransfer.effectAllowed = 'move'
@@ -224,37 +176,24 @@ export function TaskCard({ task, onUpdate }: TaskCardProps) {
       draggable
       onDragStart={handleDragStart}
     >
-      <div className={styles.header} onClick={() => setExpanded(!expanded)}>
+      <div className={styles.header} onClick={() => onOpenDetails ? onOpenDetails(task) : setExpanded(!expanded)}>
         <div className={styles.headerLeft}>
           <div className={styles.title}>{task.title}</div>
           <div className={styles.metaRow}>
             <span className={`badge ${priorityBadge[task.priority] || 'badge-medium'}`}>
               {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
             </span>
-            {task.assignee?.display_name && canAssign ? (
-              <DropdownMenu
-                trigger={
-                  <button type="button" className={styles.assigneeBtn} onClick={(e) => e.stopPropagation()}>
-                    <User size={12} />
-                    {reassigning ? 'Reassigning...' : task.assignee.display_name}
-                  </button>
-                }
-                items={[
-                  { label: 'Unassigned', value: '' },
-                  ...members.map((m) => ({
-                    label: m.display_name || m.email || 'Unknown',
-                    value: m.user_id,
-                  })),
-                ]}
-                onSelect={(item) => handleReassign(item.value)}
-                disabled={reassigning}
-              />
-            ) : task.assignee?.display_name ? (
+            {task.assignee?.display_name ? (
               <span className={styles.metaItem}>
                 <User size={12} />
                 {task.assignee.display_name}
               </span>
-            ) : null}
+            ) : (
+              <span className={styles.metaItem}>
+                <User size={12} />
+                Unassigned
+              </span>
+            )}
             {task.due_datetime && (
               <span className={overdue ? styles.metaItemOverdue : styles.metaItem}>
                 <Calendar size={12} />
