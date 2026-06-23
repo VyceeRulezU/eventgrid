@@ -84,118 +84,137 @@ export function LiveFeedPost({ post, getReplies, eventId, displayName, avatarUrl
     setCollapsed(!collapsed)
   }
 
-  return (
-    <>
-      <div className={`${styles.feedPost} ${isReply ? styles.feedPostReply : ''}`} onClick={handleCardClick}>
+  const postRow = (
+    <div className={`${styles.feedPost} ${isReply ? styles.feedPostReply : ''}`} onClick={handleCardClick}>
+      <div className={styles.avatarColumn}>
+        {isReply && <div className={styles.threadLineTop} />}
         <div className={styles.feedPostAvatar}>
           {avatarUrl ? (
             <img src={avatarUrl} alt="" className={styles.feedPostAvatarImg} />
           ) : (
             <div className={styles.feedPostAvatarPlaceholder}>
-              <User size={18} />
+              <User size={isReply ? 14 : 18} />
             </div>
           )}
         </div>
-
-        <div className={styles.feedPostBody}>
-          <div className={styles.feedPostHeader}>
-            <span className={styles.feedPostAuthor}>{authorName}</span>
-            {parentName && (
-              <span className={styles.feedPostParentRef}>
-                <MessageCircle size={10} />
-                replying to {parentName}
-              </span>
-            )}
-            {childReplies.length > 0 && (
-              <button className={styles.feedPostCollapseBtn} onClick={() => setCollapsed(!collapsed)} data-tooltip={collapsed ? 'Expand' : 'Collapse'}>
-                {collapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
-                <span>{childReplies.length}</span>
-              </button>
-            )}
-            <span className={styles.feedPostTime}>
-              <Clock size={12} />
-              {timeAgo}
-            </span>
-          </div>
-
-          <div className={styles.feedPostMessage}>{post.message}</div>
-
-          {imagePhotos.length > 0 && (
-            <div className={styles.feedPostPhotos} data-count={Math.min(imagePhotos.length, 4)}>
-              {imagePhotos.slice(0, 4).map((url, i) => (
-                <button key={i} className={styles.feedPostPhotoLink} onClick={() => setLightboxIdx(i)}>
-                  <img src={url} alt="" className={styles.feedPostPhoto} />
-                </button>
-              ))}
-              {imagePhotos.length > 4 && (
-                <div className={styles.feedPostPhotoMore}>+{imagePhotos.length - 4}</div>
-              )}
-            </div>
-          )}
-
-          {pdfPhotos.length > 0 && (
-            <div className={styles.feedPostPdfGrid}>
-              {pdfPhotos.map((url, i) => (
-                <button key={i} className={styles.feedPostPdfCard} onClick={() => handlePdfClick(url)}>
-                  <FileText size={24} />
-                  <span className={styles.feedPostPdfName}>PDF {i + 1}</span>
-                  <ExternalLink size={12} />
-                </button>
-              ))}
-            </div>
-          )}
-
-          <div className={styles.feedPostFooter}>
-            {post.location_tag && (
-              <span className={styles.feedPostLocation}>
-                <MapPin size={12} />
-                {post.location_tag}
-              </span>
-            )}
-            <button className={styles.feedPostReplyBtn} onClick={() => setShowReplyForm(!showReplyForm)}>
-              <MessageCircle size={12} />
-              {showReplyForm ? 'Cancel' : 'Reply'}
-            </button>
-            <button className={styles.feedPostFlagBtn} onClick={() => setShowIssueForm(true)}>
-              <Flag size={12} />
-              Flag Issue
-            </button>
-          </div>
-
-          {showReplyForm && (
-            <div className={styles.feedReplyForm}>
-              <PostForm
-                eventId={eventId}
-                parentId={post.id}
-                parentAuthorName={authorName}
-                teamMembers={teamMembers}
-                onSuccess={handleReplyAdded}
-                compact
-              />
-            </div>
-          )}
-
-          {!collapsed && childReplies.length > 0 && depth < MAX_DEPTH && (
-            <div className={styles.feedReplies}>
-              {childReplies.map((reply) => (
-                <LiveFeedPost
-                  key={reply.id}
-                  post={reply}
-                  getReplies={getReplies}
-                  eventId={eventId}
-                  displayName={profileMap[reply.user_id]?.display_name}
-                  avatarUrl={profileMap[reply.user_id]?.avatar_url}
-                  profileMap={profileMap}
-                  teamMembers={teamMembers}
-                  getParentPost={getParentPost}
-                  isReply
-                  depth={depth + 1}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        {childReplies.length > 0 && !collapsed && <div className={styles.threadLineBottom} />}
       </div>
+
+      <div className={styles.feedPostBody}>
+        <div className={styles.feedPostHeader}>
+          <span className={styles.feedPostAuthor}>{authorName}</span>
+          {parentName && (
+            <span className={styles.feedPostParentRef}>
+              <MessageCircle size={10} />
+              replying to {parentName}
+            </span>
+          )}
+          {childReplies.length > 0 && (
+            <button className={styles.feedPostCollapseBtn} onClick={() => setCollapsed(!collapsed)} data-tooltip={collapsed ? 'Expand' : 'Collapse'}>
+              {collapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
+              <span>{childReplies.length}</span>
+            </button>
+          )}
+          <span className={styles.feedPostTime}>
+            <Clock size={12} />
+            {timeAgo}
+          </span>
+        </div>
+
+        <div className={styles.feedPostMessage}>{post.message}</div>
+
+        {imagePhotos.length > 0 && (
+          <div className={styles.feedPostPhotos} data-count={Math.min(imagePhotos.length, 4)}>
+            {imagePhotos.slice(0, 4).map((url, i) => (
+              <button key={i} className={styles.feedPostPhotoLink} onClick={() => setLightboxIdx(i)}>
+                <img src={url} alt="" className={styles.feedPostPhoto} />
+              </button>
+            ))}
+            {imagePhotos.length > 4 && (
+              <div className={styles.feedPostPhotoMore}>+{imagePhotos.length - 4}</div>
+            )}
+          </div>
+        )}
+
+        {pdfPhotos.length > 0 && (
+          <div className={styles.feedPostPdfGrid}>
+            {pdfPhotos.map((url, i) => (
+              <button key={i} className={styles.feedPostPdfCard} onClick={() => handlePdfClick(url)}>
+                <FileText size={24} />
+                <span className={styles.feedPostPdfName}>PDF {i + 1}</span>
+                <ExternalLink size={12} />
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div className={styles.feedPostFooter}>
+          {post.location_tag && (
+            <span className={styles.feedPostLocation}>
+              <MapPin size={12} />
+              {post.location_tag}
+            </span>
+          )}
+          <button className={styles.feedPostReplyBtn} onClick={() => setShowReplyForm(!showReplyForm)}>
+            <MessageCircle size={12} />
+            {showReplyForm ? 'Cancel' : 'Reply'}
+          </button>
+          <button className={styles.feedPostFlagBtn} onClick={() => setShowIssueForm(true)}>
+            <Flag size={12} />
+            Flag Issue
+          </button>
+        </div>
+
+        {showReplyForm && (
+          <div className={styles.feedReplyForm}>
+            <PostForm
+              eventId={eventId}
+              parentId={post.id}
+              parentAuthorName={authorName}
+              teamMembers={teamMembers}
+              onSuccess={handleReplyAdded}
+              compact
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  )
+
+  const repliesSection = !collapsed && childReplies.length > 0 && depth < MAX_DEPTH && (
+    <div className={styles.feedReplies}>
+      {childReplies.map((reply) => (
+        <LiveFeedPost
+          key={reply.id}
+          post={reply}
+          getReplies={getReplies}
+          eventId={eventId}
+          displayName={profileMap[reply.user_id]?.display_name}
+          avatarUrl={profileMap[reply.user_id]?.avatar_url}
+          profileMap={profileMap}
+          teamMembers={teamMembers}
+          getParentPost={getParentPost}
+          isReply
+          depth={depth + 1}
+        />
+      ))}
+    </div>
+  )
+
+  return (
+    <>
+      {depth === 0 ? (
+        <div className={styles.threadContainer}>
+          {postRow}
+          {repliesSection}
+        </div>
+      ) : (
+        <div className={styles.threadItem}>
+          {postRow}
+          {repliesSection}
+        </div>
+      )}
+
 
       {lightboxIdx !== null && (
         <div className={styles.lightboxOverlay} onClick={() => setLightboxIdx(null)}>
