@@ -241,16 +241,6 @@ export function EventAssetsPage() {
     if (isImg && asset.file_url) {
       return <img src={asset.file_url} alt={asset.name} className={styles.cardThumbImg} />
     }
-    if (asset.mime_type === 'application/pdf' && asset.file_url) {
-      return (
-        <iframe
-          src={asset.file_url}
-          className={styles.cardThumbImg}
-          title={asset.name}
-          style={{ border: 'none' }}
-        />
-      )
-    }
     return (
       <div className={styles.docThumb}>
         <FileText size={32} />
@@ -474,12 +464,6 @@ export function EventAssetsPage() {
             <div className={styles.previewBody}>
               {isImageType(previewAsset.mime_type) && previewAsset.file_url ? (
                 <img src={previewAsset.file_url} alt={previewAsset.name} className={styles.previewImage} />
-              ) : previewAsset.mime_type === 'application/pdf' && previewAsset.file_url ? (
-                <iframe
-                  src={previewAsset.file_url}
-                  className={styles.previewPdf}
-                  title={previewAsset.name}
-                />
               ) : (
                 <div className={styles.previewFallback}>
                   <FileText size={48} />
