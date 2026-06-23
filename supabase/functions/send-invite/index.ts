@@ -414,11 +414,10 @@ Deno.serve(async (req) => {
         userExists = true
         existingUserId = existingProfile.id
       } else {
-        const { data: authUsers } = await supabaseAdmin.auth.admin.listUsers()
-        const found = authUsers?.users?.find((u: any) => u.email?.toLowerCase() === email.toLowerCase())
-        if (found?.id) {
+        const { data: authUserId } = await supabaseAdmin.rpc('get_user_id_by_email', { p_email: email.toLowerCase() })
+        if (authUserId) {
           userExists = true
-          existingUserId = found.id
+          existingUserId = authUserId
         }
       }
     } catch (err) {
