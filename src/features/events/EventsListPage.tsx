@@ -53,7 +53,7 @@ export function EventsListPage() {
       return
     }
 
-    const { data } = org
+    const { data } = (role === 'planner' && org)
       ? await supabase
           .from('events')
           .select('*')
@@ -62,8 +62,7 @@ export function EventsListPage() {
           .order('created_at', { ascending: false })
       : await supabase
           .from('events')
-          .select('*, event_access!inner(user_id)')
-          .eq('event_access.user_id', user.id)
+          .select('*')
           .is('deleted_at', null)
           .order('created_at', { ascending: false })
 

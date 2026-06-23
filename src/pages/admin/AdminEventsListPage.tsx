@@ -57,17 +57,8 @@ export function AdminEventsListPage() {
       .is('deleted_at', null)
       .order('created_at', { ascending: false })
 
-    const isAdminRole = role && ['super_admin', 'monitor', 'admin_support'].includes(role)
-
-    if (!isAdminRole && org) {
+    if (role === 'planner' && org) {
       query = query.eq('org_id', org.id)
-    } else if (role && !isAdminRole) {
-      query = supabase
-        .from('events')
-        .select('*, event_access!inner(user_id)')
-        .eq('event_access.user_id', user.id)
-        .is('deleted_at', null)
-        .order('created_at', { ascending: false })
     }
 
     const { data } = await query
