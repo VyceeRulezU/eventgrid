@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Camera, Upload, ArrowLeft, ExternalLink, LogOut, Building2, LifeBuoy, Book, Bell, Send, Trash2, AlertTriangle, MessageSquareText } from 'lucide-react'
+import { Camera, Upload, ArrowLeft, ExternalLink, LogOut, Building2, LifeBuoy, Book, Bell, Send, Trash2, AlertTriangle, MessageSquareText, UserCheck } from 'lucide-react'
 import { uploadFile } from '@/lib/storage'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
@@ -40,6 +40,23 @@ export function SettingsPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [deletingAccount, setDeletingAccount] = useState(false)
+  const [linkingGoogle, setLinkingGoogle] = useState(false)
+
+  const handleLinkGoogle = async () => {
+    setLinkingGoogle(true)
+    try {
+      const { error } = await supabase.auth.linkIdentity({ provider: 'google' })
+      if (error) {
+        showToast({ type: 'error', title: 'Link failed', body: error.message })
+      } else {
+        showToast({ type: 'success', title: 'Google account linked', body: 'You can now sign in with Google.' })
+      }
+    } catch {
+      showToast({ type: 'error', title: 'Link failed', body: 'An unexpected error occurred.' })
+    } finally {
+      setLinkingGoogle(false)
+    }
+  }
 
   const handleToggleBetaLabel = async (value: boolean) => {
     setShowBetaLabel(value)
@@ -306,6 +323,24 @@ export function SettingsPage() {
           <div>
             <div className={styles.identityName}>{displayNameFinal}</div>
             <div className={styles.identityEmail}>{user?.email}</div>
+          </div>
+        </div>
+
+        <div className="card">
+          <h3 className={`${styles.cardTitle} ${styles.cardTitleRow}`}>
+            <UserCheck size={18} style={{ color: 'var(--color-accent)' }} />
+            Linked Accounts
+          </h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>Google</span>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={handleLinkGoogle}
+              disabled={linkingGoogle}
+            >
+              {linkingGoogle ? 'Linking...' : 'Link Google Account'}
+            </button>
           </div>
         </div>
 
