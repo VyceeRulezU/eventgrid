@@ -464,7 +464,7 @@ export function SettingsPage() {
         <div className="card">
           <h3 className={styles.cardTitle}>Quick Links</h3>
           <div className={styles.linkList}>
-            <a href="https://eventgrid.ng" target="_blank" rel="noopener noreferrer" className={styles.externalLink}>
+            <a href="https://naligrid.com" target="_blank" rel="noopener noreferrer" className={styles.externalLink}>
               <ExternalLink size={14} />
               Visit NaliGrid website
             </a>

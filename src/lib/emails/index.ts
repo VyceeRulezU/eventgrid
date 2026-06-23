@@ -63,7 +63,7 @@ export function renderOnboardingEmail(
       subject = `Welcome to NaliGrid, ${props.first_name || 'there'}! 🎉`
       element = React.createElement(WelcomeEmail, {
         first_name: props.first_name || 'there',
-        dashboard_url: props.dashboard_url || 'https://eventgrid.ng/login',
+        dashboard_url: props.dashboard_url || 'https://naligrid.com/login',
       })
       break
 
@@ -71,7 +71,7 @@ export function renderOnboardingEmail(
       subject = `Onboarding Step 1: Launch your first event 🚀`
       element = React.createElement(QuickStartEmail, {
         first_name: props.first_name || 'there',
-        create_event_url: props.create_event_url || 'https://eventgrid.ng/events/new',
+        create_event_url: props.create_event_url || 'https://naligrid.com/events/new',
       })
       break
 
@@ -79,7 +79,7 @@ export function renderOnboardingEmail(
       subject = `Say goodbye to Excel payment grids, ${props.first_name || 'there'} 💸`
       element = React.createElement(TrialReminderEmail, {
         first_name: props.first_name || 'there',
-        financials_url: props.financials_url || 'https://eventgrid.ng/financials',
+        financials_url: props.financials_url || 'https://naligrid.com/financials',
       })
       break
 
@@ -87,7 +87,7 @@ export function renderOnboardingEmail(
       subject = `How is NaliGrid working out for you, ${props.first_name || 'there'}? 💬`
       element = React.createElement(FeedbackEmail, {
         first_name: props.first_name || 'there',
-        feedback_url: props.feedback_url || 'https://eventgrid.ng/settings',
+        feedback_url: props.feedback_url || 'https://naligrid.com/settings',
       })
       break
 
@@ -98,7 +98,7 @@ export function renderOnboardingEmail(
         event_name: props.event_name || 'Event',
         amount: props.amount || '₦0',
         payment_method: props.payment_method || 'Card',
-        portal_url: props.portal_url || 'https://eventgrid.ng/login',
+        portal_url: props.portal_url || 'https://naligrid.com/login',
       })
       break
 

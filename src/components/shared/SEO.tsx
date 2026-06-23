@@ -1,6 +1,6 @@
 import { Helmet } from 'react-helmet-async'
 
-const SITE_URL = import.meta.env.VITE_APP_URL || 'https://eventgrid.ng'
+const SITE_URL = import.meta.env.VITE_APP_URL || 'https://naligrid.com'
 const SITE_IMAGE = `${SITE_URL}/og-image-ng.png`
 const DEFAULT_TITLE = 'NaliGrid — Event Management Platform'
 const DEFAULT_DESC = 'The premium event management platform built for event planners, coordinators, vendors, and clients.'
