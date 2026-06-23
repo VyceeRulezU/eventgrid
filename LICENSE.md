@@ -17,4 +17,4 @@ liability, whether in an action of contract, tort or otherwise, arising from,
 out of or in connection with the Software or the use or other dealings in the
 Software.
 
-For licensing inquiries, contact: services@eventgrid.ng
+For licensing inquiries, contact: services@naligrid.com

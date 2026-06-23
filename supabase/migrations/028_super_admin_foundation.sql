@@ -28,7 +28,7 @@ $$;
 --    These are manually curated — run only if you know the emails
 -- ============================================================
 UPDATE profiles SET is_super_admin = true
-WHERE email IN ('admin@eventgrid.ng', 'eventgridapp@gmail.com');
+WHERE email IN ('admin@naligrid.com', 'eventgridapp@gmail.com');
 
 -- ============================================================
 -- 4. Replace old super_admin RLS policies (checked auth.user_meta)

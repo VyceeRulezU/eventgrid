@@ -27,7 +27,7 @@ GRANT SELECT ON public.super_admins TO authenticated;
 -- 2. Migrate existing super admins to the new table
 INSERT INTO public.super_admins (user_id)
   SELECT id FROM profiles
-  WHERE is_super_admin = true OR role = 'super_admin' OR email IN ('admin@eventgrid.ng', 'eventgridapp@gmail.com')
+  WHERE is_super_admin = true OR role = 'super_admin' OR email IN ('admin@naligrid.com', 'eventgridapp@gmail.com')
 ON CONFLICT (user_id) DO NOTHING;
 
 -- 3. Recreate is_super_admin() to read from super_admins (no RLS → no recursion)

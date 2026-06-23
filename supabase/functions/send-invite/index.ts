@@ -25,9 +25,7 @@ const R2_BASE = 'https://pub-962633edede94bf8a4e41b91db2b602a.r2.dev'
 const HERO_IMAGE = isProdPlaceholder
   ? `${R2_BASE}/emails/corporate_event_hall.png`
   : APP_URL + '/emails/corporate_event_hall.png'
-const LOGO_IMAGE = isProdPlaceholder
-  ? `${R2_BASE}/ng-logo-wg.svg`
-  : APP_URL + '/ng-logo-wg.svg'
+const LOGO_IMAGE = APP_URL + '/ng-logo-wg.svg'
 
 function emailShell(title: string, bodyHtml: string): string {
   return `<!DOCTYPE html>
