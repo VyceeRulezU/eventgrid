@@ -5,7 +5,7 @@ import { useLiveFeedStore } from '@/store/liveFeed.store'
 import { useUIStore } from '@/store/ui.store'
 import { compressImage } from '@/lib/compressImage'
 import { uploadFile } from '@/lib/storage'
-import { Send, Paperclip, FileText, X, MapPin, User, AtSign } from 'lucide-react'
+import { Send, Paperclip, FileText, X, MapPin, User, MessageCircle } from 'lucide-react'
 import type { LiveFeedPost } from '@/types'
 import styles from './LiveBoardPage.module.css'
 

@@ -32,55 +32,6 @@ function isPdfUrl(url: string): boolean {
   return url.toLowerCase().endsWith('.pdf') || url.includes('pdf')
 }
 
-function ReplyPost({ post, eventId, profileMap, teamMembers }: {
-  post: LiveFeedPostType
-  eventId: string
-  profileMap: Record<string, ProfileInfo>
-  teamMembers: TeamMember[]
-}) {
-  const displayName = profileMap[post.user_id]?.display_name
-  const avatarUrl = profileMap[post.user_id]?.avatar_url
-  const timeAgo = calcTimeAgo(post.created_at)
-  const photos: string[] = Array.isArray(post.photo_urls)
-    ? post.photo_urls
-    : typeof post.photo_urls === 'string'
-      ? JSON.parse(post.photo_urls)
-      : []
-
-  return (
-    <div className={styles.feedReply}>
-      <div className={styles.feedPostAvatar}>
-        {avatarUrl ? (
-          <img src={avatarUrl} alt="" className={styles.feedPostAvatarImg} />
-        ) : (
-          <div className={styles.feedPostAvatarPlaceholder}>
-            <User size={14} />
-          </div>
-        )}
-      </div>
-      <div className={styles.feedPostBody}>
-        <div className={styles.feedPostHeader}>
-          <span className={styles.feedPostAuthor}>{displayName || 'User'}</span>
-          <span className={styles.feedPostTime}>
-            <Clock size={12} />
-            {timeAgo}
-          </span>
-        </div>
-        <div className={styles.feedPostMessage}>{post.message}</div>
-        {photos.length > 0 && (
-          <div className={styles.feedPostPhotos} data-count={Math.min(photos.length, 4)}>
-            {photos.slice(0, 4).map((url, i) => (
-              <button key={i} className={styles.feedPostPhotoLink} onClick={() => window.open(url, '_blank')}>
-                <img src={url} alt="" className={styles.feedPostPhoto} />
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
 function calcTimeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime()
   const mins = Math.floor(diff / 60000)
