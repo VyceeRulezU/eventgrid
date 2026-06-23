@@ -135,7 +135,6 @@ export function EventDashboardPage() {
   const [togglingPhase, setTogglingPhase] = useState<string | null>(null)
   const [taskCounts, setTaskCounts] = useState<Record<string, { total: number; done: number }>>({})
   const [deadlinePage, setDeadlinePage] = useState(1)
-  const [activityPage, setActivityPage] = useState(1)
   const [deadlines, setDeadlines] = useState<DeadlineItem[]>([])
   const [activity, setActivity] = useState<EventActivity[]>([])
   const [financialSummary, setFinancialSummary] = useState({ paid: 0, outstanding: 0 })
@@ -251,7 +250,7 @@ export function EventDashboardPage() {
         safeQuery(() => supabase.from('tasks').select('id, title, due_datetime, status, created_at, assignee_id').eq('event_id', event.id).neq('status', 'done').order('due_datetime', { ascending: true, nullsFirst: false }).limit(15)),
         safeQuery(() => supabase.from('event_phases').select('id, phase_name, due_date, status').eq('event_id', event.id).neq('status', 'completed').order('due_date', { ascending: true, nullsFirst: false }).limit(15)),
         safeQuery(() => supabase.from('event_vendors').select('id, vendor_name, payment_date, payment_status').eq('event_id', event.id).in('payment_status', ['unpaid', 'advance']).not('payment_date', 'is', null).order('payment_date', { ascending: true }).limit(15)),
-        safeQuery(() => supabase.from('event_activity').select('*').eq('event_id', event.id).order('created_at', { ascending: false }).limit(20)),
+        safeQuery(() => supabase.from('event_activity').select('*').eq('event_id', event.id).order('created_at', { ascending: false }).limit(50)),
         safeQuery(() => supabase.from('financial_entries').select('advance_paid, balance').eq('event_id', event.id)),
       ])
 
@@ -534,13 +533,7 @@ export function EventDashboardPage() {
     deadlinePage * itemsPerPageDeadlines
   )
 
-  // Pagination for Recent Activity (4 items per page)
-  const itemsPerPageActivity = 4
-  const totalActivityPages = Math.max(1, Math.ceil(activity.length / itemsPerPageActivity))
-  const paginatedActivity = activity.slice(
-    (activityPage - 1) * itemsPerPageActivity,
-    activityPage * itemsPerPageActivity
-  )
+
 
   /* ── loading / error ── */
   if (loading) {
@@ -1022,50 +1015,25 @@ export function EventDashboardPage() {
               {activity.length === 0 ? (
                 <div className={styles.feedEmpty}>No activity yet</div>
               ) : (
-                <>
-                  <div className={styles.feedBody}>
-                    {paginatedActivity.map((a) => {
-                      const ActIcon = activityIcon(a.action_type)
-                      return (
-                        <div key={a.id} className={styles.feedItem}>
-                          <div className={`${styles.feedItemIcon} ${styles.feedItemIconAccent}`}>
-                            <ActIcon size={14} />
-                          </div>
-                          <div className={styles.feedItemBody}>
-                            <div className={styles.feedItemTitle}>{a.description}</div>
-                            <div className={styles.feedItemMeta}>
-                              {a.actor_name && <>{a.actor_name} · </>}
-                              {timeAgo(a.created_at)}
-                            </div>
+                <div className={styles.feedBody}>
+                  {activity.map((a) => {
+                    const ActIcon = activityIcon(a.action_type)
+                    return (
+                      <div key={a.id} className={styles.feedItem}>
+                        <div className={`${styles.feedItemIcon} ${styles.feedItemIconAccent}`}>
+                          <ActIcon size={14} />
+                        </div>
+                        <div className={styles.feedItemBody}>
+                          <div className={styles.feedItemTitle}>{a.description}</div>
+                          <div className={styles.feedItemMeta}>
+                            {a.actor_name && <>{a.actor_name} · </>}
+                            {timeAgo(a.created_at)}
                           </div>
                         </div>
-                      )
-                    })}
-                  </div>
-                  {totalActivityPages > 1 && (
-                    <div className={styles.feedPagination}>
-                      <button
-                        type="button"
-                        className={styles.feedPageBtn}
-                        onClick={() => setActivityPage((p) => Math.max(1, p - 1))}
-                        disabled={activityPage === 1}
-                      >
-                        ←
-                      </button>
-                      <span className={styles.feedPageInfo}>
-                        {activityPage} / {totalActivityPages}
-                      </span>
-                      <button
-                        type="button"
-                        className={styles.feedPageBtn}
-                        onClick={() => setActivityPage((p) => Math.min(totalActivityPages, p + 1))}
-                        disabled={activityPage === totalActivityPages}
-                      >
-                        →
-                      </button>
-                    </div>
-                  )}
-                </>
+                      </div>
+                    )
+                  })}
+                </div>
               )}
             </div>
           </div>

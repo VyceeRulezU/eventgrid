@@ -7,7 +7,7 @@ import { compressImage } from '@/lib/compressImage'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { Document, Page, pdfjs } from 'react-pdf'
 import {
-  Image, FileText, Upload, Trash2, X, Grid3X3, FolderOpen, Download, ExternalLink, ChevronLeft, ChevronRight,
+  Image, FileText, Upload, Trash2, X, Grid3X3, FolderOpen, Download, ExternalLink,
 } from 'lucide-react'
 import styles from './EventAssetsPage.module.css'
 
@@ -78,13 +78,11 @@ export function EventAssetsPage() {
   const [previewAsset, setPreviewAsset] = useState<EventAsset | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [numPages, setNumPages] = useState<number | null>(null)
-  const [pageNumber, setPageNumber] = useState(1)
 
   useEffect(() => {
     if (!previewAsset) {
       setPreviewUrl(null)
       setNumPages(null)
-      setPageNumber(1)
       return
     }
     setPreviewUrl(signedUrls[previewAsset.id] || previewAsset.file_url)
@@ -92,7 +90,6 @@ export function EventAssetsPage() {
 
   function onPdfLoadSuccess({ numPages: n }: { numPages: number }) {
     setNumPages(n)
-    setPageNumber(1)
   }
 
   const fileRef = useRef<HTMLInputElement>(null)
@@ -523,38 +520,27 @@ export function EventAssetsPage() {
                 <img src={previewUrl} alt={previewAsset.name} className={styles.previewImage} />
               ) : previewAsset.mime_type === 'application/pdf' && previewUrl ? (
                 <div className={styles.pdfViewer}>
-                  <Document
-                    file={previewUrl}
-                    onLoadSuccess={onPdfLoadSuccess}
-                    loading={<div className={styles.pdfLoading}>Loading PDF...</div>}
-                    error={<div className={styles.pdfError}>Failed to load PDF</div>}
-                  >
-                    <Page
-                      pageNumber={pageNumber}
-                      width={Math.min(window.innerWidth - 80, 700)}
-                      renderTextLayer={false}
-                      renderAnnotationLayer={false}
-                    />
-                  </Document>
-                  {numPages && numPages > 1 && (
-                    <div className={styles.pdfNav}>
-                      <button
-                        className="btn btn-ghost btn-sm"
-                        disabled={pageNumber <= 1}
-                        onClick={() => setPageNumber((p) => Math.max(1, p - 1))}
-                      >
-                        <ChevronLeft size={14} />
-                      </button>
-                      <span className={styles.pdfPageInfo}>{pageNumber} / {numPages}</span>
-                      <button
-                        className="btn btn-ghost btn-sm"
-                        disabled={pageNumber >= numPages}
-                        onClick={() => setPageNumber((p) => Math.min(numPages, p + 1))}
-                      >
-                        <ChevronRight size={14} />
-                      </button>
-                    </div>
-                  )}
+                  <div className={styles.pdfPageCount}>
+                    {numPages ? `${numPages} page${numPages !== 1 ? 's' : ''}` : ''}
+                  </div>
+                  <div className={styles.pdfScroll}>
+                    <Document
+                      file={previewUrl}
+                      onLoadSuccess={onPdfLoadSuccess}
+                      loading={<div className={styles.pdfLoading}>Loading PDF...</div>}
+                      error={<div className={styles.pdfError}>Failed to load PDF</div>}
+                    >
+                      {numPages && Array.from({ length: numPages }, (_, i) => i + 1).map((p) => (
+                        <Page
+                          key={p}
+                          pageNumber={p}
+                          width={Math.min(window.innerWidth - 80, 700)}
+                          renderTextLayer={false}
+                          renderAnnotationLayer={false}
+                        />
+                      ))}
+                    </Document>
+                  </div>
                 </div>
               ) : (
                 <div className={styles.previewFallback}>
