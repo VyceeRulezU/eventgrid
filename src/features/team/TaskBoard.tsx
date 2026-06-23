@@ -144,6 +144,8 @@ export function TaskBoard() {
           role: r.role,
         }))
       )
+    } else {
+      setMembers([])
     }
 
     if (phasesData) setPhases(phasesData as EventPhase[])
