@@ -3,6 +3,7 @@ import { useResolvedEventId } from '@/hooks/useResolvedEventId'
 import { Columns, List, Plus, ListChecks } from 'lucide-react'
 import { PageHero } from '@/components/shared/PageHero'
 import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { TaskCard } from './TaskCard'
 import { CreateTaskModal } from './CreateTaskModal'
@@ -17,6 +18,7 @@ interface TeamMember {
   user_id: string
   display_name: string | null
   email: string
+  role: string
 }
 
 const COLUMNS = [
@@ -28,6 +30,8 @@ const COLUMNS = [
 
 export function TaskBoard() {
   const { eventId, paramId } = useResolvedEventId()
+  const user = useAuthStore((s) => s.user)
+  const profileRole = useAuthStore((s) => s.role)
   const showNotification = useUIStore((s) => s.showNotification)
   const [eventName, setEventName] = useState('')
   const [tasks, setTasks] = useState<TaskWithAssignee[]>([])
@@ -66,7 +70,7 @@ export function TaskBoard() {
         .order('created_at', { ascending: false }),
       supabase
         .from('event_access')
-        .select('user_id, profile:profiles!event_access_user_id_fkey(display_name, email)')
+        .select('user_id, role, profile:profiles!event_access_user_id_fkey(display_name, email)')
         .eq('event_id', eventId),
       supabase
         .from('event_phases')
@@ -79,11 +83,12 @@ export function TaskBoard() {
 
     if (membersData) {
       setMembers(
-        (membersData as unknown as { user_id: string; profile: { display_name: string | null; email: string } | null }[])
+        (membersData as unknown as { user_id: string; profile: { display_name: string | null; email: string } | null; role: string }[])
           .map((m) => ({
             user_id: m.user_id,
             display_name: m.profile?.display_name || null,
             email: m.profile?.email || '',
+            role: m.role,
           }))
       )
     }
@@ -132,6 +137,9 @@ export function TaskBoard() {
     }
   }
 
+  const eventRole = members.find(m => m.user_id === user?.id)?.role
+  const canCreate = profileRole === 'planner' || profileRole === 'coordinator' || eventRole === 'coordinator'
+
   const grouped = COLUMNS.reduce<Record<string, TaskWithAssignee[]>>((acc, col) => {
     acc[col.key] = tasks.filter((t) => t.status === col.key)
     return acc
@@ -174,10 +182,12 @@ export function TaskBoard() {
                 <List size={14} />
               </button>
             </div>
-            <button className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => setShowCreate(true)}>
-              <Plus size={14} />
-              Add Task
-            </button>
+            {canCreate && (
+              <button className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => setShowCreate(true)}>
+                <Plus size={14} />
+                Add Task
+              </button>
+            )}
           </div>
         }
       />

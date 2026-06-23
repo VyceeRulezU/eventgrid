@@ -65,7 +65,7 @@ export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProp
   const [photoFiles, setPhotoFiles] = useState<{ file: File; preview: string }[]>([])
   const [notes, setNotes] = useState(task.notes || '')
   const [savingNotes, setSavingNotes] = useState(false)
-  const [members, setMembers] = useState<{ user_id: string; display_name: string | null; email: string }[]>([])
+  const [members, setMembers] = useState<{ user_id: string; display_name: string | null; email: string; role: string }[]>([])
   const [reassigning, setReassigning] = useState(false)
 
   useEffect(() => {
@@ -76,13 +76,14 @@ export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProp
   async function loadMembers() {
     const { data } = await supabase
       .from('event_access')
-      .select('user_id, profile:profiles!event_access_user_id_fkey(display_name, email)')
+      .select('user_id, role, profile:profiles!event_access_user_id_fkey(display_name, email)')
       .eq('event_id', task.event_id)
     if (data) {
       setMembers(data.map((m: any) => ({
         user_id: m.user_id,
         display_name: m.profile?.display_name || null,
         email: m.profile?.email || '',
+        role: m.role,
       })))
     }
   }
@@ -208,7 +209,7 @@ export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProp
             </div>
             <div>
               <span style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)' }}>Assignee</span>
-              {(role === 'planner' || role === 'coordinator') && !reassigning ? (
+              {(role === 'planner' || role === 'coordinator' || members.find(m => m.user_id === user?.id)?.role === 'coordinator') && !reassigning ? (
                 <DropdownMenu
                   trigger={
                     <span style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', color: 'var(--color-text-primary)' }}>

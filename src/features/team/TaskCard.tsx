@@ -22,6 +22,7 @@ interface Member {
   user_id: string
   display_name: string | null
   email: string | null
+  role: string
 }
 
 const STATUS_OPTIONS = [
@@ -76,7 +77,8 @@ export function TaskCard({ task, onUpdate }: TaskCardProps) {
   const [reassigning, setReassigning] = useState(false)
   const overdue = isOverdue(task)
 
-  const canAssign = role === 'planner' || role === 'coordinator' || role === 'super_admin'
+  const eventRole = members.find(m => m.user_id === user?.id)?.role
+  const canAssign = role === 'planner' || role === 'coordinator' || role === 'super_admin' || eventRole === 'coordinator'
 
   useEffect(() => {
     if (expanded) {
@@ -113,6 +115,7 @@ export function TaskCard({ task, onUpdate }: TaskCardProps) {
         user_id: m.user_id,
         display_name: m.profiles?.display_name || null,
         email: m.profiles?.email || null,
+        role: m.role,
       })))
     }
   }

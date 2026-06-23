@@ -322,6 +322,8 @@ export function TeamPage() {
   }
 
   const needsAttentionCount = reports.filter(r => r.metadata?.status === 'need_help' || r.metadata?.status === 'blocked').length
+  const eventRole = members.find(m => m.user_id === user?.id)?.role
+  const canManage = role === 'planner' || role === 'coordinator' || eventRole === 'coordinator'
 
   return (
     <div className={styles.page}>
@@ -337,7 +339,7 @@ export function TeamPage() {
                 Submit Report
               </button>
             )}
-            {(role === 'planner' || role === 'coordinator') && (
+            {canManage && (
               <button className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => setShowInvite(true)}>
                 <UserPlus size={14} />
                 Add Member
@@ -348,7 +350,7 @@ export function TeamPage() {
       />
 
       {/* ── Attention strip ── */}
-      {needsAttentionCount > 0 && (role === 'planner' || role === 'coordinator') && (
+      {needsAttentionCount > 0 && canManage && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', padding: 'var(--space-3) var(--space-4)', background: 'var(--color-warning-bg)', border: '1px solid rgba(234,179,8,0.3)', borderRadius: 'var(--radius-lg)', fontSize: 'var(--text-sm)', cursor: 'pointer' }} onClick={() => setActiveTab('reports')}>
           <AlertTriangle size={16} style={{ color: 'var(--color-warning)', flexShrink: 0 }} />
           <span style={{ color: 'var(--color-warning)', fontWeight: 600 }}>{needsAttentionCount} report{needsAttentionCount !== 1 ? 's' : ''} need attention</span>
@@ -385,13 +387,13 @@ export function TeamPage() {
                   <th className={styles.th}>Member</th>
                   <th className={styles.th}>Role</th>
                   <th className={`${styles.th} ${styles.thTasks}`}>Tasks</th>
-                  {(role === 'planner' || role === 'coordinator') && <th className={styles.th} style={{ width: 60 }} />}
+                   {canManage && <th className={styles.th} style={{ width: 60 }} />}
                 </tr>
               </thead>
               <tbody>
                     {members.length === 0 && pendingInvitations.length === 0 ? (
                   <tr>
-                    <td className={styles.td} colSpan={(role === 'planner' || role === 'coordinator') ? 4 : 3}>
+                    <td className={styles.td} colSpan={canManage ? 4 : 3}>
                       <div style={{ textAlign: 'center', padding: 'var(--space-8) var(--space-4)', color: 'var(--color-text-muted)' }}>
                         <Users size={24} style={{ marginBottom: 'var(--space-2)', opacity: 0.4 }} />
                         <div style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>No team members yet</div>
@@ -423,7 +425,7 @@ export function TeamPage() {
                         <td className={`${styles.td} ${styles.cellCenter}`}>
                           <span className={styles.tasksCount}>{taskCounts[member.user_id] || 0} tasks</span>
                         </td>
-                        {(role === 'planner' || role === 'coordinator') && (
+                        {canManage && (
                           <td className={styles.td} style={{ textAlign: 'right' }}>
                             <button
                               className="btn btn-ghost btn-sm btn-icon"
@@ -460,7 +462,7 @@ export function TeamPage() {
                         <td className={`${styles.td} ${styles.cellCenter}`}>
                           <span className={styles.tasksCount}>&mdash;</span>
                         </td>
-                        {(role === 'planner' || role === 'coordinator') && (
+                        {canManage && (
                           <td className={styles.td} style={{ textAlign: 'right' }}>
                             <button
                               className="btn btn-ghost btn-sm btn-icon"
