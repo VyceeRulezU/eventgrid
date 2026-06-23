@@ -37,17 +37,19 @@ export function PushPermissionPrompt() {
 
   async function handleEnable() {
     if (!user) return
-    const ok = await subscribeToPush(user.id)
+    const result = await subscribeToPush(user.id)
     setVisible(false)
-    if (ok) {
+    if (result.ok) {
       showNotification({ variant: 'success', title: 'Push notifications enabled', message: 'You will now receive updates even when this tab is closed.' })
     } else {
-      const state = await getPushPermissionState()
-      if (state === 'denied') {
-        showNotification({ variant: 'error', title: 'Permission blocked', message: 'Please enable notifications in your browser settings.' })
-      } else if (state === 'granted') {
-        showNotification({ variant: 'error', title: 'Setup failed', message: 'Could not complete setup. Try again from Settings.' })
+      const messages: Record<string, string> = {
+        permission_denied: 'Please allow notifications in your browser prompt.',
+        not_supported: 'Push notifications are not supported on this browser. Try Chrome on Android, or add this site to your home screen on iOS.',
+        sw_error: 'Could not register the notification service. Try updating your browser or using Chrome.',
+        config_error: 'Notifications are not configured yet. Please try again later.',
+        save_error: 'Could not save your subscription. Try again from Settings.',
       }
+      showNotification({ variant: 'error', title: 'Setup failed', message: messages[result.reason] || 'Could not complete setup. Try again from Settings.' })
     }
   }
 

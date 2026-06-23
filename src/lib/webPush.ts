@@ -11,14 +11,16 @@ export async function isPushSupported(): Promise<boolean> {
   return 'serviceWorker' in navigator && 'PushManager' in window && !!import.meta.env.VITE_VAPID_PUBLIC_KEY
 }
 
-export async function subscribeToPush(userId: string): Promise<boolean> {
+export async function subscribeToPush(userId: string): Promise<{ ok: true } | { ok: false; reason: string }> {
   try {
     const permission = await Notification.requestPermission()
-    if (permission !== 'granted') return false
+    if (permission !== 'granted') {
+      return { ok: false, reason: 'permission_denied' }
+    }
 
     if (!import.meta.env.VITE_VAPID_PUBLIC_KEY) {
       console.error('VAPID key is not configured')
-      return false
+      return { ok: false, reason: 'config_error' }
     }
 
     let registration: ServiceWorkerRegistration
@@ -39,14 +41,12 @@ export async function subscribeToPush(userId: string): Promise<boolean> {
 
     const subData = subscription.toJSON()
 
-    // Remove old subscriptions for this user with same endpoint
     await supabase
       .from('push_subscriptions')
       .delete()
       .eq('user_id', userId)
       .filter('subscription', 'cs', JSON.stringify({ endpoint: subData.endpoint }))
 
-    // Insert new subscription
     const { error } = await supabase
       .from('push_subscriptions')
       .insert({
@@ -57,13 +57,20 @@ export async function subscribeToPush(userId: string): Promise<boolean> {
 
     if (error) {
       console.error('Failed to save push subscription:', error)
-      return false
+      return { ok: false, reason: 'save_error' }
     }
 
-    return true
+    return { ok: true }
   } catch (err) {
     console.error('subscribeToPush error:', err)
-    return false
+    const msg = err instanceof Error ? err.message : String(err)
+    if (msg.includes('NotSupportedError') || msg.includes('not supported')) {
+      return { ok: false, reason: 'not_supported' }
+    }
+    if (msg.includes('AbortError') || msg.includes('Registration failed')) {
+      return { ok: false, reason: 'sw_error' }
+    }
+    return { ok: false, reason: 'unknown' }
   }
 }
 
