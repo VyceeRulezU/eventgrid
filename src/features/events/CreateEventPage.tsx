@@ -215,6 +215,14 @@ export function CreateEventPage() {
 
     showToast({ type: 'success', title: 'Draft saved', body: 'Your event draft has been saved.' })
     setSaving(false)
+    if (data) {
+      await supabase.from('event_access').insert({
+        event_id: data.id,
+        user_id: user.id,
+        role: 'coordinator',
+        accepted_at: new Date().toISOString(),
+      })
+    }
     navigate(`/events/${data.slug || data.id}`)
   }
 
@@ -272,6 +280,14 @@ export function CreateEventPage() {
     }))
 
     showToast({ type: 'success', title: '🎉 Event activated!', body: `${form.name} is ready with full access.` })
+    if (data) {
+      await supabase.from('event_access').insert({
+        event_id: data.id,
+        user_id: user.id,
+        role: 'coordinator',
+        accepted_at: new Date().toISOString(),
+      })
+    }
     navigate(`/events/${data.slug || data.id}`)
   }
 
