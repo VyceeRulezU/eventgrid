@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { MapPin, Clock, Flag, User, FileText, ExternalLink, X, ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react'
+import { MapPin, Clock, Flag, User, FileText, ExternalLink, X, ChevronLeft, ChevronRight, ChevronDown, MessageCircle } from 'lucide-react'
 import { IssueForm } from './IssueForm'
 import { PostForm } from './PostForm'
 import type { LiveFeedPost as LiveFeedPostType } from '@/types'
@@ -48,6 +48,7 @@ const MAX_DEPTH = 5
 
 export function LiveFeedPost({ post, getReplies, eventId, displayName, avatarUrl, profileMap, teamMembers, getParentPost, isReply, depth = 0 }: LiveFeedPostProps) {
   const childReplies = getReplies(post.id)
+  const [collapsed, setCollapsed] = useState(false)
   const [showIssueForm, setShowIssueForm] = useState(false)
   const [showReplyForm, setShowReplyForm] = useState(false)
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null)
@@ -76,9 +77,16 @@ export function LiveFeedPost({ post, getReplies, eventId, displayName, avatarUrl
     setShowReplyForm(false)
   }
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    if (childReplies.length === 0) return
+    const target = e.target as HTMLElement
+    if (target.closest('button, a, input, textarea, [data-no-collapse]')) return
+    setCollapsed(!collapsed)
+  }
+
   return (
     <>
-      <div className={`${styles.feedPost} ${isReply ? styles.feedPostReply : ''}`}>
+      <div className={`${styles.feedPost} ${isReply ? styles.feedPostReply : ''}`} onClick={handleCardClick}>
         <div className={styles.feedPostAvatar}>
           {avatarUrl ? (
             <img src={avatarUrl} alt="" className={styles.feedPostAvatarImg} />
@@ -97,6 +105,12 @@ export function LiveFeedPost({ post, getReplies, eventId, displayName, avatarUrl
                 <MessageCircle size={10} />
                 replying to {parentName}
               </span>
+            )}
+            {childReplies.length > 0 && (
+              <button className={styles.feedPostCollapseBtn} onClick={() => setCollapsed(!collapsed)} data-tooltip={collapsed ? 'Expand' : 'Collapse'}>
+                {collapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
+                <span>{childReplies.length}</span>
+              </button>
             )}
             <span className={styles.feedPostTime}>
               <Clock size={12} />
@@ -161,7 +175,7 @@ export function LiveFeedPost({ post, getReplies, eventId, displayName, avatarUrl
             </div>
           )}
 
-          {childReplies.length > 0 && depth < MAX_DEPTH && (
+          {!collapsed && childReplies.length > 0 && depth < MAX_DEPTH && (
             <div className={styles.feedReplies}>
               {childReplies.map((reply) => (
                 <LiveFeedPost

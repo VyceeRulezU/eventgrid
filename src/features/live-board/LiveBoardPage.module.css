@@ -321,6 +321,7 @@
 
 .feedPost {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-3);
   padding: var(--space-4);
   background: var(--color-surface-2);
@@ -748,48 +749,54 @@
 
 /* ── Reply / Thread Styles ── */
 .feedReplies {
-  margin-top: var(--space-3);
-  padding-left: var(--space-3);
-  border-left: 2px solid var(--color-accent);
+  border-left: 2px solid var(--color-border);
+  margin-top: var(--space-2);
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
   min-width: 0;
 }
 
-@media (max-width: 640px) {
-  .feedReplies {
-    padding-left: var(--space-2);
-    border-left-width: 1px;
-  }
-}
-
-.feedReply {
+.feedPostReply {
   display: flex;
   gap: var(--space-2);
-  padding: var(--space-2) 0;
-}
-
-.feedReply .feedPostAvatarImg,
-.feedReply .feedPostAvatarPlaceholder {
-  width: 28px;
-  height: 28px;
-}
-
-.feedReply .feedPostAvatarPlaceholder {
-  font-size: 12px;
-}
-
-.feedPostReply {
+  padding: 0;
   border: none !important;
   background: transparent !important;
-  padding: var(--space-2) 0 !important;
   animation: none !important;
 }
 
 .feedPostReply:hover {
   border: none !important;
   box-shadow: none !important;
+}
+
+.feedPostReply .feedPostAvatarImg,
+.feedPostReply .feedPostAvatarPlaceholder {
+  width: 28px;
+  height: 28px;
+  margin-top: var(--space-1);
+}
+
+.feedPostReply .feedPostAvatarPlaceholder {
+  font-size: 12px;
+}
+
+.feedPostReply .feedPostAvatar {
+  position: relative;
+  z-index: 1;
+  margin-left: -2px;
+}
+
+.feedPostReply .feedPostBody {
+  padding-bottom: var(--space-3);
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.feedPostReply .feedPostMessage {
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
 }
 
 .feedReplyForm {
@@ -814,6 +821,27 @@
 .feedPostReplyBtn:hover {
   color: var(--color-accent);
   background: var(--color-accent-muted);
+}
+
+.feedPostCollapseBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  background: var(--color-surface-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  padding: 1px 5px;
+  font-family: inherit;
+  transition: all var(--transition-fast);
+  line-height: normal;
+}
+
+.feedPostCollapseBtn:hover {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
 }
 
 .feedPostParentRef {
@@ -1128,6 +1156,16 @@
     width: 32px;
     height: 32px;
   }
+
+
+
+  .feedPostReply .feedPostAvatarImg,
+  .feedPostReply .feedPostAvatarPlaceholder {
+    width: 24px;
+    height: 24px;
+    margin-top: var(--space-1);
+  }
+
   .feedPostPdfCard {
     font-size: 10px;
     padding: var(--space-1) var(--space-2);
