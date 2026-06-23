@@ -8,6 +8,7 @@ import type { User } from '@supabase/supabase-js'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useNotificationStore } from '@/store/notification.store'
+import { useUIStore } from '@/store/ui.store'
 import { getUnreadCount, subscribeToNotifications } from '@/lib/notifications'
 import type { Profile, UserRole } from '@/types'
 import { AuthGuard } from '@/components/layout/AuthGuard'
@@ -437,8 +438,18 @@ export function App() {
 
   useEffect(() => {
     if (!user) return
-    const unsub = subscribeToNotifications(user.id, () => {
+    const unsub = subscribeToNotifications(user.id, (n) => {
       getUnreadCount(user.id).then(useNotificationStore.getState().setUnreadCount)
+      
+      // Play a premium notification sound
+      useUIStore.getState().playSound('info')
+      
+      // Display a toast message alert on the user's screen
+      useUIStore.getState().showToast({
+        type: 'info',
+        title: n.title,
+        body: n.body || undefined,
+      })
     })
     return unsub
   }, [user])

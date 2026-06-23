@@ -41,6 +41,7 @@ interface UIStore {
   showModal: (notification: Omit<PremiumNotification, 'id'>) => void
   showNotification: (notification: Omit<PremiumNotification, 'id'>) => void
   dismissModal: () => void
+  playSound: (type?: 'success' | 'error' | 'warning' | 'info' | 'confirm') => void
 }
 
 function playNotificationSound(type?: 'success' | 'error' | 'warning' | 'info' | 'confirm') {
@@ -131,7 +132,6 @@ export const useUIStore = create<UIStore>((set) => ({
   setTheme: () => undefined,
 
   showModal: (notification) => {
-    playNotificationSound(notification.variant)
     set({
       modalNotification: { ...notification, id: `modal_${++notifCounter}` },
     })
@@ -147,4 +147,8 @@ export const useUIStore = create<UIStore>((set) => ({
   },
 
   dismissModal: () => set({ modalNotification: null }),
+
+  playSound: (type) => {
+    playNotificationSound(type)
+  },
 }))

@@ -4,6 +4,7 @@ import { useResolvedEventId } from '@/hooks/useResolvedEventId'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useLiveFeedStore } from '@/store/liveFeed.store'
+import { useUIStore } from '@/store/ui.store'
 import { PostForm } from './PostForm'
 import { LiveFeedPost } from './LiveFeedPost'
 import { IssuesPanel } from './IssuesPanel'
@@ -159,6 +160,11 @@ export function LiveFeedPage() {
           const post = payload.new as LiveFeedPostType
           await ensureProfiles([post.user_id])
           addPost(post)
+          
+          // Play premium chat notification tone if from another user
+          if (currentUser && post.user_id !== currentUser.id) {
+            useUIStore.getState().playSound('info')
+          }
         }
       })
       .on('postgres_changes', {
