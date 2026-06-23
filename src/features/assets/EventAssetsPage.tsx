@@ -66,6 +66,7 @@ export function EventAssetsPage() {
 
   const [loading, setLoading] = useState(true)
   const [assets, setAssets] = useState<EventAsset[]>([])
+  const [signedUrls, setSignedUrls] = useState<Record<string, string>>({})
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [typeFilter, setTypeFilter] = useState('all')
   const [showForm, setShowForm] = useState(false)
@@ -73,26 +74,14 @@ export function EventAssetsPage() {
   const [deleting, setDeleting] = useState<string | null>(null)
   const [previewAsset, setPreviewAsset] = useState<EventAsset | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [previewLoading, setPreviewLoading] = useState(false)
 
   useEffect(() => {
     if (!previewAsset) {
       setPreviewUrl(null)
       return
     }
-    if (isImageType(previewAsset.mime_type) || !previewAsset.storage_path) {
-      setPreviewUrl(previewAsset.file_url)
-      return
-    }
-    setPreviewLoading(true)
-    supabase.storage
-      .from('event-media')
-      .createSignedUrl(previewAsset.storage_path, 3600)
-      .then(({ data }) => {
-        setPreviewUrl(data?.signedUrl ? `${data.signedUrl}&content-disposition=inline` : previewAsset.file_url)
-      })
-      .finally(() => setPreviewLoading(false))
-  }, [previewAsset])
+    setPreviewUrl(signedUrls[previewAsset.id] || previewAsset.file_url)
+  }, [previewAsset, signedUrls])
 
   const fileRef = useRef<HTMLInputElement>(null)
   const [formFile, setFormFile] = useState<File | null>(null)
@@ -118,7 +107,20 @@ export function EventAssetsPage() {
         if (error) {
           showNotification({ variant: 'error', title: 'Failed to load assets', message: error.message })
         } else {
-          setAssets((data || []) as unknown as EventAsset[])
+          const loadedAssets = (data || []) as unknown as EventAsset[]
+          setAssets(loadedAssets)
+          const urls: Record<string, string> = {}
+          await Promise.all(loadedAssets.map(async (a) => {
+            if (!isImageType(a.mime_type) && a.storage_path) {
+              const { data: sd } = await supabase.storage
+                .from('event-media')
+                .createSignedUrl(a.storage_path, 3600)
+              if (sd?.signedUrl) {
+                urls[a.id] = `${sd.signedUrl}&content-disposition=inline`
+              }
+            }
+          }))
+          setSignedUrls(urls)
         }
         setLoading(false)
       }
@@ -208,6 +210,14 @@ export function EventAssetsPage() {
 
       if (newAsset) {
         setAssets((prev) => [newAsset as unknown as EventAsset, ...prev])
+        if (!isImageType(newAsset.mime_type) && newAsset.storage_path) {
+          const { data: sd } = await supabase.storage
+            .from('event-media')
+            .createSignedUrl(newAsset.storage_path, 3600)
+          if (sd?.signedUrl) {
+            setSignedUrls((prev) => ({ ...prev, [newAsset.id]: `${sd.signedUrl}&content-disposition=inline` }))
+          }
+        }
       }
 
       showNotification({ variant: 'success', title: 'Asset uploaded' })
@@ -244,6 +254,7 @@ export function EventAssetsPage() {
               const { error } = await supabase.from('event_assets').delete().eq('id', asset.id)
               if (error) throw error
               setAssets((prev) => prev.filter((a) => a.id !== asset.id))
+              setSignedUrls((prev) => { const n = { ...prev }; delete n[asset.id]; return n })
               showNotification({ variant: 'success', title: 'Asset deleted' })
             } catch (err: unknown) {
               const msg = err instanceof Error ? err.message : 'Delete failed'
@@ -261,6 +272,17 @@ export function EventAssetsPage() {
     const isImg = isImageType(asset.mime_type)
     if (isImg && asset.file_url) {
       return <img src={asset.file_url} alt={asset.name} className={styles.cardThumbImg} />
+    }
+    const thumbUrl = signedUrls[asset.id] || asset.file_url
+    if (asset.mime_type === 'application/pdf' && thumbUrl) {
+      return (
+        <iframe
+          src={thumbUrl}
+          className={styles.cardThumbImg}
+          title={asset.name}
+          style={{ border: 'none' }}
+        />
+      )
     }
     return (
       <div className={styles.docThumb}>
@@ -494,22 +516,16 @@ export function EventAssetsPage() {
               ) : (
                 <div className={styles.previewFallback}>
                   <FileText size={48} />
-                  {previewLoading ? (
-                    <p>Loading preview...</p>
-                  ) : (
-                    <>
-                      <p>Preview not available for this file type.</p>
-                      {previewUrl && (
-                        <a
-                          href={previewUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="btn btn-primary"
-                        >
-                          <ExternalLink size={14} /> Open File
-                        </a>
-                      )}
-                    </>
+                  <p>Preview not available for this file type.</p>
+                  {previewUrl && (
+                    <a
+                      href={previewUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-primary"
+                    >
+                      <ExternalLink size={14} /> Open File
+                    </a>
                   )}
                 </div>
               )}
