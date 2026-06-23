@@ -400,20 +400,24 @@ Deno.serve(async (req) => {
     let subject: string
     let html: string
 
-    // Check if the user exists in profiles or auth
+    // Check if the user exists in profiles or auth (case-insensitive email match)
     let userExists = false
     let existingUserId: string | null = null
     try {
+      // Use case-insensitive comparison to catch emails like Chinnydominic vs chinnydominic
       const { data: existingProfile } = await supabaseAdmin
         .from('profiles')
         .select('id')
-        .eq('email', email)
+        .ilike('email', email)
         .maybeSingle()
       
       if (existingProfile?.id) {
         userExists = true
         existingUserId = existingProfile.id
-      } else {
+      }
+      
+      // Always also check auth.users directly (catches users whose profile creation failed)
+      if (!existingUserId) {
         const { data: authUserId } = await supabaseAdmin.rpc('get_user_id_by_email', { p_email: email.toLowerCase() })
         if (authUserId) {
           userExists = true

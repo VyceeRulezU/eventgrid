@@ -108,7 +108,6 @@ export const useUIStore = create<UIStore>((set) => ({
   setActiveModal: (activeModal) => set({ activeModal }),
 
   showToast: (toast) => {
-    playNotificationSound(toast.type)
     set((state) => {
       const variant = toast.type as 'success' | 'error' | 'warning' | 'info'
       return {

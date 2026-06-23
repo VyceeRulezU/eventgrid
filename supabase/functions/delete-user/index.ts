@@ -17,6 +17,36 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // ── Verify caller is a super admin ──────────────────────────────────────
+    const authHeader = req.headers.get('Authorization') || ''
+    const token = authHeader.replace('Bearer ', '')
+    if (!token) {
+      return new Response(
+        JSON.stringify({ error: 'Missing authorization token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+    const { data: { user: caller }, error: authError } = await supabaseAdmin.auth.getUser(token)
+    if (authError || !caller) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid authorization token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+    // Check super_admin table directly — is_super_admin() RPC uses auth.uid() which
+    // returns null when invoked via the service role client, so it always fails here.
+    const { data: sa } = await supabaseAdmin
+      .from('super_admins')
+      .select('user_id')
+      .eq('user_id', caller.id)
+      .maybeSingle()
+    if (!sa) {
+      return new Response(
+        JSON.stringify({ error: 'Only super admins can delete users' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     const { user_id } = await req.json()
     if (!user_id) {
       return new Response(

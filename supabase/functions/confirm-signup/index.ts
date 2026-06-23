@@ -24,11 +24,8 @@ Deno.serve(async (req) => {
       )
     }
 
-    const { data: users, error: listError } = await supabaseAdmin.auth.admin.listUsers()
-    if (listError) throw listError
-
-    const user = users?.users?.find((u: any) => u.email?.toLowerCase() === email.toLowerCase())
-    if (!user) {
+    const { data: userId } = await supabaseAdmin.rpc('get_user_id_by_email', { p_email: email.toLowerCase() })
+    if (!userId) {
       return new Response(
         JSON.stringify({ error: 'User not found' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -36,7 +33,7 @@ Deno.serve(async (req) => {
     }
 
     const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-      user.id,
+      userId,
       { email_confirm: true }
     )
     if (updateError) throw updateError

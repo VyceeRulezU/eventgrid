@@ -82,11 +82,8 @@ export function RegisterPage() {
     setLoading(true)
 
     try {
-      const { data: existing } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('email', email)
-        .maybeSingle()
+      // Case-insensitive check via SECURITY DEFINER RPC — prevents duplicate accounts
+      const { data: existing } = await supabase.rpc('get_user_id_by_email', { p_email: email.trim().toLowerCase() })
 
       if (existing) {
         showModal({
@@ -110,6 +107,7 @@ export function RegisterPage() {
         })
         return
       }
+
 
       const metadata: Record<string, any> = { display_name: name, role, phone }
       if (isSuperAdminInvite) {
