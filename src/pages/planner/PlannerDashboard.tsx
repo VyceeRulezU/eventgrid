@@ -485,13 +485,34 @@ export function PlannerDashboard() {
   const [activityPage, setActivityPage] = useState(1)
 
   useEffect(() => {
-    if (!user || !org) { setLoading(false); return }
+    if (!user) { setLoading(false); return }
 
     async function load() {
+      if (!user) return
+      const userId = user.id
+
+      // Fetch event access records for this user
+      const { data: accessData } = await supabase
+        .from('event_access')
+        .select('event_id')
+        .eq('user_id', userId)
+
+      const eventIds = (accessData || []).map(a => a.event_id)
+
+      const orConditions = [
+        `created_by.eq.${userId}`
+      ]
+      if (org?.id) {
+        orConditions.push(`org_id.eq.${org.id}`)
+      }
+      if (eventIds.length > 0) {
+        orConditions.push(`id.in.(${eventIds.join(',')})`)
+      }
+
       const { data: evts } = await supabase
         .from('events')
         .select('*, coordinator:profiles!events_coordinator_id_fkey(display_name)')
-        .eq('org_id', org!.id)
+        .or(orConditions.join(','))
         .is('deleted_at', null)
         .order('created_at', { ascending: false })
         .limit(20)
@@ -525,11 +546,13 @@ export function PlannerDashboard() {
         .select('id', { count: 'exact' })
         .is('resolved_at', null)
 
-      const { count: vendors } = await supabase
-        .from('vendors')
-        .select('id', { count: 'exact', head: true })
-        .eq('org_id', org!.id)
-        .is('deleted_at', null)
+      const { count: vendors } = org?.id
+        ? await supabase
+            .from('vendors')
+            .select('id', { count: 'exact', head: true })
+            .eq('org_id', org.id)
+            .is('deleted_at', null)
+        : { count: 0 }
 
       const { data: taskData } = await supabase
         .from('tasks')
@@ -554,11 +577,20 @@ export function PlannerDashboard() {
       sixMos.setHours(0, 0, 0, 0)
       const since = sixMos.toISOString()
 
+      const timelineEventIds = [...eventIds]
+      const timelineEventQuery = org?.id
+        ? supabase.from('events').select('created_at').or(`org_id.eq.${org.id}${timelineEventIds.length > 0 ? `,id.in.(${timelineEventIds.join(',')})` : ''}`).is('deleted_at', null).gte('created_at', since)
+        : timelineEventIds.length > 0
+          ? supabase.from('events').select('created_at').in('id', timelineEventIds).is('deleted_at', null).gte('created_at', since)
+          : null
+
       const [evDates, tDates, iDates, vDates] = await Promise.all([
-        supabase.from('events').select('created_at').eq('org_id', org!.id).is('deleted_at', null).gte('created_at', since),
+        timelineEventQuery || Promise.resolve({ data: [] }),
         supabase.from('tasks').select('created_at').is('deleted_at', null).gte('created_at', since),
         supabase.from('issues').select('created_at').is('deleted_at', null).gte('created_at', since),
-        supabase.from('vendors').select('created_at').eq('org_id', org!.id).is('deleted_at', null).gte('created_at', since),
+        org?.id
+          ? supabase.from('vendors').select('created_at').eq('org_id', org.id).is('deleted_at', null).gte('created_at', since)
+          : Promise.resolve({ data: [] }),
       ])
 
       function binToMonths(dates: { created_at: string }[]): { value: number }[] {
@@ -578,10 +610,11 @@ export function PlannerDashboard() {
 
       setTimeline({
         events: binToMonths(evDates?.data || []),
+        sub_events: binToMonths(evDates?.data || []), // Keep compatibility if used elsewhere
         tasks: binToMonths(tDates?.data || []),
         issues: binToMonths(iDates?.data || []),
         vendors: binToMonths(vDates?.data || []),
-      })
+      } as any)
 
       setLoading(false)
     }

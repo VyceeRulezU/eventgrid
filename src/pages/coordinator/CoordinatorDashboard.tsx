@@ -234,8 +234,15 @@ export function CoordinatorDashboard() {
       sixMos.setHours(0, 0, 0, 0)
       const since = sixMos.toISOString()
 
+      const timelineEventIds = [...eventIds]
+      const timelineEventQuery = org?.id
+        ? supabase.from('events').select('created_at').or(`org_id.eq.${org.id}${timelineEventIds.length > 0 ? `,id.in.(${timelineEventIds.join(',')})` : ''}`).is('deleted_at', null).gte('created_at', since)
+        : timelineEventIds.length > 0
+          ? supabase.from('events').select('created_at').in('id', timelineEventIds).is('deleted_at', null).gte('created_at', since)
+          : null
+
       const [evDates, tDates] = await Promise.all([
-        supabase.from('events').select('created_at').eq('org_id', org!.id).is('deleted_at', null).gte('created_at', since),
+        timelineEventQuery || Promise.resolve({ data: [] }),
         supabase.from('tasks').select('created_at').eq('assignee_id', userId).gte('created_at', since),
       ])
 

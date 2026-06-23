@@ -174,7 +174,11 @@ export default function Navbar({ landing }: NavbarProps) {
                 onClick={() => setMenuOpen(false)}
                 style={{ justifyContent: 'center', width: '100%' }}
               >
-                <span className={styles.navAvatar}>{avatarLetter}</span>
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="" className={styles.navAvatarImg} />
+                ) : (
+                  <span className={styles.navAvatar}>{avatarLetter}</span>
+                )}
                 <span className={styles.navUserName}>{displayName}</span>
               </Link>
             ) : (
