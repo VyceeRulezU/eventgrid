@@ -127,6 +127,15 @@ export async function notify(event: NotificationEvent) {
   await sendWebPush(event)
 }
 
+/**
+ * Send only web push notification (no in-app notification).
+ * Use this when a DB trigger already creates the in-app notification
+ * (e.g. task_assigned, issue_raised, issue_resolved have DB triggers).
+ */
+export async function sendPushNotification(event: NotificationEvent) {
+  await sendWebPush(event)
+}
+
 export function subscribeToNotifications(
   userId: string,
   onNotification: (n: Notification) => void,

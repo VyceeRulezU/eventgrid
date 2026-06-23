@@ -91,6 +91,19 @@ Deno.serve(async (req) => {
       event.event_phases.sort((a: { phase_number: number }, b: { phase_number: number }) => a.phase_number - b.phase_number)
     }
 
+    // Send push notification to event creator
+    if (event.created_by) {
+      supabaseAdmin.functions.invoke('send-push-notification', {
+        body: {
+          userId: event.created_by,
+          title: 'Client accessed portal',
+          body: `Your portal for ${event.name} was just accessed`,
+          url: `/events/${portal.event_id}/portal`,
+          tag: `portal-${portal.event_id}`,
+        },
+      }).catch((err: unknown) => console.error('Failed to send push notification:', err))
+    }
+
     return new Response(
       JSON.stringify({ event }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

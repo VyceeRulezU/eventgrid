@@ -4,6 +4,7 @@ import { ListChecks, Plus, Eye, Calendar, User, ChevronLeft, ChevronRight, Trash
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
+import { sendPushNotification } from '@/lib/notifications'
 import { PageHero } from '@/components/shared/PageHero'
 import { Table } from '@/components/ui/Table'
 import type { TableColumn } from '@/components/ui/Table'
@@ -116,6 +117,12 @@ export function MyTasksPage() {
     setUpdatingId(taskId)
     const { error } = await supabase.from('tasks').update({ assignee_id: userId || null }).eq('id', taskId)
     if (error) showNotification({ variant: 'error', title: 'Reassign failed', message: error.message })
+    if (!error && userId) {
+      const task = tasks.find(t => t.id === taskId)
+      if (task) {
+        sendPushNotification({ type: 'task_assigned', recipientId: userId, eventId: task.event.id, payload: { title: task.title, body: 'A task has been reassigned to you', url: `/events/${task.event.id}/tasks`, tag: `task-${taskId}` } })
+      }
+    }
     setUpdatingId(null)
     loadTasks()
   }

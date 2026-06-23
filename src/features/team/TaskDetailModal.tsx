@@ -3,6 +3,7 @@ import { X, Send, Paperclip, Calendar, User, Flag, ChevronDown } from 'lucide-re
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
+import { sendPushNotification } from '@/lib/notifications'
 import { compressImage } from '@/lib/compressImage'
 import { uploadFile } from '@/lib/storage'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
@@ -163,6 +164,9 @@ export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProp
     if (error) {
       showNotification({ variant: 'error', title: 'Failed to update task', message: error.message })
     } else {
+      if (editAssigneeId && editAssigneeId !== task.assignee_id) {
+        sendPushNotification({ type: 'task_assigned', recipientId: editAssigneeId, eventId: task.event_id, payload: { title: editTitle.trim(), body: 'A task has been reassigned to you', url: `/events/${task.event_id}/tasks`, tag: `task-${task.id}` } })
+      }
       showNotification({ variant: 'success', title: 'Task updated successfully' })
       onUpdate()
       onClose()

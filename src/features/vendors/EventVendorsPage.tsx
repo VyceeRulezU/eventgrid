@@ -3,6 +3,7 @@ import { Users, Plus, X, Pencil, ExternalLink } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
 import { useResolvedEventId } from '@/hooks/useResolvedEventId'
+import { notify } from '@/lib/notifications'
 import { PageHero } from '@/components/shared/PageHero'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import styles from './EventVendorsPage.module.css'
@@ -96,6 +97,12 @@ export function EventVendorsPage({ standalone = true }: { standalone?: boolean }
       return
     }
     setVendors((prev) => prev.map((v) => v.id === vendorId ? { ...v, [field]: value } : v))
+    if (field === 'booking_status' && value === 'confirmed') {
+      const { data: eventData } = await supabase.from('events').select('created_by').eq('id', eventId).single()
+      if (eventData?.created_by) {
+        notify({ type: 'vendor_confirmed', recipientId: eventData.created_by!, eventId: eventId!, payload: { title: 'Vendor confirmed', body: 'A vendor has been confirmed for your event', url: `/events/${eventId}/vendors`, tag: `vendor-${vendorId}` } })
+      }
+    }
   }
 
   return (

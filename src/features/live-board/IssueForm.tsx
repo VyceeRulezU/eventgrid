@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useLiveFeedStore } from '@/store/liveFeed.store'
 import { useUIStore } from '@/store/ui.store'
+import { sendPushNotification } from '@/lib/notifications'
 import type { Issue, IssueSeverity } from '@/types'
 import styles from './LiveBoardPage.module.css'
 
@@ -53,6 +54,10 @@ export function IssueForm({ eventId, onClose }: IssueFormProps) {
 
     if (data) {
       addIssue(data as unknown as Issue)
+      const { data: eventData } = await supabase.from('events').select('created_by').eq('id', eventId).single()
+      if (eventData?.created_by) {
+        sendPushNotification({ type: 'issue_raised', recipientId: eventData.created_by, eventId, payload: { title: data.title, body: `Issue raised: ${data.title}`, url: `/events/${eventId}/live-board`, tag: `issue-${data.id}` } })
+      }
     }
 
     setSaving(false)

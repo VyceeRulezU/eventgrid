@@ -7,6 +7,7 @@ import {
   Send, Trash2, UserPlus, Mail, Loader2, ExternalLink,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { notify } from '@/lib/notifications'
 import { PhaseTimelineTracker } from '@/components/shared/PhaseTimelineTracker'
 import { PhaseSegmentBar } from '@/components/shared/PhasePipeline'
 import { PageHero } from '@/components/shared/PageHero'
@@ -144,7 +145,11 @@ export function ClientPortalPage() {
               setEventVendors((vendorsRes.data || []) as unknown as EventVendor[])
               setPortalAssets((assetsRes.data || []) as unknown as PortalAsset[])
               setGuests((guestsRes.data || []) as unknown as Guest[])
-              supabase.from('client_portals').update({ last_accessed: new Date().toISOString() }).eq('id', portal.id).then()
+              supabase.from('client_portals').update({ last_accessed: new Date().toISOString() }).eq('id', portal.id).then(({ error: laErr }) => {
+                if (!laErr && event?.created_by) {
+                  notify({ type: 'client_action_required', recipientId: event.created_by, eventId: event.id, payload: { title: 'Client accessed portal', body: 'Your client has accessed the event portal', url: `/events/${event.id}/portal`, tag: `portal-${portal.id}` } })
+                }
+              })
               setData({
                 portal,
                 event: event as unknown as Event,

@@ -3,6 +3,7 @@ import { Plus, X, Calendar } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
+import { sendPushNotification } from '@/lib/notifications'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { CalendarModal } from '@/components/ui/CalendarModal'
 
@@ -54,7 +55,7 @@ export function CreateTaskModal({ eventId, members, phases, onCreated, onCancel 
 
     setSaving(true)
 
-    const { error } = await supabase
+    const { data: newTask, error } = await supabase
       .from('tasks')
       .insert({
         event_id: eventId,
@@ -67,11 +68,17 @@ export function CreateTaskModal({ eventId, members, phases, onCreated, onCancel 
         priority: form.priority,
         status: 'pending',
       })
+      .select()
+      .single()
 
     if (error) {
       showNotification({ variant: 'error', title: 'Failed to create task', message: error.message })
       setSaving(false)
       return
+    }
+
+    if (newTask.assignee_id) {
+      sendPushNotification({ type: 'task_assigned', recipientId: newTask.assignee_id, eventId, payload: { title: newTask.title, body: 'A new task has been assigned to you', url: `/events/${eventId}/tasks`, tag: `task-${newTask.id}` } })
     }
 
     showNotification({ variant: 'success', title: 'Task created' })

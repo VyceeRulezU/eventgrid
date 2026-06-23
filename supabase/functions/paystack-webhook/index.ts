@@ -139,6 +139,18 @@ Deno.serve(async (req) => {
         }
       }
 
+      // Send push notification to event creator
+      const { error: pushErr } = await supabaseAdmin.functions.invoke('send-push-notification', {
+        body: {
+          userId: updatedEvent.created_by,
+          title: 'Event activated',
+          body: `Payment confirmed for ${updatedEvent.name} — all features unlocked`,
+          url: `/events/${metadata.event_id}`,
+          tag: `payment-${metadata.event_id}`,
+        },
+      })
+      if (pushErr) console.error('Failed to send push notification:', pushErr)
+
       // Record referral commission (best-effort)
       try {
         await recordReferralCommission(updatedEvent.created_by, metadata.event_id, reference)
