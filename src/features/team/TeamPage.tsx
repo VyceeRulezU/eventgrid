@@ -602,7 +602,7 @@ export function TeamPage() {
                       const canDelete = report.actor_id === user?.id || role === 'planner'
 
                       return (
-                        <tr key={report.id} className={styles.tr}>
+                        <tr key={report.id} className={styles.tr} onClick={() => setSelectedReportForView(report)}>
                           <td className={`${styles.td} ${styles.memberCell}`}>
                             <div className={styles.memberInfo}>
                               <div className={styles.avatar} style={{ background: reportStatusColor(report.metadata?.status) }}>
@@ -853,7 +853,23 @@ export function TeamPage() {
               </div>
 
               <div className={styles.modalActions} style={{ justifyContent: 'flex-end', marginTop: 'var(--space-2)' }}>
-                <button className="btn btn-secondary btn-sm" onClick={() => setSelectedReportForView(null)}>Close</button>
+                {selectedReportForView.actor_id === user?.id && (
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => {
+                      const report = selectedReportForView
+                      setReportStatus(report.metadata?.status || 'update')
+                      setReportMessage(report.description || '')
+                      setEditingReportId(report.id)
+                      setSelectedReportForView(null)
+                      setReportModalMode('edit')
+                    }}
+                  >
+                    <Pencil size={14} />
+                    Edit
+                  </button>
+                )}
+                <button className="btn btn-ghost btn-sm" onClick={() => setSelectedReportForView(null)}>Close</button>
               </div>
             </div>
           </div>
