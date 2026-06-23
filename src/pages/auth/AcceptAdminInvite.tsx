@@ -59,7 +59,7 @@ export function AcceptAdminInvite() {
 
     checkSession()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (active) {
         if (session?.user) {
           setActiveUser(session.user)
