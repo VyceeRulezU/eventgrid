@@ -36,13 +36,9 @@ export function TeamMemberOnboarding() {
         .eq('id', eventId)
         .single()
 
-      if (!eventData) {
-        showToast({ type: 'error', title: 'Event Not Found', body: 'This event may have been deleted.' })
-        setInitializing(false)
-        return
+      if (eventData) {
+        setEventName(eventData.name)
       }
-
-      setEventName(eventData.name)
       setInitializing(false)
     }
 
@@ -103,7 +99,7 @@ export function TeamMemberOnboarding() {
       })
     }
 
-    showToast({ type: 'success', title: 'Joined!', body: `You've joined the team for ${eventName}.` })
+    showToast({ type: 'success', title: 'Joined!', body: `You've joined the team${eventName ? ` for ${eventName}` : ''}.` })
     navigate('/dashboard/my-tasks')
     setLoading(false)
   }
@@ -132,7 +128,7 @@ export function TeamMemberOnboarding() {
           <div className={styles.welcomeTag}>Team Collaboration</div>
           <h1 className={styles.welcomeTitle}>You're invited!</h1>
           <p className={styles.welcomeDesc}>
-            Join the team for <strong>{eventName}</strong> and start collaborating.
+            {eventName ? <>Join the team for <strong>{eventName}</strong> and start collaborating.</> : 'Join the team and start collaborating.'}
           </p>
         </div>
         <div className={styles.leftFooter}>
@@ -152,7 +148,7 @@ export function TeamMemberOnboarding() {
           <div className={styles.infoBox}>
             <Sparkles size={16} className={styles.infoIcon} />
             <p style={{ margin: 0 }}>
-              You've been invited to collaborate on: <strong style={{ color: 'var(--color-accent)' }}>{eventName}</strong>
+              {eventName ? <>You've been invited to collaborate on: <strong style={{ color: 'var(--color-accent)' }}>{eventName}</strong></> : 'You\'ve been invited to collaborate on an event team.'}
             </p>
           </div>
           <div style={{ marginTop: 'var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
