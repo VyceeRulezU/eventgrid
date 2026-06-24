@@ -18,10 +18,11 @@ export function PnLSummary({ totalRevenue, totalVendorCost, pettyCashTotal }: Pn
 
   return (
     <div className="card" style={{ padding: 'var(--space-4) var(--space-5)', marginBottom: 'var(--space-4)' }}>
+      <style>{`@media (max-width: 480px) { .pnl-grid { grid-template-columns: 1fr !important; } }`}</style>
       <h3 style={{ margin: '0 0 var(--space-3) 0', fontSize: 'var(--text-base)', fontWeight: 700 }}>
         Event P&L
       </h3>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-2) var(--space-6)', fontSize: 'var(--text-sm)' }}>
+      <div className="pnl-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-2) var(--space-6)', fontSize: 'var(--text-sm)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', padding: 'var(--space-1) 0', borderBottom: '1px solid var(--color-border-subtle)' }}>
           <span style={{ color: 'var(--color-text-secondary)' }}>Total Revenue</span>
           <span style={{ fontWeight: 600, color: 'var(--color-success)' }}>{formatNaira(totalRevenue)}</span>
