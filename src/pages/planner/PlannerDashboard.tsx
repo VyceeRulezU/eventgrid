@@ -10,15 +10,13 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { sendInvite } from '@/lib/edgeFunctions'
-import { Pagination } from '@/components/ui/Pagination'
+
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { SEO } from '@/components/shared/SEO'
 import { MyFeedback } from '@/components/shared/MyFeedback'
 import { ReviewsList } from '@/features/reviews/ReviewsList'
 import type { Event, EventPhase, Task } from '@/types'
 import styles from './PlannerDashboard.module.css'
-
-const ACTIVITY_PAGE_SIZE = 5
 
 interface EventWithPhases extends Event {
   phases?: EventPhase[]
@@ -535,7 +533,6 @@ export function PlannerDashboard() {
   })
   const [showInviteClient, setShowInviteClient] = useState(false)
   const [showAddCoordinator, setShowAddCoordinator] = useState(false)
-  const [activityPage, setActivityPage] = useState(1)
 
   useEffect(() => {
     if (!user) { setLoading(false); return }
@@ -739,16 +736,6 @@ export function PlannerDashboard() {
     items.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
     return items
   }, [events, tasks])
-
-  const activityTotalPages = Math.max(1, Math.ceil(activities.length / ACTIVITY_PAGE_SIZE))
-  const pagedActivities = activities.slice(
-    (activityPage - 1) * ACTIVITY_PAGE_SIZE,
-    activityPage * ACTIVITY_PAGE_SIZE
-  )
-
-  useEffect(() => {
-    if (activityPage > activityTotalPages) setActivityPage(1)
-  }, [activityPage, activityTotalPages])
 
   const eventSelectList = events.map((e) => ({ id: e.id, name: e.name }))
 
@@ -954,7 +941,7 @@ export function PlannerDashboard() {
           </div>
         ) : (
           <>
-            <div className={styles.tableScroll}>
+            <div className={`${styles.tableScroll} ${styles.activityScroll}`}>
               <div className={styles.table}>
                 <div className={`${styles.tableHead} ${styles.tableHeadActivity}`}>
                   <span />
@@ -966,7 +953,7 @@ export function PlannerDashboard() {
                   <span className={styles.tableHeadRight}>Ago</span>
                 </div>
                 <div className={styles.tableBody}>
-                  {pagedActivities.map((act) => (
+                  {activities.map((act) => (
                     <div
                       key={act.id}
                       className={`${styles.tableRow} ${styles.tableRowActivity} ${act.link ? styles.tableRowClickable : ''}`}
@@ -1002,14 +989,7 @@ export function PlannerDashboard() {
             </div>
 
             <div className={styles.tableFooter}>
-              <span className={styles.tableFooterInfo}>
-                Showing {(activityPage - 1) * ACTIVITY_PAGE_SIZE + 1}–{Math.min(activityPage * ACTIVITY_PAGE_SIZE, activities.length)} of {activities.length}
-              </span>
-              <Pagination
-                currentPage={activityPage}
-                totalPages={activityTotalPages}
-                onPageChange={setActivityPage}
-              />
+              <span className={styles.tableFooterInfo}>{activities.length} activit{activities.length === 1 ? 'y' : 'ies'}</span>
             </div>
           </>
         )}

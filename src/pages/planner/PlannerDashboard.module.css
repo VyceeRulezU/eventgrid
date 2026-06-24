@@ -492,6 +492,11 @@
   font-weight: var(--weight-medium);
 }
 
+.activityScroll {
+  overflow-y: auto;
+  max-height: 30rem;
+}
+
 /* ── Two-column layout ── */
 .twoCol {
   display: grid;

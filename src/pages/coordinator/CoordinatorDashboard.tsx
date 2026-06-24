@@ -7,14 +7,11 @@ import {
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
-import { Pagination } from '@/components/ui/Pagination'
 import { SEO } from '@/components/shared/SEO'
 import { MyFeedback } from '@/components/shared/MyFeedback'
 import { ReviewsList } from '@/features/reviews/ReviewsList'
 import type { Event, EventPhase, Task } from '@/types'
 import styles from './CoordinatorDashboard.module.css'
-
-const ACTIVITY_PAGE_SIZE = 5
 
 interface AssignedEvent extends Event {
   phases?: EventPhase[]
@@ -122,7 +119,6 @@ export function CoordinatorDashboard() {
   const [events, setEvents] = useState<AssignedEvent[]>([])
   const [myTasks, setMyTasks] = useState<TaskWithEvent[]>([])
   const [loading, setLoading] = useState(true)
-  const [activityPage, setActivityPage] = useState(1)
   const [stats, setStats] = useState({
     totalEvents: 0,
     openTasks: 0,
@@ -334,16 +330,6 @@ export function CoordinatorDashboard() {
     items.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
     return items
   }, [events, myTasks])
-
-  const activityTotalPages = Math.max(1, Math.ceil(activities.length / ACTIVITY_PAGE_SIZE))
-  const pagedActivities = activities.slice(
-    (activityPage - 1) * ACTIVITY_PAGE_SIZE,
-    activityPage * ACTIVITY_PAGE_SIZE
-  )
-
-  useEffect(() => {
-    if (activityPage > activityTotalPages) setActivityPage(1)
-  }, [activityPage, activityTotalPages])
 
   const statCards: StatConfig[] = [
     {
@@ -671,7 +657,7 @@ export function CoordinatorDashboard() {
           </div>
         ) : (
           <>
-            <div className={styles.tableScroll}>
+            <div className={`${styles.tableScroll} ${styles.activityScroll}`}>
               <div className={styles.table}>
                 <div className={`${styles.tableHead} ${styles.tableHeadActivity}`}>
                   <span />
@@ -682,7 +668,7 @@ export function CoordinatorDashboard() {
                   <span className={styles.tableHeadRight}>When</span>
                 </div>
                 <div className={styles.tableBody}>
-                  {pagedActivities.map((act) => (
+                  {activities.map((act) => (
                     <div
                       key={act.id}
                       className={`${styles.tableRow} ${styles.tableRowActivity} ${act.link ? styles.tableRowClickable : ''}`}
@@ -717,14 +703,7 @@ export function CoordinatorDashboard() {
             </div>
 
             <div className={styles.tableFooter}>
-              <span className={styles.tableFooterInfo}>
-                Showing {(activityPage - 1) * ACTIVITY_PAGE_SIZE + 1}–{Math.min(activityPage * ACTIVITY_PAGE_SIZE, activities.length)} of {activities.length}
-              </span>
-              <Pagination
-                currentPage={activityPage}
-                totalPages={activityTotalPages}
-                onPageChange={setActivityPage}
-              />
+              <span className={styles.tableFooterInfo}>{activities.length} activit{activities.length === 1 ? 'y' : 'ies'}</span>
             </div>
           </>
         )}
