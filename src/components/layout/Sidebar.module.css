@@ -29,6 +29,7 @@
     width: var(--sidebar-width);
     border-radius: 0;
     border: none;
+    padding-bottom: var(--bottom-bar-height);
   }
   .sidebar.open {
     transform: translateX(0);
