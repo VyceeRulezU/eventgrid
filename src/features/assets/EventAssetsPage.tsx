@@ -114,20 +114,13 @@ export function EventAssetsPage() {
   const [deleting, setDeleting] = useState<string | null>(null)
   const [previewAsset, setPreviewAsset] = useState<EventAsset | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [numPages, setNumPages] = useState<number | null>(null)
-
   useEffect(() => {
     if (!previewAsset) {
       setPreviewUrl(null)
-      setNumPages(null)
       return
     }
     setPreviewUrl(signedUrls[previewAsset.id] || previewAsset.file_url)
   }, [previewAsset, signedUrls])
-
-  function onPdfLoadSuccess({ numPages: n }: { numPages: number }) {
-    setNumPages(n)
-  }
 
   const fileRef = useRef<HTMLInputElement>(null)
   const [formFile, setFormFile] = useState<File | null>(null)
@@ -547,29 +540,11 @@ export function EventAssetsPage() {
               {isImageType(previewAsset.mime_type) && previewUrl ? (
                 <img src={previewUrl} alt={previewAsset.name} className={styles.previewImage} />
               ) : previewAsset.mime_type === 'application/pdf' && previewUrl ? (
-                <div className={styles.pdfViewer}>
-                  <div className={styles.pdfPageCount}>
-                    {numPages ? `${numPages} page${numPages !== 1 ? 's' : ''}` : ''}
-                  </div>
-                  <div className={styles.pdfScroll}>
-                    <Document
-                      file={previewUrl}
-                      onLoadSuccess={onPdfLoadSuccess}
-                      loading={<div className={styles.pdfLoading}>Loading PDF...</div>}
-                      error={<div className={styles.pdfError}>Failed to load PDF</div>}
-                    >
-                      {numPages && Array.from({ length: numPages }, (_, i) => i + 1).map((p) => (
-                        <Page
-                          key={p}
-                          pageNumber={p}
-                          width={Math.min(window.innerWidth - 80, 700)}
-                          renderTextLayer={false}
-                          renderAnnotationLayer={false}
-                        />
-                      ))}
-                    </Document>
-                  </div>
-                </div>
+                <iframe
+                  src={previewUrl}
+                  className={styles.pdfPreviewFrame}
+                  title={previewAsset.name}
+                />
               ) : (
                 <div className={styles.previewFallback}>
                   <FileText size={48} />
