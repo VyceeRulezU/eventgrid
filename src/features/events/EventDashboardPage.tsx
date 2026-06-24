@@ -124,6 +124,13 @@ export function EventDashboardPage() {
     )
   }, [user, activeEvent, role])
 
+  const [eventRole, setEventRole] = useState<string | null>(null)
+
+  const canManagePhases =
+    (role === 'planner' && profile?.org_id === activeEvent?.org_id) ||
+    role === 'super_admin' ||
+    eventRole === 'coordinator'
+
   const headerInputRef = useRef<HTMLInputElement>(null)
   const [uploadingHeader, setUploadingHeader] = useState(false)
 
@@ -233,6 +240,17 @@ export function EventDashboardPage() {
 
       setActiveEvent(event as unknown as Event)
 
+      // Fetch current user's event_access role
+      if (user) {
+        const { data: ea } = await supabase
+          .from('event_access')
+          .select('role')
+          .eq('event_id', event.id)
+          .eq('user_id', user.id)
+          .maybeSingle()
+        setEventRole(ea?.role || null)
+      }
+
       const now = new Date().toISOString()
 
       async function safeQuery(fn: () => PromiseLike<any>) {
@@ -328,6 +346,7 @@ export function EventDashboardPage() {
   }, [id, user, setActiveEvent, setPhases])
 
   const togglePhaseStatus = async (phase: EventPhase) => {
+    if (!canManagePhases) return
     const completing = phase.status !== 'completed'
     setTogglingPhase(phase.id)
 
@@ -743,7 +762,7 @@ export function EventDashboardPage() {
                 />
                 <button
                   type="button"
-                  className={styles.headerEditBtn}
+                  className={`${styles.headerEditBtn} ${styles.mobileHide}`}
                   onClick={() => headerInputRef.current?.click()}
                   disabled={uploadingHeader}
                   aria-label="Change header image"
@@ -753,7 +772,7 @@ export function EventDashboardPage() {
                 </button>
               </>
             )}
-            <button type="button" className={styles.headerEditBtn} onClick={() => setShowEditModal(true)} aria-label="Edit event">
+            <button type="button" className={`${styles.headerEditBtn} ${styles.mobileHide}`} onClick={() => setShowEditModal(true)} aria-label="Edit event">
               <Pencil size={14} />
             </button>
             <span className={`badge badge-${statusBadge}`}>
@@ -761,24 +780,24 @@ export function EventDashboardPage() {
               {activeEvent.status.replace('_', ' ')}
             </span>
             {activeEvent.payment_status === 'unpaid' && (
-              <span className="badge" style={{ border: '1px solid var(--color-warning)', background: 'var(--color-warning-bg)', color: 'var(--color-warning)', fontWeight: 600 }}>
+              <span className={`badge ${styles.mobileHide}`} style={{ border: '1px solid var(--color-warning)', background: 'var(--color-warning-bg)', color: 'var(--color-warning)', fontWeight: 600 }}>
                 ⚡ Unpaid
               </span>
             )}
             {activeEvent.payment_status === 'paid' && (
-              <span className="badge" style={{ background: 'var(--color-success-bg)', color: 'var(--color-success)', fontWeight: 600 }}>
+              <span className={`badge ${styles.mobileHide}`} style={{ background: 'var(--color-success-bg)', color: 'var(--color-success)', fontWeight: 600 }}>
                 ✓ Paid
               </span>
             )}
-            <span className="badge badge-medium">Phase {activeEvent.current_phase} / 9</span>
+            <span className={`badge badge-medium ${styles.mobileHide}`}>Phase {activeEvent.current_phase} / 9</span>
             {countdown && !countdown.past && (
-              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 2 }}>
+              <span className={styles.mobileHide} style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Clock size={12} />
                 {countdown.days}d {String(countdown.hours).padStart(2, '0')}h {String(countdown.minutes).padStart(2, '0')}m
               </span>
             )}
             {countdown?.past && (
-              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>Event has passed</span>
+              <span className={styles.mobileHide} style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>Event has passed</span>
             )}
             <button type="button" className="btn btn-secondary btn-sm" onClick={() => setPortalOpen(true)}>
               <ExternalLink size={14} /> Portal
@@ -1108,21 +1127,23 @@ export function EventDashboardPage() {
                 <div key={phase.id} className={cardClass}>
                   <div className={styles.phaseCardTop}>
                     <div className={styles.phaseCardNumberBadge}>Phase {phase.phase_number}</div>
-                    <button
-                      type="button"
-                      className={`${styles.phaseCardToggle} ${isCompleted ? styles.phaseCardToggleChecked : ''}`}
-                      onClick={() => togglePhaseStatus(phase)}
-                      disabled={isToggling}
-                      aria-label={isCompleted ? `Reopen ${phase.phase_name}` : `Complete ${phase.phase_name}`}
-                    >
-                      {isToggling ? (
-                        <span className="spinner-loader" style={{ width: 14, height: 14 }} />
-                      ) : isCompleted ? (
-                        <CheckCircle2 size={16} />
-                      ) : (
-                        <Circle size={16} />
-                      )}
-                    </button>
+                    {canManagePhases && (
+                      <button
+                        type="button"
+                        className={`${styles.phaseCardToggle} ${isCompleted ? styles.phaseCardToggleChecked : ''}`}
+                        onClick={() => togglePhaseStatus(phase)}
+                        disabled={isToggling}
+                        aria-label={isCompleted ? `Reopen ${phase.phase_name}` : `Complete ${phase.phase_name}`}
+                      >
+                        {isToggling ? (
+                          <span className="spinner-loader" style={{ width: 14, height: 14 }} />
+                        ) : isCompleted ? (
+                          <CheckCircle2 size={16} />
+                        ) : (
+                          <Circle size={16} />
+                        )}
+                      </button>
+                    )}
                   </div>
                   
                   <h4 className={styles.phaseCardName}>{phase.phase_name}</h4>
@@ -1166,7 +1187,7 @@ export function EventDashboardPage() {
                   
                   <div className={styles.phaseCardFooter}>
                     <Link to={`/events/${id}/tasks?phase=${phase.phase_number}`} className={styles.phaseCardLink}>
-                      Manage Deliverables <ArrowRight size={12} />
+                      {canManagePhases ? 'Manage Deliverables' : 'View Tasks'} <ArrowRight size={12} />
                     </Link>
                   </div>
                 </div>

@@ -19,6 +19,9 @@ self.addEventListener('push', (event) => {
     tag: data.tag || '',
     vibrate: [200, 100, 200],
     data: { url: data.url || '/' },
+    actions: [
+      { action: 'view', title: 'Open Live Feed' },
+    ],
   }
 
   event.waitUntil(
@@ -28,6 +31,7 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
+  if (event.action && event.action !== 'view') return
   const urlToOpen = event.notification.data?.url || '/'
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {

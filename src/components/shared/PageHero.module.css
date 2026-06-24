@@ -201,4 +201,8 @@
   .heroActions {
     flex-shrink: 0;
   }
+
+  .backBtn {
+    display: none;
+  }
 }

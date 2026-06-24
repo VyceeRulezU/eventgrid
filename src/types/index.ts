@@ -210,6 +210,7 @@ export interface LiveFeedPost {
   location_tag: string | null
   parent_id: string | null
   created_at: string
+  likes_count?: number
 }
 
 export type IssueSeverity = 'low' | 'medium' | 'high' | 'critical'

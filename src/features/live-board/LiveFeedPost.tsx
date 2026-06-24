@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { MapPin, Clock, Flag, User, FileText, ExternalLink, X, ChevronLeft, ChevronRight, ChevronDown, MessageCircle } from 'lucide-react'
+import { MapPin, Clock, Flag, User, FileText, ExternalLink, X, ChevronLeft, ChevronRight, ChevronDown, MessageCircle, Heart } from 'lucide-react'
 import { IssueForm } from './IssueForm'
 import { PostForm } from './PostForm'
 import type { LiveFeedPost as LiveFeedPostType } from '@/types'
@@ -27,6 +27,8 @@ interface LiveFeedPostProps {
   getParentPost: (parentId: string) => LiveFeedPostType | undefined
   isReply?: boolean
   depth?: number
+  likedByUser?: boolean
+  onToggleLike?: (postId: string) => void
 }
 
 function isPdfUrl(url: string): boolean {
@@ -46,7 +48,7 @@ function calcTimeAgo(dateStr: string): string {
 
 const MAX_DEPTH = 5
 
-export function LiveFeedPost({ post, getReplies, eventId, displayName, avatarUrl, profileMap, teamMembers, getParentPost, isReply, depth = 0 }: LiveFeedPostProps) {
+export function LiveFeedPost({ post, getReplies, eventId, displayName, avatarUrl, profileMap, teamMembers, getParentPost, isReply, depth = 0, likedByUser, onToggleLike }: LiveFeedPostProps) {
   const childReplies = getReplies(post.id)
   const [collapsed, setCollapsed] = useState(false)
   const [showIssueForm, setShowIssueForm] = useState(false)
@@ -149,6 +151,14 @@ export function LiveFeedPost({ post, getReplies, eventId, displayName, avatarUrl
         )}
 
         <div className={styles.feedPostFooter}>
+          <button
+            className={`${styles.feedPostLikeBtn} ${likedByUser ? styles.feedPostLikeBtnActive : ''}`}
+            onClick={() => onToggleLike?.(post.id)}
+            data-tooltip={likedByUser ? 'Unlike' : 'Like'}
+          >
+            <Heart size={12} fill={likedByUser ? 'currentColor' : 'none'} />
+            <span>{post.likes_count || 0}</span>
+          </button>
           {post.location_tag && (
             <span className={styles.feedPostLocation}>
               <MapPin size={12} />
@@ -196,6 +206,8 @@ export function LiveFeedPost({ post, getReplies, eventId, displayName, avatarUrl
           getParentPost={getParentPost}
           isReply
           depth={depth + 1}
+          likedByUser={likedByUser}
+          onToggleLike={onToggleLike}
         />
       ))}
     </div>

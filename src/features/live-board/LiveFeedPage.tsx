@@ -28,7 +28,7 @@ interface TeamMember {
 export function LiveFeedPage() {
   const { eventId, paramId } = useResolvedEventId()
   const navigate = useNavigate()
-  const { posts, setPosts, addPost, issues, setIssues, addIssue } = useLiveFeedStore()
+  const { posts, setPosts, addPost, updatePost, issues, setIssues, addIssue } = useLiveFeedStore()
   const currentUser = useAuthStore((s) => s.user)
 
   const [loading, setLoading] = useState(true)
@@ -37,6 +37,7 @@ export function LiveFeedPage() {
   const [profileMap, setProfileMap] = useState<Record<string, ProfileInfo>>({})
   const [showIssues, setShowIssues] = useState(false)
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
+  const [likedPostIds, setLikedPostIds] = useState<Set<string>>(new Set())
 
   const channelRef = useRef<RealtimeChannel | null>(null)
   const profileRef = useRef<Record<string, ProfileInfo>>({})
@@ -110,9 +111,12 @@ export function LiveFeedPage() {
       setLoading(true)
       setError(null)
 
-      const [postsRes, issuesRes] = await Promise.all([
+      const [postsRes, issuesRes, likesRes] = await Promise.all([
         supabase.from('live_feed_posts').select('*').eq('event_id', eventId).order('created_at', { ascending: true }),
         supabase.from('issues').select('*').eq('event_id', eventId),
+        currentUser
+          ? supabase.from('live_feed_likes').select('post_id').eq('user_id', currentUser.id)
+          : Promise.resolve({ data: [] }),
       ])
 
       if (postsRes.error) {
@@ -131,6 +135,10 @@ export function LiveFeedPage() {
 
       setPosts(postsData)
       setIssues(issuesData)
+
+      if (likesRes.data) {
+        setLikedPostIds(new Set(likesRes.data.map((r: any) => r.post_id)))
+      }
 
       const userIds = [
         ...new Set([
@@ -171,6 +179,20 @@ export function LiveFeedPage() {
         }
       })
       .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'live_feed_posts',
+        filter: 'event_id=eq.' + eventId,
+      }, (payload: any) => {
+        if (payload.new && payload.old) {
+          const old = payload.old as LiveFeedPostType
+          const updated = payload.new as LiveFeedPostType
+          if (old.likes_count !== updated.likes_count) {
+            updatePost(updated.id, { likes_count: updated.likes_count })
+          }
+        }
+      })
+      .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'issues',
@@ -184,10 +206,72 @@ export function LiveFeedPage() {
 
     channelRef.current = feedChannel
 
+    const likesChannel = currentUser
+      ? supabase.channel('live_feed_likes:' + eventId)
+          .on('postgres_changes', {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'live_feed_likes',
+            filter: `user_id=eq.${currentUser.id}`,
+          }, (payload: any) => {
+            if (payload.new) {
+              setLikedPostIds((prev) => new Set(prev).add(payload.new.post_id))
+            }
+          })
+          .on('postgres_changes', {
+            event: 'DELETE',
+            schema: 'public',
+            table: 'live_feed_likes',
+            filter: `user_id=eq.${currentUser.id}`,
+          }, (payload: any) => {
+            if (payload.old) {
+              setLikedPostIds((prev) => {
+                const next = new Set(prev)
+                next.delete(payload.old.post_id)
+                return next
+              })
+            }
+          })
+          .subscribe()
+      : null
+
     return () => {
       feedChannel.unsubscribe()
+      likesChannel?.unsubscribe()
     }
-  }, [eventId])
+  }, [eventId, currentUser?.id])
+
+  async function handleToggleLike(postId: string) {
+    if (!currentUser) return
+    const isLiked = likedPostIds.has(postId)
+
+    // Optimistic UI update
+    const post = posts.find((p) => p.id === postId)
+    if (post) {
+      updatePost(postId, { likes_count: Math.max(0, (post.likes_count || 0) + (isLiked ? -1 : 1)) })
+    }
+    setLikedPostIds((prev) => {
+      const next = new Set(prev)
+      if (isLiked) { next.delete(postId) } else { next.add(postId) }
+      return next
+    })
+
+    if (isLiked) {
+      const { error } = await supabase.from('live_feed_likes').delete().eq('post_id', postId).eq('user_id', currentUser.id)
+      if (error) {
+        // Revert on failure
+        updatePost(postId, { likes_count: post?.likes_count || 0 })
+        setLikedPostIds((prev) => { const n = new Set(prev); n.add(postId); return n; })
+      }
+    } else {
+      const { error } = await supabase.from('live_feed_likes').insert({ post_id: postId, user_id: currentUser.id })
+      if (error) {
+        // Revert on failure
+        if (post) updatePost(postId, { likes_count: post.likes_count || 0 })
+        setLikedPostIds((prev) => { const n = new Set(prev); n.delete(postId); return n })
+      }
+    }
+  }
 
   useEffect(() => {
     scrollToBottom()
@@ -274,6 +358,8 @@ export function LiveFeedPage() {
                   profileMap={profileMap}
                   teamMembers={teamMembers}
                   getParentPost={getParentPost}
+                  likedByUser={likedPostIds.has(post.id)}
+                  onToggleLike={handleToggleLike}
                 />
               ))
             )}

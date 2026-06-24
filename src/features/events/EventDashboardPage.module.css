@@ -1224,6 +1224,10 @@
   .overviewStatsGrid {
     grid-template-columns: 1fr;
   }
+
+  .mobileHide {
+    display: none !important;
+  }
 }
 
 .statCard {
