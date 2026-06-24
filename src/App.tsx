@@ -417,7 +417,12 @@ export function App() {
         setUser(session.user)
         if (_event !== 'INITIAL_SESSION') {
           loadProfile(session.user.id, session.user).finally(() => setLoading(false))
-          getUnreadCount(session.user.id).then(useNotificationStore.getState().setUnreadCount)
+          getUnreadCount(session.user.id).then((count) => {
+            useNotificationStore.getState().setUnreadCount(count)
+            if (typeof navigator !== 'undefined' && 'setAppBadge' in navigator) {
+              (navigator as any).setAppBadge(count).catch(() => {})
+            }
+          })
         }
       } else {
         setUser(null)
@@ -440,10 +445,30 @@ export function App() {
   useEffect(() => {
     if (!user) return
     const unsub = subscribeToNotifications(user.id, (n) => {
-      getUnreadCount(user.id).then(useNotificationStore.getState().setUnreadCount)
+      getUnreadCount(user.id).then((count) => {
+        useNotificationStore.getState().setUnreadCount(count)
+        // PWA Badge API — app icon badge on installed PWA (Android/Chrome)
+        if (typeof navigator !== 'undefined' && 'setAppBadge' in navigator) {
+          (navigator as any).setAppBadge(count).catch(() => {})
+        }
+      })
       
-      // Play a notification sound
-      useUIStore.getState().playSound('info')
+      // Play a notification sound based on type
+      const soundMap: Record<string, 'success' | 'error' | 'warning' | 'info' | 'confirm'> = {
+        task_assigned: 'info',
+        task_overdue: 'warning',
+        task_completed: 'success',
+        issue_raised: 'warning',
+        issue_resolved: 'success',
+        vendor_update: 'info',
+        vendor_confirmed: 'success',
+        payment_received: 'success',
+        payment_overdue: 'warning',
+        feedback_reply: 'info',
+        client_action_required: 'warning',
+        mention: 'info',
+      }
+      useUIStore.getState().playSound(soundMap[n.type] || 'info')
       
       // Vibrate on supported devices (mobile)
       if (typeof navigator !== 'undefined' && navigator.vibrate) {
