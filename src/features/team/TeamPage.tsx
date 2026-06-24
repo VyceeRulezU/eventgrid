@@ -393,9 +393,13 @@ export function TeamPage() {
   }
 
   async function handleRemoveMember(accessId: string) {
-    const { error } = await supabase.from('event_access').delete().eq('id', accessId)
+    const { data, error } = await supabase.from('event_access').delete().eq('id', accessId).select()
     if (error) {
       showNotification({ variant: 'error', title: 'Failed to remove member', message: error.message })
+      return
+    }
+    if (!data || data.length === 0) {
+      showNotification({ variant: 'error', title: 'Failed to remove member', message: 'No rows deleted. You may not have permission to remove this member.' })
       return
     }
     showNotification({ variant: 'success', title: 'Member removed' })

@@ -98,7 +98,7 @@ function Sidebar({ currentPost, allPosts }: { currentPost: StaticPost; allPosts:
           Nigeria's event planning platform for professionals
         </p>
         <a href="/register" className={styles.sidebarCtaButton}>
-          Start for ₦100 →
+          Start for FREE →
         </a>
       </div>
     </aside>

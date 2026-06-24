@@ -206,7 +206,7 @@ const POST_WHATSAPP_EXCEL: StaticPost = {
     {
       type: 'cta',
       text: 'NaliGrid is currently in beta — available to a limited number of planners before public launch. You can create your first event for just ₦100 during the beta period. No monthly subscription, no dollar conversion, no setup fees.',
-      buttonText: 'Start for ₦100 →',
+      buttonText: 'Start for FREE →',
       buttonUrl: '/register',
     },
   ],
@@ -383,8 +383,8 @@ const POST_CHECKLIST: StaticPost = {
 
     {
       type: 'cta',
-      text: 'NaliGrid\'s Live Board gives Nigerian coordinators real-time visibility over every vendor station and event cue. Start your first event for ₦100 during our beta period.',
-      buttonText: 'Start for ₦100 →',
+      text: 'NaliGrid\'s Live Board gives Nigerian coordinators real-time visibility over every vendor station and event cue. Start your first event for FREE during our beta period.',
+      buttonText: 'Start for FREE →',
       buttonUrl: '/register',
     },
   ],
