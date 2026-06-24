@@ -428,7 +428,7 @@ export function FinancialsPage() {
             <div className={styles.dropdownFilterWrap}>
               <DropdownMenu
                 trigger={
-                  <span style={{ color: 'var(--color-text-primary)' }}>
+                  <span style={{ color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
                     {events.find((e) => e.id === (eventId || events[0]?.id))?.name || 'All events'}
                   </span>
                 }
