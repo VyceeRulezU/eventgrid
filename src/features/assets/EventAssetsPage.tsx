@@ -95,6 +95,56 @@ function PdfThumbnail({ file }: { file: string }) {
   )
 }
 
+function PdfPreviewer({ file, title }: { file: string; title: string }) {
+  const [numPages, setNumPages] = useState<number | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(typeof window !== 'undefined' && window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  if (!isMobile) {
+    return (
+      <iframe
+        src={file}
+        className={styles.pdfPreviewFrame}
+        title={title}
+      />
+    )
+  }
+
+  return (
+    <div className={styles.pdfViewer}>
+      <div className={styles.pdfPageCount}>
+        {numPages ? `${numPages} page${numPages !== 1 ? 's' : ''}` : ''}
+      </div>
+      <div className={styles.pdfScroll}>
+        <Document
+          file={file}
+          onLoadSuccess={({ numPages: n }) => setNumPages(n)}
+          loading={<div className={styles.pdfLoading}>Loading PDF...</div>}
+          error={<div className={styles.pdfError}>Failed to load PDF</div>}
+        >
+          {numPages && Array.from({ length: numPages }, (_, i) => i + 1).map((p) => (
+            <Page
+              key={p}
+              pageNumber={p}
+              width={Math.min(window.innerWidth - 40, 680)}
+              renderTextLayer={false}
+              renderAnnotationLayer={false}
+            />
+          ))}
+        </Document>
+      </div>
+    </div>
+  )
+}
+
 export function EventAssetsPage() {
   const { eventId, loading: resolving } = useResolvedEventId()
   const id = eventId
@@ -540,11 +590,7 @@ export function EventAssetsPage() {
               {isImageType(previewAsset.mime_type) && previewUrl ? (
                 <img src={previewUrl} alt={previewAsset.name} className={styles.previewImage} />
               ) : previewAsset.mime_type === 'application/pdf' && previewUrl ? (
-                <iframe
-                  src={previewUrl}
-                  className={styles.pdfPreviewFrame}
-                  title={previewAsset.name}
-                />
+                <PdfPreviewer file={previewUrl} title={previewAsset.name} />
               ) : (
                 <div className={styles.previewFallback}>
                   <FileText size={48} />
