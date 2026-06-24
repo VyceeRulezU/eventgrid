@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
@@ -116,6 +116,13 @@ export function EventDashboardPage() {
   const role = useAuthStore((s) => s.role)
   const { activeEvent, setActiveEvent, phases, setPhases } = useEventStore()
   const showNotification = useUIStore((s) => s.showNotification)
+
+  const isEventOwner = useMemo(() => {
+    return (
+      (user && activeEvent && user.id === activeEvent.created_by) ||
+      role === 'super_admin'
+    )
+  }, [user, activeEvent, role])
 
   const headerInputRef = useRef<HTMLInputElement>(null)
   const [uploadingHeader, setUploadingHeader] = useState(false)
@@ -840,7 +847,7 @@ export function EventDashboardPage() {
           </div>
 
           {/* Financial Snapshot Grid */}
-          {role === 'planner' && isActivated && (
+          {isEventOwner && isActivated && (
             <div className={styles.financialSnapshot}>
               <div className={styles.finSnapHeader}>
                 <div className={styles.finSnapTitle}>Financial Snapshot</div>
@@ -1219,7 +1226,7 @@ export function EventDashboardPage() {
           </div>
 
           {/* Finance Section */}
-          {role === 'planner' && (
+          {isEventOwner && (
             <div className={styles.moduleCategorySection}>
               <h3 className={styles.moduleCategoryTitle}>Financial Oversight</h3>
               <div className={styles.modulesGrid}>

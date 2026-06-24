@@ -7,6 +7,7 @@ import { notify } from '@/lib/notifications'
 import { PageHero } from '@/components/shared/PageHero'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import styles from './EventVendorsPage.module.css'
+import { useAuthStore } from '@/store/auth.store'
 
 interface EventVendor {
   id: string
@@ -56,17 +57,38 @@ function fmtNaira(kobo: number): string {
 export function EventVendorsPage({ standalone = true }: { standalone?: boolean }) {
   const { eventId } = useResolvedEventId()
   const showNotification = useUIStore((s) => s.showNotification)
+  const currentUser = useAuthStore((s) => s.user)
+  const userRole = useAuthStore((s) => s.role)
 
   const [eventName, setEventName] = useState('')
+  const [eventOwnerId, setEventOwnerId] = useState<string | null>(null)
   const [vendors, setVendors] = useState<EventVendor[]>([])
   const [loading, setLoading] = useState(true)
   const [showAddModal, setShowAddModal] = useState(false)
   const [editingVendor, setEditingVendor] = useState<EventVendor | null>(null)
 
+  const isOwner = useMemo(() => {
+    return (
+      (currentUser && eventOwnerId && currentUser.id === eventOwnerId) ||
+      userRole === 'super_admin'
+    )
+  }, [currentUser, eventOwnerId, userRole])
+
   async function loadVendors() {
     if (!eventId) return
     setLoading(true)
-    supabase.from('events').select('name').eq('id', eventId).single().then(({ data }) => { if (data) setEventName(data.name) })
+    
+    const { data: eventData } = await supabase
+      .from('events')
+      .select('name, created_by')
+      .eq('id', eventId)
+      .single()
+
+    if (eventData) {
+      setEventName(eventData.name)
+      setEventOwnerId(eventData.created_by)
+    }
+
     const { data } = await supabase
       .from('event_vendors')
       .select('*')
@@ -135,7 +157,7 @@ export function EventVendorsPage({ standalone = true }: { standalone?: boolean }
                   <tr>
                     <th className={styles.th}>Vendor</th>
                     <th className={styles.th}>Service</th>
-                    <th className={`${styles.th} ${styles.thCenter}`}>Amount</th>
+                    {isOwner && <th className={`${styles.th} ${styles.thCenter}`}>Amount</th>}
                     <th className={`${styles.th} ${styles.thCenter}`}>Booking</th>
                     <th className={`${styles.th} ${styles.thCenter}`}>Payment</th>
                     <th className={`${styles.th} ${styles.thCenter}`}>Actions</th>
@@ -156,38 +178,56 @@ export function EventVendorsPage({ standalone = true }: { standalone?: boolean }
                       <td className={styles.td}>
                         <span className={styles.serviceDesc}>{v.service_desc || '\u2014'}</span>
                       </td>
+                      {isOwner && (
+                        <td className={`${styles.td} ${styles.cellCenter}`}>
+                          <span className={styles.amount}>{fmtNaira(v.total_amount)}</span>
+                        </td>
+                      )}
                       <td className={`${styles.td} ${styles.cellCenter}`}>
-                        <span className={styles.amount}>{fmtNaira(v.total_amount)}</span>
+                        {isOwner ? (
+                          <DropdownMenu
+                            trigger={
+                              <span className={`badge badge-${v.booking_status === 'confirmed' || v.booking_status === 'paid' ? 'green' : v.booking_status === 'cancelled' ? 'red' : v.booking_status === 'negotiating' ? 'yellow' : 'grey'} ${styles.pointer}`}>
+                                <span className="badge-dot" />
+                                {BOOKING_STATUSES.find((s) => s.value === v.booking_status)?.label || v.booking_status}
+                              </span>
+                            }
+                            items={BOOKING_STATUSES.map((s) => ({ label: s.label, value: s.value }))}
+                            onSelect={(item) => handleUpdateStatus(v.id, 'booking_status', item.value)}
+                          />
+                        ) : (
+                          <span className={`badge badge-${v.booking_status === 'confirmed' || v.booking_status === 'paid' ? 'green' : v.booking_status === 'cancelled' ? 'red' : v.booking_status === 'negotiating' ? 'yellow' : 'grey'}`}>
+                            <span className="badge-dot" />
+                            {BOOKING_STATUSES.find((s) => s.value === v.booking_status)?.label || v.booking_status}
+                          </span>
+                        )}
                       </td>
                       <td className={`${styles.td} ${styles.cellCenter}`}>
-                        <DropdownMenu
-                          trigger={
-                            <span className={`badge badge-${v.booking_status === 'confirmed' || v.booking_status === 'paid' ? 'green' : v.booking_status === 'cancelled' ? 'red' : v.booking_status === 'negotiating' ? 'yellow' : 'grey'}`}>
-                              <span className="badge-dot" />
-                              {BOOKING_STATUSES.find((s) => s.value === v.booking_status)?.label || v.booking_status}
-                            </span>
-                          }
-                          items={BOOKING_STATUSES.map((s) => ({ label: s.label, value: s.value }))}
-                          onSelect={(item) => handleUpdateStatus(v.id, 'booking_status', item.value)}
-                        />
-                      </td>
-                      <td className={`${styles.td} ${styles.cellCenter}`}>
-                        <DropdownMenu
-                          trigger={
-                            <span className={`badge badge-${v.payment_status === 'paid' ? 'green' : v.payment_status === 'advance' ? 'yellow' : v.payment_status === 'cancelled' ? 'red' : 'grey'}`}>
-                              <span className="badge-dot" />
-                              {PAYMENT_STATUSES.find((s) => s.value === v.payment_status)?.label || v.payment_status}
-                            </span>
-                          }
-                          items={PAYMENT_STATUSES.map((s) => ({ label: s.label, value: s.value }))}
-                          onSelect={(item) => handleUpdateStatus(v.id, 'payment_status', item.value)}
-                        />
+                        {isOwner ? (
+                          <DropdownMenu
+                            trigger={
+                              <span className={`badge badge-${v.payment_status === 'paid' ? 'green' : v.payment_status === 'advance' ? 'yellow' : v.payment_status === 'cancelled' ? 'red' : 'grey'} ${styles.pointer}`}>
+                                <span className="badge-dot" />
+                                {PAYMENT_STATUSES.find((s) => s.value === v.payment_status)?.label || v.payment_status}
+                              </span>
+                            }
+                            items={PAYMENT_STATUSES.map((s) => ({ label: s.label, value: s.value }))}
+                            onSelect={(item) => handleUpdateStatus(v.id, 'payment_status', item.value)}
+                          />
+                        ) : (
+                          <span className={`badge badge-${v.payment_status === 'paid' ? 'green' : v.payment_status === 'advance' ? 'yellow' : v.payment_status === 'cancelled' ? 'red' : 'grey'}`}>
+                            <span className="badge-dot" />
+                            {PAYMENT_STATUSES.find((s) => s.value === v.payment_status)?.label || v.payment_status}
+                          </span>
+                        )}
                       </td>
                       <td className={`${styles.td} ${styles.cellCenter}`}>
                         <div className={styles.rowActions}>
-                          <button className={styles.iconBtn} onClick={() => setEditingVendor(v)} aria-label="Edit vendor">
-                            <Pencil size={14} />
-                          </button>
+                          {isOwner && (
+                            <button className={styles.iconBtn} onClick={() => setEditingVendor(v)} aria-label="Edit vendor">
+                              <Pencil size={14} />
+                            </button>
+                          )}
                           <button className={`${styles.iconBtn} ${styles.iconBtnDanger}`} onClick={() => handleRemove(v.id)} aria-label="Remove vendor">
                             <X size={14} />
                           </button>
@@ -211,6 +251,7 @@ export function EventVendorsPage({ standalone = true }: { standalone?: boolean }
           eventId={eventId!}
           onClose={() => setShowAddModal(false)}
           onSaved={() => { setShowAddModal(false); loadVendors() }}
+          isOwner={isOwner}
         />
       )}
 
@@ -228,10 +269,11 @@ export function EventVendorsPage({ standalone = true }: { standalone?: boolean }
   )
 }
 
-function AddEventVendorModal({ eventId, onClose, onSaved }: {
+function AddEventVendorModal({ eventId, onClose, onSaved, isOwner }: {
   eventId: string
   onClose: () => void
   onSaved: () => void
+  isOwner: boolean
 }) {
   const showNotification = useUIStore((s) => s.showNotification)
   const [step, setStep] = useState<'choose' | 'create'>('choose')
@@ -399,10 +441,12 @@ function AddEventVendorModal({ eventId, onClose, onSaved }: {
               <label className="label">Service Description</label>
               <input className="input" value={form.service_desc} onChange={(e) => setForm({ ...form, service_desc: e.target.value })} placeholder="What service are they providing?" />
             </div>
-            <div style={{ gridColumn: '1 / -1' }}>
-              <label className="label">Total Amount ({'\u20A6'})</label>
-              <input className="input" type="number" min={0} value={form.total_amount} onChange={(e) => setForm({ ...form, total_amount: e.target.value })} placeholder="Amount in Naira (e.g. 500000)" />
-            </div>
+            {isOwner && (
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label className="label">Total Amount ({'\u20A6'})</label>
+                <input className="input" type="number" min={0} value={form.total_amount} onChange={(e) => setForm({ ...form, total_amount: e.target.value })} placeholder="Amount in Naira (e.g. 500000)" />
+              </div>
+            )}
           </div>
           <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-5)' }}>
             <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleSave} disabled={saving || !form.vendor_name.trim()}>

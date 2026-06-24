@@ -56,10 +56,12 @@ export function FinancialsPage() {
   const eventId = routeId || searchParams.get('event')
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
+  const role = useAuthStore((s) => s.role)
   const org = useAuthStore((s) => s.org)
   const showNotification = useUIStore((s) => s.showNotification)
   const showModal = useUIStore((s) => s.showModal)
 
+  const [eventOwnerId, setEventOwnerId] = useState<string | null>(null)
   const [entries, setEntries] = useState<FinancialEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -186,12 +188,23 @@ export function FinancialsPage() {
         if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(defaultEid)) {
           const { data: evt } = await supabase
             .from('events')
-            .select('id')
+            .select('id, created_by')
             .eq('slug', defaultEid)
             .is('deleted_at', null)
             .single()
           if (evt) {
             resolvedId = evt.id
+            setEventOwnerId(evt.created_by)
+          }
+        } else {
+          const { data: evt } = await supabase
+            .from('events')
+            .select('created_by')
+            .eq('id', resolvedId)
+            .is('deleted_at', null)
+            .single()
+          if (evt) {
+            setEventOwnerId(evt.created_by)
           }
         }
 
@@ -379,12 +392,24 @@ export function FinancialsPage() {
   }
 
   const activeEventName = events.find((e) => e.id === (eventId || events[0]?.id))?.name
+  const isOwner = user && (user.id === eventOwnerId || role === 'super_admin')
 
   if (loading) {
     return (
       <div>
         <div className="skeleton skeleton-card" style={{ height: 80, marginBottom: 'var(--space-4)' }} />
         <div className="skeleton skeleton-card" style={{ height: 300 }} />
+      </div>
+    )
+  }
+
+  if (eventOwnerId && !isOwner) {
+    return (
+      <div className="empty-state">
+        <div className="empty-state__icon"><AlertTriangle size={24} /></div>
+        <div className="empty-state__title">Access Denied</div>
+        <div className="empty-state__description">Only the event owner has access to financial details.</div>
+        <button className="btn btn-primary" onClick={() => navigate(`/events/${eventId || ''}`)}>Back to Event</button>
       </div>
     )
   }

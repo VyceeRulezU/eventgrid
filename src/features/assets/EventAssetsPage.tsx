@@ -58,6 +58,43 @@ const ASSET_TYPE_OPTIONS = [
   { label: 'Other', value: 'other' },
 ] as const
 
+function PdfThumbnail({ file }: { file: string }) {
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+
+  return (
+    <div className={styles.pdfThumbnailWrapper}>
+      {loading && (
+        <div className={styles.pdfThumbLoading}>
+          <span className="spinner-loader" style={{ width: 20, height: 20 }} />
+        </div>
+      )}
+      {error && (
+        <div className={styles.pdfThumbError}>
+          <FileText size={24} />
+          <span>Preview Error</span>
+        </div>
+      )}
+      <div style={{ display: loading || error ? 'none' : 'block', width: '100%', height: '100%' }}>
+        <Document
+          file={file}
+          onLoadSuccess={() => setLoading(false)}
+          onLoadError={() => { setLoading(false); setError(true) }}
+          loading={null}
+          error={null}
+        >
+          <Page
+            pageNumber={1}
+            width={240}
+            renderTextLayer={false}
+            renderAnnotationLayer={false}
+          />
+        </Document>
+      </div>
+    </div>
+  )
+}
+
 export function EventAssetsPage() {
   const { eventId, loading: resolving } = useResolvedEventId()
   const id = eventId
@@ -277,23 +314,14 @@ export function EventAssetsPage() {
     })
   }
 
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
-
   const renderThumbnail = (asset: EventAsset) => {
     const isImg = isImageType(asset.mime_type)
     if (isImg && asset.file_url) {
       return <img src={asset.file_url} alt={asset.name} className={styles.cardThumbImg} />
     }
     const thumbUrl = signedUrls[asset.id] || asset.file_url
-    if (asset.mime_type === 'application/pdf' && thumbUrl && !isMobile) {
-      return (
-        <iframe
-          src={thumbUrl}
-          className={styles.cardThumbImg}
-          title={asset.name}
-          style={{ border: 'none' }}
-        />
-      )
+    if (asset.mime_type === 'application/pdf' && thumbUrl) {
+      return <PdfThumbnail file={thumbUrl} />
     }
     return (
       <div className={styles.docThumb}>
