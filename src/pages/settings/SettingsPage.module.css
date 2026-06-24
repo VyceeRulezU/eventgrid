@@ -181,6 +181,16 @@
   flex-wrap: wrap;
 }
 
+@media (max-width: 480px) {
+  .orgRow {
+    flex-direction: column;
+    align-items: center;
+  }
+  .orgFields {
+    width: 100%;
+  }
+}
+
 .orgLogo {
   width: 80px;
   height: 80px;

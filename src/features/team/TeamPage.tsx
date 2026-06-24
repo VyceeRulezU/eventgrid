@@ -332,7 +332,7 @@ export function TeamPage() {
       type: 'team_member',
       role: inviteRole,
       event_id: eventId,
-      email: inviteEmail.trim(),
+      email: inviteEmail.trim().toLowerCase(),
       invited_by_name: user.user_metadata?.full_name || user.email || 'A coordinator',
       invited_by: user.id,
     })
@@ -343,7 +343,7 @@ export function TeamPage() {
       return
     }
 
-    showNotification({ variant: 'success', title: 'Invite sent', message: `An invitation has been sent to ${inviteEmail.trim()}` })
+    showNotification({ variant: 'success', title: 'Invite sent', message: `An invitation has been sent to ${inviteEmail.trim().toLowerCase()}` })
     setInviteEmail('')
     setInviteRole('team_member')
     setShowInvite(false)
@@ -437,12 +437,45 @@ export function TeamPage() {
   const eventRole = members.find(m => m.user_id === user?.id)?.role
   const canManage = role === 'planner' || role === 'coordinator' || eventRole === 'coordinator'
 
+  const allMembers = [
+    ...members.map(m => ({
+      kind: 'member' as const,
+      id: m.id,
+      userId: m.user_id,
+      displayName: m.profile?.display_name || m.profile?.email?.split('@')[0] || 'Unnamed',
+      email: m.profile?.email,
+      role: m.role,
+      status: m.accepted_at ? ('active' as const) : ('pending' as const),
+      taskCount: taskCounts[m.user_id] || 0,
+      profile: m.profile,
+      createdAt: m.created_at,
+      onRemove: () => setConfirmRemove({ type: 'member', id: m.id, name: m.profile?.display_name || m.profile?.email || 'this member' }),
+    })),
+    ...pendingInvitations.map(inv => ({
+      kind: 'invitation' as const,
+      id: inv.id,
+      userId: null,
+      displayName: inv.email.split('@')[0] || inv.email,
+      email: inv.email,
+      role: inv.role,
+      status: 'pending' as const,
+      taskCount: null,
+      profile: null,
+      createdAt: inv.created_at,
+      onRemove: () => setConfirmRemove({ type: 'invite', id: inv.id, name: inv.email }),
+    })),
+  ].sort((a, b) => {
+    if (a.status === 'active' && b.status !== 'active') return -1
+    if (a.status !== 'active' && b.status === 'active') return 1
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  })
+
   return (
     <div className={styles.page}>
       <PageHero
         icon={Users}
         title={`Team${eventName ? ` | ${eventName}` : ''}`}
-        subtitle={`${members.length} member${members.length !== 1 ? 's' : ''} · ${reports.length} report${reports.length !== 1 ? 's' : ''}`}
+        subtitle={`${allMembers.length} member${allMembers.length !== 1 ? 's' : ''} · ${reports.length} report${reports.length !== 1 ? 's' : ''}`}
         actions={
           <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
             {role !== 'planner' && (
@@ -504,7 +537,7 @@ export function TeamPage() {
                 </tr>
               </thead>
               <tbody>
-                    {members.length === 0 && pendingInvitations.length === 0 ? (
+                    {allMembers.length === 0 ? (
                   <tr>
                     <td className={styles.td} colSpan={canManage ? 5 : 4}>
                       <div style={{ textAlign: 'center', padding: 'var(--space-8) var(--space-4)', color: 'var(--color-text-muted)' }}>
@@ -515,100 +548,59 @@ export function TeamPage() {
                     </td>
                   </tr>
                 ) : (
-                  <>
-                    {members.map((member) => (
-                      <tr key={member.id} className={styles.tr}>
-                        <td className={`${styles.td} ${styles.memberCell}`}>
-                          <div className={styles.memberInfo}>
-                            <div className={styles.avatar}>
-                              {member.profile?.display_name?.charAt(0)?.toUpperCase() || member.profile?.email?.charAt(0)?.toUpperCase() || '?'}
-                            </div>
-                            <div>
-                              <div className={styles.memberName}>{member.profile?.display_name || member.profile?.email?.split('@')[0] || 'Unnamed'}</div>
-                              <div className={styles.memberEmail}>{member.profile?.email}</div>
+                  allMembers.map((item) => (
+                    <tr key={`${item.kind}-${item.id}`} className={styles.tr}>
+                      <td className={`${styles.td} ${styles.memberCell}`}>
+                        <div className={styles.memberInfo}>
+                          <div className={styles.avatar}>
+                            {item.email?.charAt(0)?.toUpperCase() || '?'}
+                          </div>
+                          <div>
+                            <div className={styles.memberName}>{item.displayName}</div>
+                            <div className={styles.memberEmail}>
+                              {item.email}{item.kind === 'invitation' ? <> &middot; invited {timeAgo(item.createdAt)}</> : null}
                             </div>
                           </div>
+                        </div>
+                      </td>
+                      <td className={styles.td}>
+                        <span className={`badge badge-${item.role === 'coordinator' ? 'yellow' : item.role === 'planner' ? 'green' : 'grey'}`}>
+                          <span className="badge-dot" />
+                          {item.role.charAt(0).toUpperCase() + item.role.slice(1)}
+                        </span>
+                      </td>
+                      <td className={styles.td}>
+                        <span className={`badge badge-${item.status === 'active' ? 'green' : 'grey'}`}>
+                          <span className="badge-dot" />
+                          {item.status === 'active' ? 'Active' : 'Pending'}
+                        </span>
+                      </td>
+                      <td className={`${styles.td} ${styles.cellCenter}`}>
+                        <span className={styles.tasksCount}>
+                          {item.kind === 'member' ? `${item.taskCount} tasks` : '\u2014'}
+                        </span>
+                      </td>
+                      {canManage && (
+                        <td className={styles.td} style={{ textAlign: 'right' }}>
+                          <button
+                            className="btn btn-ghost btn-sm btn-icon"
+                            style={{ width: 32, height: 32, color: 'var(--color-text-muted)' }}
+                            onClick={item.onRemove}
+                            aria-label={item.kind === 'invitation' ? `Cancel invite for ${item.email}` : `Remove ${item.displayName || item.email || 'member'}`}
+                            title={item.kind === 'invitation' ? 'Cancel invite' : 'Remove from event'}
+                          >
+                            {item.kind === 'invitation' ? <X size={14} /> : <Trash2 size={14} />}
+                          </button>
                         </td>
-                        <td className={styles.td}>
-                          <span className={`badge badge-${member.role === 'coordinator' ? 'yellow' : member.role === 'planner' ? 'green' : 'grey'}`}>
-                            <span className="badge-dot" />
-                            {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
-                          </span>
-                        </td>
-                        <td className={styles.td}>
-                          <span className={`badge badge-${member.accepted_at ? 'green' : 'grey'}`}>
-                            <span className="badge-dot" />
-                            {member.accepted_at ? 'Active' : 'Invited'}
-                          </span>
-                        </td>
-                        <td className={`${styles.td} ${styles.cellCenter}`}>
-                          <span className={styles.tasksCount}>{taskCounts[member.user_id] || 0} tasks</span>
-                        </td>
-                        {canManage && (
-                          <td className={styles.td} style={{ textAlign: 'right' }}>
-                            <button
-                              className="btn btn-ghost btn-sm btn-icon"
-                              style={{ width: 32, height: 32, color: 'var(--color-text-muted)' }}
-                              onClick={() => setConfirmRemove({ type: 'member', id: member.id, name: member.profile?.display_name || member.profile?.email || 'this member' })}
-                              aria-label={`Remove ${member.profile?.display_name || member.profile?.email || 'member'}`}
-                              title="Remove from event"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </td>
-                        )}
-                      </tr>
-                    ))}
-                    {pendingInvitations.map((inv) => (
-                      <tr key={inv.id} className={styles.tr}>
-                        <td className={`${styles.td} ${styles.memberCell}`}>
-                          <div className={styles.memberInfo}>
-                            <div className={styles.avatar}>
-                              {inv.email.charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                              <div className={styles.memberName}>{inv.email}</div>
-                              <div className={styles.memberEmail}>Invited {timeAgo(inv.created_at)}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className={styles.td}>
-                          <span className={`badge badge-${inv.role === 'coordinator' ? 'yellow' : inv.role === 'planner' ? 'green' : 'grey'}`}>
-                            <span className="badge-dot" />
-                            {inv.role.charAt(0).toUpperCase() + inv.role.slice(1)}
-                          </span>
-                        </td>
-                        <td className={styles.td}>
-                          <span className="badge badge-grey">
-                            <span className="badge-dot" />
-                            Pending
-                          </span>
-                        </td>
-                        <td className={`${styles.td} ${styles.cellCenter}`}>
-                          <span className={styles.tasksCount}>&mdash;</span>
-                        </td>
-                        {canManage && (
-                          <td className={styles.td} style={{ textAlign: 'right' }}>
-                            <button
-                              className="btn btn-ghost btn-sm btn-icon"
-                              style={{ width: 32, height: 32, color: 'var(--color-text-muted)' }}
-                              onClick={() => setConfirmRemove({ type: 'invite', id: inv.id, name: inv.email })}
-                              aria-label={`Cancel invite for ${inv.email}`}
-                              title="Cancel invite"
-                            >
-                              <X size={14} />
-                            </button>
-                          </td>
-                        )}
-                      </tr>
-                    ))}
-                  </>
+                      )}
+                    </tr>
+                  ))
                 )}
               </tbody>
             </table>
           </div>
           <div className={styles.tableFooter}>
-            <span>Showing {members.length + pendingInvitations.length} member{(members.length + pendingInvitations.length) !== 1 ? 's' : ''}</span>
+            <span>Showing {allMembers.length} member{allMembers.length !== 1 ? 's' : ''}</span>
           </div>
         </div>
       )}

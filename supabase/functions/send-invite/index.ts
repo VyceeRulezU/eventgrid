@@ -369,6 +369,8 @@ Deno.serve(async (req) => {
       )
     }
 
+    const normalizedEmail = email.trim().toLowerCase()
+
     // coordinator_invite and admin_monitor don't require event_id
     const needsEventId = !['admin_monitor', 'coordinator_invite', 'vendor_welcome'].includes(type)
     if (needsEventId && !event_id) {
@@ -404,11 +406,10 @@ Deno.serve(async (req) => {
     let userExists = false
     let existingUserId: string | null = null
     try {
-      // Use case-insensitive comparison to catch emails like Chinnydominic vs chinnydominic
       const { data: existingProfile } = await supabaseAdmin
         .from('profiles')
         .select('id')
-        .ilike('email', email)
+        .eq('email', normalizedEmail)
         .maybeSingle()
       
       if (existingProfile?.id) {
@@ -418,7 +419,7 @@ Deno.serve(async (req) => {
       
       // Always also check auth.users directly (catches users whose profile creation failed)
       if (!existingUserId) {
-        const { data: authUserId } = await supabaseAdmin.rpc('get_user_id_by_email', { p_email: email.toLowerCase() })
+        const { data: authUserId } = await supabaseAdmin.rpc('get_user_id_by_email', { p_email: normalizedEmail })
         if (authUserId) {
           userExists = true
           existingUserId = authUserId
@@ -442,7 +443,7 @@ Deno.serve(async (req) => {
         // User already exists, generate a login link that redirects to admin onboarding
         const { data, error } = await supabaseAdmin.auth.admin.generateLink({
           type: 'magiclink',
-          email,
+          email: normalizedEmail,
           options: {
             redirectTo: redirectUrl,
           },
@@ -453,7 +454,7 @@ Deno.serve(async (req) => {
         // User does not exist, generate an invite link which also creates the user record
         const { data, error } = await supabaseAdmin.auth.admin.generateLink({
           type: 'invite',
-          email,
+          email: normalizedEmail,
           options: {
             data: { role: 'planner', is_super_admin: true, invite_role: adminRole },
             redirectTo: redirectUrl,
@@ -509,7 +510,7 @@ Deno.serve(async (req) => {
         // User already exists, generate a login link that redirects to coordinator onboarding to associate with org
         const { data, error } = await supabaseAdmin.auth.admin.generateLink({
           type: 'magiclink',
-          email,
+          email: normalizedEmail,
           options: {
             redirectTo: redirectUrl,
           },
@@ -520,7 +521,7 @@ Deno.serve(async (req) => {
         // User does not exist, generate an invite link which also creates the user record
         const { data, error } = await supabaseAdmin.auth.admin.generateLink({
           type: 'invite',
-          email,
+          email: normalizedEmail,
           options: {
             data: { role: 'coordinator', org_id },
             redirectTo: redirectUrl,
@@ -571,7 +572,7 @@ Deno.serve(async (req) => {
       const teamRole = role || 'team_member'
 
       if (userExists && existingUserId) {
-        // User already exists — add them directly to event_team and send notification
+        // User already exists — add them to event_team as pending (accepted_at: null)
         const { error: insertError } = await supabaseAdmin
           .from('event_access')
           .upsert({
@@ -579,7 +580,7 @@ Deno.serve(async (req) => {
             user_id: existingUserId,
             role: teamRole,
             invited_by: invited_by || null,
-            accepted_at: new Date().toISOString(),
+            accepted_at: null, // Set to null so they show as pending/invited!
           }, { onConflict: 'event_id,user_id' })
 
         if (insertError) {
@@ -590,8 +591,24 @@ Deno.serve(async (req) => {
           )
         }
 
-        const inviteLink = `${APP_URL}/events/${event_id}?team=true`
-        const template = teamNotificationEmail({
+        const redirectUrl = `${APP_URL}/onboarding/team-member?event_id=${event_id}&role=${teamRole}`
+        let inviteLink = redirectUrl
+        try {
+          const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+            type: 'magiclink',
+            email: normalizedEmail,
+            options: {
+              redirectTo: redirectUrl,
+            },
+          })
+          if (!linkError && linkData?.properties?.action_link) {
+            inviteLink = proxyInviteLink(linkData.properties.action_link)
+          }
+        } catch (err) {
+          console.warn('Failed to generate magic link, falling back to direct link:', err)
+        }
+
+        const template = teamInviteEmail({
           invitedByName: invited_by_name ?? 'Your event planner',
           eventName: event!.name,
           inviteLink,
@@ -603,7 +620,7 @@ Deno.serve(async (req) => {
         const redirectUrl = `${APP_URL}/onboarding/team-member?event_id=${event_id}&role=${teamRole}`;
         const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
           type: 'invite',
-          email,
+          email: normalizedEmail,
           options: {
             data: { role: teamRole, event_id },
             redirectTo: redirectUrl,
@@ -649,7 +666,7 @@ Deno.serve(async (req) => {
       html = template.html
 
     } else if (type === 'guest_invite') {
-      const encodedEmail = encodeURIComponent(btoa(email))
+      const encodedEmail = encodeURIComponent(btoa(normalizedEmail))
       const rsvpLink = `${APP_URL}/rsvp?e=${event_id}&g=${encodedEmail}`
       const template = guestInviteEmail({
         eventName: event!.name,
@@ -687,7 +704,7 @@ Deno.serve(async (req) => {
       )
     }
 
-    const emailResult = await sendEmail(email, subject, html)
+    const emailResult = await sendEmail(normalizedEmail, subject, html)
 
     if (!emailResult.success) {
       return new Response(
@@ -696,11 +713,11 @@ Deno.serve(async (req) => {
       )
     }
 
-    if (type === 'team_member' && event_id) {
+    if (type === 'team_member' && event_id && !userExists) {
       const teamRole = role || 'team_member'
       await supabaseAdmin.from('invitations').upsert({
         event_id,
-        email,
+        email: normalizedEmail,
         invited_by: invited_by || null,
         role: teamRole,
         status: 'pending',
@@ -710,10 +727,10 @@ Deno.serve(async (req) => {
     if (type === 'admin_monitor') {
       const adminRole = role || 'super_admin'
       try {
-        console.log('[send-invite] inserting admin_invite', { email, adminRole, invited_by })
+        console.log('[send-invite] inserting admin_invite', { email: normalizedEmail, adminRole, invited_by })
         const { data: invData, error: inviteError } = await supabaseAdmin
           .from('admin_invites')
-          .insert({ email, role: adminRole, invited_by: invited_by || null, status: 'pending' })
+          .insert({ email: normalizedEmail, role: adminRole, invited_by: invited_by || null, status: 'pending' })
           .select('id')
           .maybeSingle()
         if (inviteError) {
@@ -727,7 +744,7 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, message: `${type} invite sent to ${email}` }),
+      JSON.stringify({ success: true, message: `${type} invite sent to ${normalizedEmail}` }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
 

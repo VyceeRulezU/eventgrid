@@ -250,18 +250,18 @@ export function MyTasksPage() {
           const overdue = isOverdue(task)
           return (
             <tr key={task.id}>
-              <td style={{ padding: 'var(--space-4)', verticalAlign: 'middle', fontSize: 'var(--text-sm)' }}>
+              <td style={{ padding: 'var(--space-4)', verticalAlign: 'middle', fontSize: 'var(--text-sm)', maxWidth: 180, overflow: 'hidden' }}>
                 <Link
                   to={`/events/${task.event.id}`}
-                  style={{ color: 'var(--color-accent)', textDecoration: 'none', fontWeight: 600, fontSize: 'var(--text-xs)' }}
+                  style={{ color: 'var(--color-accent)', textDecoration: 'none', fontWeight: 600, fontSize: 'var(--text-xs)', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                 >
                   {task.event.name}
                 </Link>
               </td>
-              <td style={{ padding: 'var(--space-4)', verticalAlign: 'middle', fontSize: 'var(--text-sm)', minWidth: 200 }}>
-                <div style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{task.title}</div>
+              <td style={{ padding: 'var(--space-4)', verticalAlign: 'middle', fontSize: 'var(--text-sm)', minWidth: 240, maxWidth: 320 }}>
+                <div style={{ fontWeight: 600, color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.title}</div>
                 {task.description && (
-                  <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 300 }}>
+                  <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {task.description}
                   </div>
                 )}
@@ -304,7 +304,7 @@ export function MyTasksPage() {
                   {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
                 </span>
               </td>
-              <td style={{ padding: 'var(--space-4)', verticalAlign: 'middle', fontSize: 'var(--text-sm)' }}>
+              <td style={{ padding: 'var(--space-4)', verticalAlign: 'middle', fontSize: 'var(--text-sm)', whiteSpace: 'nowrap' }}>
                 {task.due_datetime ? (
                   <span style={{ fontSize: 'var(--text-xs)', display: 'flex', alignItems: 'center', gap: 4, color: overdue ? 'var(--color-error)' : 'var(--color-text-secondary)', fontWeight: overdue ? 600 : 400 }}>
                     <Calendar size={11} />
