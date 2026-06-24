@@ -15,7 +15,7 @@ export function BottomTabBar() {
     { to: isAdmin ? '/admin/events' : '/events', label: 'Events', icon: Calendar },
   ]
 
-  if (!isAdmin && role === 'planner') {
+  if (role === 'planner' || role === 'super_admin') {
     const financialsUrl = activeEvent?.id ? `/events/${activeEvent.id}/financials` : '/financials'
     items.push({ to: financialsUrl, label: 'Financials', icon: CircleDollarSign })
   }

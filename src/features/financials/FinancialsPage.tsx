@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import React from 'react'
-import { useSearchParams, useNavigate, useParams } from 'react-router-dom'
+import { useSearchParams, useNavigate, useParams, Navigate } from 'react-router-dom'
 import { Plus, Wallet, Upload, FileSpreadsheet, X, AlertTriangle, Check, Pencil, Trash2, TrendingUp } from 'lucide-react'
 import { useSearch } from '@/hooks/useSearch'
 import { SearchBar } from '@/components/shared/SearchBar'
@@ -56,12 +56,14 @@ export function FinancialsPage() {
   const eventId = routeId || searchParams.get('event')
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
+  const profile = useAuthStore((s) => s.profile)
   const role = useAuthStore((s) => s.role)
   const org = useAuthStore((s) => s.org)
   const showNotification = useUIStore((s) => s.showNotification)
   const showModal = useUIStore((s) => s.showModal)
 
   const [eventOwnerId, setEventOwnerId] = useState<string | null>(null)
+  const [eventOrgId, setEventOrgId] = useState<string | null>(null)
   const [entries, setEntries] = useState<FinancialEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -167,17 +169,19 @@ export function FinancialsPage() {
   }
 
   useEffect(() => {
-    if (!user || !org) { setLoading(false); return }
+    if (!user) { setLoading(false); return }
+    if (!org && role !== 'super_admin') { setLoading(false); return }
 
-    const orgId = org.id
+    const orgId = org?.id
 
     async function load() {
-      const { data: evts } = await supabase
+      let evtQuery = supabase
         .from('events')
         .select('id, name')
-        .eq('org_id', orgId)
         .is('deleted_at', null)
         .order('event_date', { ascending: false })
+      if (orgId && role !== 'super_admin') evtQuery = evtQuery.eq('org_id', orgId)
+      const { data: evts } = await evtQuery
 
       if (evts) setEvents(evts as unknown as { id: string; name: string }[])
 
@@ -186,25 +190,27 @@ export function FinancialsPage() {
         let resolvedId = defaultEid
         // Check if the id is a slug (does not match uuid format)
         if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(defaultEid)) {
-          const { data: evt } = await supabase
-            .from('events')
-            .select('id, created_by')
-            .eq('slug', defaultEid)
-            .is('deleted_at', null)
-            .single()
+            const { data: evt } = await supabase
+              .from('events')
+              .select('id, created_by, org_id')
+              .eq('slug', defaultEid)
+              .is('deleted_at', null)
+              .single()
           if (evt) {
             resolvedId = evt.id
             setEventOwnerId(evt.created_by)
+            setEventOrgId(evt.org_id)
           }
         } else {
           const { data: evt } = await supabase
-            .from('events')
-            .select('created_by')
-            .eq('id', resolvedId)
-            .is('deleted_at', null)
-            .single()
+              .from('events')
+              .select('created_by, org_id')
+              .eq('id', resolvedId)
+              .is('deleted_at', null)
+              .single()
           if (evt) {
             setEventOwnerId(evt.created_by)
+            setEventOrgId(evt.org_id)
           }
         }
 
@@ -231,7 +237,7 @@ export function FinancialsPage() {
 
     load()
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, org, eventId])
+  }, [user, org, role, eventId])
 
   const grouped = categories.reduce<Record<string, FinancialEntry[]>>((acc, cat) => {
     const items = filtered.filter((e) => e.category === cat)
@@ -392,7 +398,11 @@ export function FinancialsPage() {
   }
 
   const activeEventName = events.find((e) => e.id === (eventId || events[0]?.id))?.name
-  const isOwner = user && (user.id === eventOwnerId || role === 'super_admin')
+  const isOwner = user && (
+    user.id === eventOwnerId ||
+    role === 'super_admin' ||
+    (role === 'planner' && profile?.org_id && profile.org_id === eventOrgId)
+  )
 
   if (loading) {
     return (
@@ -404,14 +414,7 @@ export function FinancialsPage() {
   }
 
   if (eventOwnerId && !isOwner) {
-    return (
-      <div className="empty-state">
-        <div className="empty-state__icon"><AlertTriangle size={24} /></div>
-        <div className="empty-state__title">Access Denied</div>
-        <div className="empty-state__description">Only the event owner has access to financial details.</div>
-        <button className="btn btn-primary" onClick={() => navigate(`/events/${eventId || ''}`)}>Back to Event</button>
-      </div>
-    )
+    return <Navigate to="/financials" replace />
   }
 
   return (

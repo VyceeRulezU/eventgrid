@@ -50,7 +50,7 @@ export function Sidebar() {
     managementItems.push({ to: '/events', label: 'Events', icon: Calendar })
   }
 
-  if (!isAdmin && role === 'planner') {
+  if (role === 'planner') {
     const financialsUrl = activeEvent?.id
       ? `/events/${activeEvent.id}/financials`
       : '/financials'
@@ -188,6 +188,16 @@ export function Sidebar() {
               >
                 <TrendingUp size={20} />
                 <span>Analytics</span>
+              </NavLink>
+              <NavLink
+                to="/financials"
+                className={({ isActive }) =>
+                  `${styles.navItem} ${isActive ? styles.active : ''}`
+                }
+                onClick={() => setSidebarOpen(false)}
+              >
+                <Wallet size={20} />
+                <span>Financials</span>
               </NavLink>
               {isAdmin && (
                 <>
