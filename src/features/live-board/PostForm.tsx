@@ -5,6 +5,7 @@ import { useLiveFeedStore } from '@/store/liveFeed.store'
 import { useUIStore } from '@/store/ui.store'
 import { compressImage } from '@/lib/compressImage'
 import { uploadFile } from '@/lib/storage'
+import { createNotification, sendPushNotification } from '@/lib/notifications'
 import { Send, Paperclip, FileText, X, MapPin, User, MessageCircle } from 'lucide-react'
 import type { LiveFeedPost } from '@/types'
 import styles from './LiveBoardPage.module.css'
@@ -175,6 +176,36 @@ export function PostForm({ eventId, parentId, parentAuthorName, teamMembers = []
 
       if (data) {
         addPost(data as unknown as LiveFeedPost)
+      }
+
+      // Notify @mentioned users
+      if (teamMembers.length > 0) {
+        const mentionedNames = [...new Set(
+          message.match(/@(\w[\w\s]*\w|\w)/g)?.map(t => t.slice(1).trim()) || []
+        )]
+        for (const name of mentionedNames) {
+          const member = teamMembers.find(m => m.display_name === name)
+          if (member && member.id !== user.id) {
+            createNotification(
+              member.id,
+              'mention',
+              `${profile?.display_name || user.email} mentioned you`,
+              message.trim().slice(0, 200),
+              eventId,
+            )
+            sendPushNotification({
+              type: 'mention',
+              recipientId: member.id,
+              eventId,
+              payload: {
+                title: `${profile?.display_name || user.email} mentioned you`,
+                body: message.trim().slice(0, 200),
+                url: `/events/${eventId}/live-board`,
+                tag: 'mention',
+              },
+            })
+          }
+        }
       }
 
       if (mediaRows.length > 0) {

@@ -442,8 +442,13 @@ export function App() {
     const unsub = subscribeToNotifications(user.id, (n) => {
       getUnreadCount(user.id).then(useNotificationStore.getState().setUnreadCount)
       
-      // Play a premium notification sound
+      // Play a notification sound
       useUIStore.getState().playSound('info')
+      
+      // Vibrate on supported devices (mobile)
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate([100, 50, 100])
+      }
       
       // Display a toast message alert on the user's screen
       useUIStore.getState().showToast({

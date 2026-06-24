@@ -161,9 +161,12 @@ export function LiveFeedPage() {
           await ensureProfiles([post.user_id])
           addPost(post)
           
-          // Play premium chat notification tone if from another user
+          // Notify if from another user
           if (currentUser && post.user_id !== currentUser.id) {
             useUIStore.getState().playSound('info')
+            if (typeof navigator !== 'undefined' && navigator.vibrate) {
+              navigator.vibrate([100, 50, 100])
+            }
           }
         }
       })

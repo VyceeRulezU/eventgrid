@@ -14,6 +14,7 @@ export type NotificationEventType =
   | 'payment_overdue'
   | 'feedback_reply'
   | 'client_action_required'
+  | 'mention'
 
 export interface NotificationEvent {
   type: NotificationEventType
@@ -40,6 +41,9 @@ export function navigateFromNotification(n: Notification, navigate: NavigateFunc
       case 'vendor_update':
       case 'vendor_confirmed':
         navigate(`/events/${n.event_id}/vendors`)
+        return
+      case 'mention':
+        navigate(`/events/${n.event_id}/live-board`)
         return
     }
   }
@@ -94,6 +98,7 @@ async function sendWebPush(event: NotificationEvent) {
       payment_overdue: 'push_payments',
       feedback_reply: 'push_client_actions',
       client_action_required: 'push_client_actions',
+      mention: 'push_client_actions',
     }
 
     const prefKey = pushPrefMap[event.type]
