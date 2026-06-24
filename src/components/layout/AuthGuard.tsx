@@ -40,6 +40,9 @@ export function AuthGuard({ children }: AuthGuardProps) {
       if (role === 'coordinator') {
         return <Navigate to="/onboarding/coordinator" replace />
       }
+      if (role === 'vendor') {
+        return <Navigate to="/onboarding/vendor" replace />
+      }
     }
   }
 

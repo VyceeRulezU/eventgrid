@@ -210,7 +210,7 @@ function InviteClientModal({ events, onClose }: {
   )
 }
 
-function AddCoordinatorModal({ onClose }: { onClose: () => void }) {
+function AddCoordinatorModal({ events, onClose }: { events: { id: string; name: string }[]; onClose: () => void }) {
   const org = useAuthStore((s) => s.org)
   const profile = useAuthStore((s) => s.profile)
   const showNotification = useUIStore((s) => s.showNotification)
@@ -224,6 +224,9 @@ function AddCoordinatorModal({ onClose }: { onClose: () => void }) {
   // invite state
   const [sending, setSending] = useState(false)
   const [done, setDone] = useState<'added' | 'invited' | null>(null)
+
+  // event state
+  const [selectedEventId, setSelectedEventId] = useState<string>('')
 
   const searchProfile = async () => {
     const q = query.trim().toLowerCase()
@@ -259,6 +262,23 @@ function AddCoordinatorModal({ onClose }: { onClose: () => void }) {
       return
     }
 
+    if (selectedEventId) {
+      const { error: accessErr } = await supabase
+        .from('event_access')
+        .upsert({
+          event_id: selectedEventId,
+          user_id: searchResult.id,
+          role: 'coordinator',
+          accepted_at: new Date().toISOString()
+        }, { onConflict: 'event_id,user_id' })
+
+      if (accessErr) {
+        showNotification({ variant: 'error', title: 'Added to org but failed to link event', message: accessErr.message })
+        setSending(false)
+        return
+      }
+    }
+
     setDone('added')
     setSending(false)
   }
@@ -267,20 +287,32 @@ function AddCoordinatorModal({ onClose }: { onClose: () => void }) {
     if (!org) return
     setSending(true)
 
-    // Record invite in org_invites (best-effort, table may not exist)
-    try {
-      await supabase
-        .from('org_invites')
-        .insert({ org_id: org.id, email: query.trim().toLowerCase(), role: 'coordinator' })
-    } catch (_) { /* ignore if table missing */ }
+    let result
+    if (selectedEventId) {
+      result = await sendInvite({
+        type: 'team_member',
+        role: 'coordinator',
+        event_id: selectedEventId,
+        email: query.trim().toLowerCase(),
+        invited_by_name: profile?.display_name ?? 'Your event planner',
+        invited_by: profile?.id
+      })
+    } else {
+      // Record invite in org_invites (best-effort, table may not exist)
+      try {
+        await supabase
+          .from('org_invites')
+          .insert({ org_id: org.id, email: query.trim().toLowerCase(), role: 'coordinator' })
+      } catch (_) { /* ignore if table missing */ }
 
-    const result = await sendInvite({
-      type: 'coordinator_invite',
-      email: query.trim().toLowerCase(),
-      invited_by_name: profile?.display_name ?? 'Your event planner',
-      org_id: org.id,
-      org_name: org.name,
-    })
+      result = await sendInvite({
+        type: 'coordinator_invite',
+        email: query.trim().toLowerCase(),
+        invited_by_name: profile?.display_name ?? 'Your event planner',
+        org_id: org.id,
+        org_name: org.name,
+      })
+    }
 
     if (!result.success) {
       showNotification({ variant: 'error', title: 'Invite failed', message: result.error ?? 'Unknown error' })
@@ -333,6 +365,27 @@ function AddCoordinatorModal({ onClose }: { onClose: () => void }) {
             <p className={styles.modalDesc}>
               Search for an existing NaliGrid user by email or name, or enter an email to send an invitation.
             </p>
+
+            <div style={{ marginBottom: 'var(--space-4)' }}>
+              <label style={{ display: 'block', fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 'var(--space-2)' }}>
+                Assign to Event (Optional)
+              </label>
+              <div className="input-wrapper" style={{ margin: 0 }}>
+                <select
+                  className="input"
+                  value={selectedEventId}
+                  onChange={(e) => setSelectedEventId(e.target.value)}
+                  style={{ width: '100%', height: '42px' }}
+                >
+                  <option value="">No event (Organisation level only)</option>
+                  {events.map((evt) => (
+                    <option key={evt.id} value={evt.id}>
+                      {evt.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
             {/* Search bar */}
             <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-4)' }}>
@@ -974,7 +1027,7 @@ export function PlannerDashboard() {
         <InviteClientModal events={eventSelectList} onClose={() => setShowInviteClient(false)} />
       )}
       {showAddCoordinator && (
-        <AddCoordinatorModal onClose={() => setShowAddCoordinator(false)} />
+        <AddCoordinatorModal events={eventSelectList} onClose={() => setShowAddCoordinator(false)} />
       )}
     </div>
   )

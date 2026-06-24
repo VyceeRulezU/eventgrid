@@ -91,6 +91,13 @@ export function TeamMemberOnboarding() {
       await supabase.from('profiles').update(profileUpdates).eq('id', user.id)
     }
 
+    // Save onboarding completed in Supabase Auth user metadata
+    await supabase.auth.updateUser({
+      data: {
+        onboarding_completed: true,
+      }
+    })
+
     if (profile) {
       setProfile({
         ...profile,

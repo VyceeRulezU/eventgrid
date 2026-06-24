@@ -6,12 +6,12 @@ interface AuthStore {
   user: User | null
   profile: Profile | null
   role: UserRole | null
-  org: { id: string; name: string; logo_url: string | null; show_beta_label: boolean } | null
+  org: { id: string; name: string; logo_url: string | null; show_beta_label: boolean; owner_id?: string | null } | null
   betaLabelVisible: boolean
   isLoading: boolean
   setUser: (user: User | null) => void
   setProfile: (profile: Profile | null) => void
-  setOrg: (org: { id: string; name: string; logo_url: string | null; show_beta_label: boolean } | null) => void
+  setOrg: (org: { id: string; name: string; logo_url: string | null; show_beta_label: boolean; owner_id?: string | null } | null) => void
   setBetaLabelVisible: (visible: boolean) => void
   setLoading: (loading: boolean) => void
   clearAuth: () => void

@@ -9,15 +9,15 @@ import { generateSlug } from '@/lib/slug'
 import { CalendarModal } from '@/components/ui/CalendarModal'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 
-async function ensureOwnOrg(userId: string, displayName: string): Promise<{ id: string; name: string; logo_url: string | null; show_beta_label: boolean } | null> {
+async function ensureOwnOrg(userId: string, displayName: string): Promise<{ id: string; name: string; logo_url: string | null; show_beta_label: boolean; owner_id?: string | null } | null> {
   const { data: ownedOrgs } = await supabase
     .from('organizations')
-    .select('id, name, logo_url, show_beta_label')
+    .select('id, name, logo_url, show_beta_label, owner_id')
     .eq('owner_id', userId)
     .limit(1)
 
   if (ownedOrgs && ownedOrgs.length > 0) {
-    return { ...ownedOrgs[0], show_beta_label: ownedOrgs[0].show_beta_label ?? true }
+    return { ...ownedOrgs[0], show_beta_label: ownedOrgs[0].show_beta_label ?? true, owner_id: ownedOrgs[0].owner_id }
   }
 
   let newOrg: unknown
@@ -46,7 +46,7 @@ async function ensureOwnOrg(userId: string, displayName: string): Promise<{ id: 
     // profile update is best-effort
   }
 
-  return { ...orgData, show_beta_label: true }
+  return { ...orgData, show_beta_label: true, owner_id: userId }
 }
 
 const eventTypes = [

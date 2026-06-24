@@ -29,6 +29,7 @@ import NotFoundPage from '@/pages/error/NotFoundPage'
 import { PlannerOnboarding } from '@/pages/onboarding/PlannerOnboarding'
 import { CoordinatorOnboarding } from '@/pages/onboarding/CoordinatorOnboarding'
 import { TeamMemberOnboarding } from '@/pages/onboarding/TeamMemberOnboarding'
+import { VendorOnboarding } from '@/pages/onboarding/VendorOnboarding'
 import { PlannerDashboard } from '@/pages/planner/PlannerDashboard'
 import { CoordinatorDashboard } from '@/pages/coordinator/CoordinatorDashboard'
 import { NotificationsPage } from '@/pages/notifications/NotificationsPage'
@@ -526,6 +527,9 @@ export function App() {
           } />
           <Route path="/onboarding/team-member" element={
             <AuthGuard><TeamMemberOnboarding /></AuthGuard>
+          } />
+          <Route path="/onboarding/vendor" element={
+            <AuthGuard><VendorOnboarding /></AuthGuard>
           } />
 
           <Route element={<AuthGuard><AppShell /></AuthGuard>}>

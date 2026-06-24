@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Info, Sparkles, ChevronRight, LogOut, ArrowLeft, Star } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -18,12 +18,20 @@ export function CoordinatorOnboarding() {
 
   const [loading, setLoading] = useState(false)
   const user = useAuthStore((s) => s.user)
+  const profile = useAuthStore((s) => s.profile)
   const showToast = useUIStore((s) => s.showToast)
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
   // If coming via coordinator invite link, org_id is in the URL
   const inviteOrgId = searchParams.get('org_id')
+  const isUpgrade = searchParams.get('upgrade') === 'true'
+
+  useEffect(() => {
+    if (profile?.org_id && !isUpgrade) {
+      navigate('/dashboard/coordinator', { replace: true })
+    }
+  }, [profile?.org_id, isUpgrade, navigate])
 
   const TOTAL_STEPS = 2
 
@@ -38,7 +46,7 @@ export function CoordinatorOnboarding() {
     if (!user) return
     setLoading(true)
 
-    let finalOrgId = inviteOrgId
+    let finalOrgId = isUpgrade ? null : inviteOrgId
 
     if (!finalOrgId) {
       // Auto-create a default organization for independent coordinators
@@ -97,10 +105,10 @@ export function CoordinatorOnboarding() {
     if (finalOrgId) {
       const { data: orgData } = await supabase
         .from('organizations')
-        .select('id, name, logo_url, show_beta_label')
+        .select('id, name, logo_url, show_beta_label, owner_id')
         .eq('id', finalOrgId)
         .single()
-      if (orgData) setOrg({ ...orgData, show_beta_label: orgData.show_beta_label ?? true })
+      if (orgData) setOrg({ ...orgData, show_beta_label: orgData.show_beta_label ?? true, owner_id: orgData.owner_id })
     }
 
     showToast({ type: 'success', title: 'Profile completed!', body: 'Welcome to the NaliGrid team.' })

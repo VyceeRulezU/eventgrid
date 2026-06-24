@@ -25,6 +25,8 @@ type NavCategory = {
 
 export function Sidebar() {
   const role = useAuthStore((s) => s.role)
+  const org = useAuthStore((s) => s.org)
+  const user = useAuthStore((s) => s.user)
   const clearAuth = useAuthStore((s) => s.clearAuth)
   const { sidebarOpen, setSidebarOpen, sidebarCollapsed, toggleSidebarCollapsed } = useUIStore()
   const activeEvent = useEventStore((s) => s.activeEvent)
@@ -246,16 +248,19 @@ export function Sidebar() {
         </nav>
         <div className={styles.scrollIndicator} aria-hidden="true" />
 
-        {role === 'team_member' && (
+        {(role === 'team_member' || role === 'client' || (role === 'coordinator' && org && user && org.owner_id !== user.id)) && (
           <div className={styles.upgradeBanner}>
             <div className={styles.upgradeBannerTitle}>Want more capabilities?</div>
-            <div className={styles.upgradeBannerText}>Upgrade to run your own events.</div>
-            <div className={styles.upgradeBannerActions}>
+            <div className={styles.upgradeBannerText}>Upgrade to run events or offer services.</div>
+            <div className={styles.upgradeBannerActions} style={{ flexWrap: 'wrap', gap: 'var(--space-1)' }}>
               <button className={styles.upgradeBannerBtn} onClick={() => { navigate('/onboarding/planner'); setSidebarOpen(false) }}>
                 Planner
               </button>
-              <button className={styles.upgradeBannerBtn} onClick={() => { navigate('/onboarding/coordinator'); setSidebarOpen(false) }}>
+              <button className={styles.upgradeBannerBtn} onClick={() => { navigate('/onboarding/coordinator?upgrade=true'); setSidebarOpen(false) }}>
                 Coordinator
+              </button>
+              <button className={styles.upgradeBannerBtn} onClick={() => { navigate('/onboarding/vendor'); setSidebarOpen(false) }}>
+                Vendor
               </button>
             </div>
           </div>

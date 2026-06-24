@@ -392,3 +392,62 @@
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Tabbed Settings and Role Transitions */
+.tabWrapper {
+  margin-bottom: var(--space-6);
+  width: 100%;
+}
+
+.transitionContainer {
+  grid-column: 1 / -1;
+  animation: fadeIn 0.3s ease;
+}
+
+.upgradeGrid {
+  display: grid;
+  gap: var(--space-6);
+  grid-template-columns: 1fr;
+  margin-top: var(--space-4);
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .upgradeGrid {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+}
+
+.upgradeCard {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  background: var(--color-surface-2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-xl);
+  transition: transform var(--transition-slow), border-color var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.upgradeCard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(212, 160, 23, 0.3);
+  box-shadow: var(--shadow-md);
+}
+
+.upgradeCardTitle {
+  font-size: var(--text-base);
+  font-weight: var(--weight-extrabold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.upgradeCardDesc {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+  flex: 1;
+}
