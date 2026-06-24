@@ -534,8 +534,8 @@ export function CoordinatorDashboard() {
             {[
               { icon: CheckSquare, label: 'My Tasks', desc: 'View tasks assigned to you', onClick: () => events[0] && navigate(`/events/${events[0].id}/tasks`), color: 'var(--color-info)' },
               { icon: Radio, label: 'Live Feed', desc: 'Real-time team updates', onClick: () => events[0] && navigate(`/events/${events[0].id}/live-board`), color: 'var(--color-success)' },
-              { icon: AlertTriangle, label: 'Issues', desc: 'Open issues & blockers', onClick: () => events[0] && navigate(`/events/${events[0].id}/issues`), color: 'var(--color-warning)' },
-              { icon: Clock, label: 'Timeline', desc: 'Project phases & milestones', onClick: () => events[0] && navigate(`/events/${events[0].id}/timeline`), color: 'var(--color-accent)' },
+              { icon: AlertTriangle, label: 'Issues', desc: 'Open issues & blockers', onClick: () => events[0] && navigate(`/events/${events[0].id}/live-board`), color: 'var(--color-warning)' },
+              { icon: Clock, label: 'Timeline', desc: 'Project phases & milestones', onClick: () => events[0] && navigate(`/events/${events[0].id}`), color: 'var(--color-accent)' },
               { icon: Users, label: 'Guest Management', desc: 'Check-in, RSVPs, seating', onClick: () => events[0] && navigate(`/events/${events[0].id}/guests`), color: 'var(--color-text-secondary)' },
               { icon: Flag, label: 'Event Dashboard', desc: 'Full project overview', onClick: () => events[0] && navigate(`/events/${events[0].id}`), color: 'var(--color-text-secondary)' },
             ].map((action) => (
