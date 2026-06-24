@@ -152,8 +152,7 @@ export function TeamPage() {
   async function loadData() {
     setLoading(true)
 
-    try {
-      const [{ data: eaData }, { data: tasksData }, { data: reportsData }, { data: invitationsData }] = await Promise.all([
+    const [eaResult, tasksResult, reportsResult, invitationsResult] = await Promise.all([
       supabase
         .from('event_access')
         .select('*')
@@ -178,14 +177,25 @@ export function TeamPage() {
         .order('created_at', { ascending: true }),
     ])
 
+    const eaData = eaResult.error ? null : eaResult.data
+    const tasksData = tasksResult.error ? null : tasksResult.data
+    const reportsData = reportsResult.error ? null : reportsResult.data
+    const invitationsData = invitationsResult.error ? null : invitationsResult.data
+
+    if (eaResult.error) console.error('Failed to load event_access:', eaResult.error)
+    if (tasksResult.error) console.error('Failed to load tasks:', tasksResult.error)
+    if (reportsResult.error) console.error('Failed to load reports:', reportsResult.error)
+    if (invitationsResult.error) console.error('Failed to load invitations:', invitationsResult.error)
+
     if (eaData) {
       const userIds = [...new Set(eaData.map((r: any) => r.user_id).filter(Boolean))]
       let profileMap: Record<string, any> = {}
       if (userIds.length > 0) {
-        const { data: profiles } = await supabase
+        const { data: profiles, error: profilesError } = await supabase
           .from('profiles')
           .select('id, email, display_name, phone, avatar_url')
           .in('id', userIds)
+        if (profilesError) console.error('Failed to load profiles:', profilesError)
         if (profiles) {
           for (const p of profiles) {
             profileMap[p.id] = p
@@ -211,9 +221,6 @@ export function TeamPage() {
       }
     }
     setTaskCounts(counts)
-    } catch (err) {
-      console.error('Failed to load team data:', err)
-    }
 
     setLoading(false)
   }
@@ -325,33 +332,35 @@ export function TeamPage() {
 
   async function handleInvite() {
     if (!inviteEmail.trim() || !eventId || !user) return
-
     setInviting(true)
-
-    const { success, error } = await sendInvite({
-      type: 'team_member',
-      role: inviteRole,
-      event_id: eventId,
-      email: inviteEmail.trim().toLowerCase(),
-      invited_by_name: user.user_metadata?.full_name || user.email || 'A coordinator',
-      invited_by: user.id,
-    })
-
-    if (!success) {
-      showNotification({ variant: 'error', title: 'Invite failed', message: error || 'Could not send invite. Try again.' })
+    try {
+      const { success, error } = await sendInvite({
+        type: 'team_member',
+        role: inviteRole,
+        event_id: eventId,
+        email: inviteEmail.trim().toLowerCase(),
+        invited_by_name: user.user_metadata?.full_name || user.email || 'A coordinator',
+        invited_by: user.id,
+      })
+      if (!success) {
+        showNotification({ variant: 'error', title: 'Invite failed', message: error || 'Could not send invite. Try again.' })
+        setInviting(false)
+        return
+      }
+      showNotification({ variant: 'success', title: 'Invite sent', message: `An invitation has been sent to ${inviteEmail.trim().toLowerCase()}` })
+      setInviteEmail('')
+      setInviteRole('team_member')
+      setShowInvite(false)
+      setSearchQuery('')
+      setSearchResults([])
+      setShowEmailForm(false)
       setInviting(false)
-      return
+      loadData()
+    } catch (err) {
+      showNotification({ variant: 'error', title: 'Invite failed', message: 'An unexpected error occurred.' })
+      console.error('Invite error:', err)
+      setInviting(false)
     }
-
-    showNotification({ variant: 'success', title: 'Invite sent', message: `An invitation has been sent to ${inviteEmail.trim().toLowerCase()}` })
-    setInviteEmail('')
-    setInviteRole('team_member')
-    setShowInvite(false)
-    setSearchQuery('')
-    setSearchResults([])
-    setShowEmailForm(false)
-    setInviting(false)
-    loadData()
   }
 
   async function handleAddExisting(candidate: Profile) {

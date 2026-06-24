@@ -73,29 +73,34 @@ export type SendInviteParams =
  * Automatically attaches the current user's auth token.
  */
 export async function sendInvite(params: SendInviteParams): Promise<{ success: boolean; error?: string }> {
-  const { data, error } = await supabase.functions.invoke('send-invite', {
-    body: params,
-  })
+  try {
+    const { data, error } = await supabase.functions.invoke('send-invite', {
+      body: params,
+    })
 
-  if (error) {
-    console.error('sendInvite error:', error)
-    let errMsg = error.message
-    if (error.context) {
-      try {
-        // Clone response to safely read it
-        const resClone = error.context.clone ? error.context.clone() : error.context
-        const body = await resClone.json()
-        if (body && body.error) {
-          errMsg = body.error
+    if (error) {
+      console.error('sendInvite error:', error)
+      let errMsg = error.message
+      if (error.context) {
+        try {
+          // Clone response to safely read it
+          const resClone = error.context.clone ? error.context.clone() : error.context
+          const body = await resClone.json()
+          if (body && body.error) {
+            errMsg = body.error
+          }
+        } catch (e) {
+          console.warn('Failed to parse error context json:', e)
         }
-      } catch (e) {
-        console.warn('Failed to parse error context json:', e)
       }
+      return { success: false, error: errMsg }
     }
-    return { success: false, error: errMsg }
-  }
 
-  return { success: data?.success ?? false, error: data?.error }
+    return { success: data?.success ?? false, error: data?.error }
+  } catch (err) {
+    console.error('sendInvite unexpected error:', err)
+    return { success: false, error: err instanceof Error ? err.message : 'Failed to send invite' }
+  }
 }
 
 /**

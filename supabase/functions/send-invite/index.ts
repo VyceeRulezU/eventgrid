@@ -715,13 +715,21 @@ Deno.serve(async (req) => {
 
     if (type === 'team_member' && event_id && !userExists) {
       const teamRole = role || 'team_member'
-      await supabaseAdmin.from('invitations').upsert({
+      const { error: inviteUpsertError } = await supabaseAdmin.from('invitations').upsert({
         event_id,
         email: normalizedEmail,
         invited_by: invited_by || null,
         role: teamRole,
         status: 'pending',
       }, { onConflict: 'event_id,email' }).maybeSingle()
+
+      if (inviteUpsertError) {
+        console.error('Failed to upsert invitation:', inviteUpsertError)
+        return new Response(
+          JSON.stringify({ error: 'Failed to create invitation: ' + inviteUpsertError.message }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
     }
 
     if (type === 'admin_monitor') {

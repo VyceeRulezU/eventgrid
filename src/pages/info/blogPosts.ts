@@ -481,8 +481,8 @@ const POST_RECONCILE: StaticPost = {
 
     {
       type: 'cta',
-      text: 'NaliGrid\'s financial module automatically tracks every vendor payment, expense, and client deposit in Naira — with built-in budget versus actual analysis and post-event reconciliation. Start your first event for ₦100 during beta.',
-      buttonText: 'Start for ₦100 →',
+      text: 'NaliGrid\'s financial module automatically tracks every vendor payment, expense, and client deposit in Naira — with built-in budget versus actual analysis and post-event reconciliation. Start your first event for FREE during beta.',
+      buttonText: 'Start for FREE →',
       buttonUrl: '/register',
     },
   ],
