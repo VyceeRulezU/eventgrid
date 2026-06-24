@@ -1,7 +1,7 @@
 # NaliGrid
 
 [![CI](https://github.com/app-eventgrid/eventgrid/actions/workflows/ci.yml/badge.svg)](https://github.com/app-eventgrid/eventgrid/actions/workflows/ci.yml)
-[![X / Twitter](https://img.shields.io/badge/X-%40nalugrid-000000?style=flat&logo=x)](https://twitter.com/naligrid)
+[![X / Twitter](https://img.shields.io/badge/X-%40naligrid-000000?style=flat&logo=x)](https://twitter.com/naligrid)
 [![Instagram](https://img.shields.io/badge/Instagram-%40naligrid-E4405F?style=flat&logo=instagram)](https://www.instagram.com/naligrid/)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-naligrid-0A66C2?style=flat&logo=linkedin)](https://linkedin.com/company/naligrid)
 [![TikTok](https://img.shields.io/badge/TikTok-%40naligrid-000000?style=flat&logo=tiktok)](https://www.tiktok.com/@naligrid)
