@@ -19,7 +19,7 @@ interface AuthStore {
 
 const ADMIN_ROLES = ['super_admin', 'admin_monitor', 'admin_support']
 
-function deriveAdminRole(profile: { role: string | null; is_super_admin: boolean } | null): UserRole | null {
+function deriveAdminRole(profile: { role: string | null; is_super_admin?: boolean } | null): UserRole | null {
   if (!profile?.is_super_admin) return null
   if (profile.role && ADMIN_ROLES.includes(profile.role)) return profile.role as UserRole
   return 'super_admin' as UserRole
