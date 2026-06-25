@@ -490,11 +490,6 @@ export function App() {
       }
       useUIStore.getState().playSound(soundMap[n.type] || 'info')
       
-      // Vibrate on supported devices (mobile)
-      if (typeof navigator !== 'undefined' && navigator.vibrate) {
-        navigator.vibrate([100, 50, 100])
-      }
-      
       // Display a toast message alert on the user's screen
       useUIStore.getState().showToast({
         type: 'info',
