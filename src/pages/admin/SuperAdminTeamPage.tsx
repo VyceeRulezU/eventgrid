@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Users, UserPlus, X, Mail, Shield, ShieldCheck, Eye, Headset, Trash2, MoreVertical, CheckCircle, Clock, AlertTriangle } from 'lucide-react'
+import { Users, UserPlus, X, Mail, Shield, ShieldCheck, Eye, Headset, Trash2, CheckCircle, Clock, AlertTriangle } from 'lucide-react'
 import { AdminPageHero } from '@/components/shared/AdminPageHero'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
@@ -220,12 +220,19 @@ export function SuperAdminTeamPage() {
           label: 'Remove',
           variant: 'danger' as const,
           onClick: async () => {
-            const { error } = await supabase.from('profiles').update({ is_super_admin: false }).eq('id', memberId)
+            // Restore original_role and clear admin flags
+            const { data: profile } = await supabase.from('profiles').select('original_role').eq('id', memberId).single()
+            const restoreRole = profile?.original_role || 'planner'
+            const { error } = await supabase.from('profiles').update({
+              is_super_admin: false,
+              role: restoreRole,
+              original_role: null,
+            }).eq('id', memberId)
             if (error) {
               showNotification({ variant: 'error', title: 'Failed to remove', message: error.message })
               return
             }
-            showNotification({ variant: 'success', title: 'Admin removed' })
+            showNotification({ variant: 'success', title: 'Admin removed', message: `Role restored to ${restoreRole}` })
             loadData()
           },
         },
@@ -361,53 +368,57 @@ export function SuperAdminTeamPage() {
                       </span>
                     </td>
                     <td className={styles.td}>
-                      {role === 'super_admin' && (
-                        <DropdownMenu
-                          align="end"
-                          trigger={
-                            <button className="btn btn-ghost btn-sm btn-icon" aria-label="Actions" style={{ width: 28, height: 28 }}>
-                              <MoreVertical size={14} />
-                            </button>
-                          }
-                          items={[
-                            ...(isProfile
-                              ? [
-                                {
-                                  label: entry.role === 'super_admin' ? 'Downgrade to Monitor' : 'Upgrade to Super Admin',
-                                  value: entry.role === 'super_admin' ? 'admin_monitor' : 'super_admin',
-                                  icon: <Shield size={14} />,
-                                },
-                                {
-                                  label: 'Remove Admin',
-                                  value: 'remove',
-                                  icon: <Trash2 size={14} />,
-                                  danger: true,
-                                },
-                              ]
-                              : entry.status === 'pending'
-                                ? [
-                                  {
-                                    label: 'Cancel Invite',
-                                    value: 'cancel',
-                                    icon: <X size={14} />,
-                                    danger: true,
-                                  },
-                                  {
-                                    label: 'Delete Invite',
-                                    value: 'delete',
-                                    icon: <Trash2 size={14} />,
-                                    danger: true,
-                                  },
-                                ]
-                                : []),
-                          ]}
-                          onSelect={(item) => {
-                            if (item.value === 'remove') handleRemoveMember(entry.id)
-                            else if (item.value === 'cancel') handleCancelInvite(entry.id)
-                            else if (item.value === 'delete') handleDeleteInvite(entry.id)
-                            else handleChangeRole(entry, item.value)
-                          }}
-                        />
+                      {role === 'super_admin' && isProfile && (
+                        <div style={{ display: 'flex', gap: 'var(--space-1)' }}>
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            onClick={() => handleChangeRole(entry, entry.role === 'super_admin' ? 'admin_monitor' : 'super_admin')}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--color-text-secondary)', fontSize: 'var(--text-xs)' }}
+                            data-tooltip={entry.role === 'super_admin' ? 'Downgrade to Monitor' : 'Upgrade to Super Admin'}
+                          >
+                            <Shield size={14} />
+                          </button>
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            onClick={() => handleRemoveMember(entry.id)}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--color-error)', fontSize: 'var(--text-xs)' }}
+                            data-tooltip="Remove Admin"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      )}
+                      {role === 'super_admin' && !isProfile && entry.status === 'pending' && (
+                        <div style={{ display: 'flex', gap: 'var(--space-1)' }}>
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            onClick={() => handleCancelInvite(entry.id)}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--color-warning)', fontSize: 'var(--text-xs)' }}
+                            data-tooltip="Cancel Invite"
+                          >
+                            <X size={14} />
+                          </button>
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            onClick={() => handleDeleteInvite(entry.id)}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--color-error)', fontSize: 'var(--text-xs)' }}
+                            data-tooltip="Delete Invite"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      )}
+                      {role === 'super_admin' && !isProfile && entry.status === 'accepted' && (
+                        <div style={{ display: 'flex', gap: 'var(--space-1)' }}>
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            onClick={() => handleDeleteInvite(entry.id)}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--color-error)', fontSize: 'var(--text-xs)' }}
+                            data-tooltip="Delete Invite Record"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       )}
                     </td>
                   </tr>

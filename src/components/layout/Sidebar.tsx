@@ -25,6 +25,7 @@ type NavCategory = {
 
 export function Sidebar() {
   const role = useAuthStore((s) => s.role)
+  const profile = useAuthStore((s) => s.profile)
   const org = useAuthStore((s) => s.org)
   const user = useAuthStore((s) => s.user)
   const clearAuth = useAuthStore((s) => s.clearAuth)
@@ -36,28 +37,29 @@ export function Sidebar() {
 
   const isAdmin = role === 'super_admin'
   const isAdminRole = role && ['super_admin', 'admin_monitor', 'admin_support'].includes(role)
+  const hasOriginalRole = isAdminRole && !!profile?.original_role
 
   const mainItems: NavItem[] = [
     { to: isAdmin ? '/admin' : isAdminRole ? '/admin' : role === 'team_member' || !role ? '/events' : role === 'client' ? '/vendors/directory' : `/dashboard/${role}`, label: 'Dashboard', icon: LayoutDashboard },
   ]
-  if (role !== 'client' && !isAdmin && !isAdminRole) {
+  if (role !== 'client' && ((!isAdmin && !isAdminRole) || (isAdminRole && hasOriginalRole))) {
     mainItems.push({ to: isAdmin ? '/admin/my-tasks' : '/dashboard/my-tasks', label: 'My Tasks', icon: ListChecks })
   }
 
   const managementItems: NavItem[] = []
 
-  if (!isAdmin && !isAdminRole) {
+  if (!isAdmin && (!isAdminRole || hasOriginalRole)) {
     managementItems.push({ to: '/events', label: 'Events', icon: Calendar })
   }
 
-  if (role === 'planner') {
+  if (role === 'planner' || hasOriginalRole) {
     const financialsUrl = activeEvent?.id
       ? `/events/${activeEvent.id}/financials`
       : '/financials'
     managementItems.push({ to: financialsUrl, label: 'Financials', icon: Wallet })
   }
 
-  if (!isAdmin && !isAdminRole) {
+  if (!isAdmin && (!isAdminRole || hasOriginalRole)) {
     managementItems.push({ to: '/vendors', label: 'Vendors', icon: Users })
     managementItems.push({ to: '/vendors/directory', label: 'Vendor Directory', icon: BookOpen })
   }

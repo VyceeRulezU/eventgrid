@@ -9,6 +9,7 @@ export interface Profile {
   role: UserRole
   org_id: string | null
   is_super_admin?: boolean
+  original_role?: string | null
   is_active: boolean
   free_tier_used?: boolean
   referred_by_code?: string | null

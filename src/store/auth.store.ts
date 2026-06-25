@@ -17,6 +17,14 @@ interface AuthStore {
   clearAuth: () => void
 }
 
+const ADMIN_ROLES = ['super_admin', 'admin_monitor', 'admin_support']
+
+function deriveAdminRole(profile: { role: string | null; is_super_admin: boolean } | null): UserRole | null {
+  if (!profile?.is_super_admin) return null
+  if (profile.role && ADMIN_ROLES.includes(profile.role)) return profile.role as UserRole
+  return 'super_admin' as UserRole
+}
+
 export const useAuthStore = create<AuthStore>((set) => ({
   user: null,
   profile: null,
@@ -26,13 +34,11 @@ export const useAuthStore = create<AuthStore>((set) => ({
   isLoading: true,
   setUser: (user) => set((state) => ({
     user,
-    role: !user ? null
-      : state.profile?.is_super_admin ? (state.profile?.role as UserRole) || ('super_admin' as UserRole)
-      : (state.profile?.role || (user?.user_metadata?.role as UserRole)) ?? null,
+    role: !user ? null : (deriveAdminRole(state.profile) || state.profile?.role || (user?.user_metadata?.role as UserRole)) ?? null,
   })),
   setProfile: (profile) => set((state) => ({
     profile,
-    role: profile?.is_super_admin ? (profile?.role as UserRole) || ('super_admin' as UserRole) : (profile?.role || state.role || null),
+    role: deriveAdminRole(profile) || (profile?.role || state.role || null),
   })),
   setOrg: (org) => set({ org }),
   setBetaLabelVisible: (betaLabelVisible) => set({ betaLabelVisible }),
