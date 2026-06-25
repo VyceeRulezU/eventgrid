@@ -1,5 +1,8 @@
+import { renderSurveyAcknowledgmentEmail } from '../../../src/lib/emails/index.ts'
+
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
 const FROM_EMAIL = Deno.env.get('FROM_EMAIL') ?? 'NaliGrid <noreply@naligrid.com>'
+const APP_URL = Deno.env.get('APP_URL') ?? 'https://naligrid.com'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -28,6 +31,11 @@ Deno.serve(async (req) => {
       )
     }
 
+    const { subject, html, text } = renderSurveyAcknowledgmentEmail({
+      name,
+      register_url: `${APP_URL}/register`,
+    })
+
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -37,22 +45,9 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         from: FROM_EMAIL,
         to: [email],
-        subject: 'Thank You — Your EventGrid Survey Code',
-        html: `
-          <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px 20px;background:#0B1120;color:#e2e8f0;border-radius:16px;">
-            <h1 style="color:#fff;margin:0 0 8px;">Thank You, ${name}!</h1>
-            <p style="color:#94a3b8;margin:0 0 24px;line-height:1.6;">
-              Your survey response has been recorded. We appreciate your time and feedback — it helps us build a better platform for event professionals.
-            </p>
-            <div style="background:#1a2432;border:1px solid #2a3a4e;border-radius:12px;padding:24px;text-align:center;margin-bottom:24px;">
-              <p style="margin:0 0 8px;color:#94a3b8;font-size:14px;">Your exclusive early-access code</p>
-              <p style="margin:0;font-size:32px;font-weight:700;color:#fff;letter-spacing:4px;">BETA-NALIGRID</p>
-            </div>
-            <p style="color:#64748b;font-size:14px;line-height:1.6;">
-              Keep this code safe — you'll to create an event for free and explore the platform.
-            </p>
-          </div>
-        `,
+        subject,
+        html,
+        text,
       }),
     })
 

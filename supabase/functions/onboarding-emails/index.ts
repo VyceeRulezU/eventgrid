@@ -98,6 +98,7 @@ Deno.serve(async (req) => {
       create_event_url: meta?.create_event_url || `${APP_URL}/events/new`,
       financials_url: meta?.financials_url || `${APP_URL}/financials`,
       feedback_url: meta?.feedback_url || `${APP_URL}/settings`,
+      role: meta?.role || 'planner',
       // payment specific
       amount: meta?.amount || '₦0',
       event_name: meta?.event_name || 'Event',

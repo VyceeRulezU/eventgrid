@@ -10,6 +10,7 @@ import { useAuthStore } from '@/store/auth.store'
 import { useNotificationStore } from '@/store/notification.store'
 import { useUIStore } from '@/store/ui.store'
 import { getUnreadCount, subscribeToNotifications } from '@/lib/notifications'
+import { sendWelcomeEmail } from '@/lib/edgeFunctions'
 import type { Profile, UserRole } from '@/types'
 import { AuthGuard } from '@/components/layout/AuthGuard'
 import { RoleGuard } from '@/components/layout/RoleGuard'
@@ -436,8 +437,22 @@ export function App() {
       if (session?.user) {
         setUser(session.user)
         if (_event !== 'INITIAL_SESSION') {
-          loadProfile(session.user.id, session.user).finally(() => setLoading(false))
-          getUnreadCount(session.user.id).then((count) => {
+          const user = session.user
+          loadProfile(user.id, user).finally(() => setLoading(false))
+
+          // Detect first-time signup via OAuth (Google etc.)
+          // Email/password signups already send via RegisterPage and have role in metadata
+          const roleFromMeta = user.user_metadata?.role as string | undefined
+          if (_event === 'SIGNED_IN' && !roleFromMeta) {
+            const createdAt = new Date(user.created_at).getTime()
+            const lastSignInAt = new Date(user.last_sign_in_at || user.created_at).getTime()
+            if (Math.abs(createdAt - lastSignInAt) < 3000) {
+              const displayName = (user.user_metadata?.display_name as string) || user.email?.split('@')[0] || 'there'
+              sendWelcomeEmail({ email: user.email!, first_name: displayName, role: 'planner' }).catch(() => {})
+            }
+          }
+
+          getUnreadCount(user.id).then((count) => {
             useNotificationStore.getState().setUnreadCount(count)
             if (typeof navigator !== 'undefined' && 'setAppBadge' in navigator) {
               (navigator as any).setAppBadge(count).catch(() => {})

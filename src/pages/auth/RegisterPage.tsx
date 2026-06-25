@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
 import type { UserRole } from '@/types'
 import { getPasswordStrength, strengthColors } from '@/lib/passwordStrength'
+import { sendWelcomeEmail } from '@/lib/edgeFunctions'
 import { SEO } from '@/components/shared/SEO'
 import { AuthTestimonials } from '@/components/auth/AuthTestimonials'
 import { useCaptchaToken, CaptchaField, hasCaptcha } from '@/lib/captcha'
@@ -152,11 +153,13 @@ export function RegisterPage() {
           password,
         })
         if (!signInError) {
+          sendWelcomeEmail({ email: email.trim(), first_name: name, role }).catch(() => {})
           navigate('/', { replace: true })
           return
         }
       }
 
+      sendWelcomeEmail({ email: email.trim(), first_name: name, role }).catch(() => {})
       navigate('/verify-email')
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unable to register. Please try again.'

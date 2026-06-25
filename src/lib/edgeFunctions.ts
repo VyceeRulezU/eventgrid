@@ -103,6 +103,42 @@ export async function sendInvite(params: SendInviteParams): Promise<{ success: b
   }
 }
 
+export interface SendWelcomeEmailParams {
+  email: string
+  first_name: string
+  role?: string
+}
+
+export async function sendWelcomeEmail(params: SendWelcomeEmailParams): Promise<boolean> {
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    const token = session?.access_token
+
+    const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/onboarding-emails`
+
+    const res = await fetch(functionUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        type: 'welcome',
+        email: params.email,
+        first_name: params.first_name,
+        meta: {
+          role: params.role || 'planner',
+        },
+      }),
+    })
+
+    return res.ok
+  } catch (err) {
+    console.error('sendWelcomeEmail error:', err)
+    return false
+  }
+}
+
 /**
  * Fetches client portal data via the `client-portal` Edge Function.
  * Called from the ClientPortalPage — no auth required.
