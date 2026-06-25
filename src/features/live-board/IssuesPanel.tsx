@@ -58,20 +58,21 @@ export function IssuesPanel({ eventId }: IssuesPanelProps) {
     if (!resolutionText.trim() || !user) return
     setSaving(true)
 
-    const { error } = await supabase
-      .from('issues')
-      .update({
-        resolved_at: new Date().toISOString(),
-        resolution: resolutionText.trim(),
-        resolved_by: user.id,
-      })
-      .eq('id', issue.id)
+      const { data: updated, error } = await supabase
+        .from('issues')
+        .update({
+          resolved_at: new Date().toISOString(),
+          resolution: resolutionText.trim(),
+          resolved_by: user.id,
+        })
+        .eq('id', issue.id)
+        .select('id')
 
-    if (error) {
-      showNotification({ variant: 'error', title: 'Failed to resolve issue', message: error.message })
-      setSaving(false)
-      return
-    }
+      if (error || !updated || updated.length === 0) {
+        showNotification({ variant: 'error', title: 'Failed to resolve issue', message: error?.message || 'No rows updated. You may not have permission to resolve issues.' })
+        setSaving(false)
+        return
+      }
 
     resolveIssue(issue.id, resolutionText.trim(), user.id)
     setResolvingId(null)
@@ -87,13 +88,14 @@ export function IssuesPanel({ eventId }: IssuesPanelProps) {
     const ids = [...selected]
     const now = new Date().toISOString()
 
-    const { error } = await supabase
+    const { data: updated, error } = await supabase
       .from('issues')
       .update({ resolved_at: now, resolved_by: user.id })
       .in('id', ids)
+      .select('id')
 
-    if (error) {
-      showNotification({ variant: 'error', title: 'Failed to resolve issues', message: error.message })
+    if (error || !updated || updated.length === 0) {
+      showNotification({ variant: 'error', title: 'Failed to resolve issues', message: error?.message || 'No rows updated. You may not have permission to resolve issues.' })
       setSaving(false)
       return
     }
