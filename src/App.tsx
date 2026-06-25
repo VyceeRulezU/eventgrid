@@ -293,6 +293,26 @@ export function App() {
   const setOrg = useAuthStore((s) => s.setOrg)
   const setBetaLabelVisible = useAuthStore((s) => s.setBetaLabelVisible)
   const setLoading = useAuthStore((s) => s.setLoading)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const updateLink = (rel: string, sizes: string | null, newHref: string) => {
+      let selector = `link[rel*="${rel}"]`
+      if (sizes) selector += `[sizes="${sizes}"]`
+      
+      const link = document.querySelector(selector) as HTMLLinkElement | null
+      if (link) {
+        link.href = newHref
+      }
+    }
+
+    updateLink('icon', '16x16', '/favicon-16x16-transparent.png')
+    updateLink('icon', '32x32', '/favicon-32x32-transparent.png')
+    updateLink('icon', '48x48', '/favicon-48x48-transparent.png')
+    updateLink('icon', '96x96', '/favicon-96x96-transparent.png')
+    updateLink('apple-touch-icon', '180x180', '/apple-touch-icon-transparent.png')
+  }, [])
   async function loadProfile(userId: string, user?: User) {
     let profile: Profile | null = null
     let error: unknown = null

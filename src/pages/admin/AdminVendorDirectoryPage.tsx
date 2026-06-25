@@ -134,6 +134,18 @@ export function AdminVendorDirectoryPage() {
       return
     }
 
+    if (form.email.trim()) {
+      const emailDuplicate = vendors.find(
+        (v) =>
+          v.email && v.email.toLowerCase() === form.email.trim().toLowerCase() &&
+          v.id !== editingVendor?.id
+      )
+      if (emailDuplicate) {
+        showNotification({ variant: 'warning', title: 'Duplicate email', message: `"${form.email.trim()}" is already used by "${emailDuplicate.name}".` })
+        return
+      }
+    }
+
     setSaving(true)
 
     if (editingVendor) {
