@@ -6,7 +6,7 @@ interface AdminGuardProps {
   children: ReactNode
 }
 
-const ADMIN_ROLES = ['super_admin', 'monitor', 'admin_support']
+const ADMIN_ROLES: string[] = ['super_admin', 'admin_monitor', 'admin_support']
 
 export function AdminGuard({ children }: AdminGuardProps) {
   const role = useAuthStore((s) => s.role)

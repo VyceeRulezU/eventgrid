@@ -27,12 +27,12 @@ export const useAuthStore = create<AuthStore>((set) => ({
   setUser: (user) => set((state) => ({
     user,
     role: !user ? null
-      : state.profile?.is_super_admin ? 'super_admin' as UserRole
+      : state.profile?.is_super_admin ? (state.profile?.role as UserRole) || ('super_admin' as UserRole)
       : (state.profile?.role || (user?.user_metadata?.role as UserRole)) ?? null,
   })),
   setProfile: (profile) => set((state) => ({
     profile,
-    role: profile?.is_super_admin ? 'super_admin' as UserRole : (profile?.role || state.role || null),
+    role: profile?.is_super_admin ? (profile?.role as UserRole) || ('super_admin' as UserRole) : (profile?.role || state.role || null),
   })),
   setOrg: (org) => set({ org }),
   setBetaLabelVisible: (betaLabelVisible) => set({ betaLabelVisible }),

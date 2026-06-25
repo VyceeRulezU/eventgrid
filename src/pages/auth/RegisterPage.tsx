@@ -39,7 +39,7 @@ export function RegisterPage() {
     sessionStorage.setItem('eg-referral-code', searchParams.get('ref')!.toUpperCase())
   }
 
-  const adminRoles = ['super_admin', 'monitor', 'admin_support']
+  const adminRoles = ['super_admin', 'admin_monitor', 'admin_support']
 
   if (inviteRole && adminRoles.includes(inviteRole)) {
     return <Navigate to={`/accept-admin-invite?role=${inviteRole}`} replace />

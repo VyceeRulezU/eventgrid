@@ -59,7 +59,7 @@ export function AdminVendorsPage() {
         .is('deleted_at', null)
         .order('name', { ascending: true })
 
-      const isAdminRole = role && ['super_admin', 'monitor', 'admin_support'].includes(role)
+      const isAdminRole = role && ['super_admin', 'admin_monitor', 'admin_support'].includes(role)
 
       if (orgId && !isAdminRole) {
         orgsQuery.eq('id', orgId)

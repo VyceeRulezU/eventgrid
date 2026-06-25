@@ -9,15 +9,15 @@ import '../admin/admin-auth.css'
 
 const roleConfig: Record<string, { label: string; icon: typeof Shield; desc: string; color: string }> = {
   super_admin: { label: 'Super Admin', icon: ShieldCheck, desc: 'Full platform-wide access to manage all events, users, and settings.', color: '#D4A017' },
-  monitor: { label: 'Monitor', icon: Shield, desc: 'Read-only access to analytics, events, and platform data.', color: '#60A5FA' },
+  admin_monitor: { label: 'Monitor', icon: Shield, desc: 'Read-only access to analytics, events, and platform data.', color: '#60A5FA' },
   admin_support: { label: 'Support', icon: Users, desc: 'Manage feedback, users, and platform support tasks.', color: '#34D399' },
 }
 
 export function AcceptAdminInvite() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
-  const roleParam = searchParams.get('role') || 'monitor'
-  const config = roleConfig[roleParam] || roleConfig.monitor
+  const roleParam = searchParams.get('role') || 'admin_monitor'
+  const config = roleConfig[roleParam] || roleConfig.admin_monitor
   const Icon = config.icon
 
   const [name, setName] = useState('')
@@ -128,6 +128,16 @@ export function AcceptAdminInvite() {
         }
       } catch (err) {
         console.error('Exception updating admin invite status:', err)
+      }
+
+      // 4. Update profile with admin role and is_super_admin flag
+      try {
+        await supabase.rpc('accept_admin_invite', {
+          p_user_id: activeUser.id,
+          p_role: roleParam,
+        })
+      } catch (err) {
+        console.error('Exception accepting admin invite role:', err)
       }
 
       showNotification({

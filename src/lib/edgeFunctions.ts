@@ -48,7 +48,7 @@ interface AdminInviteParams {
   email: string
   invited_by_name: string
   invited_by?: string
-  role?: 'super_admin' | 'monitor' | 'admin_support'
+  role?: 'super_admin' | 'admin_monitor' | 'admin_support'
 }
 
 interface GuestInviteParams extends BaseInviteParams {

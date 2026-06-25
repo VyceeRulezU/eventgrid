@@ -10,7 +10,7 @@ import styles from './SuperAdminTeamPage.module.css'
 
 const ADMIN_ROLES = [
   { value: 'super_admin', label: 'Super Admin', icon: ShieldCheck, desc: 'Full platform-wide access' },
-  { value: 'monitor', label: 'Monitor', icon: Eye, desc: 'Read-only analytics and data viewing' },
+  { value: 'admin_monitor', label: 'Monitor', icon: Eye, desc: 'Read-only analytics and data viewing' },
   { value: 'admin_support', label: 'Support', icon: Headset, desc: 'Manage feedback and platform users' },
 ]
 
@@ -113,7 +113,7 @@ export function SuperAdminTeamPage() {
       email: inviteEmail.trim(),
       invited_by_name: displayName,
       invited_by: user.id,
-      role: inviteRole as 'super_admin' | 'monitor' | 'admin_support',
+      role: inviteRole as 'super_admin' | 'admin_monitor' | 'admin_support',
     })
 
     if (!success) {
@@ -312,7 +312,7 @@ export function SuperAdminTeamPage() {
                     <td className={styles.td}>
                       <DropdownMenu
                         trigger={
-                          <span className={`badge ${entry.role === 'super_admin' ? 'badge-yellow' : entry.role === 'monitor' ? 'badge-grey' : 'badge-blue'}`}
+                          <span className={`badge ${entry.role === 'super_admin' ? 'badge-yellow' : entry.role === 'admin_monitor' ? 'badge-grey' : 'badge-blue'}`}
                             style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, color: '#fff' }}>
                             <Icon size={12} />
                             {roleLabel(entry.role)}
@@ -374,7 +374,7 @@ export function SuperAdminTeamPage() {
                               ? [
                                 {
                                   label: entry.role === 'super_admin' ? 'Downgrade to Monitor' : 'Upgrade to Super Admin',
-                                  value: entry.role === 'super_admin' ? 'monitor' : 'super_admin',
+                                  value: entry.role === 'super_admin' ? 'admin_monitor' : 'super_admin',
                                   icon: <Shield size={14} />,
                                 },
                                 {

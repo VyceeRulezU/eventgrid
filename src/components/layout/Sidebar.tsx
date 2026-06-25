@@ -35,18 +35,18 @@ export function Sidebar() {
   const { id: eventId } = useParams<{ id: string }>()
 
   const isAdmin = role === 'super_admin'
-  const isAdminRole = role && ['super_admin', 'monitor', 'admin_support'].includes(role)
+  const isAdminRole = role && ['super_admin', 'admin_monitor', 'admin_support'].includes(role)
 
   const mainItems: NavItem[] = [
-    { to: isAdmin ? '/admin' : role === 'team_member' || !role ? '/events' : role === 'client' ? '/vendors/directory' : `/dashboard/${role}`, label: 'Dashboard', icon: LayoutDashboard },
+    { to: isAdmin ? '/admin' : isAdminRole ? '/admin/events' : role === 'team_member' || !role ? '/events' : role === 'client' ? '/vendors/directory' : `/dashboard/${role}`, label: 'Dashboard', icon: LayoutDashboard },
   ]
-  if (role !== 'client' && !isAdmin) {
+  if (role !== 'client' && !isAdmin && !isAdminRole) {
     mainItems.push({ to: isAdmin ? '/admin/my-tasks' : '/dashboard/my-tasks', label: 'My Tasks', icon: ListChecks })
   }
 
   const managementItems: NavItem[] = []
 
-  if (!isAdmin) {
+  if (!isAdmin && !isAdminRole) {
     managementItems.push({ to: '/events', label: 'Events', icon: Calendar })
   }
 
@@ -57,7 +57,7 @@ export function Sidebar() {
     managementItems.push({ to: financialsUrl, label: 'Financials', icon: Wallet })
   }
 
-  if (!isAdmin) {
+  if (!isAdmin && !isAdminRole) {
     managementItems.push({ to: '/vendors', label: 'Vendors', icon: Users })
     managementItems.push({ to: '/vendors/directory', label: 'Vendor Directory', icon: BookOpen })
   }
@@ -189,16 +189,18 @@ export function Sidebar() {
                 <TrendingUp size={20} />
                 <span>Analytics</span>
               </NavLink>
-              <NavLink
-                to="/financials"
-                className={({ isActive }) =>
-                  `${styles.navItem} ${isActive ? styles.active : ''}`
-                }
-                onClick={() => setSidebarOpen(false)}
-              >
-                <Wallet size={20} />
-                <span>Financials</span>
-              </NavLink>
+              {isAdmin && (
+                <NavLink
+                  to="/financials"
+                  className={({ isActive }) =>
+                    `${styles.navItem} ${isActive ? styles.active : ''}`
+                  }
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <Wallet size={20} />
+                  <span>Financials</span>
+                </NavLink>
+              )}
               {isAdmin && (
                 <>
                   <NavLink
