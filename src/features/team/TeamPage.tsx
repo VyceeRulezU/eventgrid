@@ -410,7 +410,7 @@ export function TeamPage() {
   async function handleCancelInvite(inviteId: string) {
     const { data, error } = await supabase.from('invitations').update({ status: 'cancelled' }).eq('id', inviteId).select()
     if (error) {
-      showNotification({ variant: 'error', title: 'Failed to cancel invite', message: error.message })
+      showNotification({ variant: 'error', title: 'Failed to cancel invite', message: 'You do not have permission to cancel this invite. Only the event owner can cancel invites.' })
       return
     }
     if (!data || data.length === 0) {
