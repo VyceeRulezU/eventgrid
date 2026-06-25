@@ -579,6 +579,8 @@ export function App() {
               </Suspense>
             } />
             <Route path="/dashboard/team_member" element={<Navigate to="/dashboard/my-tasks" replace />} />
+            <Route path="/dashboard/admin_support" element={<Navigate to="/admin/events" replace />} />
+            <Route path="/dashboard/admin_monitor" element={<Navigate to="/admin/events" replace />} />
 
             <Route path="/events" element={<EventsListPage />} />
             <Route path="/events/new" element={<CreateEventPage />} />
@@ -632,17 +634,12 @@ export function App() {
           } />
           <Route path="/admin" element={
             <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
-              <RoleGuard allowedRole="super_admin"><SuperAdminDashboard /></RoleGuard>
+              <RoleGuard allowedRole={['super_admin', 'admin_monitor', 'admin_support']}><SuperAdminDashboard /></RoleGuard>
             </Suspense>
           } />
           <Route path="/admin/feedback" element={
             <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
               <RoleGuard allowedRole={['admin_monitor', 'admin_support']}><FeedbackManagementPage /></RoleGuard>
-            </Suspense>
-          } />
-          <Route path="/admin/surveys" element={
-            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
-              <RoleGuard allowedRole="super_admin"><AdminSurveyResponsesPage /></RoleGuard>
             </Suspense>
           } />
           <Route path="/admin/team" element={
@@ -678,7 +675,7 @@ export function App() {
           } />
           <Route path="/admin/vendors/directory" element={
             <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
-              <RoleGuard allowedRole="super_admin"><AdminVendorDirectoryPage /></RoleGuard>
+              <AdminGuard><AdminVendorDirectoryPage /></AdminGuard>
             </Suspense>
           } />
           <Route path="/admin/testimonials" element={
@@ -686,9 +683,14 @@ export function App() {
               <RoleGuard allowedRole="super_admin"><AdminTestimonialsPage /></RoleGuard>
             </Suspense>
           } />
+          <Route path="/admin/surveys" element={
+            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
+              <AdminGuard><AdminSurveyResponsesPage /></AdminGuard>
+            </Suspense>
+          } />
           <Route path="/admin/referrals" element={
             <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
-              <RoleGuard allowedRole="super_admin"><AdminReferralsPage /></RoleGuard>
+              <AdminGuard><AdminReferralsPage /></AdminGuard>
             </Suspense>
           } />
         </Route>

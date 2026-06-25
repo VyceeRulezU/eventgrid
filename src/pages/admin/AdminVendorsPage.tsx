@@ -126,7 +126,7 @@ export function AdminVendorsPage() {
     showNotification({ variant: 'success', title: 'Vendor deleted' })
   }
 
-  if (!orgId && role !== 'super_admin' && !loading) {
+  if (!orgId && role !== 'super_admin' && role !== 'admin_monitor' && role !== 'admin_support' && !loading) {
     return (
       <div className={styles.page}>
         <AdminPageHero icon={Users} title="Vendors" subtitle="Manage your vendor directory" />

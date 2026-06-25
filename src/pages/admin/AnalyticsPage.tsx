@@ -92,7 +92,7 @@ export function AnalyticsPage() {
     return Math.round(((curr - prev) / prev) * 100)
   }
 
-  if (role !== 'super_admin') return null
+  if (role !== 'super_admin' && role !== 'admin_monitor' && role !== 'admin_support') return null
   if (loading) return (
     <div>
       <div className="skeleton skeleton-title" style={{ width: 200, marginBottom: 'var(--space-6)' }} />

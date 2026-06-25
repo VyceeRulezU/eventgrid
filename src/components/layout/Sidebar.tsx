@@ -38,7 +38,7 @@ export function Sidebar() {
   const isAdminRole = role && ['super_admin', 'admin_monitor', 'admin_support'].includes(role)
 
   const mainItems: NavItem[] = [
-    { to: isAdmin ? '/admin' : isAdminRole ? '/admin/events' : role === 'team_member' || !role ? '/events' : role === 'client' ? '/vendors/directory' : `/dashboard/${role}`, label: 'Dashboard', icon: LayoutDashboard },
+    { to: isAdmin ? '/admin' : isAdminRole ? '/admin' : role === 'team_member' || !role ? '/events' : role === 'client' ? '/vendors/directory' : `/dashboard/${role}`, label: 'Dashboard', icon: LayoutDashboard },
   ]
   if (role !== 'client' && !isAdmin && !isAdminRole) {
     mainItems.push({ to: isAdmin ? '/admin/my-tasks' : '/dashboard/my-tasks', label: 'My Tasks', icon: ListChecks })

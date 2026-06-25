@@ -159,7 +159,7 @@ export function AdminSurveyResponsesPage() {
       })
   }, [])
 
-  if (role !== 'super_admin') return null
+  if (role !== 'super_admin' && role !== 'admin_monitor' && role !== 'admin_support') return null
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>

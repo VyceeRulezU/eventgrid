@@ -165,9 +165,9 @@ export function SuperAdminDashboard() {
   const [infra, setInfra] = useState({ totalDbRows: 0, storageUsed: 0, totalUsers: 0, totalEvents: 0 })
   const [showCreateModal, setShowCreateModal] = useState(false)
 
-  useEffect(() => {
-    if (role !== 'super_admin') { setLoading(false); return }
+  const isSuperAdmin = role === 'super_admin'
 
+  useEffect(() => {
     async function load() {
       try {
       const now = new Date()
@@ -430,9 +430,7 @@ export function SuperAdminDashboard() {
     showToast({ type: 'info', title: 'Coming soon', body: 'PDF export is on the way!' })
   }, [showToast])
 
-  if (role !== 'super_admin') return null
-
-  if (loading) {
+  if (loading && isSuperAdmin) {
     return (
       <div>
         <div className="skeleton skeleton-title" style={{ width: 240, marginBottom: 'var(--space-6)' }} />
@@ -448,16 +446,18 @@ export function SuperAdminDashboard() {
     <div>
       <AdminPageHero
         icon={Shield}
-        title="Super Admin"
-        subtitle="Platform-wide overview"
+        title={isSuperAdmin ? 'Super Admin' : 'Admin Dashboard'}
+        subtitle={isSuperAdmin ? 'Platform-wide overview' : 'All events and platform activity'}
         backTo="/"
         actions={
           <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
-            <button className="btn btn-primary btn-sm" onClick={() => setShowCreateModal(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}>
-              <Plus size={16} /> Create Event
-            </button>
-            <button className="btn btn-secondary btn-sm" onClick={exportCSV}>Export CSV</button>
-            <button className="btn btn-secondary btn-sm" onClick={exportPDF}>Export PDF</button>
+            {isSuperAdmin && (
+              <button className="btn btn-primary btn-sm" onClick={() => setShowCreateModal(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+                <Plus size={16} /> Create Event
+              </button>
+            )}
+            {isSuperAdmin && <button className="btn btn-secondary btn-sm" onClick={exportCSV}>Export CSV</button>}
+            {isSuperAdmin && <button className="btn btn-secondary btn-sm" onClick={exportPDF}>Export PDF</button>}
           </div>
         }
       />

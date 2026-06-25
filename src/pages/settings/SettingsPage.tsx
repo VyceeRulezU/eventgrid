@@ -13,6 +13,8 @@ import { SEO } from '@/components/shared/SEO'
 import { PushNotificationSetup } from '@/components/shared/PushNotificationSetup'
 import { FeedbackFormModal } from '@/features/feedback/FeedbackFormModal'
 import { Tabs } from '@/components/ui/Tabs'
+import { PageHero } from '@/components/shared/PageHero'
+import { AdminPageHero } from '@/components/shared/AdminPageHero'
 import type { Profile } from '@/types'
 import styles from './SettingsPage.module.css'
 
@@ -328,6 +330,8 @@ export function SettingsPage() {
     }
   }
 
+  const isAdminRole = role && ['super_admin', 'admin_monitor', 'admin_support'].includes(role)
+
   const tabs = [
     { key: 'profile' as const, label: 'Profile', icon: <User size={16} /> },
     ...(org && (isOrgOwner || role === 'super_admin') ? [{ key: 'org' as const, label: 'Organisation', icon: <Building2 size={16} /> }] : []),
@@ -339,9 +343,11 @@ export function SettingsPage() {
   return (
     <div className={styles.page}>
       <SEO title="Settings" description="Manage your NaliGrid profile, business organization parameters, team invitations, and integration preferences." />
-      <div className={styles.pageHeader}>
-        <h2 className={styles.pageTitle}>Settings</h2>
-      </div>
+      {isAdminRole ? (
+        <AdminPageHero icon={Settings} title="Settings" subtitle="Profile and preferences" backTo="/admin" />
+      ) : (
+        <PageHero icon={Settings} title="Settings" subtitle="Profile and preferences" backTo="/home" />
+      )}
 
       <div className={styles.tabWrapper}>
         <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />

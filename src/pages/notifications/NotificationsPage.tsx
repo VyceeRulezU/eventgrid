@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/auth.store'
 import { getNotifications, markAsRead, markAllAsRead, navigateFromNotification } from '@/lib/notifications'
 import { FeedbackChat } from '@/components/shared/FeedbackChat'
 import { PageHero } from '@/components/shared/PageHero'
+import { AdminPageHero } from '@/components/shared/AdminPageHero'
 import { Table } from '@/components/ui/Table'
 import type { TableColumn } from '@/components/ui/Table'
 import type { Notification } from '@/types'
@@ -69,6 +70,7 @@ function parseFeedbackBody(body: string | null): { text: string; feedbackId: str
 
 export function NotificationsPage() {
   const user = useAuthStore((s) => s.user)
+  const role = useAuthStore((s) => s.role)
   const navigate = useNavigate()
 
   const [notifications, setNotifications] = useState<Notification[]>([])
@@ -139,42 +141,79 @@ export function NotificationsPage() {
     })
   }
 
+  const isAdminRole = role && ['super_admin', 'admin_monitor', 'admin_support'].includes(role)
   const hasSelection = selected.size > 0
 
   return (
     <div className={styles.page}>
-      <PageHero
-        icon={Bell}
-        title="Notifications"
-        subtitle={`${unreadCount} unread · ${notifications.length} total`}
-        actions={
-          <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap', alignItems: 'center' }}>
-            <div className={styles.tabBar}>
-              {TABS.map((t) => (
-                <button
-                  key={t.key}
-                  onClick={() => setTab(t.key)}
-                  className={`${styles.tab} ${tab === t.key ? styles.tabActive : ''}`}
-                >
-                  {t.label}
-                  {t.key === 'unread' && unreadCount > 0 && (
-                    <span className={styles.tabCount}>({unreadCount})</span>
-                  )}
+      {isAdminRole ? (
+        <AdminPageHero
+          icon={Bell}
+          title="Notifications"
+          subtitle={`${unreadCount} unread · ${notifications.length} total`}
+          backTo="/admin"
+          actions={
+            <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap', alignItems: 'center' }}>
+              <div className={styles.tabBar}>
+                {TABS.map((t) => (
+                  <button
+                    key={t.key}
+                    onClick={() => setTab(t.key)}
+                    className={`${styles.tab} ${tab === t.key ? styles.tabActive : ''}`}
+                  >
+                    {t.label}
+                    {t.key === 'unread' && unreadCount > 0 && (
+                      <span className={styles.tabCount}>({unreadCount})</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+              {unreadCount > 0 && (
+                <button className="btn btn-secondary btn-sm" onClick={handleMarkAllRead}>
+                  <CheckCheck size={14} />
+                  Mark All Read
                 </button>
-              ))}
-            </div>
-            {unreadCount > 0 && (
-              <button className="btn btn-secondary btn-sm" onClick={handleMarkAllRead}>
-                <CheckCheck size={14} />
-                Mark All Read
+              )}
+              <button className="btn btn-ghost btn-sm btn-icon" onClick={() => { setLoading(true); user && getNotifications(user.id, 200).then((d) => { setNotifications(d); setLoading(false) }) }} data-tooltip="Refresh">
+                <RefreshCw size={14} />
               </button>
-            )}
-            <button className="btn btn-ghost btn-sm btn-icon" onClick={() => { setLoading(true); user && getNotifications(user.id, 200).then((d) => { setNotifications(d); setLoading(false) }) }} data-tooltip="Refresh">
-              <RefreshCw size={14} />
-            </button>
-          </div>
-        }
-      />
+            </div>
+          }
+        />
+      ) : (
+        <PageHero
+          icon={Bell}
+          title="Notifications"
+          subtitle={`${unreadCount} unread · ${notifications.length} total`}
+          actions={
+            <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap', alignItems: 'center' }}>
+              <div className={styles.tabBar}>
+                {TABS.map((t) => (
+                  <button
+                    key={t.key}
+                    onClick={() => setTab(t.key)}
+                    className={`${styles.tab} ${tab === t.key ? styles.tabActive : ''}`}
+                  >
+                    {t.label}
+                    {t.key === 'unread' && unreadCount > 0 && (
+                      <span className={styles.tabCount}>({unreadCount})</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+              {unreadCount > 0 && (
+                <button className="btn btn-secondary btn-sm" onClick={handleMarkAllRead}>
+                  <CheckCheck size={14} />
+                  Mark All Read
+                </button>
+              )}
+              <button className="btn btn-ghost btn-sm btn-icon" onClick={() => { setLoading(true); user && getNotifications(user.id, 200).then((d) => { setNotifications(d); setLoading(false) }) }} data-tooltip="Refresh">
+                <RefreshCw size={14} />
+              </button>
+            </div>
+          }
+        />
+      )}
 
       <div className={styles.content}>
         {splitOpen ? (
