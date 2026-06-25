@@ -100,12 +100,12 @@ export function IssuesPanel({ eventId }: IssuesPanelProps) {
       return
     }
 
-    const updated = issues.map((issue) =>
+    const mapped = issues.map((issue) =>
       ids.includes(issue.id) && !issue.resolved_at
         ? { ...issue, resolved_at: now, resolution: '(bulk resolved)', resolved_by: user.id }
         : issue
     )
-    setIssues(updated as unknown as Issue[])
+    setIssues(mapped as unknown as Issue[])
     setSelected(new Set())
     setSaving(false)
     showNotification({ variant: 'success', title: `${ids.length} issue(s) resolved` })
