@@ -132,7 +132,18 @@ export function AcceptAdminInvite() {
         return
       }
 
-      // 4. Mark the admin invitation as accepted
+      // 4. Update profile with admin role and is_super_admin flag (MUST run before marking invite accepted)
+      try {
+        await supabase.rpc('accept_admin_invite', {
+          p_user_id: activeUser.id,
+          p_role: roleParam,
+          p_email: activeUser.email?.trim(),
+        })
+      } catch (err) {
+        console.error('Exception accepting admin invite role:', err)
+      }
+
+      // 5. Mark the admin invitation as accepted
       try {
         const { error: inviteError } = await supabase
           .from('admin_invites')
@@ -146,17 +157,6 @@ export function AcceptAdminInvite() {
         }
       } catch (err) {
         console.error('Exception updating admin invite status:', err)
-      }
-
-      // 5. Update profile with admin role and is_super_admin flag
-      try {
-        await supabase.rpc('accept_admin_invite', {
-          p_user_id: activeUser.id,
-          p_role: roleParam,
-          p_email: activeUser.email?.trim(),
-        })
-      } catch (err) {
-        console.error('Exception accepting admin invite role:', err)
       }
 
       showNotification({

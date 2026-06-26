@@ -80,6 +80,7 @@ export function AdminEmailMarketingPage() {
   const [saving, setSaving] = useState(false)
   const [aiPrompt, setAiPrompt] = useState('')
   const [generating, setGenerating] = useState(false)
+  const [syncing, setSyncing] = useState(false)
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [showTimePicker, setShowTimePicker] = useState(false)
 
@@ -109,7 +110,7 @@ export function AdminEmailMarketingPage() {
   }, [loadCampaigns, loadTemplates])
 
   const handleSyncSubscribers = async () => {
-    showToast({ type: 'info', title: 'Syncing subscribers...', body: 'This may take a moment.' })
+    setSyncing(true)
     try {
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
@@ -125,6 +126,8 @@ export function AdminEmailMarketingPage() {
       }
     } catch (err) {
       showToast({ type: 'error', title: 'Sync failed', body: err instanceof Error ? err.message : 'Network error' })
+    } finally {
+      setSyncing(false)
     }
   }
 
@@ -147,6 +150,8 @@ export function AdminEmailMarketingPage() {
         setSubject(result.subject)
         setBodyHtml(result.body_html)
         showToast({ type: 'success', title: 'Content generated', body: 'Review and edit before sending.' })
+      } else if (result.error?.includes('quota') || result.error?.includes('RESOURCE_EXHAUSTED')) {
+        showToast({ type: 'error', title: 'AI quota exceeded', body: 'Gemini API free tier quota is exhausted. Try again later or upgrade your plan.' })
       } else {
         showToast({ type: 'error', title: 'Generation failed', body: result.error || 'Could not generate content' })
       }
@@ -272,8 +277,8 @@ export function AdminEmailMarketingPage() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 var(--space-6)', borderBottom: '1px solid var(--color-border-subtle)' }}>
         <Tabs tabs={campaignTabs} activeTab={activeTab} onChange={setActiveTab} />
-        <button className="btn btn-ghost btn-sm" onClick={handleSyncSubscribers} style={{ flexShrink: 0 }}>
-          <Loader2 size={14} /> Sync Subscribers
+        <button className="btn btn-ghost btn-sm" onClick={handleSyncSubscribers} disabled={syncing} style={{ flexShrink: 0 }}>
+          {syncing ? <Loader2 size={14} className="spin" /> : <Loader2 size={14} />} {syncing ? 'Syncing...' : 'Sync Subscribers'}
         </button>
       </div>
 

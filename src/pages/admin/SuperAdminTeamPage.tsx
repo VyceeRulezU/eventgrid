@@ -20,7 +20,7 @@ interface AdminMember {
   display_name: string | null
   role: string
   created_at: string
-  last_sign_in_at: string | null
+  last_sign_in_at?: string | null
   status: 'active'
   source: 'profile'
 }
@@ -66,7 +66,7 @@ export function SuperAdminTeamPage() {
     const [profilesRes, invitesRes, superAdminsRes] = await Promise.all([
       supabase
         .from('profiles')
-        .select('id, email, display_name, role, created_at, last_sign_in_at')
+        .select('id, email, display_name, role, created_at')
         .eq('is_super_admin', true)
         .order('created_at', { ascending: false }),
       supabase
@@ -97,7 +97,7 @@ export function SuperAdminTeamPage() {
       if (ghostIds.length > 0) {
         const { data: ghostProfiles } = await supabase
           .from('profiles')
-          .select('id, email, display_name, role, created_at, last_sign_in_at')
+          .select('id, email, display_name, role, created_at')
           .in('id', ghostIds)
 
         if (ghostProfiles) {
