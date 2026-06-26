@@ -8,6 +8,7 @@ export interface TableColumn {
   label: string
   className?: string
   headerClassName?: string
+  renderHeader?: () => ReactNode
 }
 
 interface TableProps {
@@ -70,7 +71,7 @@ export function Table({
                     key={col.key}
                     className={`${styles.th} ${col.headerClassName || ''}`}
                   >
-                    {col.label}
+                    {col.renderHeader ? col.renderHeader() : col.label}
                   </th>
                 ))}
               </tr>

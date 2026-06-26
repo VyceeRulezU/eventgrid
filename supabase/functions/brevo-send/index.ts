@@ -39,13 +39,6 @@ Deno.serve(async (req) => {
       )
     }
 
-    if (campaign.status === 'sent') {
-      return new Response(
-        JSON.stringify({ error: 'Campaign already sent' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      )
-    }
-
     // Fetch all active profile emails + survey respondent emails
     const [profilesRes, surveysRes] = await Promise.all([
       supabase.from('profiles').select('email, display_name').eq('is_active', true).not('email', 'is', null),

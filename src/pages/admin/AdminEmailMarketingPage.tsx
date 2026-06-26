@@ -3,11 +3,13 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { Tabs, type TabItem } from '@/components/ui/Tabs'
-import { Mail, Plus, Send, Clock, CheckCircle, XCircle, FileText, Trash2, Sparkles, Loader2, CalendarDays } from 'lucide-react'
+import { Mail, Plus, Send, Clock, CheckCircle, XCircle, FileText, Trash2, Sparkles, Loader2, CalendarDays, RefreshCw } from 'lucide-react'
 import { Checkbox } from '@/components/ui/Checkbox'
 import { CalendarModal } from '@/components/ui/CalendarModal'
 import { TimeModal } from '@/components/ui/TimeModal'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
+import { Table } from '@/components/ui/Table'
+import { Pagination } from '@/components/ui/Pagination'
 
 interface EmailTemplate {
   id: string
@@ -83,8 +85,73 @@ export function AdminEmailMarketingPage() {
   const [generating, setGenerating] = useState(false)
   const [syncing, setSyncing] = useState(false)
   const [sending, setSending] = useState<string | null>(null)
+  const [selectedCampaigns, setSelectedCampaigns] = useState<Set<string>>(new Set())
+  const [page, setPage] = useState(0)
+  const PAGE_SIZE = 12
+  const pageCount = Math.max(1, Math.ceil(campaigns.length / PAGE_SIZE))
+  const pageData = campaigns.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
+  const allSelected = pageData.length > 0 && pageData.every(c => selectedCampaigns.has(c.id))
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [showTimePicker, setShowTimePicker] = useState(false)
+
+  function toggleSelectCampaign(id: string) {
+    const next = new Set(selectedCampaigns)
+    if (next.has(id)) next.delete(id); else next.add(id)
+    setSelectedCampaigns(next)
+  }
+
+  function toggleSelectAll() {
+    if (allSelected) {
+      setSelectedCampaigns(new Set())
+    } else {
+      setSelectedCampaigns(new Set(pageData.map(c => c.id)))
+    }
+  }
+
+  async function handleBulkSend() {
+    const { data: { session } } = await supabase.auth.getSession()
+    const token = session?.access_token
+    let totalSent = 0
+    let totalFailed = 0
+    for (const id of selectedCampaigns) {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/brevo-send`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ campaign_id: id }),
+        })
+        const result = await res.json()
+        if (result.success) {
+          totalSent += result.sent || 0
+        } else {
+          totalFailed++
+        }
+      } catch {
+        totalFailed++
+      }
+    }
+    showToast({ type: totalFailed === 0 ? 'success' : 'warning', title: 'Bulk send complete', body: `${totalSent} emails sent, ${totalFailed} failed` })
+    setSelectedCampaigns(new Set())
+    loadCampaigns()
+  }
+
+  async function handleBulkDelete() {
+    for (const id of selectedCampaigns) {
+      await supabase.from('email_campaigns').delete().eq('id', id)
+    }
+    showToast({ type: 'success', title: 'Deleted', body: `${selectedCampaigns.size} campaign(s) deleted` })
+    setSelectedCampaigns(new Set())
+    loadCampaigns()
+  }
+
+  async function handleBulkReset() {
+    for (const id of selectedCampaigns) {
+      await supabase.from('email_campaigns').update({ status: 'draft', sent_at: null }).eq('id', id)
+    }
+    showToast({ type: 'success', title: 'Reset', body: `${selectedCampaigns.size} campaign(s) reset to draft` })
+    setSelectedCampaigns(new Set())
+    loadCampaigns()
+  }
 
   const loadCampaigns = useCallback(async () => {
     setLoadingCampaigns(true)
@@ -110,6 +177,11 @@ export function AdminEmailMarketingPage() {
     loadCampaigns()
     loadTemplates()
   }, [loadCampaigns, loadTemplates])
+
+  // Reset page when campaigns change and current page is out of range
+  useEffect(() => {
+    if (page >= pageCount) setPage(0)
+  }, [campaigns.length, page, pageCount])
 
   const handleSyncSubscribers = async () => {
     setSyncing(true)
@@ -246,6 +318,14 @@ export function AdminEmailMarketingPage() {
     }
   }
 
+  const handleResetCampaign = async (id: string) => {
+    const { error } = await supabase.from('email_campaigns').update({ status: 'draft', sent_at: null }).eq('id', id)
+    if (!error) {
+      showToast({ type: 'success', title: 'Campaign reset', body: 'You can now edit and resend it.' })
+      loadCampaigns()
+    }
+  }
+
   const handleSaveTemplate = async () => {
     if (!subject.trim() || !bodyHtml.trim()) {
       showToast({ type: 'error', title: 'Missing fields', body: 'Subject and content are required.' })
@@ -290,62 +370,95 @@ export function AdminEmailMarketingPage() {
         {/* ── CAMPAIGNS TAB ── */}
         {activeTab === 'campaigns' && (
           <div>
-            {loadingCampaigns ? (
-              <div style={{ textAlign: 'center', padding: 'var(--space-8)', color: 'var(--color-text-muted)' }}>Loading campaigns...</div>
-            ) : campaigns.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: 'var(--space-8)', color: 'var(--color-text-muted)' }}>
-                <Mail size={32} style={{ marginBottom: 'var(--space-2)', opacity: 0.4 }} />
-                <div style={{ fontWeight: 600 }}>No campaigns yet</div>
-                <div style={{ fontSize: 'var(--text-sm)', marginTop: 4 }}>Create your first email campaign to get started.</div>
-              </div>
-            ) : (
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
-                    <th style={{ textAlign: 'left', padding: 'var(--space-2) var(--space-3)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', fontWeight: 600 }}>Subject</th>
-                    <th style={{ textAlign: 'left', padding: 'var(--space-2) var(--space-3)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', fontWeight: 600 }}>Mode</th>
-                    <th style={{ textAlign: 'left', padding: 'var(--space-2) var(--space-3)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', fontWeight: 600 }}>Status</th>
-                    <th style={{ textAlign: 'left', padding: 'var(--space-2) var(--space-3)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', fontWeight: 600 }}>Scheduled</th>
-                    <th style={{ textAlign: 'left', padding: 'var(--space-2) var(--space-3)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', fontWeight: 600 }}>Sent</th>
-                    <th style={{ textAlign: 'right', padding: 'var(--space-2) var(--space-3)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', fontWeight: 600 }}>Actions</th>
+            <Table
+              columns={[
+                { key: 'select', label: '', renderHeader: () => <Checkbox checked={allSelected} onChange={toggleSelectAll} aria-label="Select all" /> },
+                { key: 'subject', label: 'Subject' },
+                { key: 'mode', label: 'Mode' },
+                { key: 'status', label: 'Status' },
+                { key: 'scheduled', label: 'Scheduled' },
+                { key: 'sent', label: 'Sent' },
+                { key: 'actions', label: '', className: 'actions', headerClassName: 'actions' },
+              ]}
+              loading={loadingCampaigns}
+              empty={campaigns.length === 0}
+              emptyIcon={Mail}
+              emptyTitle="No campaigns yet"
+              emptyDescription="Create your first email campaign to get started."
+              bulkBar={selectedCampaigns.size > 0 ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', width: '100%' }}>
+                  <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>{selectedCampaigns.size} selected</span>
+                  <button className="btn btn-primary btn-sm" onClick={handleBulkSend} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <Send size={12} /> Send
+                  </button>
+                  <button className="btn btn-secondary btn-sm" onClick={handleBulkReset} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <RefreshCw size={12} /> Reset to Draft
+                  </button>
+                  <button className="btn btn-destructive btn-sm" onClick={handleBulkDelete}>
+                    Delete
+                  </button>
+                  <button className="btn btn-ghost btn-sm" onClick={() => setSelectedCampaigns(new Set())}>
+                    Clear
+                  </button>
+                </div>
+              ) : undefined}
+              footer={
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                  <span>{campaigns.length} campaign{campaigns.length !== 1 ? 's' : ''}</span>
+                  <Pagination currentPage={page + 1} totalPages={pageCount} onPageChange={(p) => setPage(p - 1)} />
+                </div>
+              }
+            >
+              {pageData.map((c) => {
+                const StatusIcon = STATUS_ICONS[c.status]
+                return (
+                  <tr key={c.id}>
+                    <td style={{ padding: 'var(--space-3) var(--space-4)' }}>
+                      <Checkbox
+                        checked={selectedCampaigns.has(c.id)}
+                        onChange={() => toggleSelectCampaign(c.id)}
+                        aria-label={`Select ${c.subject}`}
+                      />
+                    </td>
+                    <td style={{ padding: 'var(--space-3) var(--space-4)', fontSize: 'var(--text-sm)', fontWeight: 500 }}>{c.subject}</td>
+                    <td style={{ padding: 'var(--space-3) var(--space-4)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>{c.content_mode}</td>
+                    <td style={{ padding: 'var(--space-3) var(--space-4)' }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 'var(--text-xs)', color: STATUS_COLORS[c.status] }}>
+                        <StatusIcon size={12} />
+                        {c.status}
+                      </span>
+                    </td>
+                    <td style={{ padding: 'var(--space-3) var(--space-4)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>{formatDate(c.scheduled_for)}</td>
+                    <td style={{ padding: 'var(--space-3) var(--space-4)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>{c.recipient_count || '—'}</td>
+                    <td style={{ padding: 'var(--space-3) var(--space-4)', textAlign: 'right' }}>
+                      <div style={{ display: 'flex', gap: 'var(--space-1)', justifyContent: 'flex-end' }}>
+                        {c.status === 'draft' && (
+                          <>
+                            <button className="btn btn-primary btn-sm" onClick={() => handleSendCampaign(c.id)} disabled={sending === c.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                              {sending === c.id ? <Loader2 size={12} className="spin" /> : <Send size={12} />}
+                              {sending === c.id ? 'Sending...' : 'Send'}
+                            </button>
+                            <button className="btn btn-ghost btn-sm" onClick={() => handleDeleteCampaign(c.id)} style={{ color: 'var(--color-error)' }}>
+                              <Trash2 size={12} />
+                            </button>
+                          </>
+                        )}
+                        {c.status === 'sent' && (
+                          <>
+                            <button className="btn btn-secondary btn-sm" onClick={() => handleResetCampaign(c.id)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                              <RefreshCw size={12} /> Send Again
+                            </button>
+                            <button className="btn btn-ghost btn-sm" onClick={() => handleDeleteCampaign(c.id)} style={{ color: 'var(--color-error)' }}>
+                              <Trash2 size={12} />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {campaigns.map((c) => {
-                    const StatusIcon = STATUS_ICONS[c.status]
-                    return (
-                      <tr key={c.id} style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
-                        <td style={{ padding: 'var(--space-3)', fontSize: 'var(--text-sm)', fontWeight: 500 }}>{c.subject}</td>
-                        <td style={{ padding: 'var(--space-3)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>{c.content_mode}</td>
-                        <td style={{ padding: 'var(--space-3)' }}>
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 'var(--text-xs)', color: STATUS_COLORS[c.status] }}>
-                            <StatusIcon size={12} />
-                            {c.status}
-                          </span>
-                        </td>
-                        <td style={{ padding: 'var(--space-3)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>{formatDate(c.scheduled_for)}</td>
-                        <td style={{ padding: 'var(--space-3)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>{c.recipient_count || '—'}</td>
-                        <td style={{ padding: 'var(--space-3)', textAlign: 'right' }}>
-                          <div style={{ display: 'flex', gap: 'var(--space-1)', justifyContent: 'flex-end' }}>
-                            {c.status === 'draft' && (
-                              <button className="btn btn-primary btn-sm" onClick={() => handleSendCampaign(c.id)} disabled={sending === c.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                                {sending === c.id ? <Loader2 size={12} className="spin" /> : <Send size={12} />}
-                                {sending === c.id ? 'Sending...' : 'Send'}
-                              </button>
-                            )}
-                            {c.status === 'draft' && (
-                              <button className="btn btn-ghost btn-sm" onClick={() => handleDeleteCampaign(c.id)} style={{ color: 'var(--color-error)' }}>
-                                <Trash2 size={12} />
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            )}
+                )
+              })}
+            </Table>
           </div>
         )}
 
