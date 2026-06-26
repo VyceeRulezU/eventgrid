@@ -336,7 +336,7 @@ export function SettingsPage() {
     { key: 'profile' as const, label: 'Profile', icon: <User size={16} /> },
     ...(org && (isOrgOwner || role === 'super_admin') ? [{ key: 'org' as const, label: 'Organisation', icon: <Building2 size={16} /> }] : []),
     { key: 'preferences' as const, label: 'Preferences', icon: <Settings size={16} /> },
-    ...(role === 'team_member' || role === 'client' || (role === 'coordinator' && !isOrgOwner) ? [{ key: 'upgrades' as const, label: 'Transitions', icon: <Sparkles size={16} /> }] : []),
+    ...(!isAdminRole ? [{ key: 'upgrades' as const, label: 'Transitions', icon: <Sparkles size={16} /> }] : []),
     { key: 'support' as const, label: 'Support & Security', icon: <LifeBuoy size={16} /> },
   ]
 
@@ -589,56 +589,15 @@ export function SettingsPage() {
 
         {/* ==================== TRANSITIONS TAB ==================== */}
         {activeTab === 'upgrades' && (
-          <div className={styles.transitionContainer}>
-            <h3 className={styles.cardTitle}>Account Transitions &amp; Upgrades</h3>
-            <p className={styles.orgDesc}>
-              Choose a role to expand your capabilities on NaliGrid. Upgrading allows you to run your own events or list services.
-            </p>
-
-            <div className={styles.upgradeGrid}>
-              {role !== 'planner' && (
-                <div className={styles.upgradeCard}>
-                  <div>
-                    <h4 className={styles.upgradeCardTitle}>Event Planner</h4>
-                    <p className={styles.upgradeCardDesc} style={{ marginTop: 'var(--space-2)' }}>
-                      Create your own planning business, manage budget templates, collaborate with teams, and share portals with clients.
-                    </p>
-                  </div>
-                  <button type="button" className="btn btn-primary" style={{ marginTop: 'var(--space-4)' }} onClick={() => navigate('/onboarding/planner')}>
-                    Become a Planner
-                  </button>
-                </div>
-              )}
-
-              {(!org || org.owner_id !== user?.id) && (
-                <div className={styles.upgradeCard}>
-                  <div>
-                    <h4 className={styles.upgradeCardTitle}>Standalone Coordinator</h4>
-                    <p className={styles.upgradeCardDesc} style={{ marginTop: 'var(--space-2)' }}>
-                      Manage your own coordination timelines and checklists, choose your specialization, and offer freelance operations.
-                    </p>
-                  </div>
-                  <button type="button" className="btn btn-primary" style={{ marginTop: 'var(--space-4)' }} onClick={() => navigate('/onboarding/coordinator?upgrade=true')}>
-                    Become Standalone
-                  </button>
-                </div>
-              )}
-
-              {role !== 'vendor' && (
-                <div className={styles.upgradeCard}>
-                  <div>
-                    <h4 className={styles.upgradeCardTitle}>Service Vendor</h4>
-                    <p className={styles.upgradeCardDesc} style={{ marginTop: 'var(--space-2)' }}>
-                      List your service brand (decor, sound, catering, etc.) in the NaliGrid directory and receive bookings from planners.
-                    </p>
-                  </div>
-                  <button type="button" className="btn btn-primary" style={{ marginTop: 'var(--space-4)' }} onClick={() => navigate('/onboarding/vendor')}>
-                    Become a Vendor
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
+          <RoleTransitions
+            currentRole={role}
+            userId={user?.id}
+            org={org}
+            navigate={navigate}
+            supabase={supabase}
+            showToast={showToast}
+            setProfile={setProfile}
+          />
         )}
 
         {/* ==================== SUPPORT & SECURITY TAB ==================== */}
@@ -798,6 +757,166 @@ export function SettingsPage() {
       </div>
 
       <FeedbackFormModal open={showFeedback} onClose={() => setShowFeedback(false)} />
+    </div>
+  )
+}
+
+const ROLE_META: Record<string, { title: string; description: string }> = {
+  planner: {
+    title: 'Event Planner',
+    description: 'Create your own planning business, manage budget templates, collaborate with teams, and share portals with clients.',
+  },
+  coordinator: {
+    title: 'Coordinator',
+    description: 'Manage coordination timelines and checklists, choose your specialization, and offer freelance operations.',
+  },
+  vendor: {
+    title: 'Service Vendor',
+    description: 'List your service brand in the NaliGrid directory and receive bookings from planners.',
+  },
+  team_member: {
+    title: 'Team Member',
+    description: 'Join an existing event and collaborate with your team on tasks, checklists, and live coordination.',
+  },
+}
+
+const ROLE_LEVEL: Record<string, number> = {
+  planner: 4,
+  coordinator: 3,
+  vendor: 2,
+  team_member: 1,
+}
+
+function RoleTransitions({
+  currentRole,
+  userId,
+  org,
+  navigate,
+  supabase,
+  showToast,
+  setProfile,
+}: {
+  currentRole: string | null
+  userId: string | undefined
+  org: { owner_id?: string } | null
+  navigate: (url: string) => void
+  supabase: any
+  showToast: (opts: { type: string; title: string; body?: string }) => void
+  setProfile: (p: any) => void
+}) {
+  const [confirmingRole, setConfirmingRole] = useState<string | null>(null)
+  const [switching, setSwitching] = useState(false)
+
+  const availableRoles = Object.keys(ROLE_META).filter((r) => r !== currentRole)
+
+  const handleSwitch = async (targetRole: string) => {
+    if (targetRole === 'team_member') {
+      setConfirmingRole(targetRole)
+      return
+    }
+
+    if (targetRole === 'planner') {
+      navigate('/onboarding/planner')
+    } else if (targetRole === 'coordinator') {
+      navigate('/onboarding/coordinator?upgrade=true')
+    } else if (targetRole === 'vendor') {
+      navigate('/onboarding/vendor')
+    }
+  }
+
+  const handleConfirmTeamMember = async () => {
+    if (!userId) return
+    setSwitching(true)
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ role: 'team_member' })
+        .eq('id', userId)
+      if (error) throw error
+
+      const { data: updatedProfile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single()
+
+      if (updatedProfile) {
+        setProfile(updatedProfile)
+      }
+
+      showToast({ type: 'success', title: 'Role updated', body: 'You are now a Team Member.' })
+    } catch (err: any) {
+      showToast({ type: 'error', title: 'Switch failed', body: err?.message || 'Unexpected error' })
+    } finally {
+      setSwitching(false)
+      setConfirmingRole(null)
+    }
+  }
+
+  return (
+    <div className={styles.transitionContainer}>
+      <h3 className={styles.cardTitle}>Role Transitions</h3>
+      <p className={styles.orgDesc}>
+        Switch to any role that fits your needs. Your current role is <strong>{currentRole?.replace('_', ' ')}</strong>.
+      </p>
+
+      <div className={styles.upgradeGrid}>
+        {availableRoles.map((targetRole) => {
+          const meta = ROLE_META[targetRole]
+          const label = currentRole && ROLE_LEVEL[targetRole] > ROLE_LEVEL[currentRole] ? 'Upgrade' : 'Downgrade'
+
+          return (
+            <div className={styles.upgradeCard} key={targetRole}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                  <h4 className={styles.upgradeCardTitle}>{meta.title}</h4>
+                  <span className={`badge ${label === 'Upgrade' ? 'badge-green' : 'badge-yellow'}`} style={{ fontSize: 'var(--text-xs)', padding: '2px 8px' }}>
+                    {label}
+                  </span>
+                </div>
+                <p className={styles.upgradeCardDesc} style={{ marginTop: 'var(--space-2)' }}>
+                  {meta.description}
+                </p>
+              </div>
+              {confirmingRole === targetRole ? (
+                <div className={styles.deleteConfirm} style={{ marginTop: 'var(--space-4)' }}>
+                  <p className={styles.deleteConfirmPrompt}>
+                    <AlertTriangle size={14} style={{ verticalAlign: 'middle', marginRight: 'var(--space-1)' }} />
+                    This removes event management capabilities. Continue?
+                  </p>
+                  <div className={styles.deleteActions}>
+                    <button
+                      type="button"
+                      className="btn btn-ghost"
+                      onClick={() => setConfirmingRole(null)}
+                      disabled={switching}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-destructive"
+                      onClick={handleConfirmTeamMember}
+                      disabled={switching}
+                    >
+                      {switching ? 'Switching...' : 'Switch to Team Member'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  style={{ marginTop: 'var(--space-4)' }}
+                  onClick={() => handleSwitch(targetRole)}
+                >
+                  {label === 'Upgrade' ? 'Become a ' : 'Switch to '}{meta.title}
+                </button>
+              )}
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }

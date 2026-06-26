@@ -250,26 +250,6 @@ export function Sidebar() {
         </nav>
         <div className={styles.scrollIndicator} aria-hidden="true" />
 
-        {(role === 'team_member' || role === 'client' || role === 'coordinator') && (
-          <div className={styles.upgradeBanner}>
-            <div className={styles.upgradeBannerTitle}>Want more capabilities?</div>
-            <div className={styles.upgradeBannerText}>Upgrade to run events or offer services.</div>
-            <div className={styles.upgradeBannerActions} style={{ flexWrap: 'wrap', gap: 'var(--space-1)' }}>
-              <button className={styles.upgradeBannerBtn} onClick={() => { navigate('/onboarding/planner'); setSidebarOpen(false) }}>
-                Planner
-              </button>
-              {(role === 'team_member' || role === 'client') && (
-                <button className={styles.upgradeBannerBtn} onClick={() => { navigate('/onboarding/coordinator?upgrade=true'); setSidebarOpen(false) }}>
-                  Coordinator
-                </button>
-              )}
-              <button className={styles.upgradeBannerBtn} onClick={() => { navigate('/onboarding/vendor'); setSidebarOpen(false) }}>
-                Vendor
-              </button>
-            </div>
-          </div>
-        )}
-
         <div className={styles.footer}>
 
           <button className={styles.navItem} id="sidebar-back-to-site" onClick={() => navigate('/home')}>
