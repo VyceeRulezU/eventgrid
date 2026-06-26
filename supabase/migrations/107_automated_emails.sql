@@ -1,5 +1,6 @@
 -- Migration 107: Automated email triggers + Friday reminder cron
--- Requires pg_net extension for HTTP calls from triggers
+-- Uses pg_net extension for HTTP calls from triggers
+-- pg_net.http_post signature: (url text, body jsonb, params jsonb, headers jsonb, timeout_milliseconds int)
 
 CREATE EXTENSION IF NOT EXISTS pg_net WITH SCHEMA extensions;
 
@@ -31,20 +32,20 @@ BEGIN
     RETURN NEW;
   END IF;
 
-  webhook_secret := current_setting('app.settings.automated_email_secret', true);
+  webhook_secret := COALESCE(current_setting('app.settings.automated_email_secret', true), '');
 
   PERFORM
     net.http_post(
       url := public.supabase_edge_url() || '/send-automated-email',
-      headers := jsonb_build_object(
-        'Content-Type', 'application/json',
-        'x-webhook-secret', COALESCE(webhook_secret, '')
-      ),
       body := jsonb_build_object(
         'template_name', 'Congratulations - First Event Created',
         'to', jsonb_build_object('email', creator_email, 'name', creator_name),
         'variables', jsonb_build_object('{{event_name}}', NEW.name)
-      )::text
+      ),
+      headers := jsonb_build_object(
+        'Content-Type', 'application/json',
+        'x-webhook-secret', webhook_secret
+      )
     );
 
   RETURN NEW;
@@ -69,20 +70,20 @@ BEGIN
     WHERE id = NEW.created_by;
 
     IF creator_email IS NOT NULL THEN
-      webhook_secret := current_setting('app.settings.automated_email_secret', true);
+      webhook_secret := COALESCE(current_setting('app.settings.automated_email_secret', true), '');
 
       PERFORM
         net.http_post(
           url := public.supabase_edge_url() || '/send-automated-email',
-          headers := jsonb_build_object(
-            'Content-Type', 'application/json',
-            'x-webhook-secret', COALESCE(webhook_secret, '')
-          ),
           body := jsonb_build_object(
             'template_name', 'Congratulations - Event is Now Live',
             'to', jsonb_build_object('email', creator_email, 'name', creator_name),
             'variables', jsonb_build_object('{{event_name}}', NEW.name)
-          )::text
+          ),
+          headers := jsonb_build_object(
+            'Content-Type', 'application/json',
+            'x-webhook-secret', webhook_secret
+          )
         );
     END IF;
   END IF;
@@ -105,7 +106,6 @@ CREATE TRIGGER trg_event_live
   EXECUTE FUNCTION public.handle_event_live();
 
 -- ── Friday Reminder: function to be called by cron ──
--- Call this via pg_cron or external scheduler every Friday at 8:00 AM
 CREATE OR REPLACE FUNCTION public.send_friday_reminders()
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -126,7 +126,7 @@ BEGIN
       e.name AS event_name
     FROM public.events e
     JOIN public.profiles p ON p.id = e.created_by
-    WHERE e.event_date::date = (CURRENT_DATE + 1)  -- Saturday
+    WHERE e.event_date::date = (CURRENT_DATE + 1)
       AND e.status = 'active'
       AND p.is_active = true
       AND p.email IS NOT NULL
@@ -134,15 +134,15 @@ BEGIN
     PERFORM
       net.http_post(
         url := public.supabase_edge_url() || '/send-automated-email',
-        headers := jsonb_build_object(
-          'Content-Type', 'application/json',
-          'x-webhook-secret', webhook_secret
-        ),
         body := jsonb_build_object(
           'template_name', 'Friday Reminder - Weekend Event Prep',
           'to', jsonb_build_object('email', rec.email, 'name', rec.display_name),
           'variables', jsonb_build_object('{{event_name}}', rec.event_name)
-        )::text
+        ),
+        headers := jsonb_build_object(
+          'Content-Type', 'application/json',
+          'x-webhook-secret', webhook_secret
+        )
       );
 
     sent := sent + 1;
