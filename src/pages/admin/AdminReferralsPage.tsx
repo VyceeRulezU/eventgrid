@@ -30,7 +30,7 @@ const badgeStyles: Record<string, { bg: string; color: string }> = {
   cancelled: { bg: 'rgba(239, 68, 68, 0.15)', color: '#EF4444' },
 }
 
-export function AdminReferralsPage() {
+export function AdminReferralsPage({ embedded }: { embedded?: boolean }) {
   const role = useAuthStore((s) => s.role)
   const isAdmin = role === 'super_admin'
 
@@ -184,18 +184,20 @@ export function AdminReferralsPage() {
 
   return (
     <div>
-      <SEO title="Referral Partners — Admin" description="Manage referral partners, codes, and commission payouts" />
-      <AdminPageHero
-        icon={Gift}
-        title="Referrals"
-        subtitle="Manage referral partners and commissions"
-        actions={
-          isAdmin ? (
-            <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
-              <Button variant="secondary" size="sm" onClick={() => setShowPortalModal(true)}>
-                <Link2 size={16} />
-                Portal Link
-              </Button>
+      {!embedded && (
+        <>
+          <SEO title="Referral Partners — Admin" description="Manage referral partners, codes, and commission payouts" />
+          <AdminPageHero
+            icon={Gift}
+            title="Referrals"
+            subtitle="Manage referral partners and commissions"
+            actions={
+              isAdmin ? (
+                <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
+                  <Button variant="secondary" size="sm" onClick={() => setShowPortalModal(true)}>
+                    <Link2 size={16} />
+                    Portal Link
+                  </Button>
               <Button variant="primary" size="sm" onClick={() => { resetForm(); setShowForm(true) }}>
                 <Plus size={16} />
                 Add Referral Code
@@ -204,6 +206,8 @@ export function AdminReferralsPage() {
           ) : undefined
         }
       />
+      </>)
+      }
 
       <div style={{ padding: '0 var(--space-6) var(--space-6)' }}>
         {/* Overview stat cards */}

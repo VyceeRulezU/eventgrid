@@ -80,15 +80,14 @@ const HelpPage = lazy(() => import('@/pages/settings/HelpPage').then(m => ({ def
 const MyTasksPage = lazy(() => import('@/pages/team/MyTasksPage').then(m => ({ default: m.MyTasksPage })))
 const FeedbackManagementPage = lazy(() => import('@/pages/admin/FeedbackManagementPage').then(m => ({ default: m.FeedbackManagementPage })))
 const SuperAdminTeamPage = lazy(() => import('@/pages/admin/SuperAdminTeamPage').then(m => ({ default: m.SuperAdminTeamPage })))
-const AdminSurveyResponsesPage = lazy(() => import('@/pages/admin/AdminSurveyResponsesPage').then(m => ({ default: m.AdminSurveyResponsesPage })))
-const AdminManagePage = lazy(() => import('@/pages/admin/AdminManagePage').then(m => ({ default: m.AdminManagePage })))
+const AdminEngagementPage = lazy(() => import('@/pages/admin/AdminEngagementPage').then(m => ({ default: m.AdminEngagementPage })))
 const AnalyticsPage = lazy(() => import('@/pages/admin/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })))
 const AdminMyTasksPage = lazy(() => import('@/pages/admin/AdminMyTasksPage').then(m => ({ default: m.AdminMyTasksPage })))
 const AdminEventsListPage = lazy(() => import('@/pages/admin/AdminEventsListPage').then(m => ({ default: m.AdminEventsListPage })))
 const AdminVendorsPage = lazy(() => import('@/pages/admin/AdminVendorsPage').then(m => ({ default: m.AdminVendorsPage })))
 const AdminVendorDirectoryPage = lazy(() => import('@/pages/admin/AdminVendorDirectoryPage').then(m => ({ default: m.AdminVendorDirectoryPage })))
 const AdminTestimonialsPage = lazy(() => import('@/pages/admin/AdminTestimonialsPage').then(m => ({ default: m.AdminTestimonialsPage })))
-const AdminReferralsPage = lazy(() => import('@/pages/admin/AdminReferralsPage').then(m => ({ default: m.AdminReferralsPage })))
+const AdminManagePage = lazy(() => import('@/pages/admin/AdminManagePage').then(m => ({ default: m.AdminManagePage })))
 
 
 const EventAssetsPage = lazy(() => import('@/features/assets/EventAssetsPage').then(m => ({ default: m.EventAssetsPage })))
@@ -713,14 +712,9 @@ export function App() {
               <RoleGuard allowedRole="super_admin"><AdminTestimonialsPage /></RoleGuard>
             </Suspense>
           } />
-          <Route path="/admin/surveys" element={
+          <Route path="/admin/engagement" element={
             <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
-              <AdminGuard><AdminSurveyResponsesPage /></AdminGuard>
-            </Suspense>
-          } />
-          <Route path="/admin/referrals" element={
-            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
-              <AdminGuard><AdminReferralsPage /></AdminGuard>
+              <AdminGuard><AdminEngagementPage /></AdminGuard>
             </Suspense>
           } />
         </Route>

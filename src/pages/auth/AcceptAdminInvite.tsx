@@ -114,7 +114,25 @@ export function AcceptAdminInvite() {
         console.error('Exception updating own profile:', err)
       }
 
-      // 3. Mark the admin invitation as accepted
+      // 3. Verify the invite is still valid (not cancelled/deleted)
+      const { data: pendingInvite, error: inviteCheckErr } = await supabase
+        .from('admin_invites')
+        .select('id, status')
+        .eq('email', activeUser.email?.trim())
+        .maybeSingle()
+
+      if (inviteCheckErr) {
+        console.error('Failed to check invite status:', inviteCheckErr)
+      }
+
+      if (!pendingInvite || pendingInvite.status !== 'pending') {
+        setError('This invitation is no longer valid. It may have been cancelled or expired.')
+        setTimeout(() => navigate('/login', { replace: true }), 4000)
+        setLoading(false)
+        return
+      }
+
+      // 4. Mark the admin invitation as accepted
       try {
         const { error: inviteError } = await supabase
           .from('admin_invites')
@@ -130,11 +148,12 @@ export function AcceptAdminInvite() {
         console.error('Exception updating admin invite status:', err)
       }
 
-      // 4. Update profile with admin role and is_super_admin flag
+      // 5. Update profile with admin role and is_super_admin flag
       try {
         await supabase.rpc('accept_admin_invite', {
           p_user_id: activeUser.id,
           p_role: roleParam,
+          p_email: activeUser.email?.trim(),
         })
       } catch (err) {
         console.error('Exception accepting admin invite role:', err)

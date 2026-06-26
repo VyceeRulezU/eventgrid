@@ -49,6 +49,23 @@ export function TeamMemberOnboarding() {
     if (!user || !eventId) return
     setLoading(true)
 
+    // Check if there's a recorded invite and it's still pending
+    if (user.email) {
+      const { data: invite } = await supabase
+        .from('invitations')
+        .select('id, status')
+        .eq('event_id', eventId)
+        .eq('email', user.email)
+        .maybeSingle()
+
+      if (invite && invite.status !== 'pending') {
+        showToast({ type: 'error', title: 'Invitation expired', body: 'This invitation is no longer valid.' })
+        setTimeout(() => navigate('/dashboard/my-tasks', { replace: true }), 4000)
+        setLoading(false)
+        return
+      }
+    }
+
     const { error: accessErr } = await supabase
       .from('event_access')
       .upsert({

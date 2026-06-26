@@ -141,7 +141,7 @@ function OverviewTab({ responses }: { responses: SurveyResponse[] }) {
   )
 }
 
-export function AdminSurveyResponsesPage() {
+export function AdminSurveyResponsesPage({ embedded }: { embedded?: boolean }) {
   const role = useAuthStore((s) => s.role)
   const [responses, setResponses] = useState<SurveyResponse[]>([])
   const [loading, setLoading] = useState(true)
@@ -163,12 +163,14 @@ export function AdminSurveyResponsesPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
-      <AdminPageHero
-        icon={ClipboardList}
-        title="Survey Responses"
-        subtitle={`${responses.length} submission${responses.length !== 1 ? 's' : ''}`}
-        backTo="/admin"
-      />
+      {!embedded && (
+        <AdminPageHero
+          icon={ClipboardList}
+          title="Survey Responses"
+          subtitle={`${responses.length} submission${responses.length !== 1 ? 's' : ''}`}
+          backTo="/admin"
+        />
+      )}
 
       <div style={{ display: 'flex', gap: 0, padding: '0 var(--space-6)', borderBottom: '1px solid var(--color-border-subtle)' }}>
         {TABS.map((tab) => {

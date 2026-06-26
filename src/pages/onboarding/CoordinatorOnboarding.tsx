@@ -46,6 +46,22 @@ export function CoordinatorOnboarding() {
     if (!user) return
     setLoading(true)
 
+    // Validate org_id if present in URL (from an invite link)
+    if (inviteOrgId) {
+      const { data: org } = await supabase
+        .from('organizations')
+        .select('id')
+        .eq('id', inviteOrgId)
+        .maybeSingle()
+
+      if (!org) {
+        showToast({ type: 'error', title: 'Invalid invitation', body: 'This organization no longer exists or the invitation is invalid.' })
+        setTimeout(() => navigate('/'), 4000)
+        setLoading(false)
+        return
+      }
+    }
+
     let finalOrgId = isUpgrade ? null : inviteOrgId
 
     if (!finalOrgId) {

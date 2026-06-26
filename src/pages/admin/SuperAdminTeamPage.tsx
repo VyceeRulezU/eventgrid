@@ -63,7 +63,7 @@ export function SuperAdminTeamPage() {
   const loadData = useCallback(async () => {
     setLoading(true)
 
-    const [profilesRes, invitesRes] = await Promise.all([
+    const [profilesRes, invitesRes, superAdminsRes] = await Promise.all([
       supabase
         .from('profiles')
         .select('id, email, display_name, role, created_at, last_sign_in_at')
@@ -73,13 +73,38 @@ export function SuperAdminTeamPage() {
         .from('admin_invites')
         .select('*')
         .order('created_at', { ascending: false }),
+      supabase
+        .from('super_admins')
+        .select('user_id'),
     ])
 
     const all: AdminEntry[] = []
+    const profileIds = new Set<string>()
 
     if (profilesRes.data) {
       for (const m of profilesRes.data) {
+        profileIds.add(m.id)
         all.push({ ...m, status: 'active' as const, source: 'profile' as const })
+      }
+    }
+
+    // Check for ghost admins — users in super_admins but not returned by the profiles query
+    if (superAdminsRes.data) {
+      const ghostIds = superAdminsRes.data
+        .filter(sa => !profileIds.has(sa.user_id))
+        .map(sa => sa.user_id)
+
+      if (ghostIds.length > 0) {
+        const { data: ghostProfiles } = await supabase
+          .from('profiles')
+          .select('id, email, display_name, role, created_at, last_sign_in_at')
+          .in('id', ghostIds)
+
+        if (ghostProfiles) {
+          for (const m of ghostProfiles) {
+            all.push({ ...m, status: 'active' as const, source: 'profile' as const })
+          }
+        }
       }
     }
 
