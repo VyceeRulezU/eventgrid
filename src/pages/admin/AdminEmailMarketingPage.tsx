@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { Tabs, type TabItem } from '@/components/ui/Tabs'
-import { Mail, Plus, Send, Clock, CheckCircle, XCircle, FileText, Trash2, Sparkles, Loader2, CalendarDays, RefreshCw } from 'lucide-react'
+import { Mail, Plus, Send, Clock, CheckCircle, XCircle, FileText, Trash2, Sparkles, Loader2, CalendarDays, RefreshCw, Eye } from 'lucide-react'
 import { Checkbox } from '@/components/ui/Checkbox'
 import { CalendarModal } from '@/components/ui/CalendarModal'
 import { TimeModal } from '@/components/ui/TimeModal'
@@ -85,6 +85,7 @@ export function AdminEmailMarketingPage() {
   const [generating, setGenerating] = useState(false)
   const [syncing, setSyncing] = useState(false)
   const [sending, setSending] = useState<string | null>(null)
+  const [previewTemplate, setPreviewTemplate] = useState<EmailTemplate | null>(null)
   const [selectedCampaigns, setSelectedCampaigns] = useState<Set<string>>(new Set())
   const [page, setPage] = useState(0)
   const PAGE_SIZE = 12
@@ -481,11 +482,54 @@ export function AdminEmailMarketingPage() {
                       <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>{t.name}</div>
                       <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginTop: 2 }}>{t.subject}</div>
                     </div>
-                    <button className="btn btn-ghost btn-sm" onClick={() => handleDeleteTemplate(t.id)} style={{ color: 'var(--color-error)' }}>
-                      <Trash2 size={12} />
-                    </button>
+                    <div style={{ display: 'flex', gap: 'var(--space-1)' }}>
+                      <button className="btn btn-ghost btn-sm" onClick={() => setPreviewTemplate(t)} title="Preview">
+                        <Eye size={12} />
+                      </button>
+                      <button className="btn btn-ghost btn-sm" onClick={() => handleDeleteTemplate(t.id)} style={{ color: 'var(--color-error)' }}>
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* Preview modal */}
+            {previewTemplate && (
+              <div
+                style={{
+                  position: 'fixed', inset: 0, zIndex: 1000,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: 'rgba(0,0,0,0.7)', padding: 'var(--space-6)',
+                }}
+                onClick={() => setPreviewTemplate(null)}
+              >
+                <div
+                  style={{
+                    background: 'var(--color-surface-2)', borderRadius: 'var(--radius-lg)',
+                    border: '1px solid var(--color-border-subtle)',
+                    maxWidth: 660, width: '100%', maxHeight: '90vh',
+                    display: 'flex', flexDirection: 'column', overflow: 'hidden',
+                    boxShadow: '0 24px 80px rgba(0,0,0,0.5)',
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-4) var(--space-5)', borderBottom: '1px solid var(--color-border-subtle)' }}>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>{previewTemplate.name}</div>
+                      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>{previewTemplate.subject}</div>
+                    </div>
+                    <button className="btn btn-ghost btn-sm" onClick={() => setPreviewTemplate(null)}>&times;</button>
+                  </div>
+                  <div style={{ flex: 1, overflow: 'auto', background: '#0B1120', padding: 0 }}>
+                    <iframe
+                      srcDoc={previewTemplate.body_html}
+                      style={{ width: '100%', height: '600px', border: 'none', display: 'block' }}
+                      title="Email preview"
+                    />
+                  </div>
+                </div>
               </div>
             )}
           </div>
