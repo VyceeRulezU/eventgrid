@@ -8,10 +8,19 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+apps/*/node_modules
+packages/*/node_modules
+
 dist
 dist-ssr
+apps/*/dist
 *.local
 .env.test
+
+# Expo
+apps/mobile/.expo/
+apps/mobile/ios/
+apps/mobile/android/
 
 # Environment secrets — never commit these
 .env
