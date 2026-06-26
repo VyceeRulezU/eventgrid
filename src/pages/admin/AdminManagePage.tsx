@@ -939,37 +939,39 @@ export function AdminManagePage() {
         backTo="/admin"
       />
 
-      <Tabs
-        tabs={[
-          { key: 'planners', label: 'Planners', icon: <Users size={16} />, badge: planners.length },
-          { key: 'coordinators', label: 'Coordinators', icon: <Users size={16} />, badge: coordinators.length },
-          { key: 'events', label: 'Events', icon: <Calendar size={16} />, badge: events.length },
-          { key: 'payments', label: 'Payments', icon: <CreditCard size={16} />, badge: payments.length },
-          { key: 'users', label: 'All Users', icon: <Users size={16} />, badge: authUsers.length },
-        ]}
-        activeTab={activeTab}
-        onChange={(k) => { setActiveTab(k); setPage(0); setSelectedPerson(null); setSelectedPayment(null); setSelectedIds(new Set()); navigate(`/admin/manage?tab=${k}`, { replace: true }) }}
-      />
-
-      <div style={{ marginBottom: 'var(--space-3)', position: 'relative' }}>
-        <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)', pointerEvents: 'none' }} />
-        <input
-          type="text"
-          placeholder={`Search ${activeTab.replace('_', ' ')}...`}
-          value={searchQuery}
-          onChange={(e) => { setSearchQuery(e.target.value); setPage(0); setSelectedIds(new Set()) }}
-          className="input"
-          style={{ paddingLeft: 36, paddingRight: searchQuery ? 32 : 12 }}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 'var(--space-3)', flexWrap: 'wrap', marginBottom: 'var(--space-4)' }}>
+        <Tabs
+          tabs={[
+            { key: 'planners', label: 'Planners', icon: <Users size={16} />, badge: planners.length },
+            { key: 'coordinators', label: 'Coordinators', icon: <Users size={16} />, badge: coordinators.length },
+            { key: 'events', label: 'Events', icon: <Calendar size={16} />, badge: events.length },
+            { key: 'payments', label: 'Payments', icon: <CreditCard size={16} />, badge: payments.length },
+            { key: 'users', label: 'All Users', icon: <Users size={16} />, badge: authUsers.length },
+          ]}
+          activeTab={activeTab}
+          onChange={(k) => { setActiveTab(k); setPage(0); setSelectedPerson(null); setSelectedPayment(null); setSelectedIds(new Set()); navigate(`/admin/manage?tab=${k}`, { replace: true }) }}
         />
-        {searchQuery && (
-          <button
-            type="button"
-            style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', padding: 4, lineHeight: 0 }}
-            onClick={() => { setSearchQuery(''); setPage(0); setSelectedIds(new Set()) }}
-          >
-            <X size={14} />
-          </button>
-        )}
+
+        <div style={{ position: 'relative', flexShrink: 0, width: 250, maxWidth: '100%' }}>
+          <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)', pointerEvents: 'none' }} />
+          <input
+            type="text"
+            placeholder={`Search ${activeTab.replace('_', ' ')}...`}
+            value={searchQuery}
+            onChange={(e) => { setSearchQuery(e.target.value); setPage(0); setSelectedIds(new Set()) }}
+            className="input"
+            style={{ paddingLeft: 36, paddingRight: searchQuery ? 32 : 12 }}
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', padding: 4, lineHeight: 0 }}
+              onClick={() => { setSearchQuery(''); setPage(0); setSelectedIds(new Set()) }}
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
       </div>
 
       {loading ? (
