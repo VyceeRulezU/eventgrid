@@ -77,6 +77,7 @@ export function VendorOnboarding() {
     // Save onboarding completed and role in Supabase Auth user metadata
     const { error: authErr } = await supabase.auth.updateUser({
       data: {
+        role: 'vendor',
         onboarding_completed: true,
         vendor_category: category,
         instagram_handle: instagram.trim() || null,
