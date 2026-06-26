@@ -26,7 +26,7 @@ export function useMyTasks(userId: string) {
   const markDone = useCallback(async (taskId: string) => {
     await supabase
       .from('tasks')
-      .update({ status: 'done', completed_at: new Date().toISOString() })
+      .update({ status: 'done', completed_at: new Date().toISOString() } as any)
       .eq('id', taskId)
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: 'done', completed_at: new Date().toISOString() } : t))
   }, [])

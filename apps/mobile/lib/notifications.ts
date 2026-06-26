@@ -8,6 +8,8 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: false,
     shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 })
 
@@ -49,7 +51,7 @@ export async function registerForPushNotifications(userId: string): Promise<stri
 
   await supabase
     .from('profiles')
-    .update({ push_token: token })
+    .update({ push_token: token } as any)
     .eq('id', userId)
 
   return token

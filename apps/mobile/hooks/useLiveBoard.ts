@@ -73,7 +73,7 @@ export function useLiveBoard(eventId: string) {
   const updateStatus = useCallback(async (itemId: string, status: string, note: string) => {
     await supabase
       .from('live_board_items')
-      .update({ status, status_label: note || null })
+      .update({ status, status_label: note || null } as any)
       .eq('id', itemId)
   }, [])
 

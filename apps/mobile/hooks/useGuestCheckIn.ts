@@ -27,7 +27,7 @@ export function useGuestCheckIn(eventId: string) {
   const checkIn = useCallback(async (guestId: string) => {
     await supabase
       .from('guests')
-      .update({ checked_in: true, checked_in_at: new Date().toISOString() })
+      .update({ checked_in: true, checked_in_at: new Date().toISOString() } as any)
       .eq('id', guestId)
     setGuests(prev => prev.map(g => g.id === guestId ? { ...g, checked_in: true, checked_in_at: new Date().toISOString() } : g))
   }, [])

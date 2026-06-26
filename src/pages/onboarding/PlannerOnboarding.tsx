@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Upload, X, Info, Sparkles, ChevronRight, LogOut, ArrowLeft, Star, Check, Calendar, Users, User, Briefcase, Building2, MapPin, Target } from 'lucide-react'
+import { Upload, X, Info, Sparkles, ChevronRight, LogOut, ArrowLeft, Star, Check, Calendar, Users, User, Briefcase, Building2, MapPin, Target, ArrowUpCircle } from 'lucide-react'
 import { SEO } from '@/components/shared/SEO'
 import { supabase } from '@/lib/supabase'
 import { uploadFile } from '@/lib/storage'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
+import type { Profile } from '@/types'
 import styles from './Onboarding.module.css'
 
 const STEP_LABELS = ['Company Profile', 'Primary Focus', 'Secondary Services', 'Workspace Scale', 'Welcome']
@@ -93,16 +94,21 @@ export function PlannerOnboarding() {
   const [loading, setLoading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const user = useAuthStore((s) => s.user)
+  const profile = useAuthStore((s) => s.profile)
+  const setProfile = useAuthStore((s) => s.setProfile)
   const setOrg = useAuthStore((s) => s.setOrg)
   const showToast = useUIStore((s) => s.showToast)
   const navigate = useNavigate()
   const existingOrg = useAuthStore((s) => s.profile?.org_id)
 
+  const isUpgrade = !!existingOrg
+
   useEffect(() => {
-    if (existingOrg) {
-      navigate('/dashboard/planner', { replace: true })
+    if (isUpgrade) {
+      setStep(TOTAL_STEPS)
+      showToast({ type: 'info', title: 'Upgrading to Planner', body: 'Review and confirm to unlock financial features.' })
     }
-  }, [existingOrg, navigate])
+  }, [])
 
   const TOTAL_STEPS = 5
 
@@ -145,25 +151,59 @@ export function PlannerOnboarding() {
       }
     }
 
-    const { data: org, error } = await supabase
-      .rpc('create_org', {
-        p_name: orgName,
-        p_owner_id: user.id,
-        p_city: `${city}, ${state}`,
-        p_logo_url: logoUrl,
-      })
+    let orgId: string | null = null
+    let orgData: { id: string; name: string; logo_url: string | null; show_beta_label: boolean; owner_id: string | null } | null = null
 
-    if (error || !org) {
-      showToast({ type: 'error', title: 'Failed to create organization', body: error?.message })
+    if (isUpgrade && existingOrg) {
+      orgId = existingOrg
+    } else {
+      const { data: org, error: orgErr } = await supabase
+        .rpc('create_org', {
+          p_name: orgName,
+          p_owner_id: user.id,
+          p_city: `${city}, ${state}`,
+          p_logo_url: logoUrl,
+        })
+
+      if (orgErr || !org) {
+        showToast({ type: 'error', title: 'Failed to create organization', body: orgErr?.message })
+        setLoading(false)
+        return
+      }
+
+      const created = org as { id: string; name: string; logo_url: string | null }
+      orgId = created.id
+      orgData = { ...created, show_beta_label: true, owner_id: user.id }
+    }
+
+    // Update profile role to planner
+    const { error: roleErr } = await supabase
+      .from('profiles')
+      .update({ role: 'planner' })
+      .eq('id', user.id)
+
+    if (roleErr) {
+      showToast({ type: 'error', title: 'Role upgrade failed', body: roleErr.message })
       setLoading(false)
       return
     }
 
-    const orgData = { ...(org as { id: string; name: string; logo_url: string | null }), show_beta_label: true, owner_id: user.id }
+    // If upgrading from an existing org, fetch its data
+    if (isUpgrade && !orgData) {
+      const { data: existing } = await supabase
+        .from('organizations')
+        .select('id, name, logo_url, show_beta_label, owner_id')
+        .eq('id', existingOrg)
+        .single()
+      if (existing) {
+        orgData = { ...existing, show_beta_label: existing.show_beta_label ?? true }
+      }
+    }
 
-    // Save onboarding completed in Supabase Auth user metadata
+    // Update auth metadata with new role + onboarding data
     const { error: authErr } = await supabase.auth.updateUser({
       data: {
+        role: 'planner',
         onboarding_completed: true,
         planner_experience: experience,
         secondary_services: secondaryServices,
@@ -176,8 +216,15 @@ export function PlannerOnboarding() {
       showToast({ type: 'error', title: 'Session sync failed', body: authErr.message })
     }
 
-    setOrg(orgData)
-    showToast({ type: 'success', title: 'Welcome to NaliGrid!', body: 'Organization set up successfully.' })
+    // Sync auth store so features unlock immediately (no refresh needed)
+    if (orgData) {
+      setOrg(orgData)
+    }
+    if (profile) {
+      setProfile({ ...profile, role: 'planner', org_id: orgId } as Profile)
+    }
+
+    showToast({ type: 'success', title: 'Welcome to NaliGrid!', body: 'Your account has been upgraded to Planner.' })
     navigate('/dashboard/planner')
     setLoading(false)
   }
@@ -520,7 +567,7 @@ export function PlannerOnboarding() {
             </div>
           )}
 
-          {step === 5 && (
+          {step === 5 && !isUpgrade && (
             <div>
               <div className={styles.infoBox}>
                 <Sparkles size={16} className={styles.infoIcon} />
@@ -655,6 +702,66 @@ export function PlannerOnboarding() {
             </div>
           )}
 
+          {step === 5 && isUpgrade && (
+            <div>
+              <div className={styles.infoBox}>
+                <ArrowUpCircle size={16} className={styles.infoIcon} />
+                <p style={{ margin: 0 }}>
+                  You are upgrading your account from Coordinator to Planner. Financial features, budget tools, and client portals will be unlocked immediately.
+                </p>
+              </div>
+              <h2 className={styles.question}>Confirm Upgrade to Planner</h2>
+              <div className={styles.summaryCard}>
+                <div className={styles.summaryHeader}>
+                  <div className={styles.summaryLogoFallback}>UP</div>
+                  <div className={styles.summaryBusinessInfo}>
+                    <h3 className={styles.summaryTitle}>Coordinator → Planner</h3>
+                    <div className={styles.summaryLocation}>
+                      <ArrowUpCircle size={12} className={styles.locationIcon} />
+                      <span>Full financial access, budget management, client portals</span>
+                    </div>
+                  </div>
+                  <div className={styles.summaryBadge}>
+                    <span className={styles.summaryStatusDot} />
+                    Upgrade Ready
+                  </div>
+                </div>
+                <div className={styles.summaryDivider} />
+                <div className={styles.summaryGrid}>
+                  <div className={styles.summaryGridItem}>
+                    <span className={styles.summaryItemLabel}>New Permissions</span>
+                    <div className={styles.summaryItemValueContainer}>
+                      <Check size={14} style={{ color: 'var(--color-accent)' }} />
+                      <span className={styles.summaryItemValue}>Financial Dashboard</span>
+                    </div>
+                    <div className={styles.summaryItemValueContainer}>
+                      <Check size={14} style={{ color: 'var(--color-accent)' }} />
+                      <span className={styles.summaryItemValue}>Budget Templates & Tracking</span>
+                    </div>
+                    <div className={styles.summaryItemValueContainer}>
+                      <Check size={14} style={{ color: 'var(--color-accent)' }} />
+                      <span className={styles.summaryItemValue}>Client Collaboration Portals</span>
+                    </div>
+                    <div className={styles.summaryItemValueContainer}>
+                      <Check size={14} style={{ color: 'var(--color-accent)' }} />
+                      <span className={styles.summaryItemValue}>Event Financial Reports</span>
+                    </div>
+                    <div className={styles.summaryItemValueContainer}>
+                      <Check size={14} style={{ color: 'var(--color-accent)' }} />
+                      <span className={styles.summaryItemValue}>Team & Vendor Management</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className={styles.launchDisclaimer}>
+                <Sparkles size={14} className={styles.disclaimerIcon} />
+                <p style={{ margin: 0 }}>
+                  Your existing organization and events will remain unchanged. Only your role and available features will be upgraded.
+                </p>
+              </div>
+            </div>
+          )}
+
         </div>
 
         <div className={styles.navRow}>
@@ -668,7 +775,7 @@ export function PlannerOnboarding() {
             className={styles.continueBtn}
             disabled={loading || (step === 1 && !orgName.trim())}
           >
-            {loading ? 'Launching Workspace…' : step === TOTAL_STEPS ? 'Launch Workspace' : (
+            {loading ? 'Upgrading…' : step === TOTAL_STEPS ? (isUpgrade ? 'Confirm Upgrade' : 'Launch Workspace') : (
               <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 Continue <ChevronRight size={16} />
               </span>

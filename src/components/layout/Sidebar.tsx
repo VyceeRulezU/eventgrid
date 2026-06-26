@@ -252,7 +252,7 @@ export function Sidebar() {
         </nav>
         <div className={styles.scrollIndicator} aria-hidden="true" />
 
-        {(role === 'team_member' || role === 'client' || (role === 'coordinator' && org && user && org.owner_id !== user.id)) && (
+        {(role === 'team_member' || role === 'client' || role === 'coordinator') && (
           <div className={styles.upgradeBanner}>
             <div className={styles.upgradeBannerTitle}>Want more capabilities?</div>
             <div className={styles.upgradeBannerText}>Upgrade to run events or offer services.</div>

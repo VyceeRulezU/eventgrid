@@ -19,6 +19,7 @@ export function CoordinatorOnboarding() {
   const [loading, setLoading] = useState(false)
   const user = useAuthStore((s) => s.user)
   const profile = useAuthStore((s) => s.profile)
+  const setProfile = useAuthStore((s) => s.setProfile)
   const showToast = useUIStore((s) => s.showToast)
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -106,9 +107,10 @@ export function CoordinatorOnboarding() {
       return
     }
 
-    // Save onboarding completed in Supabase Auth user metadata
+    // Save onboarding completed + role in Supabase Auth user metadata
     const { error: authErr } = await supabase.auth.updateUser({
       data: {
+        role: 'coordinator',
         onboarding_completed: true,
         specialization: specialization,
       }
@@ -125,6 +127,12 @@ export function CoordinatorOnboarding() {
         .eq('id', finalOrgId)
         .single()
       if (orgData) setOrg({ ...orgData, show_beta_label: orgData.show_beta_label ?? true, owner_id: orgData.owner_id })
+    }
+
+    // Sync auth store so feature gating updates immediately
+    const role = 'coordinator' as const
+    if (profile) {
+      setProfile({ ...profile, role, org_id: finalOrgId } as import('@/types').Profile)
     }
 
     showToast({ type: 'success', title: 'Profile completed!', body: 'Welcome to the NaliGrid team.' })

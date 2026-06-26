@@ -33,7 +33,7 @@ export default function StationDetailScreen() {
   const [showIssueForm, setShowIssueForm] = useState(false)
 
   const handleUpdateStatus = async () => {
-    await supabase.from('live_board_items').update({ status, status_label: note || null }).eq('id', stationId)
+    await supabase.from('live_board_items').update({ status, status_label: note || null } as any).eq('id', stationId)
     router.back()
   }
 
@@ -46,7 +46,7 @@ export default function StationDetailScreen() {
       description: issueDesc || null,
       severity,
       raised_by: 'current_user_id',
-    })
+    } as any)
     router.back()
   }
 
@@ -87,7 +87,7 @@ export default function StationDetailScreen() {
       <View style={styles.divider} />
 
       <TouchableOpacity onPress={() => setShowIssueForm(!showIssueForm)}>
-        <Text style={styles.flagLink}>{showIssueForm ? 'Cancel' : '🚩 Flag Issue'}</Text>
+        <Text style={styles.flagLink}>{showIssueForm ? 'Cancel' : 'Flag Issue'}</Text>
       </TouchableOpacity>
 
       {showIssueForm ? (

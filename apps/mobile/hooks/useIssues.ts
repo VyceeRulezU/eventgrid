@@ -26,7 +26,7 @@ export function useIssues(eventId: string) {
   const resolveIssue = useCallback(async (issueId: string, resolution: string, resolvedBy: string) => {
     await supabase
       .from('issues')
-      .update({ resolved_at: new Date().toISOString(), resolution, resolved_by: resolvedBy })
+      .update({ resolved_at: new Date().toISOString(), resolution, resolved_by: resolvedBy } as any)
       .eq('id', issueId)
     setIssues(prev => prev.map(i => i.id === issueId ? { ...i, resolved_at: new Date().toISOString(), resolution, resolved_by: resolvedBy } : i))
   }, [])
