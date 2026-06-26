@@ -1,4 +1,5 @@
 import { Tabs } from 'expo-router'
+import { Radio, CheckSquare, Users, Bell } from 'lucide-react-native'
 import { colors } from '../../constants/tokens'
 
 export default function AppLayout() {
@@ -23,7 +24,31 @@ export default function AppLayout() {
     >
       <Tabs.Screen
         name="events"
-        options={{ title: 'Events' }}
+        options={{
+          title: 'Events',
+          tabBarIcon: ({ color, size }) => <Radio size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="tasks"
+        options={{
+          title: 'My Tasks',
+          tabBarIcon: ({ color, size }) => <CheckSquare size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="check-in"
+        options={{
+          title: 'Check-In',
+          tabBarIcon: ({ color, size }) => <Users size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="notifications"
+        options={{
+          title: 'Alerts',
+          tabBarIcon: ({ color, size }) => <Bell size={size} color={color} />,
+        }}
       />
     </Tabs>
   )
