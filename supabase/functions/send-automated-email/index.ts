@@ -4,7 +4,6 @@ const BREVO_API_KEY = Deno.env.get('BREVO_API_KEY')!
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const FROM_EMAIL = Deno.env.get('FROM_EMAIL') ?? 'NaliGrid <noreply@naligrid.com>'
-const WEBHOOK_SECRET = Deno.env.get('AUTOMATED_EMAIL_SECRET') ?? ''
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
@@ -23,16 +22,6 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
 
   try {
-    if (WEBHOOK_SECRET) {
-      const secret = req.headers.get('x-webhook-secret')
-      if (secret !== WEBHOOK_SECRET) {
-        return new Response(
-          JSON.stringify({ error: 'Unauthorized' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-        )
-      }
-    }
-
     const body: SendRequest = await req.json()
     const { template_name, to, variables = {} } = body
 
@@ -83,6 +72,7 @@ Deno.serve(async (req) => {
         to: [{ email: to.email, name: to.name || to.email.split('@')[0] }],
         subject,
         htmlContent: html,
+        options: { trackLinks: 'none' },
       }),
     })
 

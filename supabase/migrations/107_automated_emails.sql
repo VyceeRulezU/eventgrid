@@ -22,7 +22,6 @@ AS $$
 DECLARE
   creator_email text;
   creator_name text;
-  webhook_secret text;
 BEGIN
   SELECT email, display_name INTO creator_email, creator_name
   FROM public.profiles
@@ -32,19 +31,17 @@ BEGIN
     RETURN NEW;
   END IF;
 
-  webhook_secret := COALESCE(current_setting('app.settings.automated_email_secret', true), '');
-
   PERFORM
     net.http_post(
       url := public.supabase_edge_url() || '/send-automated-email',
       body := jsonb_build_object(
         'template_name', 'Congratulations - First Event Created',
         'to', jsonb_build_object('email', creator_email, 'name', creator_name),
-        'variables', jsonb_build_object('{{event_name}}', NEW.name)
-      ),
-      headers := jsonb_build_object(
-        'Content-Type', 'application/json',
-        'x-webhook-secret', webhook_secret
+        'variables', jsonb_build_object(
+          '{{event_name}}', NEW.name,
+          '{{event_id}}', NEW.id::text,
+          '{{event_slug}}', COALESCE(NEW.slug, NEW.id::text)
+        )
       )
     );
 
@@ -62,7 +59,6 @@ AS $$
 DECLARE
   creator_email text;
   creator_name text;
-  webhook_secret text;
 BEGIN
   IF OLD.status IS DISTINCT FROM 'active' AND NEW.status = 'active' THEN
     SELECT email, display_name INTO creator_email, creator_name
@@ -70,20 +66,18 @@ BEGIN
     WHERE id = NEW.created_by;
 
     IF creator_email IS NOT NULL THEN
-      webhook_secret := COALESCE(current_setting('app.settings.automated_email_secret', true), '');
-
       PERFORM
         net.http_post(
           url := public.supabase_edge_url() || '/send-automated-email',
-          body := jsonb_build_object(
-            'template_name', 'Congratulations - Event is Now Live',
-            'to', jsonb_build_object('email', creator_email, 'name', creator_name),
-            'variables', jsonb_build_object('{{event_name}}', NEW.name)
-          ),
-          headers := jsonb_build_object(
-            'Content-Type', 'application/json',
-            'x-webhook-secret', webhook_secret
-          )
+      body := jsonb_build_object(
+        'template_name', 'Congratulations - Event is Now Live',
+        'to', jsonb_build_object('email', creator_email, 'name', creator_name),
+        'variables', jsonb_build_object(
+          '{{event_name}}', NEW.name,
+          '{{event_id}}', NEW.id::text,
+          '{{event_slug}}', COALESCE(NEW.slug, NEW.id::text)
+        )
+      )
         );
     END IF;
   END IF;
@@ -114,7 +108,6 @@ SET search_path = ''
 AS $$
 DECLARE
   rec record;
-  webhook_secret text := COALESCE(current_setting('app.settings.automated_email_secret', true), '');
   result jsonb;
   sent integer := 0;
   failed integer := 0;
@@ -123,7 +116,9 @@ BEGIN
     SELECT DISTINCT ON (p.id)
       p.email,
       p.display_name,
-      e.name AS event_name
+      e.name AS event_name,
+      e.id AS event_id,
+      COALESCE(e.slug, e.id::text) AS event_slug
     FROM public.events e
     JOIN public.profiles p ON p.id = e.created_by
     WHERE e.event_date::date = (CURRENT_DATE + 1)
@@ -137,13 +132,13 @@ BEGIN
         body := jsonb_build_object(
           'template_name', 'Friday Reminder - Weekend Event Prep',
           'to', jsonb_build_object('email', rec.email, 'name', rec.display_name),
-          'variables', jsonb_build_object('{{event_name}}', rec.event_name)
-        ),
-        headers := jsonb_build_object(
-          'Content-Type', 'application/json',
-          'x-webhook-secret', webhook_secret
+          'variables', jsonb_build_object(
+            '{{event_name}}', rec.event_name,
+            '{{event_id}}', rec.event_id::text,
+          '{{event_slug}}', rec.event_slug
         )
-      );
+      )
+    );
 
     sent := sent + 1;
   END LOOP;

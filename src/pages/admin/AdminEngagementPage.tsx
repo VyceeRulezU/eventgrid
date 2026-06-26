@@ -7,13 +7,13 @@ import { AdminReferralsPage } from './AdminReferralsPage'
 import { AdminEmailMarketingPage } from './AdminEmailMarketingPage'
 
 const tabs: TabItem<string>[] = [
-  { key: 'surveys', label: 'Survey Responses', icon: <ClipboardList size={16} /> },
-  { key: 'referrals', label: 'Referrals', icon: <Gift size={16} /> },
   { key: 'email', label: 'Email Marketing', icon: <Mail size={16} /> },
+  { key: 'referrals', label: 'Referrals', icon: <Gift size={16} /> },
+  { key: 'surveys', label: 'Survey Responses', icon: <ClipboardList size={16} /> },
 ]
 
 export function AdminEngagementPage() {
-  const [activeTab, setActiveTab] = useState('surveys')
+  const [activeTab, setActiveTab] = useState('email')
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>

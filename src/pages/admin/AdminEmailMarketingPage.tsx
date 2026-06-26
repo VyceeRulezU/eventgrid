@@ -50,9 +50,9 @@ const STATUS_COLORS: Record<string, string> = {
 }
 
 const campaignTabs: TabItem<string>[] = [
+  { key: 'new', label: 'New Campaign', icon: <Plus size={16} /> },
   { key: 'campaigns', label: 'Campaigns', icon: <Mail size={16} /> },
   { key: 'templates', label: 'Templates', icon: <FileText size={16} /> },
-  { key: 'new', label: 'New Campaign', icon: <Plus size={16} /> },
 ]
 
 function formatDate(d: string | null) {
@@ -63,7 +63,7 @@ function formatDate(d: string | null) {
 export function AdminEmailMarketingPage() {
   const user = useAuthStore((s) => s.user)
   const showToast = useUIStore((s) => s.showToast)
-  const [activeTab, setActiveTab] = useState('campaigns')
+  const [activeTab, setActiveTab] = useState('new')
 
   // Campaigns list
   const [campaigns, setCampaigns] = useState<EmailCampaign[]>([])
@@ -94,6 +94,8 @@ export function AdminEmailMarketingPage() {
   const allSelected = pageData.length > 0 && pageData.every(c => selectedCampaigns.has(c.id))
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [showTimePicker, setShowTimePicker] = useState(false)
+  const [templateNameModal, setTemplateNameModal] = useState(false)
+  const [templateNameInput, setTemplateNameInput] = useState('')
 
   function toggleSelectCampaign(id: string) {
     const next = new Set(selectedCampaigns)
@@ -332,8 +334,14 @@ export function AdminEmailMarketingPage() {
       showToast({ type: 'error', title: 'Missing fields', body: 'Subject and content are required.' })
       return
     }
-    const name = prompt('Template name:')
+    setTemplateNameInput('')
+    setTemplateNameModal(true)
+  }
+
+  const handleSaveTemplateConfirm = async () => {
+    const name = templateNameInput.trim()
     if (!name) return
+    setTemplateNameModal(false)
 
     const { error } = await supabase.from('email_templates').insert({
       name,
@@ -368,6 +376,154 @@ export function AdminEmailMarketingPage() {
       </div>
 
       <div style={{ flex: 1, minHeight: 0, overflow: 'auto', padding: 'var(--space-6)' }}>
+        {/* ── NEW CAMPAIGN TAB ── */}
+        {activeTab === 'new' && (
+          <div style={{ maxWidth: 640 }}>
+            <div style={{ marginBottom: 'var(--space-4)' }}>
+              <label style={{ display: 'block', fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Content Mode</label>
+              <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                {(['manual', 'template', 'ai'] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    className={`btn btn-sm ${contentMode === mode ? 'btn-primary' : 'btn-secondary'}`}
+                    onClick={() => { setContentMode(mode); setSelectedTemplateId(''); setAiPrompt('') }}
+                  >
+                    {mode === 'manual' ? 'Manual' : mode === 'template' ? 'From Template' : 'AI-Generated'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {contentMode === 'template' && templates.length > 0 && (
+              <div style={{ marginBottom: 'var(--space-4)' }}>
+                <label style={{ display: 'block', fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Select Template</label>
+                <DropdownMenu
+                  trigger={
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                      <FileText size={14} />
+                      {selectedTemplateId
+                        ? templates.find(t => t.id === selectedTemplateId)?.name || 'Select template'
+                        : 'Select template'}
+                    </span>
+                  }
+                  items={templates.map(t => ({ label: t.name, value: t.id, description: t.subject }))}
+                  onSelect={(item) => handleTemplateSelect(item.value)}
+                />
+              </div>
+            )}
+
+            {contentMode === 'ai' && (
+              <div style={{ marginBottom: 'var(--space-4)' }}>
+                <label style={{ display: 'block', fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Describe what you want to write about</label>
+                <textarea
+                  className="input"
+                  rows={3}
+                  value={aiPrompt}
+                  onChange={(e) => setAiPrompt(e.target.value)}
+                  placeholder="e.g. A weekly newsletter about new features, tips for event planners, and upcoming webinars"
+                  style={{ width: '100%', resize: 'vertical' }}
+                />
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={handleGenerateAi}
+                  disabled={generating || !aiPrompt.trim()}
+                  style={{ marginTop: 'var(--space-2)', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                >
+                  {generating ? <Loader2 size={14} className="spin" /> : <Sparkles size={14} />}
+                  {generating ? 'Generating...' : 'Generate with AI'}
+                </button>
+              </div>
+            )}
+
+            <div style={{ marginBottom: 'var(--space-4)' }}>
+              <label style={{ display: 'block', fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Subject</label>
+              <input
+                className="input"
+                type="text"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                placeholder="Email subject line"
+                style={{ width: '100%' }}
+              />
+            </div>
+
+            <div style={{ marginBottom: 'var(--space-4)' }}>
+              <label style={{ display: 'block', fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Content (HTML)</label>
+              <textarea
+                className="input"
+                rows={12}
+                value={bodyHtml}
+                onChange={(e) => setBodyHtml(e.target.value)}
+                placeholder="<h1>Your email content here...</h1>"
+                style={{ width: '100%', resize: 'vertical', fontFamily: 'monospace', fontSize: 'var(--text-xs)' }}
+              />
+            </div>
+
+            <div style={{ marginBottom: 'var(--space-4)' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>
+                <Checkbox
+                  checked={!!scheduleDate}
+                  onChange={(e) => { if (!e.target.checked) { setScheduleDate(''); setScheduleTime('') } else { setScheduleDate(new Date().toISOString().split('T')[0]) }}}
+                />
+                Schedule for later
+              </label>
+              {scheduleDate && (
+                <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                  <div style={{ flex: 1 }}>
+                    <button
+                      type="button"
+                      className="input"
+                      style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer', textAlign: 'left', justifyContent: 'flex-start', width: '100%' }}
+                      onClick={() => setShowDatePicker(true)}
+                    >
+                      <CalendarDays size={14} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
+                      <span style={{ color: scheduleDate ? 'var(--color-text-primary)' : 'var(--color-text-muted)' }}>
+                        {scheduleDate
+                          ? new Date(scheduleDate + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                          : 'Select date'}
+                      </span>
+                    </button>
+                    <CalendarModal
+                      open={showDatePicker}
+                      value={scheduleDate}
+                      onChange={(d) => { setScheduleDate(d); setShowDatePicker(false) }}
+                      onClose={() => setShowDatePicker(false)}
+                    />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <button
+                      type="button"
+                      className="input"
+                      style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer', textAlign: 'left', justifyContent: 'flex-start', width: '100%' }}
+                      onClick={() => setShowTimePicker(true)}
+                    >
+                      <Clock size={14} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
+                      <span style={{ color: scheduleTime ? 'var(--color-text-primary)' : 'var(--color-text-muted)' }}>
+                        {scheduleTime || 'Select time'}
+                      </span>
+                    </button>
+                    <TimeModal
+                      open={showTimePicker}
+                      value={scheduleTime || '09:00'}
+                      onChange={(t) => { setScheduleTime(t); setShowTimePicker(false) }}
+                      onClose={() => setShowTimePicker(false)}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+              <button className="btn btn-primary" onClick={() => handleSaveCampaign(scheduleDate ? 'scheduled' : 'draft')} disabled={saving}>
+                {saving ? 'Saving...' : scheduleDate ? 'Schedule Campaign' : 'Save as Draft'}
+              </button>
+              <button className="btn btn-secondary" onClick={handleSaveTemplate} disabled={saving}>
+                <FileText size={14} /> Save as Template
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* ── CAMPAIGNS TAB ── */}
         {activeTab === 'campaigns' && (
           <div>
@@ -535,150 +691,45 @@ export function AdminEmailMarketingPage() {
           </div>
         )}
 
-        {/* ── NEW CAMPAIGN TAB ── */}
-        {activeTab === 'new' && (
-          <div style={{ maxWidth: 640 }}>
-            <div style={{ marginBottom: 'var(--space-4)' }}>
-              <label style={{ display: 'block', fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Content Mode</label>
-              <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-                {(['manual', 'template', 'ai'] as const).map((mode) => (
-                  <button
-                    key={mode}
-                    className={`btn btn-sm ${contentMode === mode ? 'btn-primary' : 'btn-secondary'}`}
-                    onClick={() => { setContentMode(mode); setSelectedTemplateId(''); setAiPrompt('') }}
-                  >
-                    {mode === 'manual' ? 'Manual' : mode === 'template' ? 'From Template' : 'AI-Generated'}
-                  </button>
-                ))}
+        {/* Template name modal */}
+        {templateNameModal && (
+          <div
+            style={{
+              position: 'fixed', inset: 0, zIndex: 1000,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(0,0,0,0.7)', padding: 'var(--space-6)',
+            }}
+            onClick={() => setTemplateNameModal(false)}
+          >
+            <div
+              style={{
+                background: 'var(--color-surface-2)', borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--color-border-subtle)',
+                maxWidth: 420, width: '100%',
+                boxShadow: '0 24px 80px rgba(0,0,0,0.5)',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ padding: 'var(--space-5) var(--space-5) var(--space-4)' }}>
+                <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 600, color: '#F9FAFB' }}>Save as Template</h3>
+                <p style={{ margin: 0, fontSize: '13px', color: '#9CA3AF' }}>Enter a name for this template.</p>
               </div>
-            </div>
-
-            {contentMode === 'template' && templates.length > 0 && (
-              <div style={{ marginBottom: 'var(--space-4)' }}>
-                <label style={{ display: 'block', fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Select Template</label>
-                <DropdownMenu
-                  trigger={
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-                      <FileText size={14} />
-                      {selectedTemplateId
-                        ? templates.find(t => t.id === selectedTemplateId)?.name || 'Select template'
-                        : 'Select template'}
-                    </span>
-                  }
-                  items={templates.map(t => ({ label: t.name, value: t.id, description: t.subject }))}
-                  onSelect={(item) => handleTemplateSelect(item.value)}
-                />
-              </div>
-            )}
-
-            {contentMode === 'ai' && (
-              <div style={{ marginBottom: 'var(--space-4)' }}>
-                <label style={{ display: 'block', fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Describe what you want to write about</label>
-                <textarea
+              <div style={{ padding: '0 var(--space-5) var(--space-4)' }}>
+                <input
                   className="input"
-                  rows={3}
-                  value={aiPrompt}
-                  onChange={(e) => setAiPrompt(e.target.value)}
-                  placeholder="e.g. A weekly newsletter about new features, tips for event planners, and upcoming webinars"
-                  style={{ width: '100%', resize: 'vertical' }}
+                  type="text"
+                  value={templateNameInput}
+                  onChange={(e) => setTemplateNameInput(e.target.value)}
+                  placeholder="Template name"
+                  style={{ width: '100%' }}
+                  autoFocus
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleSaveTemplateConfirm() }}
                 />
-                <button
-                  className="btn btn-secondary btn-sm"
-                  onClick={handleGenerateAi}
-                  disabled={generating || !aiPrompt.trim()}
-                  style={{ marginTop: 'var(--space-2)', display: 'inline-flex', alignItems: 'center', gap: 4 }}
-                >
-                  {generating ? <Loader2 size={14} className="spin" /> : <Sparkles size={14} />}
-                  {generating ? 'Generating...' : 'Generate with AI'}
-                </button>
               </div>
-            )}
-
-            <div style={{ marginBottom: 'var(--space-4)' }}>
-              <label style={{ display: 'block', fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Subject</label>
-              <input
-                className="input"
-                type="text"
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                placeholder="Email subject line"
-                style={{ width: '100%' }}
-              />
-            </div>
-
-            <div style={{ marginBottom: 'var(--space-4)' }}>
-              <label style={{ display: 'block', fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Content (HTML)</label>
-              <textarea
-                className="input"
-                rows={12}
-                value={bodyHtml}
-                onChange={(e) => setBodyHtml(e.target.value)}
-                placeholder="<h1>Your email content here...</h1>"
-                style={{ width: '100%', resize: 'vertical', fontFamily: 'monospace', fontSize: 'var(--text-xs)' }}
-              />
-            </div>
-
-            <div style={{ marginBottom: 'var(--space-4)' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>
-                <Checkbox
-                  checked={!!scheduleDate}
-                  onChange={(e) => { if (!e.target.checked) { setScheduleDate(''); setScheduleTime('') } else { setScheduleDate(new Date().toISOString().split('T')[0]) }}}
-                />
-                Schedule for later
-              </label>
-              {scheduleDate && (
-                <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-                  <div style={{ flex: 1 }}>
-                    <button
-                      type="button"
-                      className="input"
-                      style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer', textAlign: 'left', justifyContent: 'flex-start', width: '100%' }}
-                      onClick={() => setShowDatePicker(true)}
-                    >
-                      <CalendarDays size={14} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
-                      <span style={{ color: scheduleDate ? 'var(--color-text-primary)' : 'var(--color-text-muted)' }}>
-                        {scheduleDate
-                          ? new Date(scheduleDate + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-                          : 'Select date'}
-                      </span>
-                    </button>
-                    <CalendarModal
-                      open={showDatePicker}
-                      value={scheduleDate}
-                      onChange={(d) => { setScheduleDate(d); setShowDatePicker(false) }}
-                      onClose={() => setShowDatePicker(false)}
-                    />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <button
-                      type="button"
-                      className="input"
-                      style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer', textAlign: 'left', justifyContent: 'flex-start', width: '100%' }}
-                      onClick={() => setShowTimePicker(true)}
-                    >
-                      <Clock size={14} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
-                      <span style={{ color: scheduleTime ? 'var(--color-text-primary)' : 'var(--color-text-muted)' }}>
-                        {scheduleTime || 'Select time'}
-                      </span>
-                    </button>
-                    <TimeModal
-                      open={showTimePicker}
-                      value={scheduleTime || '09:00'}
-                      onChange={(t) => { setScheduleTime(t); setShowTimePicker(false) }}
-                      onClose={() => setShowTimePicker(false)}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-              <button className="btn btn-primary" onClick={() => handleSaveCampaign(scheduleDate ? 'scheduled' : 'draft')} disabled={saving}>
-                {saving ? 'Saving...' : scheduleDate ? 'Schedule Campaign' : 'Save as Draft'}
-              </button>
-              <button className="btn btn-secondary" onClick={handleSaveTemplate} disabled={saving}>
-                <FileText size={14} /> Save as Template
-              </button>
+              <div style={{ display: 'flex', gap: 'var(--space-2)', justifyContent: 'flex-end', padding: '0 var(--space-5) var(--space-5)' }}>
+                <button className="btn btn-secondary btn-sm" onClick={() => setTemplateNameModal(false)}>Cancel</button>
+                <button className="btn btn-primary btn-sm" onClick={handleSaveTemplateConfirm} disabled={!templateNameInput.trim()}>Save</button>
+              </div>
             </div>
           </div>
         )}
