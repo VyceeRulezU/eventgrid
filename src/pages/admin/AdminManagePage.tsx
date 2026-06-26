@@ -5,7 +5,7 @@ import { useUIStore } from '@/store/ui.store'
 import { useNavigate } from 'react-router-dom'
 import { Tabs } from '@/components/ui/Tabs'
 import { Checkbox } from '@/components/ui/Checkbox'
-import { Calendar, Users, Building, CreditCard, Eye, ExternalLink, Pencil, Trash2, X } from 'lucide-react'
+import { Calendar, Users, Building, CreditCard, Eye, ExternalLink, Pencil, Trash2, X, Search } from 'lucide-react'
 import { EVENT_FEE_KOBO } from '@/lib/pricing'
 import { AdminPageHero } from '@/components/shared/AdminPageHero'
 import styles from './AdminManagePage.module.css'
@@ -298,6 +298,7 @@ export function AdminManagePage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [selectedPayment, setSelectedPayment] = useState<PaymentRow | null>(null)
   const [eventFilter, setEventFilter] = useState<string>('all')
+  const [searchQuery, setSearchQuery] = useState('')
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -535,7 +536,20 @@ export function AdminManagePage() {
   const filteredEvents = activeTab === 'events' && eventFilter !== 'all'
     ? events.filter(e => e.creator_role === eventFilter)
     : events
-  const currentData = activeTab === 'planners' ? planners : activeTab === 'coordinators' ? coordinators : activeTab === 'payments' ? payments : filteredEvents
+
+  const matchesSearch = (item: Record<string, any>, fields: string[]) => {
+    if (!searchQuery) return true
+    const q = searchQuery.toLowerCase()
+    return fields.some(f => String(item[f] ?? '').toLowerCase().includes(q))
+  }
+
+  const filteredPlanners = planners.filter(p => matchesSearch(p, ['display_name', 'email', 'phone', 'org_name']))
+  const filteredCoordinators = coordinators.filter(p => matchesSearch(p, ['display_name', 'email', 'phone', 'org_name']))
+  const filteredEventsForTab = filteredEvents.filter(e => matchesSearch(e, ['name', 'creator_name', 'org_name']))
+  const filteredPayments = payments.filter(p => matchesSearch(p, ['event_name', 'organization', 'creator_name']))
+  const filteredAuthUsers = authUsers.filter(u => matchesSearch(u, ['email']))
+
+  const currentData = activeTab === 'planners' ? filteredPlanners : activeTab === 'coordinators' ? filteredCoordinators : activeTab === 'payments' ? filteredPayments : filteredEventsForTab
   const totalItems = currentData.length
   const totalPages = Math.ceil(totalItems / PAGE_SIZE)
   const pageData = currentData.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
@@ -937,14 +951,35 @@ export function AdminManagePage() {
         onChange={(k) => { setActiveTab(k); setPage(0); setSelectedPerson(null); setSelectedPayment(null); setSelectedIds(new Set()); navigate(`/admin/manage?tab=${k}`, { replace: true }) }}
       />
 
+      <div style={{ marginBottom: 'var(--space-3)', position: 'relative' }}>
+        <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)', pointerEvents: 'none' }} />
+        <input
+          type="text"
+          placeholder={`Search ${activeTab.replace('_', ' ')}...`}
+          value={searchQuery}
+          onChange={(e) => { setSearchQuery(e.target.value); setPage(0); setSelectedIds(new Set()) }}
+          className="input"
+          style={{ paddingLeft: 36, paddingRight: searchQuery ? 32 : 12 }}
+        />
+        {searchQuery && (
+          <button
+            type="button"
+            style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', padding: 4, lineHeight: 0 }}
+            onClick={() => { setSearchQuery(''); setPage(0); setSelectedIds(new Set()) }}
+          >
+            <X size={14} />
+          </button>
+        )}
+      </div>
+
       {loading ? (
         <div className={styles.loadingGrid}>
           {[1,2,3,4,5].map(i => <div key={i} className="skeleton skeleton-card" style={{ height: 56 }} />)}
         </div>
       ) : activeTab === 'planners' ? (
-        renderPersonTable(planners, 'planners')
+        renderPersonTable(filteredPlanners, 'planners')
       ) : activeTab === 'coordinators' ? (
-        renderPersonTable(coordinators, 'coordinators')
+        renderPersonTable(filteredCoordinators, 'coordinators')
       ) : activeTab === 'payments' ? (
         renderPaymentsTable()
       ) : activeTab === 'users' ? (
@@ -1015,12 +1050,12 @@ export function AdminManagePage() {
                 <tr>
                   <th className={`${styles.th} ${styles.thCheck}`}>
                     <Checkbox
-                      checked={authUsers.length > 0 && authUsers.every(u => selectedIds.has(u.id))}
+                      checked={filteredAuthUsers.length > 0 && filteredAuthUsers.every(u => selectedIds.has(u.id))}
                       onChange={() => {
-                        if (authUsers.every(u => selectedIds.has(u.id))) {
+                        if (filteredAuthUsers.every(u => selectedIds.has(u.id))) {
                           setSelectedIds(new Set())
                         } else {
-                          setSelectedIds(new Set(authUsers.map(u => u.id)))
+                          setSelectedIds(new Set(filteredAuthUsers.map(u => u.id)))
                         }
                       }}
                       aria-label="Select all users"
@@ -1034,7 +1069,7 @@ export function AdminManagePage() {
                 </tr>
               </thead>
               <tbody>
-                {authUsers.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE).map(u => (
+                {filteredAuthUsers.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE).map(u => (
                   <tr key={u.id} className={`${styles.tr} ${selectedIds.has(u.id) ? styles.trSelected : ''}`}>
                     <td className={`${styles.td} ${styles.tdCheck}`} onClick={e => e.stopPropagation()}>
                       <Checkbox
@@ -1070,12 +1105,12 @@ export function AdminManagePage() {
             </table>
           </div>
           <div className={styles.tableFooter}>
-            <span>{authUsers.length} users</span>
-            {Math.ceil(authUsers.length / PAGE_SIZE) > 1 && (
+            <span>{filteredAuthUsers.length} users</span>
+            {Math.ceil(filteredAuthUsers.length / PAGE_SIZE) > 1 && (
               <span>
-                Page {page + 1} of {Math.ceil(authUsers.length / PAGE_SIZE)}
+                Page {page + 1} of {Math.ceil(filteredAuthUsers.length / PAGE_SIZE)}
                 <button className="btn btn-ghost btn-xs" style={{ marginLeft: 'var(--space-2)' }} disabled={page === 0} onClick={() => setPage(p => p - 1)}>Prev</button>
-                <button className="btn btn-ghost btn-xs" disabled={page >= Math.ceil(authUsers.length / PAGE_SIZE) - 1} onClick={() => setPage(p => p + 1)}>Next</button>
+                <button className="btn btn-ghost btn-xs" disabled={page >= Math.ceil(filteredAuthUsers.length / PAGE_SIZE) - 1} onClick={() => setPage(p => p + 1)}>Next</button>
               </span>
             )}
           </div>
