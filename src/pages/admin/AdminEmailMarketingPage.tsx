@@ -7,6 +7,7 @@ import { Mail, Plus, Send, Clock, CheckCircle, XCircle, FileText, Trash2, Sparkl
 import { Checkbox } from '@/components/ui/Checkbox'
 import { CalendarModal } from '@/components/ui/CalendarModal'
 import { TimeModal } from '@/components/ui/TimeModal'
+import { DropdownMenu } from '@/components/ui/DropdownMenu'
 
 interface EmailTemplate {
   id: string
@@ -81,6 +82,7 @@ export function AdminEmailMarketingPage() {
   const [aiPrompt, setAiPrompt] = useState('')
   const [generating, setGenerating] = useState(false)
   const [syncing, setSyncing] = useState(false)
+  const [sending, setSending] = useState<string | null>(null)
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [showTimePicker, setShowTimePicker] = useState(false)
 
@@ -210,7 +212,7 @@ export function AdminEmailMarketingPage() {
   }
 
   const handleSendCampaign = async (campaignId: string) => {
-    showToast({ type: 'info', title: 'Sending campaign...', body: 'This may take a moment.' })
+    setSending(campaignId)
     try {
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
@@ -231,6 +233,8 @@ export function AdminEmailMarketingPage() {
       }
     } catch (err) {
       showToast({ type: 'error', title: 'Send failed', body: err instanceof Error ? err.message : 'Network error' })
+    } finally {
+      setSending(null)
     }
   }
 
@@ -324,8 +328,9 @@ export function AdminEmailMarketingPage() {
                         <td style={{ padding: 'var(--space-3)', textAlign: 'right' }}>
                           <div style={{ display: 'flex', gap: 'var(--space-1)', justifyContent: 'flex-end' }}>
                             {c.status === 'draft' && (
-                              <button className="btn btn-primary btn-sm" onClick={() => handleSendCampaign(c.id)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                                <Send size={12} /> Send
+                              <button className="btn btn-primary btn-sm" onClick={() => handleSendCampaign(c.id)} disabled={sending === c.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                {sending === c.id ? <Loader2 size={12} className="spin" /> : <Send size={12} />}
+                                {sending === c.id ? 'Sending...' : 'Send'}
                               </button>
                             )}
                             {c.status === 'draft' && (
@@ -394,17 +399,18 @@ export function AdminEmailMarketingPage() {
             {contentMode === 'template' && templates.length > 0 && (
               <div style={{ marginBottom: 'var(--space-4)' }}>
                 <label style={{ display: 'block', fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>Select Template</label>
-                <select
-                  className="input"
-                  value={selectedTemplateId}
-                  onChange={(e) => handleTemplateSelect(e.target.value)}
-                  style={{ width: '100%' }}
-                >
-                  <option value="">— Select a template —</option>
-                  {templates.map((t) => (
-                    <option key={t.id} value={t.id}>{t.name}</option>
-                  ))}
-                </select>
+                <DropdownMenu
+                  trigger={
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                      <FileText size={14} />
+                      {selectedTemplateId
+                        ? templates.find(t => t.id === selectedTemplateId)?.name || 'Select template'
+                        : 'Select template'}
+                    </span>
+                  }
+                  items={templates.map(t => ({ label: t.name, value: t.id, description: t.subject }))}
+                  onSelect={(item) => handleTemplateSelect(item.value)}
+                />
               </div>
             )}
 
