@@ -592,7 +592,6 @@ export function SettingsPage() {
           <RoleTransitions
             currentRole={role}
             userId={user?.id}
-            org={org}
             navigate={navigate}
             supabase={supabase}
             showToast={showToast}
@@ -790,7 +789,6 @@ const ROLE_LEVEL: Record<string, number> = {
 function RoleTransitions({
   currentRole,
   userId,
-  org,
   navigate,
   supabase,
   showToast,
@@ -798,10 +796,9 @@ function RoleTransitions({
 }: {
   currentRole: string | null
   userId: string | undefined
-  org: { owner_id?: string } | null
   navigate: (url: string) => void
   supabase: any
-  showToast: (opts: { type: string; title: string; body?: string }) => void
+  showToast: any
   setProfile: (p: any) => void
 }) {
   const [confirmingRole, setConfirmingRole] = useState<string | null>(null)
