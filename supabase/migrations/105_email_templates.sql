@@ -13,17 +13,15 @@ CREATE TABLE IF NOT EXISTS email_templates (
 
 ALTER TABLE email_templates ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "email_templates_select" ON email_templates FOR SELECT
-  USING (public.is_super_admin());
+DROP POLICY IF EXISTS "email_templates_select" ON email_templates;
+DROP POLICY IF EXISTS "email_templates_insert" ON email_templates;
+DROP POLICY IF EXISTS "email_templates_update" ON email_templates;
+DROP POLICY IF EXISTS "email_templates_delete" ON email_templates;
 
-CREATE POLICY "email_templates_insert" ON email_templates FOR INSERT
-  WITH CHECK (public.is_super_admin());
-
-CREATE POLICY "email_templates_update" ON email_templates FOR UPDATE
-  USING (public.is_super_admin());
-
-CREATE POLICY "email_templates_delete" ON email_templates FOR DELETE
-  USING (public.is_super_admin());
+CREATE POLICY "email_templates_select" ON email_templates FOR SELECT USING (public.is_super_admin());
+CREATE POLICY "email_templates_insert" ON email_templates FOR INSERT WITH CHECK (public.is_super_admin());
+CREATE POLICY "email_templates_update" ON email_templates FOR UPDATE USING (public.is_super_admin());
+CREATE POLICY "email_templates_delete" ON email_templates FOR DELETE USING (public.is_super_admin());
 
 GRANT ALL ON public.email_templates TO service_role;
 GRANT ALL ON public.email_templates TO authenticated;

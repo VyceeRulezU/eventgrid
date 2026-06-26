@@ -18,17 +18,15 @@ CREATE TABLE IF NOT EXISTS email_campaigns (
 
 ALTER TABLE email_campaigns ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "email_campaigns_select" ON email_campaigns FOR SELECT
-  USING (public.is_super_admin());
+DROP POLICY IF EXISTS "email_campaigns_select" ON email_campaigns;
+DROP POLICY IF EXISTS "email_campaigns_insert" ON email_campaigns;
+DROP POLICY IF EXISTS "email_campaigns_update" ON email_campaigns;
+DROP POLICY IF EXISTS "email_campaigns_delete" ON email_campaigns;
 
-CREATE POLICY "email_campaigns_insert" ON email_campaigns FOR INSERT
-  WITH CHECK (public.is_super_admin());
-
-CREATE POLICY "email_campaigns_update" ON email_campaigns FOR UPDATE
-  USING (public.is_super_admin());
-
-CREATE POLICY "email_campaigns_delete" ON email_campaigns FOR DELETE
-  USING (public.is_super_admin());
+CREATE POLICY "email_campaigns_select" ON email_campaigns FOR SELECT USING (public.is_super_admin());
+CREATE POLICY "email_campaigns_insert" ON email_campaigns FOR INSERT WITH CHECK (public.is_super_admin());
+CREATE POLICY "email_campaigns_update" ON email_campaigns FOR UPDATE USING (public.is_super_admin());
+CREATE POLICY "email_campaigns_delete" ON email_campaigns FOR DELETE USING (public.is_super_admin());
 
 GRANT ALL ON public.email_campaigns TO service_role;
 GRANT ALL ON public.email_campaigns TO authenticated;

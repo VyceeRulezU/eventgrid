@@ -11,53 +11,30 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-interface BrevoContact {
-  email: string
-  attributes: {
-    NOM?: string
-    PRENOM?: string
-    ROLE?: string
-    SOURCE?: string
-  }
-  listIds: number[]
-  updateEnabled: boolean
-}
-
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
 
   try {
-    // Fetch all active profiles
     const { data: profiles } = await supabase
       .from('profiles')
       .select('email, display_name, role')
       .eq('is_active', true)
       .not('email', 'is', null)
 
-    // Fetch survey respondents
     const { data: surveyEmails } = await supabase
       .from('survey_responses')
       .select('respondent_email, respondent_name, respondent_role')
       .not('respondent_email', 'is', null)
 
-    // Deduplicate by email
     const seen = new Set<string>()
-    const contacts: BrevoContact[] = []
+    interface SyncItem { email: string; name: string | null; role: string | null }
+    const contacts: SyncItem[] = []
 
     if (profiles) {
       for (const p of profiles) {
         if (!p.email || seen.has(p.email)) continue
         seen.add(p.email)
-        contacts.push({
-          email: p.email,
-          attributes: {
-            NOM: p.display_name || undefined,
-            ROLE: p.role || undefined,
-            SOURCE: 'profile',
-          },
-          listIds: [],
-          updateEnabled: true,
-        })
+        contacts.push({ email: p.email, name: p.display_name, role: p.role })
       }
     }
 
@@ -66,49 +43,58 @@ Deno.serve(async (req) => {
         const email = s.respondent_email?.trim().toLowerCase()
         if (!email || seen.has(email)) continue
         seen.add(email)
-        const nameParts = (s.respondent_name || '').split(' ')
-        contacts.push({
-          email,
-          attributes: {
-            PRENOM: nameParts[0] || undefined,
-            NOM: nameParts.slice(1).join(' ') || undefined,
-            ROLE: s.respondent_role || undefined,
-            SOURCE: 'survey',
-          },
-          listIds: [],
-          updateEnabled: true,
-        })
+        contacts.push({ email, name: s.respondent_name, role: s.respondent_role })
       }
     }
 
-    // Batch upsert to Brevo (max 100 per batch)
     let imported = 0
     let failed = 0
-    const BATCH_SIZE = 100
 
-    for (let i = 0; i < contacts.length; i += BATCH_SIZE) {
-      const batch = contacts.slice(i, i + BATCH_SIZE)
-      const res = await fetch('https://api.brevo.com/v3/contacts/import', {
-        method: 'POST',
+    for (const c of contacts) {
+      const attributes: Record<string, string> = {}
+      if (c.name) attributes.NOM = c.name
+      if (c.role) attributes.ROLE = c.role
+
+      const res = await fetch(`https://api.brevo.com/v3/contacts/${encodeURIComponent(c.email)}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'api-key': BREVO_API_KEY,
         },
         body: JSON.stringify({
-          fileBody: btoa(JSON.stringify(batch.map(c => ({
-            email: c.email,
-            ...c.attributes,
-          })))),
-          listIds: [],
-          updateExistingContacts: true,
+          email: c.email,
+          attributes,
+          updateEnabled: true,
         }),
       })
 
-      if (res.ok) {
-        imported += batch.length
+      if (res.ok || res.status === 204) {
+        imported++
       } else {
-        failed += batch.length
-        console.error('Brevo import batch failed:', await res.text())
+        const errText = await res.text()
+        // 404 means contact doesn't exist — try creating via POST
+        if (res.status === 404) {
+          const createRes = await fetch('https://api.brevo.com/v3/contacts', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'api-key': BREVO_API_KEY,
+            },
+            body: JSON.stringify({
+              email: c.email,
+              attributes,
+            }),
+          })
+          if (createRes.ok) {
+            imported++
+          } else {
+            failed++
+            console.error(`Failed to create contact ${c.email}:`, await createRes.text())
+          }
+        } else {
+          failed++
+          console.error(`Brevo upsert failed for ${c.email}:`, errText)
+        }
       }
     }
 

@@ -3,7 +3,10 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { Tabs, type TabItem } from '@/components/ui/Tabs'
-import { Mail, Plus, Send, Clock, CheckCircle, XCircle, FileText, Trash2, Sparkles, Loader2 } from 'lucide-react'
+import { Mail, Plus, Send, Clock, CheckCircle, XCircle, FileText, Trash2, Sparkles, Loader2, CalendarDays } from 'lucide-react'
+import { Checkbox } from '@/components/ui/Checkbox'
+import { CalendarModal } from '@/components/ui/CalendarModal'
+import { TimeModal } from '@/components/ui/TimeModal'
 
 interface EmailTemplate {
   id: string
@@ -77,6 +80,8 @@ export function AdminEmailMarketingPage() {
   const [saving, setSaving] = useState(false)
   const [aiPrompt, setAiPrompt] = useState('')
   const [generating, setGenerating] = useState(false)
+  const [showDatePicker, setShowDatePicker] = useState(false)
+  const [showTimePicker, setShowTimePicker] = useState(false)
 
   const loadCampaigns = useCallback(async () => {
     setLoadingCampaigns(true)
@@ -447,8 +452,7 @@ export function AdminEmailMarketingPage() {
 
             <div style={{ marginBottom: 'var(--space-4)' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>
-                <input
-                  type="checkbox"
+                <Checkbox
                   checked={!!scheduleDate}
                   onChange={(e) => { if (!e.target.checked) { setScheduleDate(''); setScheduleTime('') } else { setScheduleDate(new Date().toISOString().split('T')[0]) }}}
                 />
@@ -456,20 +460,46 @@ export function AdminEmailMarketingPage() {
               </label>
               {scheduleDate && (
                 <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-                  <input
-                    className="input"
-                    type="date"
-                    value={scheduleDate}
-                    onChange={(e) => setScheduleDate(e.target.value)}
-                    style={{ flex: 1 }}
-                  />
-                  <input
-                    className="input"
-                    type="time"
-                    value={scheduleTime}
-                    onChange={(e) => setScheduleTime(e.target.value)}
-                    style={{ flex: 1 }}
-                  />
+                  <div style={{ flex: 1 }}>
+                    <button
+                      type="button"
+                      className="input"
+                      style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer', textAlign: 'left', justifyContent: 'flex-start', width: '100%' }}
+                      onClick={() => setShowDatePicker(true)}
+                    >
+                      <CalendarDays size={14} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
+                      <span style={{ color: scheduleDate ? 'var(--color-text-primary)' : 'var(--color-text-muted)' }}>
+                        {scheduleDate
+                          ? new Date(scheduleDate + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                          : 'Select date'}
+                      </span>
+                    </button>
+                    <CalendarModal
+                      open={showDatePicker}
+                      value={scheduleDate}
+                      onChange={(d) => { setScheduleDate(d); setShowDatePicker(false) }}
+                      onClose={() => setShowDatePicker(false)}
+                    />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <button
+                      type="button"
+                      className="input"
+                      style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer', textAlign: 'left', justifyContent: 'flex-start', width: '100%' }}
+                      onClick={() => setShowTimePicker(true)}
+                    >
+                      <Clock size={14} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
+                      <span style={{ color: scheduleTime ? 'var(--color-text-primary)' : 'var(--color-text-muted)' }}>
+                        {scheduleTime || 'Select time'}
+                      </span>
+                    </button>
+                    <TimeModal
+                      open={showTimePicker}
+                      value={scheduleTime || '09:00'}
+                      onChange={(t) => { setScheduleTime(t); setShowTimePicker(false) }}
+                      onClose={() => setShowTimePicker(false)}
+                    />
+                  </div>
                 </div>
               )}
             </div>
