@@ -127,7 +127,7 @@ export function PettyCashLog({ eventId, onTotalChange }: PettyCashLogProps) {
           </div>
           <div className="input-wrapper" style={{ width: 120 }}>
             <label className="input-label">Amount (₦)</label>
-            <input className="input" type="number" min={0} value={amount || ''} onChange={e => setAmount(Number(e.target.value))} />
+            <input className="input" type="text" inputMode="numeric" value={amount || ''} onChange={e => setAmount(Number(e.target.value.replace(/,/g, '')))} />
           </div>
           <button className="btn btn-primary btn-sm" onClick={handleAdd} disabled={saving || !desc.trim() || amount <= 0} style={{ marginBottom: 1 }}>Add</button>
         </div>
@@ -146,7 +146,7 @@ export function PettyCashLog({ eventId, onTotalChange }: PettyCashLogProps) {
                   <input className="input" style={{ fontSize: 'var(--text-xs)', minHeight: 28 }} value={editDesc} onChange={e => setEditDesc(e.target.value)} autoFocus />
                 </div>
                 <div className="input-wrapper" style={{ width: 100 }}>
-                  <input className="input" style={{ fontSize: 'var(--text-xs)', minHeight: 28 }} type="number" min={0} value={editAmount || ''} onChange={e => setEditAmount(Number(e.target.value))} />
+                  <input className="input" style={{ fontSize: 'var(--text-xs)', minHeight: 28 }} type="text" inputMode="numeric" value={editAmount || ''} onChange={e => setEditAmount(Number(e.target.value.replace(/,/g, '')))} />
                 </div>
                 <button className="btn btn-primary btn-sm" onClick={() => handleSaveEdit(e.id)} disabled={saving || !editDesc.trim() || editAmount <= 0} style={{ minHeight: 28, padding: '0 8px', fontSize: 'var(--text-xs)' }}>
                   <Check size={12} />

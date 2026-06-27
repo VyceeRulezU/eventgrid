@@ -54,9 +54,10 @@ interface TaskDetailModalProps {
   task: TaskDetail
   onClose: () => void
   onUpdate: () => Promise<void> | void
+  phases?: { id: string; phase_name: string }[]
 }
 
-export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProps) {
+export function TaskDetailModal({ task, onClose, onUpdate, phases: initialPhases }: TaskDetailModalProps) {
   const user = useAuthStore((s) => s.user)
   const role = useAuthStore((s) => s.role)
   const showNotification = useUIStore((s) => s.showNotification)
@@ -74,7 +75,7 @@ export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProp
   const [editDueDate, setEditDueDate] = useState(task.due_datetime ? task.due_datetime.split('T')[0] : '')
   const [editPhaseId, setEditPhaseId] = useState(task.phase_id || '')
   const [editAssigneeId, setEditAssigneeId] = useState(task.assignee_id || '')
-  const [phases, setPhases] = useState<{ id: string; phase_name: string }[]>([])
+  const [phases, setPhases] = useState<{ id: string; phase_name: string }[]>(initialPhases || [])
   const [savingEdit, setSavingEdit] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
@@ -82,7 +83,7 @@ export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProp
   useEffect(() => {
     loadComments()
     loadMembers()
-    loadPhases()
+    if (!initialPhases) loadPhases()
   }, [])
 
   async function loadMembers() {

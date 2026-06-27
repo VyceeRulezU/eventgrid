@@ -32,7 +32,7 @@ const COLUMNS = [
 ] as const
 
 export function TaskBoard() {
-  const { eventId, paramId } = useResolvedEventId()
+  const { eventId } = useResolvedEventId()
   const user = useAuthStore((s) => s.user)
   const profileRole = useAuthStore((s) => s.role)
   const showNotification = useUIStore((s) => s.showNotification)
@@ -307,6 +307,7 @@ export function TaskBoard() {
       {detailTask && (
         <TaskDetailModal
           task={detailTask}
+          phases={phases}
           onClose={() => setDetailTask(null)}
           onUpdate={loadData}
         />

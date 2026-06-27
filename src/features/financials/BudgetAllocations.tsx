@@ -151,7 +151,7 @@ export function BudgetAllocations({ eventId }: BudgetAllocationsProps) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
                   {editingCat === row.category ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <input className="input" type="number" min={0} value={editValue || ''} onChange={e => setEditValue(Number(e.target.value))} style={{ width: 100, minHeight: 28, fontSize: 'var(--text-xs)' }} autoFocus onKeyDown={e => { if (e.key === 'Enter') saveAllocation(row.category); if (e.key === 'Escape') setEditingCat(null) }} />
+                      <input className="input" type="text" inputMode="numeric" value={editValue || ''} onChange={e => setEditValue(Number(e.target.value.replace(/,/g, '')))} style={{ width: 100, minHeight: 28, fontSize: 'var(--text-xs)' }} autoFocus onKeyDown={e => { if (e.key === 'Enter') saveAllocation(row.category); if (e.key === 'Escape') setEditingCat(null) }} />
                       <button className="btn btn-primary btn-sm" onClick={() => saveAllocation(row.category)} style={{ minHeight: 28, padding: '0 8px', fontSize: 'var(--text-xs)' }}>Set</button>
                       {(row.id || row.allocated > 0) && <button className="btn btn-ghost btn-sm" onClick={() => deleteAllocation(row.category)} style={{ minHeight: 28, padding: '0 8px', color: 'var(--color-error)' }} data-tooltip="Delete allocation"><Trash2 size={14} /></button>}
                       <button className="btn btn-ghost btn-sm" onClick={() => setEditingCat(null)} style={{ minHeight: 28, padding: '0 8px' }} data-tooltip="Cancel"><X size={14} /></button>

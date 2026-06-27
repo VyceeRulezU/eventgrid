@@ -16,15 +16,6 @@ interface BulkTaskUploadProps {
   onCancel: () => void
 }
 
-interface CsvRow {
-  title: string
-  description: string
-  assignee_email: string
-  due_date: string
-  priority: string
-  phase: string
-}
-
 interface ImportResult {
   success: number
   errors: { row: number; message: string }[]
