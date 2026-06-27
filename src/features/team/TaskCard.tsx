@@ -172,7 +172,7 @@ export function TaskCard({ task, onUpdate, onOpenDetails }: TaskCardProps) {
 
   return (
     <div
-      className={`card ${overdue ? styles.cardOverdue : ''} ${styles.card}`}
+      className={`card ${overdue ? styles.cardOverdue : ''} ${styles.card} ${expanded ? styles.cardExpanded : ''}`}
       draggable
       onDragStart={handleDragStart}
     >

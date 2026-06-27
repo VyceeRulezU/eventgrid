@@ -3,12 +3,19 @@
   cursor: grab;
   border-radius: 16px;
   transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
-  min-height: 96px;
+  height: 8rem;
+  flex-shrink: 0;
+  overflow: hidden;
 }
 
 .card:hover {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   border-color: var(--color-accent);
+}
+
+.cardExpanded {
+  height: auto;
+  overflow: visible;
 }
 
 .cardOverdue {
@@ -32,9 +39,11 @@
   font-weight: 600;
   color: var(--color-text-primary);
   margin-bottom: var(--space-1);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .metaRow {

@@ -101,7 +101,7 @@ export function TaskBoard() {
         .from('tasks')
         .select('*, assignee:profiles!tasks_assignee_id_fkey(display_name, avatar_url)')
         .eq('event_id', eventId)
-        .order('created_at', { ascending: false }),
+        .order('created_at', { ascending: true }),
       supabase
         .from('event_access')
         .select('user_id, role')
@@ -254,7 +254,7 @@ export function TaskBoard() {
       )}
 
       {!showCreate && tasks.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: 'var(--space-8) var(--space-4)', color: 'var(--color-text-muted)', border: '1px solid var(--color-border-subtle)', borderRadius: 'var(--radius-xl)' }}>
+        <div className={styles.emptyState}>
           <Columns size={24} style={{ marginBottom: 'var(--space-2)', opacity: 0.4 }} />
           <div style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>No tasks yet</div>
           <div style={{ fontSize: 'var(--text-xs)', marginTop: 4 }}>Create your first task to get started</div>
@@ -288,7 +288,7 @@ export function TaskBoard() {
           ))}
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+        <div className={styles.listView} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
           {COLUMNS.map((col) => {
             const items = grouped[col.key] || []
             if (items.length === 0) return null
