@@ -186,7 +186,7 @@ export function TaskBoard() {
   }
 
   const eventRole = members.find(m => m.user_id === user?.id)?.role
-  const canCreate = profileRole === 'planner' || profileRole === 'coordinator' || eventRole === 'coordinator'
+  const canCreate = profileRole === 'planner' || profileRole === 'coordinator' || profileRole === 'super_admin' || eventRole === 'coordinator'
 
   const grouped = COLUMNS.reduce<Record<string, TaskWithAssignee[]>>((acc, col) => {
     acc[col.key] = tasks.filter((t) => t.status === col.key)
