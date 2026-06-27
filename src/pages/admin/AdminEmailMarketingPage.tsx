@@ -622,34 +622,37 @@ export function AdminEmailMarketingPage() {
         {/* ── TEMPLATES TAB ── */}
         {activeTab === 'templates' && (
           <div>
-            {loadingTemplates ? (
-              <div style={{ textAlign: 'center', padding: 'var(--space-8)', color: 'var(--color-text-muted)' }}>Loading templates...</div>
-            ) : templates.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: 'var(--space-8)', color: 'var(--color-text-muted)' }}>
-                <FileText size={32} style={{ marginBottom: 'var(--space-2)', opacity: 0.4 }} />
-                <div style={{ fontWeight: 600 }}>No templates yet</div>
-                <div style={{ fontSize: 'var(--text-sm)', marginTop: 4 }}>Save a campaign as a template to reuse it later.</div>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-                {templates.map((t) => (
-                  <div key={t.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-3) var(--space-4)', background: 'var(--color-surface-2)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border-subtle)' }}>
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>{t.name}</div>
-                      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginTop: 2 }}>{t.subject}</div>
-                    </div>
-                    <div style={{ display: 'flex', gap: 'var(--space-1)' }}>
-                      <button className="btn btn-ghost btn-sm" onClick={() => setPreviewTemplate(t)} title="Preview">
-                        <Eye size={12} />
-                      </button>
-                      <button className="btn btn-ghost btn-sm" onClick={() => handleDeleteTemplate(t.id)} style={{ color: 'var(--color-error)' }}>
-                        <Trash2 size={12} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            <Table
+              columns={[
+                { key: 'name', label: 'Template Name' },
+                { key: 'subject', label: 'Subject' },
+                { key: 'actions', label: '' },
+              ]}
+              loading={loadingTemplates}
+              empty={!loadingTemplates && templates.length === 0}
+              emptyIcon={FileText}
+              emptyTitle="No templates yet"
+              emptyDescription="Save a campaign as a template to reuse it later."
+            >
+              {templates.map((t) => (
+                <tr key={t.id}>
+                  <td style={{ padding: 'var(--space-3) var(--space-4)', fontSize: 'var(--text-sm)' }}>
+                    <span style={{ fontWeight: 600 }}>{t.name}</span>
+                  </td>
+                  <td style={{ padding: 'var(--space-3) var(--space-4)', fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>
+                    {t.subject}
+                  </td>
+                  <td style={{ padding: 'var(--space-3) var(--space-4)', textAlign: 'right' }}>
+                    <button className="btn btn-ghost btn-sm" onClick={() => setPreviewTemplate(t)} title="Preview">
+                      <Eye size={12} />
+                    </button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => handleDeleteTemplate(t.id)} style={{ color: 'var(--color-error)', marginLeft: 4 }}>
+                      <Trash2 size={12} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </Table>
 
             {/* Preview modal */}
             {previewTemplate && (
