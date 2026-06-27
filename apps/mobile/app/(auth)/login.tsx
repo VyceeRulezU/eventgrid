@@ -11,103 +11,60 @@ import {
   ScrollView,
   StatusBar,
 } from 'react-native'
-import { useRouter, useLocalSearchParams } from 'expo-router'
-import { Eye, EyeOff, Mail, Lock, User, Phone } from 'lucide-react-native'
+import { useRouter } from 'expo-router'
+import { Eye, EyeOff, Mail, Lock, Key, ArrowLeft } from 'lucide-react-native'
 import { AntDesign } from '@expo/vector-icons'
 import * as Linking from 'expo-linking'
 import { supabase } from '../../lib/supabase'
 
 export default function LoginScreen() {
   const router = useRouter()
-  const params = useLocalSearchParams<{ mode?: string }>()
 
-  // Set initial screen state based on query params (e.g. redirected from Welcome screen signup click)
-  const [isSignUp, setIsSignUp] = useState(params.mode === 'signup')
-  
-  // Input fields
+  // Sign In values
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
-  const [role, setRole] = useState<'planner' | 'coordinator'>('planner')
-
-  // UI state
+  
+  // UI toggles
+  const [magicLinkMode, setMagicLinkMode] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [activeInput, setActiveInput] = useState<string | null>(null)
+  
+  // States
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
-  const [loading, setLoading] = useState(false)
 
-  // Input focus outline states
-  const [activeInput, setActiveInput] = useState<string | null>(null)
-
-  const handleAuth = async () => {
+  const handleLogin = async () => {
     setError('')
     setSuccess('')
-    
-    if (!email.trim() || !password.trim()) {
-      setError('Please fill in email and password.')
+
+    if (!email.trim()) {
+      setError('Please enter your email address.')
       return
     }
 
-    if (isSignUp && !name.trim()) {
-      setError('Please enter your full name.')
+    if (!magicLinkMode && !password.trim()) {
+      setError('Please enter your password.')
       return
     }
 
     setLoading(true)
 
     try {
-      if (isSignUp) {
-        // 1. Sign Up flow (matching web app metadata structure)
-        const metadata = {
-          display_name: name.trim(),
-          role: role,
-          phone: phone.trim(),
-        }
-
-        const { data, error: signUpError } = await supabase.auth.signUp({
+      if (magicLinkMode) {
+        // Send OTP / Magic link via email
+        const redirectUrl = Linking.createURL('(auth)/login')
+        const { error: otpError } = await supabase.auth.signInWithOtp({
           email: email.trim().toLowerCase(),
-          password: password,
           options: {
-            data: metadata,
-          },
+            emailRedirectTo: redirectUrl,
+          }
         })
+        if (otpError) throw otpError
 
-        if (signUpError) throw signUpError
-
-        // 2. Best-effort auto-confirmation via Edge function (matches web app pattern)
-        let confirmed = false
-        try {
-          const res = await fetch(
-            `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/confirm-signup`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY}`,
-              },
-              body: JSON.stringify({ email: email.trim().toLowerCase() }),
-            }
-          )
-          const resBody = await res.json()
-          confirmed = resBody?.success === true
-        } catch {
-          // Fallback if Edge function is not reachable or fails
-        }
-
-        if (confirmed) {
-          // Automatically sign in if auto-confirmed
-          const { error: signInError } = await supabase.auth.signInWithPassword({
-            email: email.trim().toLowerCase(),
-            password: password,
-          })
-          if (signInError) throw signInError
-        } else {
-          setSuccess('Account created! Please check your email for verification.')
-        }
-
+        setSuccess('Magic link sent! Check your email to sign in.')
       } else {
-        // Sign In flow
+        // Sign in with password
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email: email.trim().toLowerCase(),
           password: password,
@@ -115,7 +72,7 @@ export default function LoginScreen() {
         if (signInError) throw signInError
       }
     } catch (err: any) {
-      setError(err?.message || 'Authentication failed. Please try again.')
+      setError(err?.message || 'Unable to sign in. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -152,138 +109,89 @@ export default function LoginScreen() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <StatusBar barStyle="light-content" backgroundColor="#0D0D11" />
+      <StatusBar barStyle="light-content" backgroundColor="#111827" />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         
-        {/* Brand Display */}
-        <View style={styles.brandRow}>
-          <Text style={styles.brandTextLight}>Nali</Text>
-          <Text style={styles.brandTextGold}>Grid</Text>
-        </View>
-        <Text style={styles.tagline}>Premium Event Day Companion</Text>
+        {/* Back Link to Welcome */}
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.push('/(auth)/welcome')}
+          activeOpacity={0.7}
+        >
+          <ArrowLeft size={16} color="#9CA3AF" />
+          <Text style={styles.backButtonText}>Back</Text>
+        </TouchableOpacity>
 
-        {/* Auth Segment Tab Slider */}
-        <View style={styles.tabBar}>
-          <TouchableOpacity
-            style={[styles.tabBtn, !isSignUp && styles.activeTabBtn]}
-            activeOpacity={0.8}
-            onPress={() => { setIsSignUp(false); setError(''); setSuccess('') }}
-          >
-            <Text style={[styles.tabText, !isSignUp && styles.activeTabText]}>Sign In</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tabBtn, isSignUp && styles.activeTabBtn]}
-            activeOpacity={0.8}
-            onPress={() => { setIsSignUp(true); setError(''); setSuccess('') }}
-          >
-            <Text style={[styles.tabText, isSignUp && styles.activeTabText]}>Sign Up</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Input Forms */}
-        <View style={styles.formContainer}>
-          {isSignUp && (
-            <>
-              {/* Full Name Field */}
-              <View style={[styles.inputWrapper, activeInput === 'name' && styles.inputActive]}>
-                <User size={18} color={activeInput === 'name' ? '#E91E63' : '#6B7280'} style={styles.inputIcon} />
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="Full Name"
-                  placeholderTextColor="#4B5563"
-                  value={name}
-                  onChangeText={setName}
-                  onFocus={() => setActiveInput('name')}
-                  onBlur={() => setActiveInput(null)}
-                  autoCapitalize="words"
-                />
-              </View>
-
-              {/* Phone Field */}
-              <View style={[styles.inputWrapper, activeInput === 'phone' && styles.inputActive]}>
-                <Phone size={18} color={activeInput === 'phone' ? '#E91E63' : '#6B7280'} style={styles.inputIcon} />
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="Phone Number (Optional)"
-                  placeholderTextColor="#4B5563"
-                  value={phone}
-                  onChangeText={setPhone}
-                  onFocus={() => setActiveInput('phone')}
-                  onBlur={() => setActiveInput(null)}
-                  keyboardType="phone-pad"
-                />
-              </View>
-            </>
-          )}
-
-          {/* Email Field */}
-          <View style={[styles.inputWrapper, activeInput === 'email' && styles.inputActive]}>
-            <Mail size={18} color={activeInput === 'email' ? '#E91E63' : '#6B7280'} style={styles.inputIcon} />
-            <TextInput
-              style={styles.textInput}
-              placeholder="Email Address"
-              placeholderTextColor="#4B5563"
-              value={email}
-              onChangeText={setEmail}
-              onFocus={() => setActiveInput('email')}
-              onBlur={() => setActiveInput(null)}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              autoComplete="email"
-            />
-          </View>
-
-          {/* Password Field */}
-          <View style={[styles.inputWrapper, activeInput === 'password' && styles.inputActive]}>
-            <Lock size={18} color={activeInput === 'password' ? '#E91E63' : '#6B7280'} style={styles.inputIcon} />
-            <TextInput
-              style={styles.textInput}
-              placeholder="Password"
-              placeholderTextColor="#4B5563"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-              onFocus={() => setActiveInput('password')}
-              onBlur={() => setActiveInput(null)}
-              autoComplete="current-password"
-            />
-            <TouchableOpacity
-              style={styles.eyeBtn}
-              onPress={() => setShowPassword(!showPassword)}
-              activeOpacity={0.7}
-            >
-              {showPassword ? (
-                <EyeOff size={18} color="#6B7280" />
-              ) : (
-                <Eye size={18} color="#6B7280" />
-              )}
+        {/* Header Section */}
+        <View style={styles.header}>
+          <Text style={styles.title}>Welcome back</Text>
+          <View style={styles.subtitleRow}>
+            <Text style={styles.subtitleText}>New to NaliGrid? </Text>
+            <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
+              <Text style={styles.linkText}>Create an account</Text>
             </TouchableOpacity>
           </View>
+        </View>
 
-          {/* Role Picker Segment (Sign Up Only) */}
-          {isSignUp && (
-            <View style={styles.roleContainer}>
-              <Text style={styles.roleLabel}>Choose Your Account Role</Text>
-              <View style={styles.roleSegments}>
+        {/* Form Inputs */}
+        <View style={styles.form}>
+          {/* Email input */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Email Address</Text>
+            <View style={[styles.inputWrapper, activeInput === 'email' && styles.inputActive]}>
+              <Mail size={16} color={activeInput === 'email' ? '#D4A017' : '#9CA3AF'} style={styles.inputIcon} />
+              <TextInput
+                style={styles.textInput}
+                placeholder="you@example.com"
+                placeholderTextColor="#4B5563"
+                value={email}
+                onChangeText={setEmail}
+                onFocus={() => setActiveInput('email')}
+                onBlur={() => setActiveInput(null)}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                autoComplete="email"
+              />
+            </View>
+          </View>
+
+          {/* Password input (Password mode only) */}
+          {!magicLinkMode && (
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Password</Text>
+              <View style={[styles.inputWrapper, activeInput === 'password' && styles.inputActive]}>
+                <Lock size={16} color={activeInput === 'password' ? '#D4A017' : '#9CA3AF'} style={styles.inputIcon} />
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Enter your password"
+                  placeholderTextColor="#4B5563"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  onFocus={() => setActiveInput('password')}
+                  onBlur={() => setActiveInput(null)}
+                  autoComplete="current-password"
+                />
                 <TouchableOpacity
-                  style={[styles.roleSegmentBtn, role === 'planner' && styles.activeRoleSegmentBtn]}
-                  onPress={() => setRole('planner')}
-                  activeOpacity={0.8}
+                  style={styles.eyeBtn}
+                  onPress={() => setShowPassword(!showPassword)}
+                  activeOpacity={0.7}
                 >
-                  <Text style={[styles.roleSegmentText, role === 'planner' && styles.activeRoleSegmentText]}>
-                    Planner
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.roleSegmentBtn, role === 'coordinator' && styles.activeRoleSegmentBtn]}
-                  onPress={() => setRole('coordinator')}
-                  activeOpacity={0.8}
-                >
-                  <Text style={[styles.roleSegmentText, role === 'coordinator' && styles.activeRoleSegmentText]}>
-                    Coordinator
-                  </Text>
+                  {showPassword ? (
+                    <EyeOff size={18} color="#9CA3AF" />
+                  ) : (
+                    <Eye size={18} color="#9CA3AF" />
+                  )}
                 </TouchableOpacity>
               </View>
+
+              {/* Forgot password link */}
+              <TouchableOpacity
+                style={styles.forgotPasswordLink}
+                onPress={() => router.push('/(auth)/forgot-password')}
+              >
+                <Text style={styles.forgotPasswordText}>Forgot password?</Text>
+              </TouchableOpacity>
             </View>
           )}
 
@@ -293,18 +201,38 @@ export default function LoginScreen() {
 
           {/* Submit Button */}
           <TouchableOpacity
-            style={[styles.primaryButton, loading && styles.primaryButtonDisabled]}
-            onPress={handleAuth}
+            style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+            onPress={handleLogin}
             disabled={loading}
             activeOpacity={0.85}
           >
             {loading ? (
-              <ActivityIndicator color="#FFFFFF" size="small" />
+              <ActivityIndicator color="#111827" size="small" />
             ) : (
-              <Text style={styles.primaryButtonText}>
-                {isSignUp ? 'Create Account' : 'Sign In'}
+              <Text style={styles.submitButtonText}>
+                {magicLinkMode ? 'Send Magic Link' : 'Sign In'}
               </Text>
             )}
+          </TouchableOpacity>
+
+          {/* Mode Switch Trigger */}
+          <TouchableOpacity
+            style={styles.toggleModeButton}
+            onPress={() => {
+              setMagicLinkMode(!magicLinkMode)
+              setError('')
+              setSuccess('')
+            }}
+            activeOpacity={0.7}
+          >
+            {magicLinkMode ? (
+              <Key size={14} color="#D4A017" style={styles.toggleIcon} />
+            ) : (
+              <Mail size={14} color="#D4A017" style={styles.toggleIcon} />
+            )}
+            <Text style={styles.toggleModeText}>
+              {magicLinkMode ? 'Sign in with password instead' : 'Send magic link instead'}
+            </Text>
           </TouchableOpacity>
 
           {/* Divider */}
@@ -314,27 +242,15 @@ export default function LoginScreen() {
             <View style={styles.dividerLine} />
           </View>
 
-          {/* Google SSO Button */}
+          {/* Google Button */}
           <TouchableOpacity
             style={styles.googleButton}
             onPress={handleGoogleAuth}
             disabled={loading}
             activeOpacity={0.85}
           >
-            <AntDesign name="google" size={18} color="#FFFFFF" style={styles.googleIcon} />
+            <AntDesign name="google" size={16} color="#FFFFFF" style={styles.googleIcon} />
             <Text style={styles.googleButtonText}>Google</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Bottom Toggle Link */}
-        <View style={styles.footerLinkRow}>
-          <Text style={styles.footerText}>
-            {isSignUp ? 'Already have an account? ' : "Don't have an account? "}
-          </Text>
-          <TouchableOpacity onPress={() => { setIsSignUp(!isSignUp); setError(''); setSuccess('') }}>
-            <Text style={styles.footerActionText}>
-              {isSignUp ? 'Sign In' : 'Sign Up'}
-            </Text>
           </TouchableOpacity>
         </View>
 
@@ -346,84 +262,77 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0D0D11',
+    backgroundColor: '#111827', // var(--color-bg-base) matching web
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 28,
-    paddingTop: 60,
+    paddingHorizontal: 24,
+    paddingTop: 50,
     paddingBottom: 40,
   },
-  brandRow: {
+  backButton: {
     flexDirection: 'row',
-    alignItems: 'baseline',
-    justifyContent: 'center',
-    marginBottom: 6,
-  },
-  brandTextLight: {
-    fontSize: 34,
-    fontWeight: '300',
-    color: '#FFFFFF',
-    letterSpacing: -0.5,
-  },
-  brandTextGold: {
-    fontSize: 34,
-    fontWeight: '600',
-    color: '#D4A017',
-    letterSpacing: -0.5,
-  },
-  tagline: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: '#D4A017',
-    letterSpacing: 2,
-    textAlign: 'center',
-    textTransform: 'uppercase',
-    marginBottom: 40,
-  },
-  tabBar: {
-    flexDirection: 'row',
-    backgroundColor: '#15151E',
-    borderRadius: 14,
-    padding: 4,
-    marginBottom: 28,
-  },
-  tabBtn: {
-    flex: 1,
-    paddingVertical: 12,
     alignItems: 'center',
-    borderRadius: 11,
+    gap: 8,
+    alignSelf: 'flex-start',
+    marginBottom: 40,
+    paddingVertical: 4,
   },
-  activeTabBtn: {
-    backgroundColor: '#E91E63', // Magenta slider
-  },
-  tabText: {
+  backButtonText: {
+    color: '#9CA3AF',
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
+  },
+  header: {
+    marginBottom: 32,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginBottom: 6,
+    letterSpacing: -0.5,
+  },
+  subtitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  subtitleText: {
+    fontSize: 14,
     color: '#9CA3AF',
   },
-  activeTabText: {
-    color: '#FFFFFF',
+  linkText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#D4A017', // Gold accent link
   },
-  formContainer: {
-    gap: 16,
+  form: {
+    gap: 20,
+  },
+  inputGroup: {
+    gap: 6,
+  },
+  inputLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#9CA3AF',
+    marginBottom: 2,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#15151E',
-    borderWidth: 1.5,
-    borderColor: '#22222E',
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    height: 52,
+    backgroundColor: '#1F2937', // var(--color-surface-2)
+    borderWidth: 1,
+    borderColor: '#374151', // var(--color-border)
+    borderRadius: 8, // var(--radius-md)
+    paddingHorizontal: 14,
+    height: 48,
   },
   inputActive: {
-    borderColor: '#E91E63', // Highlight on focus
+    borderColor: '#D4A017', // Gold active outline
   },
   inputIcon: {
-    marginRight: 12,
+    marginRight: 10,
   },
   textInput: {
     flex: 1,
@@ -433,94 +342,73 @@ const styles = StyleSheet.create({
   eyeBtn: {
     padding: 4,
   },
-  roleContainer: {
-    marginTop: 6,
+  forgotPasswordLink: {
+    alignSelf: 'flex-end',
+    marginTop: 4,
   },
-  roleLabel: {
-    fontSize: 11,
+  forgotPasswordText: {
+    fontSize: 12,
     fontWeight: '600',
-    color: '#6B7280',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 10,
+    color: '#D4A017',
   },
-  roleSegments: {
-    flexDirection: 'row',
-    backgroundColor: '#15151E',
-    borderWidth: 1,
-    borderColor: '#22222E',
-    borderRadius: 12,
-    padding: 3,
-  },
-  roleSegmentBtn: {
-    flex: 1,
-    paddingVertical: 10,
-    alignItems: 'center',
-    borderRadius: 9,
-  },
-  activeRoleSegmentBtn: {
-    backgroundColor: 'rgba(233, 30, 99, 0.1)',
-    borderWidth: 1,
-    borderColor: '#E91E63',
-  },
-  roleSegmentText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#6B7280',
-  },
-  activeRoleSegmentText: {
-    color: '#E91E63',
-  },
-  primaryButton: {
-    height: 52,
-    backgroundColor: '#E91E63', // Magenta button
-    borderRadius: 26,
+  submitButton: {
+    height: 48,
+    backgroundColor: '#D4A017', // Gold theme button
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 10,
-    shadowColor: '#E91E63',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    elevation: 3,
   },
-  primaryButtonDisabled: {
+  submitButtonDisabled: {
     opacity: 0.6,
   },
-  primaryButtonText: {
-    color: '#FFFFFF',
+  submitButtonText: {
+    color: '#111827', // var(--color-text-inverse)
     fontSize: 15,
     fontWeight: '700',
-    letterSpacing: 0.1,
+  },
+  toggleModeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    gap: 6,
+  },
+  toggleIcon: {
+    marginRight: 2,
+  },
+  toggleModeText: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    fontWeight: '600',
   },
   dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: 18,
+    marginVertical: 12,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#1F2937',
+    backgroundColor: '#374151',
   },
   dividerText: {
-    color: '#4B5563',
+    color: '#6B7280',
     fontSize: 11,
     marginHorizontal: 12,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    textTransform: 'lowercase',
   },
   googleButton: {
     flexDirection: 'row',
-    height: 50,
-    backgroundColor: '#15151E',
+    height: 46,
+    backgroundColor: '#1F2937',
     borderWidth: 1,
-    borderColor: '#22222E',
-    borderRadius: 25,
+    borderColor: '#374151',
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
+    gap: 8,
   },
   googleIcon: {
     opacity: 0.9,
@@ -539,20 +427,5 @@ const styles = StyleSheet.create({
     color: '#10B981',
     fontSize: 12,
     textAlign: 'center',
-  },
-  footerLinkRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 36,
-  },
-  footerText: {
-    fontSize: 13,
-    color: '#6B7280',
-  },
-  footerActionText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#E91E63',
   },
 })

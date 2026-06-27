@@ -158,10 +158,18 @@ export default function WelcomeScreen() {
         <TouchableOpacity
           style={styles.button}
           activeOpacity={0.85}
-          onPress={() => router.push('/(auth)/login')}
+          onPress={() => router.push('/(auth)/register')}
         >
           <Text style={styles.buttonText}>Get Started</Text>
         </TouchableOpacity>
+
+        {/* Already have an account link */}
+        <View style={styles.loginLinkRow}>
+          <Text style={styles.loginText}>Already have an account? </Text>
+          <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
+            <Text style={styles.loginLinkText}>Sign In</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   )
@@ -230,7 +238,7 @@ const styles = StyleSheet.create({
   bottomPanel: {
     backgroundColor: '#000000',
     paddingHorizontal: 28,
-    paddingBottom: 40,
+    paddingBottom: 32,
     paddingTop: 12,
     alignItems: 'center',
     justifyContent: 'flex-end',
@@ -280,11 +288,27 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
+    marginBottom: 20,
   },
   buttonText: {
     color: '#FFFFFF',
     fontSize: 15,
     fontWeight: '700',
     letterSpacing: 0.2,
+  },
+  loginLinkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+  },
+  loginText: {
+    color: '#6B7280',
+    fontSize: 13,
+  },
+  loginLinkText: {
+    color: '#E91E63',
+    fontSize: 13,
+    fontWeight: '700',
   },
 })
