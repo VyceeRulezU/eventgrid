@@ -17,27 +17,31 @@ export default function RootLayout() {
   const [appReady, setAppReady] = useState(false)
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session?.user) {
-          setUser({
-            id: session.user.id,
-            email: session.user.email ?? '',
-            user_metadata: session.user.user_metadata as Record<string, unknown>,
-          })
-          await registerForPushNotifications(session.user.id)
-        } else {
-          clearAuth()
-        }
-      },
-    )
-    return () => subscription.unsubscribe()
+    try {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          if (session?.user) {
+            setUser({
+              id: session.user.id,
+              email: session.user.email ?? '',
+              user_metadata: session.user.user_metadata as Record<string, unknown>,
+            })
+            try { await registerForPushNotifications(session.user.id) } catch {}
+          } else {
+            clearAuth()
+          }
+        },
+      )
+      return () => subscription.unsubscribe()
+    } catch {
+      return () => {}
+    }
   }, [])
 
   useEffect(() => {
     if (!splashDone) return
     setAppReady(true)
-    SplashScreen.hideAsync()
+    try { SplashScreen.hideAsync() } catch {}
   }, [splashDone])
 
   useEffect(() => {

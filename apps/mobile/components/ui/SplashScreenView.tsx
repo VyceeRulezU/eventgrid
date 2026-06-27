@@ -65,6 +65,9 @@ export default function SplashScreenView({ onFinish }: Props) {
     ]).start(({ finished }) => {
       if (finished) onFinish()
     })
+
+    const timeout = setTimeout(onFinish, 8000)
+    return () => clearTimeout(timeout)
   }, [])
 
   const barWidthPct = barWidth.interpolate({
@@ -113,7 +116,7 @@ export default function SplashScreenView({ onFinish }: Props) {
         { opacity: logoOpacity, transform: [{ scale: logoScale }] },
       ]}>
         <Image
-          source={require('../../assets/notification-icon.png')}
+          source={require('../../assets/splash-icon.png')}
           style={styles.logo}
           resizeMode="contain"
         />
@@ -152,7 +155,7 @@ export default function SplashScreenView({ onFinish }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#111827',
+    backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -225,7 +228,7 @@ const styles = StyleSheet.create({
   tagline: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#6B7280',
+    color: '#D4A017',
     letterSpacing: 3,
     textTransform: 'uppercase',
   },

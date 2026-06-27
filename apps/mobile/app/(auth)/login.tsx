@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native'
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Image } from 'react-native'
 import { useRouter } from 'expo-router'
 import { supabase } from '../../lib/supabase'
 import { colors, spacing, fontSize, fontWeight, radius } from '../../constants/tokens'
@@ -27,8 +27,7 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.brandSection}>
-        <Text style={styles.brandLight}>Nali</Text>
-        <Text style={styles.brandGold}>Grid</Text>
+        <Image source={require('../../assets/splash-icon.png')} style={styles.logo} resizeMode="contain" />
       </View>
       <Text style={styles.subtitle}>Event Day Companion</Text>
 
@@ -77,22 +76,12 @@ const styles = StyleSheet.create({
     padding: spacing[6],
   },
   brandSection: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'baseline',
+    alignItems: 'center',
     marginBottom: spacing[1],
   },
-  brandLight: {
-    fontSize: fontSize.display,
-    fontWeight: '300',
-    color: colors.textPrimary,
-    letterSpacing: -0.5,
-  },
-  brandGold: {
-    fontSize: fontSize.display,
-    fontWeight: '400',
-    color: colors.accent,
-    letterSpacing: -0.5,
+  logo: {
+    width: 140,
+    height: 80,
   },
   subtitle: {
     color: colors.textSecondary,
