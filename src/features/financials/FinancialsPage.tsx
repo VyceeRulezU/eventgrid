@@ -171,8 +171,7 @@ export function FinancialsPage() {
 
   useEffect(() => {
     if (!user) { setLoading(false); return }
-    if (!org && role !== 'super_admin') { setLoading(false); return }
-
+    const userId = user.id
     const orgId = org?.id
 
     async function load() {
@@ -181,7 +180,11 @@ export function FinancialsPage() {
         .select('id, name')
         .is('deleted_at', null)
         .order('event_date', { ascending: false })
-      if (orgId && role !== 'super_admin') evtQuery = evtQuery.or(`org_id.eq.${orgId},created_by.eq.${user!.id}`)
+      if (role !== 'super_admin') {
+        const conditions = [`created_by.eq.${userId}`]
+        if (orgId) conditions.push(`org_id.eq.${orgId}`)
+        evtQuery = evtQuery.or(conditions.join(','))
+      }
       const { data: evts } = await evtQuery
 
       if (evts) setEvents(evts as unknown as { id: string; name: string }[])
