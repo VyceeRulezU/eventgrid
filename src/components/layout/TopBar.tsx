@@ -17,6 +17,7 @@ const routeMeta: Record<string, { title: string; subtitle: string }> = {
   '/financials':           { title: 'Financials', subtitle: 'Track payments and budgets' },
   '/vendors':              { title: 'Vendors', subtitle: 'Manage your vendor directory' },
   '/vendors/directory':    { title: 'Vendor Directory', subtitle: 'Browse and contact vendors' },
+  '/notifications':        { title: 'Notifications', subtitle: 'View all your notifications' },
   '/settings':             { title: 'Settings', subtitle: 'Profile and preferences' },
   '/admin':                { title: 'Dashboard', subtitle: 'Platform overview' },
   '/admin/analytics':      { title: 'Analytics', subtitle: 'Platform metrics' },

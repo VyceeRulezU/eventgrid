@@ -179,12 +179,12 @@ export function FinancialsPage() {
         .from('events')
         .select('id, name, slug')
         .is('deleted_at', null)
-        .order('event_date', { ascending: false })
       if (role !== 'super_admin') {
         const conditions = [`created_by.eq.${userId}`]
         if (orgId) conditions.push(`org_id.eq.${orgId}`)
         evtQuery = evtQuery.or(conditions.join(','))
       }
+      evtQuery = evtQuery.order('event_date', { ascending: false })
       const { data: evts } = await evtQuery
 
       if (evts) setEvents(evts as unknown as { id: string; name: string; slug: string | null }[])
