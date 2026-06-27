@@ -130,17 +130,17 @@ export function IncomeTab({ eventId, onUpdate }: IncomeTabProps) {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 'var(--space-3)', marginBottom: 'var(--space-4)' }}>
-        <div className="card" style={{ padding: 'var(--space-3)' }}>
+        <div className="card" style={{ padding: 'var(--space-3)', containerType: 'inline-size' }}>
           <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', marginBottom: 2 }}>Total Contract</div>
-          <div style={{ fontSize: 'var(--text-title)', fontWeight: 700 }}>{formatNaira(totalContract)}</div>
+          <div style={{ fontSize: 'clamp(11px, 7cqi, var(--text-title))', fontWeight: 700, overflow: 'hidden', whiteSpace: 'nowrap' }}>{formatNaira(totalContract)}</div>
         </div>
-        <div className="card" style={{ padding: 'var(--space-3)' }}>
+        <div className="card" style={{ padding: 'var(--space-3)', containerType: 'inline-size' }}>
           <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', marginBottom: 2 }}>Received</div>
-          <div style={{ fontSize: 'var(--text-title)', fontWeight: 700, color: 'var(--color-success)' }}>{formatNaira(totalReceived)}</div>
+          <div style={{ fontSize: 'clamp(11px, 7cqi, var(--text-title))', fontWeight: 700, color: 'var(--color-success)', overflow: 'hidden', whiteSpace: 'nowrap' }}>{formatNaira(totalReceived)}</div>
         </div>
-        <div className="card" style={{ padding: 'var(--space-3)' }}>
+        <div className="card" style={{ padding: 'var(--space-3)', containerType: 'inline-size' }}>
           <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', marginBottom: 2 }}>Outstanding</div>
-          <div style={{ fontSize: 'var(--text-title)', fontWeight: 700, color: totalPending > 0 ? 'var(--color-error)' : 'var(--color-success)' }}>{formatNaira(totalPending)}</div>
+          <div style={{ fontSize: 'clamp(11px, 7cqi, var(--text-title))', fontWeight: 700, color: totalPending > 0 ? 'var(--color-error)' : 'var(--color-success)', overflow: 'hidden', whiteSpace: 'nowrap' }}>{formatNaira(totalPending)}</div>
         </div>
       </div>
 
