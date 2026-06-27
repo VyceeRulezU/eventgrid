@@ -181,7 +181,7 @@ export function FinancialsPage() {
         .select('id, name')
         .is('deleted_at', null)
         .order('event_date', { ascending: false })
-      if (orgId && role !== 'super_admin') evtQuery = evtQuery.or(`org_id.eq.${orgId},created_by.eq.${user.id}`)
+      if (orgId && role !== 'super_admin') evtQuery = evtQuery.or(`org_id.eq.${orgId},created_by.eq.${user!.id}`)
       const { data: evts } = await evtQuery
 
       if (evts) setEvents(evts as unknown as { id: string; name: string }[])
