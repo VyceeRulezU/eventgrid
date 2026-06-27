@@ -35,7 +35,7 @@ BEGIN
     net.http_post(
       url := public.supabase_edge_url() || '/send-automated-email',
       body := jsonb_build_object(
-        'template_name', 'Congratulations - First Event Created',
+        'template_name', 'Congratulations - Event Created',
         'to', jsonb_build_object('email', creator_email, 'name', creator_name),
         'variables', jsonb_build_object(
           '{{event_name}}', NEW.name,
