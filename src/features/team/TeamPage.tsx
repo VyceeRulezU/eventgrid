@@ -43,6 +43,7 @@ interface PendingInvitation {
 const ROLES = [
   { value: 'team_member', label: 'Team Member' },
   { value: 'coordinator', label: 'Coordinator' },
+  { value: 'partner', label: 'Partner' },
   { value: 'vendor', label: 'Vendor' },
   { value: 'client', label: 'Client' },
 ]
@@ -466,6 +467,7 @@ export function TeamPage() {
       taskCount: taskCounts[m.user_id] || 0,
       profile: m.profile,
       createdAt: m.created_at,
+      canRemove: canManage || (m.role === 'partner' && role === 'planner'),
       onRemove: () => setConfirmRemove({ type: 'member', id: m.id, name: m.profile?.display_name || m.profile?.email || 'this member' }),
     })),
     ...pendingInvitations.map(inv => ({
@@ -479,6 +481,7 @@ export function TeamPage() {
       taskCount: null,
       profile: null,
       createdAt: inv.created_at,
+      canRemove: canManage,
       onRemove: () => setConfirmRemove({ type: 'invite', id: inv.id, name: inv.email }),
     })),
   ].sort((a, b) => {
@@ -502,10 +505,21 @@ export function TeamPage() {
               </button>
             )}
             {canManage && (
-              <button className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => setShowInvite(true)}>
-                <UserPlus size={14} />
-                Add Member
-              </button>
+              <>
+                <button
+                  className="btn btn-ghost btn-sm"
+                  style={{ borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border-subtle)' }}
+                  onClick={() => { setInviteRole('partner'); setShowInvite(true) }}
+                  title="Invite a co-planner with full view access"
+                >
+                  <UserPlus size={14} />
+                  Invite Partner
+                </button>
+                <button className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => { setInviteRole('team_member'); setShowInvite(true) }}>
+                  <UserPlus size={14} />
+                  Add Member
+                </button>
+              </>
             )}
           </div>
         }
@@ -581,9 +595,11 @@ export function TeamPage() {
                         </div>
                       </td>
                       <td className={styles.td}>
-                        <span className={`badge badge-${item.role === 'coordinator' ? 'yellow' : item.role === 'planner' ? 'green' : 'grey'}`}>
+                        <span className={`badge badge-${item.role === 'coordinator' ? 'yellow' : item.role === 'partner' ? 'purple' : item.role === 'planner' ? 'green' : 'grey'}`}
+                          style={item.role === 'partner' ? { background: 'rgba(139,92,246,0.12)', color: 'rgb(139,92,246)', border: '1px solid rgba(139,92,246,0.25)' } : undefined}
+                        >
                           <span className="badge-dot" />
-                          {item.role.charAt(0).toUpperCase() + item.role.slice(1)}
+                          {item.role === 'partner' ? '🤝 Partner' : item.role.charAt(0).toUpperCase() + item.role.slice(1)}
                         </span>
                       </td>
                       <td className={styles.td}>
@@ -599,15 +615,17 @@ export function TeamPage() {
                       </td>
                       {canManage && (
                         <td className={styles.td} style={{ textAlign: 'right' }}>
-                          <button
-                            className="btn btn-ghost btn-sm btn-icon"
-                            style={{ width: 32, height: 32, color: 'var(--color-text-muted)' }}
-                            onClick={item.onRemove}
-                            aria-label={item.kind === 'invitation' ? `Cancel invite for ${item.email}` : `Remove ${item.displayName || item.email || 'member'}`}
-                            title={item.kind === 'invitation' ? 'Cancel invite' : 'Remove from event'}
-                          >
-                            {item.kind === 'invitation' ? <X size={14} /> : <Trash2 size={14} />}
-                          </button>
+                          {item.canRemove && (
+                            <button
+                              className="btn btn-ghost btn-sm btn-icon"
+                              style={{ width: 32, height: 32, color: 'var(--color-text-muted)' }}
+                              onClick={item.onRemove}
+                              aria-label={item.kind === 'invitation' ? `Cancel invite for ${item.email}` : `Remove ${item.displayName || item.email || 'member'}`}
+                              title={item.kind === 'invitation' ? 'Cancel invite' : 'Remove from event'}
+                            >
+                              {item.kind === 'invitation' ? <X size={14} /> : <Trash2 size={14} />}
+                            </button>
+                          )}
                         </td>
                       )}
                     </tr>

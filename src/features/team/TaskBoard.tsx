@@ -39,7 +39,9 @@ export function TaskBoard() {
   const [tasks, setTasks] = useState<TaskWithAssignee[]>([])
   const [phases, setPhases] = useState<EventPhase[]>([])
   const [loading, setLoading] = useState(true)
-  const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban')
+  const [viewMode, setViewMode] = useState<'kanban' | 'list'>(() =>
+    typeof window !== 'undefined' && window.innerWidth < 768 ? 'list' : 'kanban'
+  )
   const [showCreate, setShowCreate] = useState(false)
   const [members, setMembers] = useState<TeamMember[]>([])
   const [dragOverCol, setDragOverCol] = useState<string | null>(null)
@@ -89,16 +91,7 @@ export function TaskBoard() {
     loadData()
   }, [eventId])
 
-  useEffect(() => {
-    function handleResize() {
-      if (window.innerWidth < 768 && viewMode !== 'list') {
-        setViewMode('list')
-      }
-    }
-    handleResize()
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [viewMode])
+
 
   async function loadData() {
     setLoading(true)

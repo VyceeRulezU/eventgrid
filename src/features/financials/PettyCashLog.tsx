@@ -84,7 +84,7 @@ export function PettyCashLog({ eventId, onTotalChange }: PettyCashLogProps) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-3)' }}>
         <h3 style={{ margin: 0, fontSize: 'var(--text-base)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <Receipt size={16} style={{ color: 'var(--color-text-muted)' }} />
-          Petty Cash
+          Miscellaneous
         </h3>
         <button className="btn btn-ghost btn-sm" onClick={() => setShowForm(!showForm)}>
           <Plus size={14} /> Add Expense
@@ -107,7 +107,7 @@ export function PettyCashLog({ eventId, onTotalChange }: PettyCashLogProps) {
 
       {entries.length === 0 ? (
         <div style={{ padding: 'var(--space-4)', textAlign: 'center', fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>
-          No petty cash entries yet
+          No miscellaneous entries yet
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-1)' }}>

@@ -64,6 +64,7 @@ export function FinancialsPage() {
 
   const [eventOwnerId, setEventOwnerId] = useState<string | null>(null)
   const [eventOrgId, setEventOrgId] = useState<string | null>(null)
+  const [isPartner, setIsPartner] = useState(false)
   const [entries, setEntries] = useState<FinancialEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -214,6 +215,20 @@ export function FinancialsPage() {
           }
         }
 
+        // Check if the current user is a partner on this event
+        if (user) {
+          const { data: eaData } = await supabase
+            .from('event_access')
+            .select('role')
+            .eq('event_id', resolvedId)
+            .eq('user_id', user.id)
+            .single()
+          if (eaData?.role === 'partner') setIsPartner(true)
+        }
+
+        // Auto-redirect to first event if no eventId in URL
+        // (handled above but also handled here if resolvedId is set without eventId)
+
         setForm(f => ({ ...f, eventId: resolvedId }))
 
         const [{ data }, { data: cpData }] = await Promise.all([
@@ -235,7 +250,22 @@ export function FinancialsPage() {
       setLoading(false)
     }
 
-    load()
+    // Auto-redirect to the first event if no eventId in the URL
+    async function checkAndRedirect() {
+      const { data: evts } = await supabase
+        .from('events')
+        .select('id')
+        .is('deleted_at', null)
+        .order('event_date', { ascending: false })
+        .limit(1)
+      if (!eventId && evts && evts.length > 0) {
+        navigate(`/events/${evts[0].id}/financials`, { replace: true })
+        return
+      }
+      load()
+    }
+
+    checkAndRedirect()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, org, role, eventId])
 
@@ -397,12 +427,14 @@ export function FinancialsPage() {
     })
   }
 
-  const activeEventName = events.find((e) => e.id === (eventId || events[0]?.id))?.name
+  const activeEventName = events.find((e) => e.id === eventId)?.name
   const isOwner = user && (
     user.id === eventOwnerId ||
     role === 'super_admin' ||
     (role === 'planner' && profile?.org_id && profile.org_id === eventOrgId)
   )
+  // Partners can view financials read-only
+  const canView = isOwner || isPartner
 
   if (loading) {
     return (
@@ -413,7 +445,7 @@ export function FinancialsPage() {
     )
   }
 
-  if (eventOwnerId && !isOwner) {
+  if (eventOwnerId && !canView) {
     return <Navigate to="/financials" replace />
   }
 
@@ -429,11 +461,17 @@ export function FinancialsPage() {
               <DropdownMenu
                 trigger={
                   <span style={{ color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
-                    {events.find((e) => e.id === (eventId || events[0]?.id))?.name || 'All events'}
+                    {events.find((e) => e.id === eventId)?.name || 'Select event'}
                   </span>
                 }
-                items={events.map((e) => ({ label: e.name, value: e.id }))}
-                onSelect={(item) => { navigate(`/events/${item.value}/financials`) }}
+                items={[
+                  { label: '— All Events —', value: '' },
+                  ...events.map((e) => ({ label: e.name, value: e.id })),
+                ]}
+                onSelect={(item) => {
+                  if (item.value) navigate(`/events/${item.value}/financials`)
+                  else navigate('/financials')
+                }}
               />
             </div>
             <input
@@ -447,20 +485,24 @@ export function FinancialsPage() {
                 e.target.value = ''
               }}
             />
-            <div className={styles.hideTablet}>
-              <button
-                className={`btn btn-secondary btn-sm ${styles.toolbarBtn}`}
-                onClick={() => importRef.current?.click()}
-                id="import-csv-btn"
-              >
-                <Upload size={16} />
-                Import CSV
+            {!isPartner && (
+              <div className={styles.hideTablet}>
+                <button
+                  className={`btn btn-secondary btn-sm ${styles.toolbarBtn}`}
+                  onClick={() => importRef.current?.click()}
+                  id="import-csv-btn"
+                >
+                  <Upload size={16} />
+                  Import CSV
+                </button>
+              </div>
+            )}
+            {!isPartner && (
+              <button className={`btn btn-primary btn-sm ${styles.toolbarBtn}`} onClick={() => setShowForm(!showForm)} id="add-entry-btn">
+                <Plus size={16} />
+                Add Entry
               </button>
-            </div>
-            <button className={`btn btn-primary btn-sm ${styles.toolbarBtn}`} onClick={() => setShowForm(!showForm)} id="add-entry-btn">
-              <Plus size={16} />
-              Add Entry
-            </button>
+            )}
           </div>
         }
       />

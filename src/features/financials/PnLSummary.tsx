@@ -32,7 +32,7 @@ export function PnLSummary({ totalRevenue, totalVendorCost, pettyCashTotal }: Pn
           <span style={{ fontWeight: 600, color: 'var(--color-error)' }}>-{formatNaira(totalVendorCost)}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', padding: 'var(--space-1) 0', borderBottom: '1px solid var(--color-border-subtle)' }}>
-          <span style={{ color: 'var(--color-text-secondary)' }}>Petty Cash</span>
+          <span style={{ color: 'var(--color-text-secondary)' }}>Miscellaneous</span>
           <span style={{ fontWeight: 600, color: 'var(--color-error)' }}>-{formatNaira(pettyCashTotal)}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', padding: 'var(--space-1) 0', borderBottom: '1px solid var(--color-border-subtle)' }}>

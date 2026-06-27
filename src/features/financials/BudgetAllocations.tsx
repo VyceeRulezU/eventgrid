@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react'
-import { Pencil, X } from 'lucide-react'
+import { Pencil, X, Plus, Check } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
+import styles from './BudgetAllocations.module.css'
 
 function formatNaira(kobo: number) {
   return `₦${(kobo / 100).toLocaleString('en-NG')}`
 }
 
-const categories = [
+const DEFAULT_CATEGORIES = [
   'Venue & Facility', 'Catering', 'Decor & Design', 'Audio/Visual',
   'Photography', 'Videography', 'Transportation', 'Fashion & Beauty',
   'Entertainment', 'Stationery', 'Security', 'Other',
@@ -31,6 +32,11 @@ export function BudgetAllocations({ eventId }: BudgetAllocationsProps) {
   const [editingCat, setEditingCat] = useState<string | null>(null)
   const [editValue, setEditValue] = useState(0)
 
+  // New category state
+  const [showAddRow, setShowAddRow] = useState(false)
+  const [newCatName, setNewCatName] = useState('')
+  const [addingSaving, setAddingSaving] = useState(false)
+
   useEffect(() => {
     loadData()
   }, [eventId])
@@ -42,8 +48,12 @@ export function BudgetAllocations({ eventId }: BudgetAllocationsProps) {
     ])
 
     const allocMap = new Map<string, number>()
+    const allocIdMap = new Map<string, string>()
     if (allocRes.data) {
-      for (const a of allocRes.data) allocMap.set(a.category, a.allocated)
+      for (const a of allocRes.data) {
+        allocMap.set(a.category, a.allocated)
+        allocIdMap.set(a.category, a.id)
+      }
     }
 
     const spendMap = new Map<string, number>()
@@ -51,12 +61,27 @@ export function BudgetAllocations({ eventId }: BudgetAllocationsProps) {
       for (const s of spendRes.data) spendMap.set(s.category, (spendMap.get(s.category) || 0) + s.total_amount)
     }
 
-    const rows: BudgetRow[] = categories.map(cat => ({
-      id: allocRes.data?.find(a => a.category === cat)?.id || '',
+    // Build rows: default categories + any custom categories from allocations or spend
+    const allCats = new Set<string>(DEFAULT_CATEGORIES)
+    allocMap.forEach((_, cat) => allCats.add(cat))
+    spendMap.forEach((_, cat) => allCats.add(cat))
+
+    const rows: BudgetRow[] = [...allCats].map(cat => ({
+      id: allocIdMap.get(cat) || '',
       category: cat,
       allocated: allocMap.get(cat) || 0,
       actual: spendMap.get(cat) || 0,
     }))
+
+    // Sort: defaults first, then custom
+    rows.sort((a, b) => {
+      const ai = DEFAULT_CATEGORIES.indexOf(a.category)
+      const bi = DEFAULT_CATEGORIES.indexOf(b.category)
+      if (ai >= 0 && bi >= 0) return ai - bi
+      if (ai >= 0) return -1
+      if (bi >= 0) return 1
+      return a.category.localeCompare(b.category)
+    })
 
     setAllocations(rows)
     setLoading(false)
@@ -73,6 +98,28 @@ export function BudgetAllocations({ eventId }: BudgetAllocationsProps) {
     }
     setAllocations(allocations.map(a => a.category === category ? { ...a, allocated: Math.round(editValue * 100) } : a))
     setEditingCat(null)
+  }
+
+  async function handleAddCategory() {
+    const trimmed = newCatName.trim()
+    if (!trimmed) return
+    if (allocations.some(a => a.category.toLowerCase() === trimmed.toLowerCase())) {
+      showNotification({ variant: 'warning', title: 'Already exists', message: `"${trimmed}" is already in your budget list.` })
+      return
+    }
+    setAddingSaving(true)
+    // Insert a zero-allocation row so it persists
+    const { data, error } = await supabase
+      .from('budget_allocations')
+      .insert({ event_id: eventId, category: trimmed, allocated: 0 })
+      .select()
+      .single()
+    setAddingSaving(false)
+    if (error) { showNotification({ variant: 'error', title: 'Failed', message: error.message }); return }
+    setAllocations([...allocations, { id: (data as any).id, category: trimmed, allocated: 0, actual: 0 }])
+    setNewCatName('')
+    setShowAddRow(false)
+    showNotification({ variant: 'success', title: `"${trimmed}" added to budget` })
   }
 
   const totalAllocated = allocations.reduce((s, a) => s + a.allocated, 0)
@@ -96,7 +143,7 @@ export function BudgetAllocations({ eventId }: BudgetAllocationsProps) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
                   {editingCat === row.category ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <input className="input" type="number" min={0} value={editValue || ''} onChange={e => setEditValue(Number(e.target.value))} style={{ width: 100, minHeight: 28, fontSize: 'var(--text-xs)' }} autoFocus />
+                      <input className="input" type="number" min={0} value={editValue || ''} onChange={e => setEditValue(Number(e.target.value))} style={{ width: 100, minHeight: 28, fontSize: 'var(--text-xs)' }} autoFocus onKeyDown={e => { if (e.key === 'Enter') saveAllocation(row.category); if (e.key === 'Escape') setEditingCat(null) }} />
                       <button className="btn btn-primary btn-sm" onClick={() => saveAllocation(row.category)} style={{ minHeight: 28, padding: '0 8px', fontSize: 'var(--text-xs)' }}>Set</button>
                       <button className="btn btn-ghost btn-sm" onClick={() => setEditingCat(null)} style={{ minHeight: 28, padding: '0 8px' }} data-tooltip="Cancel"><X size={14} /></button>
                     </div>
@@ -121,8 +168,53 @@ export function BudgetAllocations({ eventId }: BudgetAllocationsProps) {
             </div>
           )
         })}
-        <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 'var(--space-2)', borderTop: '1px solid var(--color-border-subtle)', fontSize: 'var(--text-sm)', fontWeight: 700 }}>
-          <span>Total</span>
+
+        {/* Add custom category row */}
+        {showAddRow && (
+          <div className={styles.addRowWrap}>
+            <input
+              className={`input ${styles.addRowInput}`}
+              placeholder="Category name (e.g. Florals, MC, Branding)"
+              value={newCatName}
+              onChange={e => setNewCatName(e.target.value)}
+              autoFocus
+              onKeyDown={e => { if (e.key === 'Enter') handleAddCategory(); if (e.key === 'Escape') { setShowAddRow(false); setNewCatName('') } }}
+            />
+            <button
+              className={`btn btn-primary btn-sm ${styles.addRowBtn}`}
+              onClick={handleAddCategory}
+              disabled={addingSaving || !newCatName.trim()}
+            >
+              <Check size={14} /> {addingSaving ? 'Adding...' : 'Add'}
+            </button>
+            <button
+              className={`btn btn-ghost btn-sm btn-icon ${styles.addRowBtn}`}
+              onClick={() => { setShowAddRow(false); setNewCatName('') }}
+            >
+              <X size={14} />
+            </button>
+          </div>
+        )}
+
+        <div 
+          className={styles.totalRow} 
+          style={{ 
+            marginTop: showAddRow ? 0 : 'var(--space-2)', 
+            borderTop: showAddRow ? 'none' : '1px solid var(--color-border-subtle)' 
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+            <span>Total</span>
+            {!showAddRow && (
+              <button
+                className={`btn btn-ghost btn-sm ${styles.addCatBtn}`}
+                onClick={() => setShowAddRow(true)}
+                id="add-budget-category-btn"
+              >
+                <Plus size={12} /> Add Category
+              </button>
+            )}
+          </div>
           <span>{formatNaira(totalActual)} / {formatNaira(totalAllocated)}</span>
         </div>
       </div>

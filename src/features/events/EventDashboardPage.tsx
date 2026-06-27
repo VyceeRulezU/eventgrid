@@ -9,7 +9,7 @@ import {
   Calendar, Users, Wallet, AlertTriangle,
   ExternalLink, FileText, CheckCircle2, Circle,
   CreditCard, Radio, ListChecks, BarChart3,
-  Clock, ArrowRight, Zap, X, Pencil, Gift, Image,
+  Clock, ArrowRight, Zap, X, Pencil, Gift, Image, Trash2, Plus,
 } from 'lucide-react'
 import { PageHero } from '@/components/shared/PageHero'
 import { ModuleLock } from '@/components/shared/ModuleLock'
@@ -82,6 +82,18 @@ function fmtNaira(kobo: number): string {
 
 
 
+const DEFAULT_PHASES = [
+  'Concept & Planning',
+  'Vendor Sourcing',
+  'Contracting & Deposits',
+  'Team Assembly',
+  'Guest Management',
+  'Pre-Event Preparation',
+  'Event Day Operations',
+  'Post-Event Wrap-Up',
+  'Evaluation & Closeout',
+]
+
 function getPhaseRoute(phaseNum: number, eventId: string): string {
   const map: Record<number, string> = {
     1: `/events/${eventId}/vendors`,
@@ -131,6 +143,8 @@ export function EventDashboardPage() {
     role === 'super_admin' ||
     eventRole === 'coordinator'
 
+  const isPartner = eventRole === 'partner'
+
   const headerInputRef = useRef<HTMLInputElement>(null)
   const [uploadingHeader, setUploadingHeader] = useState(false)
 
@@ -148,6 +162,14 @@ export function EventDashboardPage() {
   const [applyingPromo, setApplyingPromo] = useState(false)
   const [togglingPhase, setTogglingPhase] = useState<string | null>(null)
   const [taskCounts, setTaskCounts] = useState<Record<string, { total: number; done: number }>>({})
+  // Phase management
+  const [renamingPhase, setRenamingPhase] = useState<string | null>(null)
+  const [renameValue, setRenameValue] = useState('')
+  const [deletingPhase, setDeletingPhase] = useState<string | null>(null)
+  const [showAddPhase, setShowAddPhase] = useState(false)
+  const [newPhaseName, setNewPhaseName] = useState('')
+  const [addingPhase, setAddingPhase] = useState(false)
+  const [selectedDefaultPhases, setSelectedDefaultPhases] = useState<string[]>([])
   const [deadlines, setDeadlines] = useState<DeadlineItem[]>([])
   const [activity, setActivity] = useState<EventActivity[]>([])
   const [financialSummary, setFinancialSummary] = useState({ paid: 0, outstanding: 0 })
@@ -395,6 +417,73 @@ export function EventDashboardPage() {
       }
       setTaskCounts(counts)
     }
+  }
+
+  const handleRenamePhase = async (phase: EventPhase) => {
+    const trimmed = renameValue.trim()
+    if (!trimmed || trimmed === phase.phase_name) { setRenamingPhase(null); return }
+    const { error } = await supabase.from('event_phases').update({ phase_name: trimmed }).eq('id', phase.id)
+    if (error) { showNotification({ variant: 'error', title: 'Rename failed', message: error.message }); return }
+    setPhases(phases.map(p => p.id === phase.id ? { ...p, phase_name: trimmed } : p))
+    setRenamingPhase(null)
+    showNotification({ variant: 'success', title: 'Phase renamed' })
+  }
+
+  const handleDeletePhase = async (phase: EventPhase) => {
+    if (phases.length <= 1) { showNotification({ variant: 'warning', title: 'Cannot delete', message: 'At least one phase must remain.' }); return }
+    setDeletingPhase(phase.id)
+    // Unphase tasks assigned to this phase
+    await supabase.from('tasks').update({ phase_id: null }).eq('phase_id', phase.id)
+    const { error } = await supabase.from('event_phases').delete().eq('id', phase.id)
+    if (error) { showNotification({ variant: 'error', title: 'Delete failed', message: error.message }); setDeletingPhase(null); return }
+    setPhases(phases.filter(p => p.id !== phase.id))
+    setTaskCounts(prev => { const next = { ...prev }; delete next[phase.id]; return next })
+    setDeletingPhase(null)
+    showNotification({ variant: 'success', title: `"${phase.phase_name}" removed`, message: 'Tasks in this phase are now unassigned.' })
+  }
+
+  const handleAddPhase = async () => {
+    const customTrimmed = newPhaseName.trim()
+    const phasesToInsert = [...selectedDefaultPhases]
+    if (customTrimmed) {
+      phasesToInsert.push(customTrimmed)
+    }
+
+    if (phasesToInsert.length === 0) return
+
+    setAddingPhase(true)
+    const maxPhaseNum = phases.length > 0 ? Math.max(...phases.map(p => p.phase_number)) : 0
+    
+    const insertPayload = phasesToInsert.map((name, index) => ({
+      event_id: activeEvent!.id,
+      phase_name: name,
+      phase_number: maxPhaseNum + 1 + index,
+      status: 'not_started'
+    }))
+
+    const { data, error } = await supabase
+      .from('event_phases')
+      .insert(insertPayload)
+      .select()
+
+    setAddingPhase(false)
+    if (error) {
+      showNotification({ variant: 'error', title: 'Add failed', message: error.message })
+      return
+    }
+
+    if (data) {
+      const newPhases = data as unknown as EventPhase[]
+      setPhases([...phases, ...newPhases].sort((a, b) => a.phase_number - b.phase_number))
+    }
+    setNewPhaseName('')
+    setSelectedDefaultPhases([])
+    setShowAddPhase(false)
+    showNotification({ 
+      variant: 'success', 
+      title: 'Phases added', 
+      message: `${phasesToInsert.length} phase(s) added successfully.` 
+    })
   }
 
   const handleEventSaved = (updated: Partial<Event>) => {
@@ -1096,7 +1185,7 @@ export function EventDashboardPage() {
         </div>
       )}
 
-      {activeTab === 'phases' && phases.length > 0 && (
+      {activeTab === 'phases' && (
         <div className={styles.phaseTabContent} style={{ animation: `${styles.slideFadeIn} 0.3s ease` }}>
           {/* Progress Header */}
           <div className={styles.phaseHeaderCard}>
@@ -1117,7 +1206,9 @@ export function EventDashboardPage() {
             {phases.map((phase) => {
               const isCompleted = phase.status === 'completed'
               const isToggling = togglingPhase === phase.id
-              
+              const isDeleting = deletingPhase === phase.id
+              const isRenaming = renamingPhase === phase.id
+
               let cardClass = styles.phaseCard
               if (isCompleted) cardClass += ` ${styles.phaseCardCompleted}`
               else if (phase.status === 'in_progress') cardClass += ` ${styles.phaseCardCurrent}`
@@ -1127,27 +1218,67 @@ export function EventDashboardPage() {
                 <div key={phase.id} className={cardClass}>
                   <div className={styles.phaseCardTop}>
                     <div className={styles.phaseCardNumberBadge}>Phase {phase.phase_number}</div>
-                    {canManagePhases && (
-                      <button
-                        type="button"
-                        className={`${styles.phaseCardToggle} ${isCompleted ? styles.phaseCardToggleChecked : ''}`}
-                        onClick={() => togglePhaseStatus(phase)}
-                        disabled={isToggling}
-                        aria-label={isCompleted ? `Reopen ${phase.phase_name}` : `Complete ${phase.phase_name}`}
-                      >
-                        {isToggling ? (
-                          <span className="spinner-loader" style={{ width: 14, height: 14 }} />
-                        ) : isCompleted ? (
-                          <CheckCircle2 size={16} />
-                        ) : (
-                          <Circle size={16} />
-                        )}
-                      </button>
-                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      {canManagePhases && (
+                        <>
+                          <button
+                            type="button"
+                            className="btn btn-ghost btn-icon"
+                            style={{ width: 26, height: 26, color: 'var(--color-text-muted)' }}
+                            onClick={() => { setRenamingPhase(phase.id); setRenameValue(phase.phase_name) }}
+                            title="Rename phase"
+                          >
+                            <Pencil size={13} />
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-ghost btn-icon"
+                            style={{ width: 26, height: 26, color: 'var(--color-error)', opacity: phases.length <= 1 ? 0.3 : 1 }}
+                            onClick={() => handleDeletePhase(phase)}
+                            disabled={isDeleting || phases.length <= 1}
+                            title={phases.length <= 1 ? 'Cannot delete the only phase' : 'Remove phase'}
+                          >
+                            {isDeleting ? <span className="spinner-loader" style={{ width: 13, height: 13 }} /> : <Trash2 size={13} />}
+                          </button>
+                        </>
+                      )}
+                      {canManagePhases && (
+                        <button
+                          type="button"
+                          className={`${styles.phaseCardToggle} ${isCompleted ? styles.phaseCardToggleChecked : ''}`}
+                          onClick={() => togglePhaseStatus(phase)}
+                          disabled={isToggling}
+                          aria-label={isCompleted ? `Reopen ${phase.phase_name}` : `Complete ${phase.phase_name}`}
+                        >
+                          {isToggling ? (
+                            <span className="spinner-loader" style={{ width: 14, height: 14 }} />
+                          ) : isCompleted ? (
+                            <CheckCircle2 size={16} />
+                          ) : (
+                            <Circle size={16} />
+                          )}
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  
-                  <h4 className={styles.phaseCardName}>{phase.phase_name}</h4>
-                  
+
+                  {isRenaming ? (
+                    <div style={{ display: 'flex', gap: 6, marginBottom: 'var(--space-2)', marginTop: 'var(--space-1)' }}>
+                      <input
+                        className="input"
+                        style={{ flex: 1, fontSize: 'var(--text-sm)', minHeight: 32 }}
+                        value={renameValue}
+                        onChange={e => setRenameValue(e.target.value)}
+                        autoFocus
+                        onKeyDown={e => { if (e.key === 'Enter') handleRenamePhase(phase); if (e.key === 'Escape') setRenamingPhase(null) }}
+                      />
+                      <button className="btn btn-primary btn-sm" style={{ minHeight: 32, padding: '0 10px' }} onClick={() => handleRenamePhase(phase)}>Save</button>
+                      <button className="btn btn-ghost btn-sm btn-icon" style={{ minHeight: 32 }} onClick={() => setRenamingPhase(null)}><X size={14} /></button>
+                    </div>
+                  ) : (
+                    <h4 className={styles.phaseCardName}>{phase.phase_name}</h4>
+                  )}
+
                   <div className={styles.phaseCardMeta}>
                     <span className={`badge badge-${phase.status === 'completed' ? 'green' : phase.status === 'in_progress' ? 'yellow' : phase.status === 'blocked' ? 'red' : 'grey'}`}>
                       <span className="badge-dot" />
@@ -1170,9 +1301,7 @@ export function EventDashboardPage() {
                         <span>{taskCounts[phase.id].done}/{taskCounts[phase.id].total} done</span>
                       </div>
                       {taskCounts[phase.id].total > 0 && (
-                        <div style={{
-                          height: 4, background: 'var(--color-surface-3)', borderRadius: 2, overflow: 'hidden',
-                        }}>
+                        <div style={{ height: 4, background: 'var(--color-surface-3)', borderRadius: 2, overflow: 'hidden' }}>
                           <div style={{
                             width: `${Math.round((taskCounts[phase.id].done / taskCounts[phase.id].total) * 100)}%`,
                             height: '100%',
@@ -1184,7 +1313,7 @@ export function EventDashboardPage() {
                       )}
                     </div>
                   )}
-                  
+
                   <div className={styles.phaseCardFooter}>
                     <Link to={`/events/${id}/tasks?phase=${phase.phase_number}`} className={styles.phaseCardLink}>
                       {canManagePhases ? 'Manage Deliverables' : 'View Tasks'} <ArrowRight size={12} />
@@ -1194,6 +1323,20 @@ export function EventDashboardPage() {
               )
             })}
           </div>
+
+          {/* Add Phase Button */}
+          {canManagePhases && (
+            <div style={{ marginTop: 'var(--space-4)' }}>
+              <button
+                className="btn btn-ghost btn-sm"
+                style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-text-muted)', border: '1px dashed var(--color-border-subtle)', borderRadius: 'var(--radius-lg)', padding: 'var(--space-3) var(--space-4)', width: '100%', justifyContent: 'center' }}
+                onClick={() => setShowAddPhase(true)}
+                id="add-phase-btn"
+              >
+                <Plus size={16} /> Add Phase
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -1327,6 +1470,83 @@ export function EventDashboardPage() {
       {/* ── Modals ── */}
       {portalOpen && activeEvent && (
         <GeneratePortalModal eventId={activeEvent.id} onClose={() => setPortalOpen(false)} />
+      )}
+
+      {/* Add Phase Modal */}
+      {showAddPhase && (
+        <div className="overlay" onClick={() => { setShowAddPhase(false); setNewPhaseName(''); setSelectedDefaultPhases([]); }}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 480 }}>
+            <div className="modal-card-header">
+              <div className="modal-card-title">Add Phase</div>
+              <button className="modal-card-close" onClick={() => { setShowAddPhase(false); setNewPhaseName(''); setSelectedDefaultPhases([]); }} aria-label="Close">
+                <X size={18} />
+              </button>
+            </div>
+            <div style={{ padding: 'var(--space-4) var(--space-5)' }}>
+              {/* Removed default phases as checkbox list with scrollbar */}
+              {DEFAULT_PHASES.filter(dp => !phases.some(p => p.phase_name === dp)).length > 0 && (
+                <div style={{ marginBottom: 'var(--space-4)' }}>
+                  <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-2)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Restore default phases (Select multiple)
+                  </div>
+                  <div className={styles.defaultPhasesScroll}>
+                    {DEFAULT_PHASES.filter(dp => !phases.some(p => p.phase_name === dp)).map(dp => {
+                      const isChecked = selectedDefaultPhases.includes(dp)
+                      return (
+                        <label
+                          key={dp}
+                          className={styles.defaultPhaseLabel}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            className={styles.defaultPhaseCheckbox}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedDefaultPhases([...selectedDefaultPhases, dp])
+                              } else {
+                                setSelectedDefaultPhases(selectedDefaultPhases.filter(item => item !== dp))
+                              }
+                            }}
+                          />
+                          <span className={styles.defaultPhaseText}>{dp}</span>
+                        </label>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <div style={{ marginBottom: 'var(--space-4)' }}>
+                <label style={{ display: 'block', fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 'var(--space-2)' }}>
+                  Custom Phase Name
+                </label>
+                <input
+                  className="input"
+                  placeholder="e.g. Sponsor Coordination, Rehearsal Day..."
+                  value={newPhaseName}
+                  onChange={e => setNewPhaseName(e.target.value)}
+                  autoFocus
+                  onKeyDown={e => { if (e.key === 'Enter') handleAddPhase(); if (e.key === 'Escape') { setShowAddPhase(false); setNewPhaseName(''); setSelectedDefaultPhases([]); } }}
+                  style={{ fontSize: 'var(--text-sm)' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: 'var(--space-2)', justifyContent: 'flex-end' }}>
+                <button className="btn btn-ghost btn-sm" onClick={() => { setShowAddPhase(false); setNewPhaseName(''); setSelectedDefaultPhases([]); }}>
+                  Cancel
+                </button>
+                <button
+                  className="btn btn-primary btn-sm"
+                  onClick={handleAddPhase}
+                  disabled={addingPhase || (!newPhaseName.trim() && selectedDefaultPhases.length === 0)}
+                >
+                  {addingPhase ? 'Adding...' : 'Add Phase(s)'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {showEditModal && (
