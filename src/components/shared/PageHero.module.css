@@ -14,7 +14,10 @@
 
 .heroOverlay {
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   border-radius: var(--radius-xl);
   background: linear-gradient(180deg, rgba(11, 17, 32, 0.55) 0%, rgba(11, 17, 32, 0.85) 100%);
   z-index: 1;
