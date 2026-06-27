@@ -22,13 +22,12 @@ function AnimatedLabel({ value }: { value: string }) {
   return <span ref={ref}>{String(count).padStart(2, '0')}</span>
 }
 
-function PhaseModule({ phase, index }: { phase: typeof PHASES[0]; index: number }) {
+function PhaseModule({ phase, index, sectionProgress }: { phase: typeof PHASES[0]; index: number; sectionProgress: any }) {
   const ref = useRef<HTMLDivElement | null>(null)
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ['start end', 'end start'],
-  })
-  const smoothProgress = useSpring(scrollYProgress, { stiffness: 80, damping: 20 })
+  const segmentStart = index / 3
+  const segmentEnd = (index + 1) / 3
+  const cardProgress = useTransform(sectionProgress, [segmentStart, segmentEnd], [0, 1])
+  const smoothProgress = useSpring(cardProgress, { stiffness: 80, damping: 20 })
   const scaleY = useTransform(smoothProgress, [0, 1], [0, 1])
   const scaleX = useTransform(smoothProgress, [0, 1], [0, 1])
 
@@ -95,7 +94,7 @@ const PHASES = [
     headline: 'Execute',
     summary:
       'Run the day with real-time boards, vendor tracking, and live issue flags. Your entire team sees the same picture — no radio silence, no surprises.',
-    image: 'https://images.unsplash.com/photo-1661332517932-2d441bfb2994?w=800&q=80&auto=format&fit=crop',
+    image: 'https://images.pexels.com/photos/19870036/pexels-photo-19870036.jpeg?auto=compress&cs=tinysrgb&w=800&fit=crop',
     imageAlt: 'Nigerian wedding event coordination',
   },
   {
@@ -110,8 +109,15 @@ const PHASES = [
 ]
 
 export default function FeatureSpotlightA() {
+  const sectionRef = useRef<HTMLDivElement | null>(null)
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start end', 'end start'],
+  })
+
   return (
     <motion.section
+      ref={sectionRef}
       className={styles.section}
       id="spotlight-a"
       aria-label="Plan, Execute, Celebrate"
@@ -138,7 +144,7 @@ export default function FeatureSpotlightA() {
         {/* Module Grid */}
         <div className={styles.moduleGrid}>
           {PHASES.map((phase, idx) => (
-            <PhaseModule key={phase.id} phase={phase} index={idx} />
+            <PhaseModule key={phase.id} phase={phase} index={idx} sectionProgress={scrollYProgress} />
           ))}
         </div>
       </div>

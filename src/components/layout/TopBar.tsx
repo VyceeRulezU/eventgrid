@@ -24,6 +24,7 @@ const routeMeta: Record<string, { title: string; subtitle: string }> = {
   '/admin/feedback':       { title: 'Feedback', subtitle: 'User feedback and support' },
   '/admin/team':           { title: 'Admin Team', subtitle: 'Manage super admins' },
   '/admin/referrals':      { title: 'Referrals', subtitle: 'Referral partner commissions' },
+  '/admin/engagement':     { title: 'Engagement', subtitle: 'Survey responses, referrals, and email marketing' },
 }
 
 export function TopBar() {
