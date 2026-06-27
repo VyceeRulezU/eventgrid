@@ -1320,21 +1320,22 @@ export function EventDashboardPage() {
                 </div>
               )
             })}
-          </div>
 
-          {/* Add Phase Button */}
-          {canManagePhases && (
-            <div style={{ marginTop: 'var(--space-4)' }}>
+            {/* Add Phase Card inside the grid */}
+            {canManagePhases && (
               <button
-                className="btn btn-ghost btn-sm"
-                style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-text-muted)', border: '1px dashed var(--color-border-subtle)', borderRadius: 'var(--radius-lg)', padding: 'var(--space-3) var(--space-4)', width: '100%', justifyContent: 'center' }}
+                type="button"
+                className={styles.addPhaseCard}
                 onClick={() => setShowAddPhase(true)}
                 id="add-phase-btn"
               >
-                <Plus size={16} /> Add Phase
+                <div className={styles.addPhaseCardContent}>
+                  <Plus size={24} className={styles.addPhaseCardIcon} />
+                  <span className={styles.addPhaseCardText}>Add Phase</span>
+                </div>
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
 
