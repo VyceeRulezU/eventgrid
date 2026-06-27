@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Pencil, X, Plus, Check } from 'lucide-react'
+import { Pencil, X, Plus, Check, Trash2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
 import styles from './BudgetAllocations.module.css'
@@ -100,6 +100,16 @@ export function BudgetAllocations({ eventId }: BudgetAllocationsProps) {
     setEditingCat(null)
   }
 
+  async function deleteAllocation(category: string) {
+    const existing = allocations.find(a => a.category === category)
+    if (existing?.id) {
+      const { error } = await supabase.from('budget_allocations').delete().eq('id', existing.id)
+      if (error) { showNotification({ variant: 'error', title: 'Failed', message: error.message }); return }
+    }
+    setAllocations(allocations.map(a => a.category === category ? { ...a, id: '', allocated: 0 } : a))
+    setEditingCat(null)
+  }
+
   async function handleAddCategory() {
     const trimmed = newCatName.trim()
     if (!trimmed) return
@@ -145,6 +155,7 @@ export function BudgetAllocations({ eventId }: BudgetAllocationsProps) {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                       <input className="input" type="number" min={0} value={editValue || ''} onChange={e => setEditValue(Number(e.target.value))} style={{ width: 100, minHeight: 28, fontSize: 'var(--text-xs)' }} autoFocus onKeyDown={e => { if (e.key === 'Enter') saveAllocation(row.category); if (e.key === 'Escape') setEditingCat(null) }} />
                       <button className="btn btn-primary btn-sm" onClick={() => saveAllocation(row.category)} style={{ minHeight: 28, padding: '0 8px', fontSize: 'var(--text-xs)' }}>Set</button>
+                      {(row.id || row.allocated > 0) && <button className="btn btn-ghost btn-sm" onClick={() => deleteAllocation(row.category)} style={{ minHeight: 28, padding: '0 8px', color: 'var(--color-error)' }} data-tooltip="Delete allocation"><Trash2 size={14} /></button>}
                       <button className="btn btn-ghost btn-sm" onClick={() => setEditingCat(null)} style={{ minHeight: 28, padding: '0 8px' }} data-tooltip="Cancel"><X size={14} /></button>
                     </div>
                   ) : (

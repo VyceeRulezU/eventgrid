@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Image } from 'react-native'
 import { useRouter } from 'expo-router'
+import { Eye, EyeOff } from 'lucide-react-native'
 import { supabase } from '../../lib/supabase'
 import { colors, spacing, fontSize, fontWeight, radius } from '../../constants/tokens'
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -14,6 +16,7 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     setError('')
     setLoading(true)
+
     const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
     if (authError) {
       setError(authError.message)
@@ -43,15 +46,28 @@ export default function LoginScreen() {
           autoComplete="email"
         />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          placeholderTextColor={colors.textMuted}
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          autoComplete="current-password"
-        />
+        <View style={styles.passwordWrap}>
+          <TextInput
+            style={styles.passwordInput}
+            placeholder="Password"
+            placeholderTextColor={colors.textMuted}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+            autoComplete="current-password"
+          />
+          <TouchableOpacity
+            style={styles.eyeBtn}
+            onPress={() => setShowPassword(!showPassword)}
+            activeOpacity={0.7}
+          >
+            {showPassword ? (
+              <EyeOff size={20} color={colors.textMuted} />
+            ) : (
+              <Eye size={20} color={colors.textMuted} />
+            )}
+          </TouchableOpacity>
+        </View>
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
@@ -77,11 +93,11 @@ const styles = StyleSheet.create({
   },
   brandSection: {
     alignItems: 'center',
-    marginBottom: spacing[1],
+    marginBottom: spacing[4],
   },
   logo: {
-    width: 140,
-    height: 80,
+    width: 100,
+    height: 60,
   },
   subtitle: {
     color: colors.textSecondary,
@@ -102,6 +118,25 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     padding: spacing[4],
     fontSize: fontSize.base,
+  },
+  passwordWrap: {
+    position: 'relative',
+    justifyContent: 'center',
+  },
+  passwordInput: {
+    backgroundColor: colors.surface2,
+    color: colors.textPrimary,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing[4],
+    paddingRight: spacing[10],
+    fontSize: fontSize.base,
+  },
+  eyeBtn: {
+    position: 'absolute',
+    right: spacing[3],
+    padding: spacing[1],
   },
   button: {
     backgroundColor: colors.accent,

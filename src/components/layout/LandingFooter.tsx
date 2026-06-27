@@ -38,7 +38,7 @@ export function LandingFooter() {
               <a href="https://www.instagram.com/naligrid/" className={styles.socialLink} aria-label="Instagram">IG</a>
               <a href="https://www.tiktok.com/@naligrid" className={styles.socialLink} aria-label="TikTok">TT</a>
               <a href="https://facebook.com/naligrid" className={styles.socialLink} aria-label="Facebook">FB</a>
-              <a href="https://twitter.com/nalugrid" className={styles.socialLink} aria-label="Twitter">X</a>
+              <a href="https://twitter.com/naligrid" className={styles.socialLink} aria-label="Twitter">X</a>
               <a href="https://linkedin.com/company/naligrid" className={styles.socialLink} aria-label="LinkedIn">in</a>
             </div>
           </div>

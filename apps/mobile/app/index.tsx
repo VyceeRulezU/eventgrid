@@ -3,13 +3,12 @@ import { View, Animated, StyleSheet, Dimensions, Image, Text } from 'react-nativ
 import { Redirect } from 'expo-router'
 import { useAuthStore } from '@naligrid/shared'
 
-const { width, height } = Dimensions.get('window')
+const { height } = Dimensions.get('window')
 
 export default function IndexScreen() {
   const { user } = useAuthStore()
   const [splashDone, setSplashDone] = useState(false)
 
-  const glowOpacity = useRef(new Animated.Value(0)).current
   const logoScale = useRef(new Animated.Value(0.5)).current
   const logoOpacity = useRef(new Animated.Value(0)).current
   const wordmarkOpacity = useRef(new Animated.Value(0)).current
@@ -23,7 +22,6 @@ export default function IndexScreen() {
     const dur = (ms: number) => ({ duration: ms, useNativeDriver: false })
     Animated.sequence([
       Animated.parallel([
-        Animated.timing(glowOpacity, { toValue: 0.5, ...dur(800) }),
         Animated.timing(logoOpacity, { toValue: 1, ...dur(600) }),
         Animated.spring(logoScale, { toValue: 1, friction: 4, useNativeDriver: false }),
       ]),
@@ -54,10 +52,9 @@ export default function IndexScreen() {
 
   return (
     <Animated.View style={[styles.container, { opacity: exitOpacity }]}>
-      <Animated.View style={[styles.glow, { opacity: glowOpacity }]} />
-      <Animated.View style={[styles.logoContainer, { opacity: logoOpacity, transform: [{ scale: logoScale }] }]}>
+      <View style={styles.logoContainer}>
         <Image source={require('../assets/splash-icon.png')} style={styles.logo} resizeMode="contain" />
-      </Animated.View>
+      </View>
       <Animated.View style={[styles.wordmarkRow, { opacity: wordmarkOpacity, transform: [{ translateY: wordmarkY }] }]}>
         <Text style={styles.wordmarkLight}>Nali</Text>
         <Text style={styles.wordmarkGold}>Grid</Text>
@@ -80,34 +77,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  glow: {
-    position: 'absolute',
-    width: 280,
-    height: 280,
-    borderRadius: 140,
-    top: height / 2 - 140,
-    backgroundColor: 'rgba(212, 160, 23, 0.04)',
-    shadowColor: '#D4A017',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 80,
-  },
   logoContainer: {
-    marginBottom: 28,
-    shadowColor: '#D4A017',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 30,
-    elevation: 10,
+    marginBottom: 16,
   },
   logo: {
-    width: 120,
-    height: 120,
+    width: 80,
+    height: 80,
   },
   wordmarkRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   wordmarkLight: {
     fontSize: 40,

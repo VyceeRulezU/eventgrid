@@ -117,7 +117,7 @@ export default function Footer() {
               <a href="https://facebook.com/naligrid" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className={styles.socialLink}>
                 <Facebook size={17} />
               </a>
-              <a href="https://twitter.com/nalugrid" target="_blank" rel="noopener noreferrer" aria-label="Twitter (X)" className={styles.socialLink}>
+              <a href="https://twitter.com/naligrid" target="_blank" rel="noopener noreferrer" aria-label="Twitter (X)" className={styles.socialLink}>
                 <Twitter size={17} />
               </a>
               <a href="https://linkedin.com/company/naligrid" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className={styles.socialLink}>
