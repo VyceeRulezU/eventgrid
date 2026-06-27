@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ChevronRight, Search, Book, LayoutDashboard, DollarSign, Users, Calendar, Radio, ExternalLink, FileText, MessageSquare, ListChecks } from 'lucide-react'
+import { ChevronRight, Search, Book, LayoutDashboard, Wallet, Users, Calendar, Radio, ExternalLink, FileText, MessageSquare, ListChecks } from 'lucide-react'
 import { EVENT_FEE_DISPLAY } from '@/lib/pricing'
 import { PageHero } from '@/components/shared/PageHero'
 import { useSearch } from '@/hooks/useSearch'
@@ -80,7 +80,7 @@ const TOPICS = [
   },
   {
     id: 'financials',
-    icon: DollarSign,
+    icon: Wallet,
     label: 'Financials',
     content: (
       <>

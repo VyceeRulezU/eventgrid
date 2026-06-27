@@ -32,6 +32,7 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS trg_notify_live_feed_post ON live_feed_posts;
 CREATE TRIGGER trg_notify_live_feed_post
   AFTER INSERT ON live_feed_posts
   FOR EACH ROW
@@ -117,6 +118,7 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS trg_notify_task_status_change ON tasks;
 CREATE TRIGGER trg_notify_task_status_change
   AFTER UPDATE OF status ON tasks
   FOR EACH ROW

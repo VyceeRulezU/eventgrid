@@ -1,16 +1,27 @@
 .page {
-  width: 100%;
   display: flex;
   flex-direction: column;
-  height: 100dvh;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* feedBody fills remaining height and stacks scrollable area above composer */
+.feedBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .feedLayout {
   flex: 1;
+  min-height: 0;
   overflow: hidden;
   display: flex;
   gap: var(--space-4);
-  padding: 0 var(--space-4) 0;
+  padding: 0 var(--space-2);
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
@@ -26,13 +37,14 @@
   min-height: 0;
   flex: 1;
   min-width: 0;
+  overflow: hidden;
 }
 
 .feedSidebar {
-  width: 420px;
+  width: 380px;
   flex-shrink: 0;
   overflow-y: auto;
-  max-height: calc(100vh - 100px);
+  min-height: 0;
 }
 
 .feedTimeline {
@@ -41,18 +53,35 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  padding: var(--space-4) 0;
+  padding: var(--space-4) 0 var(--space-2);
   min-height: 0;
+}
+
+/* Shell that wraps the composer at the bottom, fully outside scrollable area */
+.composerShell {
+  flex-shrink: 0;
+  padding: var(--space-3) var(--space-3);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.composerShell > * {
+  width: 100%;
+  max-width: 860px;
 }
 
 @media (max-width: 820px) {
   .feedLayout {
-    flex-direction: column;
-    padding: 0 var(--space-3) var(--space-4);
+    padding: 0 var(--space-3);
   }
   .feedSidebar {
     width: 100%;
     position: static;
+  }
+  .composerShell {
+    padding: var(--space-2) var(--space-3);
   }
 }
 
@@ -132,106 +161,87 @@
   50% { opacity: 0.8; }
 }
 
-.postForm {
-  flex-shrink: 0;
+/* ─────────────────────────────────────────────────
+   Composer — pill-shaped bottom input bar
+   ───────────────────────────────────────────────── */
+
+/* The outer wrapper rendered by PostForm — no styling needed here since
+   composerShell in the page provides the outer padding/border */
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* Compact variant used inside inline reply blocks */
+.composerCompact {
   background: var(--color-surface-2);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
-  overflow: visible;
-  transition: border-color var(--transition-fast);
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+  padding: var(--space-2) var(--space-3);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.postForm:focus-within {
+.composerCompact:focus-within {
   border-color: var(--color-accent-border);
+  box-shadow: 0 0 0 3px var(--color-accent-muted);
 }
 
-.postFormHeader {
-  display: flex;
+/* Reply badge pill */
+.composerReplyBadge {
+  display: inline-flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-4) var(--space-4) var(--space-3);
-  border-bottom: 1px solid var(--color-border-subtle);
-}
-
-.postFormAvatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  object-fit: cover;
-  flex-shrink: 0;
-}
-
-.postFormAvatarPlaceholder {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--color-surface-3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text-muted);
-  flex-shrink: 0;
-}
-
-.postFormName {
-  font-size: var(--text-sm);
+  gap: 5px;
+  font-size: 11px;
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: var(--color-accent);
+  background: var(--color-accent-muted);
+  border-radius: var(--radius-full);
+  padding: 2px 8px;
+  width: fit-content;
 }
 
-.postFormPreviewsWrap {
-  padding: var(--space-3) var(--space-4) 0;
-}
-
-.postFormInput {
-  min-height: 64px;
-  resize: none;
-  width: 100%;
-  border: none;
-  background: transparent;
-  font-size: var(--text-sm);
-  color: var(--color-text-primary);
-  font-family: inherit;
-  line-height: var(--leading-relaxed);
-  outline: none;
-}
-
-.postFormInput::placeholder {
-  color: var(--color-text-muted);
-}
-
-.postFormPreviews {
+/* Attachment preview strip */
+.composerPreviews {
   display: flex;
   gap: var(--space-2);
   flex-wrap: wrap;
-  padding: 0 var(--space-4);
-  margin-bottom: var(--space-3);
 }
 
-.postFormPreviewItem {
+.composerPreviewItem {
   position: relative;
-  width: 72px;
-  height: 72px;
+  width: 56px;
+  height: 56px;
   border-radius: var(--radius-md);
   overflow: hidden;
   border: 1px solid var(--color-border-subtle);
+  flex-shrink: 0;
 }
 
-.postFormPreviewImg {
+.composerPreviewImg {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.postFormPreviewRemove {
+.composerPdfThumb {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface-3);
+  color: var(--color-text-muted);
+}
+
+.composerPreviewRemove {
   position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 20px;
-  height: 20px;
+  top: 3px;
+  right: 3px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.65);
   border: none;
   color: #fff;
   display: flex;
@@ -243,82 +253,242 @@
   transition: opacity var(--transition-fast);
 }
 
-.postFormPreviewItem:hover .postFormPreviewRemove {
-  opacity: 1;
-}
+.composerPreviewItem:hover .composerPreviewRemove { opacity: 1; }
 
-.postFormFooter {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-}
-
-.postFormActionsRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
-}
-
-.postFormLeft {
+/* Location chip that appears above the pill when toggled */
+.composerLocationRow {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-}
-
-.postFormAttachBtn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: var(--radius-md);
-  background: var(--color-surface-3);
-  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  padding: 5px 12px;
   color: var(--color-text-muted);
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: all var(--transition-fast);
+  font-size: var(--text-xs);
 }
 
-.postFormAttachBtn:hover {
-  background: var(--color-surface-hover);
-  color: var(--color-accent);
-  border-color: var(--color-accent-border);
-}
-
-.postFormLocation {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  color: var(--color-text-muted);
-}
-
-.postFormLocationInput {
+.composerLocationInput {
+  flex: 1;
   border: none;
   background: transparent;
   font-size: var(--text-xs);
   color: var(--color-text-primary);
-  min-height: 28px;
-  width: 120px;
   outline: none;
+  font-family: inherit;
+  min-width: 0;
 }
 
-.postFormLocationInput::placeholder {
-  color: var(--color-text-muted);
-}
+.composerLocationInput::placeholder { color: var(--color-text-muted); }
 
-.postFormSendBtn {
-  border-radius: var(--radius-md);
-  min-height: 34px;
-  min-width: 100px;
-  font-weight: 600;
+.composerLocationClear {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 50%;
+  transition: color var(--transition-fast);
+  flex-shrink: 0;
 }
+.composerLocationClear:hover { color: var(--color-error); }
+
+/* ── Pill row: [+ btn] [avatar] [textarea] [send] ── */
+.composerRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  padding: 6px 6px 6px 10px;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.composerRow:focus-within {
+  border-color: var(--color-accent-border);
+  box-shadow: 0 0 0 3px var(--color-accent-muted);
+}
+
+/* + menu button */
+.composerPlusBtn {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--color-surface-3);
+  border: 1px solid var(--color-border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.composerPlusBtn:hover {
+  background: var(--color-accent-muted);
+  border-color: var(--color-accent-border);
+  color: var(--color-accent);
+}
+
+/* Avatar — hidden on main composer, kept for compact reply form */
+.composerAvatar { display: none; }
+.composerAvatarImg { display: none; }
+.composerAvatarPlaceholder { display: none; }
+
+/* Textarea */
+.composerInputWrap {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+}
+
+.composerInput {
+  width: 100%;
+  /* 1 line idle, grows to ~4 lines max */
+  min-height: 24px;
+  max-height: 96px;
+  resize: none;
+  border: none;
+  background: transparent;
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  line-height: 1.5;
+  outline: none;
+  display: block;
+  padding: 4px 0;
+  overflow-y: auto;
+  /* single line scrollbar hidden until needed */
+  scrollbar-width: none;
+}
+
+.composerInput::-webkit-scrollbar { display: none; }
+.composerInput::placeholder { color: var(--color-text-muted); }
+
+/* Send button */
+.composerSendBtn {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  border: none;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  margin-bottom: 0;
+}
+
+.composerSendBtn:hover:not(:disabled) {
+  transform: scale(1.07);
+  filter: brightness(1.12);
+}
+
+.composerSendBtn:disabled {
+  opacity: 0.30;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* + dropdown menu */
+.composerMenuWrap {
+  position: relative;
+}
+
+.composerMenu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 160px;
+  z-index: 30;
+  animation: menuSlideUp 160ms ease both;
+}
+
+@keyframes menuSlideUp {
+  from { opacity: 0; transform: translateY(6px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.composerMenuItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: background var(--transition-fast);
+}
+
+.composerMenuItem:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-accent);
+}
+
+/* Mention dropdown */
+.mentionDropdown {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  padding: var(--space-2);
+  z-index: 50;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+/* Legacy postForm stubs */
+.postForm { display: contents; }
+.postFormCompact { display: contents; }
+.postFormHeader,
+.postFormAvatar,
+.postFormAvatarPlaceholder,
+.postFormName,
+.postFormPreviewsWrap,
+.postFormInput,
+.postFormPreviews,
+.postFormPreviewItem,
+.postFormPreviewImg,
+.postFormPreviewRemove,
+.postFormFooter,
+.postFormActionsRow,
+.postFormLeft,
+.postFormAttachBtn,
+.postFormLocation,
+.postFormLocationInput,
+.postFormSendBtn { /* legacy stubs — no longer rendered */ }
+
+/* legacy icon/action classes */
+.composerActions,
+.composerIconBtn,
+.composerIconBtnActive { /* merged into composerPlusBtn + composerMenu */ }
 
 .feedPost {
   display: flex;
@@ -781,201 +951,365 @@
   padding: 0;
 }
 
-/* ── Reply / Thread Styles ── */
-.threadContainer {
+/* ─────────────────────────────────────────────────
+   X (Twitter) –  style thread & post styles
+   ───────────────────────────────────────────────── */
+
+@keyframes feedPostIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Top-level wrapper for one thread group */
+.xThreadGroup {
   background: var(--color-surface-2);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
-  padding: var(--space-4);
-  display: flex;
-  flex-direction: column;
-  transition: all var(--transition-fast);
   animation: feedPostIn 300ms ease both;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.threadContainer:hover {
+.xThreadGroup:hover {
   border-color: var(--color-accent-border);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
 }
 
-.threadContainer .feedPost {
-  background: transparent !important;
-  border: none !important;
-  border-radius: 0 !important;
-  padding: 0 !important;
-  box-shadow: none !important;
-  animation: none !important;
-}
-
-.threadItem {
+/* A single post (parent or reply) */
+.xPost {
   display: flex;
-  flex-direction: column;
-  width: 100%;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-4) var(--space-2);
 }
 
-.avatarColumn {
-  width: 40px;
+.xPostReply {
+  padding-top: var(--space-3);
+  padding-bottom: var(--space-3);
+}
+
+/* ── Avatar column ── */
+.xAvatarCol {
   display: flex;
   flex-direction: column;
   align-items: center;
+  flex-shrink: 0;
   position: relative;
-  flex-shrink: 0;
 }
 
-.threadLineTop {
-  position: absolute;
-  top: 0;
-  bottom: calc(100% - 26px); /* ends at center of 28px avatar */
+.xAvatar {
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--color-surface-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  z-index: 2;
+  position: relative;
+}
+
+.xAvatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.xAvatarPlaceholder {
+  background: var(--color-surface-3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+}
+
+/* Vertical line running from parent avatar downward — indicates active thread */
+.xThreadLine {
   width: 2px;
   background: var(--color-border);
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1;
+  flex: 1;
+  margin-top: 4px;
+  border-radius: 1px;
+  min-height: 16px;
 }
 
-.threadLineBottom {
-  position: absolute;
-  top: 20px; /* default for top-level 40px avatar center */
-  bottom: 0;
-  width: 2px;
-  background: var(--color-border);
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1;
-}
-
-.feedPostReply .avatarColumn .threadLineBottom {
-  top: 26px; /* starts from center of 28px avatar */
-}
-
-/* Hide bottom line on the absolute last reply item of the entire thread */
-.threadItem:last-child > .feedPostReply > .avatarColumn > .threadLineBottom {
-  display: none !important;
-}
-
-.feedPostReply .feedPostAvatar {
-  width: 28px;
-  height: 28px;
-}
-
-
-.feedReplies {
-  display: flex;
-  flex-direction: column;
+/* ── Post body ── */
+.xBody {
+  flex: 1;
   min-width: 0;
-  margin-top: 0;
-  padding-top: 0;
-  border-top: none;
+  padding-bottom: var(--space-2);
 }
 
-.feedPostReply {
+.xHeader {
   display: flex;
-  gap: var(--space-3);
-  padding: var(--space-3) 0 !important;
-  border: none !important;
-  background: transparent !important;
-  animation: none !important;
-  border-bottom: 1px solid var(--color-border-subtle) !important;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: 2px;
+  min-width: 0;
 }
 
-.feedPostReply:last-child {
-  border-bottom: none !important;
+.xAuthor {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
 }
 
-.feedPostReply:hover {
-  border: none !important;
-  box-shadow: none !important;
-}
-
-.feedPostReply .feedPostAvatarImg,
-.feedPostReply .feedPostAvatarPlaceholder {
-  width: 28px;
-  height: 28px;
-}
-
-.feedPostReply .feedPostAvatarPlaceholder {
-  font-size: 12px;
-}
-
-.feedPostReply .feedPostAvatar {
+.xTime {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: auto;
   flex-shrink: 0;
+  white-space: nowrap;
 }
 
-.feedPostReply .feedPostBody {
-  padding-bottom: 0;
-  min-width: 0;
-  overflow-wrap: break-word;
-}
-
-.feedPostReply .feedPostMessage {
+.xMessage {
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  line-height: var(--leading-relaxed);
   white-space: pre-wrap;
-  overflow-wrap: break-word;
+  word-break: break-word;
   margin-bottom: var(--space-2);
 }
 
-.feedReplyForm {
-  margin-top: var(--space-3);
+/* ── Photo grid ── */
+.xPhotos {
+  display: grid;
+  gap: 3px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: var(--space-2);
 }
 
-.feedPostReplyBtn {
+.xPhotos[data-count="1"] { grid-template-columns: 1fr; }
+.xPhotos[data-count="2"],
+.xPhotos[data-count="3"],
+.xPhotos[data-count="4"] { grid-template-columns: 1fr 1fr; }
+
+.xPhotos[data-count="3"] .xPhotoBtn:first-child { grid-column: span 2; }
+
+.xPhotoBtn {
+  display: block;
+  overflow: hidden;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  position: relative;
+  width: 100%;
+}
+
+.xPhoto {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  display: block;
+  transition: transform 300ms ease;
+}
+
+.xPhotos[data-count="1"] .xPhoto { height: 240px; }
+.xPhotos[data-count="3"] .xPhotoBtn:first-child .xPhoto { height: 240px; }
+.xPhotoBtn:hover .xPhoto { transform: scale(1.04); }
+
+.xPhotoMore {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+
+/* ── PDF grid ── */
+.xPdfGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.xPdfCard {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface-3);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  color: var(--color-text-primary);
+  font-size: var(--text-xs);
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.xPdfCard:hover {
+  background: var(--color-surface-2);
+  border-color: var(--color-accent);
+}
+
+.xPdfName { font-weight: 600; }
+
+/* ── Action row (Like / Reply / Flag) ── */
+.xActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-top: var(--space-1);
+}
+
+.xActionBtn {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   font-size: var(--text-xs);
+  font-weight: 500;
   color: var(--color-text-muted);
   background: none;
   border: none;
   cursor: pointer;
-  padding: 3px var(--space-2);
-  border-radius: var(--radius-md);
+  padding: 6px 8px;
+  border-radius: var(--radius-full);
   font-family: inherit;
   transition: all var(--transition-fast);
+  line-height: 1;
 }
 
+.xActionBtn:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
 
-.feedPostReplyBtn:hover {
+.xActionBtnLiked {
+  color: #f43f5e !important;
+}
+
+.xActionBtnLiked:hover {
+  background: rgba(244, 63, 94, 0.1);
+}
+
+.xFlagBtn:hover {
+  color: var(--color-warning);
+  background: rgba(212, 160, 23, 0.08);
+}
+
+.xFlagLabel {
+  display: none;
+}
+
+@media (min-width: 480px) {
+  .xFlagLabel {
+    display: inline;
+  }
+}
+
+.xLocation {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-xs);
   color: var(--color-accent);
+  background: var(--color-accent-muted);
+  padding: 3px var(--space-2);
+  border-radius: var(--radius-full);
+  font-weight: 500;
+  margin-left: auto;
+}
+
+/* ── Show/Hide replies pill ── */
+.xShowRepliesBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-accent);
+  background: none;
+  border: none;
+  border-top: 1px solid var(--color-border-subtle);
+  cursor: pointer;
+  font-family: inherit;
+  width: 100%;
+  text-align: left;
+  transition: background var(--transition-fast);
+}
+
+.xShowRepliesBtn:hover {
   background: var(--color-accent-muted);
 }
 
-.feedPostCollapseBtn {
-  display: inline-flex;
+/* ── Expanded replies block ── */
+.xRepliesBlock {
+  border-top: 1px solid var(--color-border-subtle);
+  display: flex;
+  flex-direction: column;
+}
+
+.xReplyRow {
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.xReplyRow:last-of-type {
+  border-bottom: none;
+}
+
+/* Inline reply form inside thread */
+.xInlineReply {
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+/* "Reply to thread" button at bottom of expanded replies */
+.xReplyToThreadBtn {
+  display: flex;
   align-items: center;
-  gap: 2px;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
   font-size: var(--text-xs);
+  font-weight: 600;
   color: var(--color-text-muted);
-  background: var(--color-surface-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  background: none;
+  border: none;
+  border-top: 1px solid var(--color-border-subtle);
   cursor: pointer;
-  padding: 1px 5px;
   font-family: inherit;
-  transition: all var(--transition-fast);
-  line-height: normal;
+  width: 100%;
+  text-align: left;
+  transition: background var(--transition-fast), color var(--transition-fast);
 }
 
-.feedPostCollapseBtn:hover {
+.xReplyToThreadBtn:hover {
+  background: var(--color-surface-hover);
   color: var(--color-accent);
-  border-color: var(--color-accent);
 }
 
-.feedPostParentRef {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-size: var(--text-xs);
-  color: var(--color-text-muted);
-  font-weight: 400;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 140px;
-}
-
-
-.feedPostParentRef svg {
-  opacity: 0.6;
-}
+/* ── Keep these legacy classes for lightbox / PDF / modal used by PostRow ── */
+.threadContainer,
+.threadItem,
+.avatarColumn,
+.threadLineTop,
+.threadLineBottom,
+.feedReplies,
+.feedPostReply,
+.feedReplyForm,
+.feedPostReplyBtn,
+.feedPostCollapseBtn,
+.feedPostParentRef { /* kept to avoid CSS module lookup errors on old refs */ }
 
 .postFormReplyIndicator {
   display: flex;
@@ -1253,6 +1587,11 @@
 
 @media (max-width: 480px) {
   /* Mobile 375px adjustments to prevent horizontal overflow */
+  .feedReplies {
+    padding-left: 10px !important;
+    margin-left: 15px !important; /* Centered with 32px parent avatarColumn */
+  }
+
   .threadContainer {
     padding: var(--space-3);
     border-radius: var(--radius-lg);

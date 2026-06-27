@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
-  Plus, Calendar, CircleDollarSign, Users, UserPlus,
+  Plus, Calendar, Wallet, Users, UserPlus,
   ExternalLink, BarChart3, CheckCircle2,
   Mail, X, Copy, Check, UserCheck, ListChecks,
   Activity, ChevronRight, Search, UserRoundPlus, AlertCircle,
@@ -901,7 +901,7 @@ export function PlannerDashboard() {
               { icon: Plus, label: 'New Event', desc: 'Start a new event draft', onClick: () => navigate('/events/new'), color: 'var(--color-accent)' },
               { icon: UserPlus, label: 'Add Coordinator', desc: 'Invite a team member', onClick: () => setShowAddCoordinator(true), color: 'var(--color-info)' },
               { icon: ExternalLink, label: 'Client Portal', desc: 'Generate a read-only link', onClick: () => setShowInviteClient(true), color: 'var(--color-accent)' },
-              { icon: CircleDollarSign, label: 'Financials', desc: 'Budgets & vendor payments', onClick: () => navigate('/financials'), color: 'var(--color-warning)' },
+              { icon: Wallet, label: 'Financials', desc: 'Budgets & vendor payments', onClick: () => navigate('/financials'), color: 'var(--color-warning)' },
               { icon: Users, label: 'Vendor Directory', desc: 'Browse and manage vendors', onClick: () => navigate('/vendors/directory'), color: 'var(--color-text-secondary)' },
               { icon: BarChart3, label: 'Event Reports', desc: 'Aftermath & PDF export', onClick: () => events[0] && navigate(`/events/${events[0].id}/aftermath`), color: 'var(--color-text-secondary)' },
             ].map((action) => (

@@ -42,8 +42,10 @@ const DEFAULT_PARTNERS: Partner[] = [
   }
 ]
 
+const VISIBLE_PARTNERS = ['Talk Events', 'QV']
+
 export default function PartnersSection() {
-  const allPartners = DEFAULT_PARTNERS
+  const visiblePartners = DEFAULT_PARTNERS.filter((p) => VISIBLE_PARTNERS.includes(p.name))
 
   return (
     <section className={styles.section} aria-label="Our Partners">
@@ -54,15 +56,13 @@ export default function PartnersSection() {
             Leading coordinators, venues, and designers trust NaliGrid to power their elite event operations.
           </p>
           <div className={styles.grid}>
-            {allPartners.map((partner, index) => (
-              <div key={`${partner.name}-${index}`} className={styles.logoWrapper} title={partner.name}>
+            {visiblePartners.map((partner, index) => (
+              <div key={`${partner.name}-${index}`} className={styles.gridCell} title={partner.name}>
                 {partner.logo_url ? (
                   <img src={partner.logo_url} alt={`${partner.name} Logo`} className={styles.partnerImg} />
                 ) : partner.isDefault ? (
-                  // Custom White SVG Marks for Default Renowned Planners
                   renderDefaultLogoSVG(partner.name)
                 ) : (
-                  // Stylized White Text Badge for Custom Registered Planners without Logo URLs
                   <span className={styles.partnerTextLogo}>{partner.name}</span>
                 )}
               </div>

@@ -3,7 +3,7 @@
 -- ============================================================
 -- 1. Create live_feed_likes table
 -- ============================================================
-CREATE TABLE live_feed_likes (
+CREATE TABLE IF NOT EXISTS live_feed_likes (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   post_id uuid NOT NULL REFERENCES live_feed_posts(id) ON DELETE CASCADE,
   user_id uuid NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
@@ -14,6 +14,7 @@ CREATE TABLE live_feed_likes (
 ALTER TABLE live_feed_likes ENABLE ROW LEVEL SECURITY;
 
 -- Members can insert their own likes
+DROP POLICY IF EXISTS "live_feed_likes_insert" ON live_feed_likes;
 CREATE POLICY "live_feed_likes_insert" ON live_feed_likes FOR INSERT
   WITH CHECK (
     user_id = auth.uid()
@@ -24,6 +25,7 @@ CREATE POLICY "live_feed_likes_insert" ON live_feed_likes FOR INSERT
   );
 
 -- Members can view likes for posts they can see
+DROP POLICY IF EXISTS "live_feed_likes_select" ON live_feed_likes;
 CREATE POLICY "live_feed_likes_select" ON live_feed_likes FOR SELECT
   USING (
     post_id IN (
@@ -33,12 +35,23 @@ CREATE POLICY "live_feed_likes_select" ON live_feed_likes FOR SELECT
   );
 
 -- Users can delete their own likes
+DROP POLICY IF EXISTS "live_feed_likes_delete" ON live_feed_likes;
 CREATE POLICY "live_feed_likes_delete" ON live_feed_likes FOR DELETE
   USING (user_id = auth.uid());
 
 GRANT ALL ON live_feed_likes TO authenticated;
 
-ALTER PUBLICATION supabase_realtime ADD TABLE live_feed_likes;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' 
+      AND schemaname = 'public' 
+      AND tablename = 'live_feed_likes'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE live_feed_likes;
+  END IF;
+END $$;
 
 -- ============================================================
 -- 2. Add denormalized likes_count to live_feed_posts
@@ -66,6 +79,7 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS trg_update_likes_count ON live_feed_likes;
 CREATE TRIGGER trg_update_likes_count
   AFTER INSERT OR DELETE ON live_feed_likes
   FOR EACH ROW
@@ -101,6 +115,7 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS trg_notify_post_liked ON live_feed_likes;
 CREATE TRIGGER trg_notify_post_liked
   AFTER INSERT ON live_feed_likes
   FOR EACH ROW

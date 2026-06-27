@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { MapPin, Clock, Flag, User, FileText, ExternalLink, X, ChevronLeft, ChevronRight, ChevronDown, MessageCircle, Heart } from 'lucide-react'
+import { MapPin, Clock, Flag, User, FileText, ExternalLink, X, ChevronLeft, ChevronRight, MessageCircle, Heart } from 'lucide-react'
 import { IssueForm } from './IssueForm'
 import { PostForm } from './PostForm'
 import type { LiveFeedPost as LiveFeedPostType } from '@/types'
@@ -26,7 +26,6 @@ interface LiveFeedPostProps {
   teamMembers: TeamMember[]
   getParentPost: (parentId: string) => LiveFeedPostType | undefined
   isReply?: boolean
-  depth?: number
   likedByUser?: boolean
   onToggleLike?: (postId: string) => void
 }
@@ -39,20 +38,37 @@ function calcTimeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime()
   const mins = Math.floor(diff / 60000)
   if (mins < 1) return 'Just now'
-  if (mins < 60) return `${mins}m ago`
+  if (mins < 60) return `${mins}m`
   const hours = Math.floor(mins / 60)
-  if (hours < 24) return `${hours}h ago`
+  if (hours < 24) return `${hours}h`
   const days = Math.floor(hours / 24)
-  return `${days}d ago`
+  return `${days}d`
 }
 
-const MAX_DEPTH = 5
-
-export function LiveFeedPost({ post, getReplies, eventId, displayName, avatarUrl, profileMap, teamMembers, getParentPost, isReply, depth = 0, likedByUser, onToggleLike }: LiveFeedPostProps) {
-  const childReplies = getReplies(post.id)
-  const [collapsed, setCollapsed] = useState(false)
-  const [showIssueForm, setShowIssueForm] = useState(false)
-  const [showReplyForm, setShowReplyForm] = useState(false)
+/** Single post row — shared by parent + replies */
+function PostRow({
+  post,
+  displayName,
+  avatarUrl,
+  isReply,
+  hasReplies,
+  showThreadLine,
+  likedByUser,
+  onToggleLike,
+  onReply,
+  onFlag,
+}: {
+  post: LiveFeedPostType
+  displayName?: string | null
+  avatarUrl?: string | null
+  isReply?: boolean
+  hasReplies?: boolean
+  showThreadLine?: boolean  // draw line below avatar (parent with replies)
+  likedByUser?: boolean
+  onToggleLike?: (id: string) => void
+  onReply?: () => void
+  onFlag?: () => void
+}) {
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null)
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null)
 
@@ -62,191 +78,119 @@ export function LiveFeedPost({ post, getReplies, eventId, displayName, avatarUrl
       ? JSON.parse(post.photo_urls)
       : []
 
-  const timeAgo = calcTimeAgo(post.created_at)
-  const authorName = displayName || 'User'
-
   const imagePhotos = photos.filter((u) => !isPdfUrl(u))
   const pdfPhotos = photos.filter((u) => isPdfUrl(u))
-
-  const handlePdfClick = (url: string) => {
-    setPdfPreviewUrl(url)
-  }
-
-  const parentPost = post.parent_id ? getParentPost(post.parent_id) : null
-  const parentName = parentPost ? profileMap[parentPost.user_id]?.display_name || 'User' : null
-
-  const handleReplyAdded = () => {
-    setShowReplyForm(false)
-  }
-
-  const handleCardClick = (e: React.MouseEvent) => {
-    if (childReplies.length === 0) return
-    const target = e.target as HTMLElement
-    if (target.closest('button, a, input, textarea, [data-no-collapse]')) return
-    setCollapsed(!collapsed)
-  }
-
-  const postRow = (
-    <div className={`${styles.feedPost} ${isReply ? styles.feedPostReply : ''}`} onClick={handleCardClick}>
-      <div className={styles.avatarColumn}>
-        {isReply && <div className={styles.threadLineTop} />}
-        <div className={styles.feedPostAvatar}>
-          {avatarUrl ? (
-            <img src={avatarUrl} alt="" className={styles.feedPostAvatarImg} />
-          ) : (
-            <div className={styles.feedPostAvatarPlaceholder}>
-              <User size={isReply ? 14 : 18} />
-            </div>
-          )}
-        </div>
-        {childReplies.length > 0 && !collapsed && <div className={styles.threadLineBottom} />}
-      </div>
-
-      <div className={styles.feedPostBody}>
-        <div className={styles.feedPostHeader}>
-          <span className={styles.feedPostAuthor}>{authorName}</span>
-          {parentName && (
-            <span className={styles.feedPostParentRef}>
-              <MessageCircle size={10} />
-              replying to {parentName}
-            </span>
-          )}
-          {childReplies.length > 0 && (
-            <button className={styles.feedPostCollapseBtn} onClick={() => setCollapsed(!collapsed)} data-tooltip={collapsed ? 'Expand' : 'Collapse'}>
-              {collapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
-              <span>{childReplies.length}</span>
-            </button>
-          )}
-          <span className={styles.feedPostTime}>
-            <Clock size={12} />
-            {timeAgo}
-          </span>
-        </div>
-
-        <div className={styles.feedPostMessage}>{post.message}</div>
-
-        {imagePhotos.length > 0 && (
-          <div className={styles.feedPostPhotos} data-count={Math.min(imagePhotos.length, 4)}>
-            {imagePhotos.slice(0, 4).map((url, i) => (
-              <button key={i} className={styles.feedPostPhotoLink} onClick={() => setLightboxIdx(i)}>
-                <img src={url} alt="" className={styles.feedPostPhoto} />
-              </button>
-            ))}
-            {imagePhotos.length > 4 && (
-              <div className={styles.feedPostPhotoMore}>+{imagePhotos.length - 4}</div>
-            )}
-          </div>
-        )}
-
-        {pdfPhotos.length > 0 && (
-          <div className={styles.feedPostPdfGrid}>
-            {pdfPhotos.map((url, i) => (
-              <button key={i} className={styles.feedPostPdfCard} onClick={() => handlePdfClick(url)}>
-                <FileText size={24} />
-                <span className={styles.feedPostPdfName}>PDF {i + 1}</span>
-                <ExternalLink size={12} />
-              </button>
-            ))}
-          </div>
-        )}
-
-        <div className={styles.feedPostFooter}>
-          <button
-            className={`${styles.feedPostLikeBtn} ${likedByUser ? styles.feedPostLikeBtnActive : ''}`}
-            onClick={() => onToggleLike?.(post.id)}
-            data-tooltip={likedByUser ? 'Unlike' : 'Like'}
-          >
-            <Heart size={12} fill={likedByUser ? 'currentColor' : 'none'} />
-            <span>{post.likes_count || 0}</span>
-          </button>
-          {post.location_tag && (
-            <span className={styles.feedPostLocation}>
-              <MapPin size={12} />
-              {post.location_tag}
-            </span>
-          )}
-          <button className={styles.feedPostReplyBtn} onClick={() => setShowReplyForm(!showReplyForm)}>
-            <MessageCircle size={12} />
-            {showReplyForm ? 'Cancel' : 'Reply'}
-          </button>
-          <button className={styles.feedPostFlagBtn} onClick={() => setShowIssueForm(true)}>
-            <Flag size={12} />
-            Flag Issue
-          </button>
-        </div>
-
-        {showReplyForm && (
-          <div className={styles.feedReplyForm}>
-            <PostForm
-              eventId={eventId}
-              parentId={post.id}
-              parentAuthorName={authorName}
-              teamMembers={teamMembers}
-              onSuccess={handleReplyAdded}
-              compact
-            />
-          </div>
-        )}
-      </div>
-    </div>
-  )
-
-  const repliesSection = !collapsed && childReplies.length > 0 && depth < MAX_DEPTH && (
-    <div className={styles.feedReplies}>
-      {childReplies.map((reply) => (
-        <LiveFeedPost
-          key={reply.id}
-          post={reply}
-          getReplies={getReplies}
-          eventId={eventId}
-          displayName={profileMap[reply.user_id]?.display_name}
-          avatarUrl={profileMap[reply.user_id]?.avatar_url}
-          profileMap={profileMap}
-          teamMembers={teamMembers}
-          getParentPost={getParentPost}
-          isReply
-          depth={depth + 1}
-          likedByUser={likedByUser}
-          onToggleLike={onToggleLike}
-        />
-      ))}
-    </div>
-  )
+  const authorName = displayName || 'User'
+  const timeAgo = calcTimeAgo(post.created_at)
+  const avatarSize = isReply ? 32 : 40
 
   return (
     <>
-      {depth === 0 ? (
-        <div className={styles.threadContainer}>
-          {postRow}
-          {repliesSection}
+      <div className={`${styles.xPost} ${isReply ? styles.xPostReply : ''}`}>
+        {/* Left: Avatar + thread line */}
+        <div className={styles.xAvatarCol}>
+          <div className={styles.xAvatar} style={{ width: avatarSize, height: avatarSize }}>
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="" className={styles.xAvatarImg} />
+            ) : (
+              <div className={styles.xAvatarPlaceholder} style={{ width: avatarSize, height: avatarSize }}>
+                <User size={isReply ? 14 : 18} />
+              </div>
+            )}
+          </div>
+          {/* Thread line below avatar — shown when this post has replies being displayed */}
+          {showThreadLine && <div className={styles.xThreadLine} />}
         </div>
-      ) : (
-        <div className={styles.threadItem}>
-          {postRow}
-          {repliesSection}
+
+        {/* Right: Body */}
+        <div className={styles.xBody}>
+          {/* Header row */}
+          <div className={styles.xHeader}>
+            <span className={styles.xAuthor}>{authorName}</span>
+            <span className={styles.xTime}>
+              <Clock size={11} />
+              {timeAgo}
+            </span>
+          </div>
+
+          {/* Message */}
+          <div className={styles.xMessage}>{post.message}</div>
+
+          {/* Image grid */}
+          {imagePhotos.length > 0 && (
+            <div className={styles.xPhotos} data-count={Math.min(imagePhotos.length, 4)}>
+              {imagePhotos.slice(0, 4).map((url, i) => (
+                <button key={i} className={styles.xPhotoBtn} onClick={() => setLightboxIdx(i)}>
+                  <img src={url} alt="" className={styles.xPhoto} />
+                  {imagePhotos.length > 4 && i === 3 && (
+                    <div className={styles.xPhotoMore}>+{imagePhotos.length - 4}</div>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* PDF attachments */}
+          {pdfPhotos.length > 0 && (
+            <div className={styles.xPdfGrid}>
+              {pdfPhotos.map((url, i) => (
+                <button key={i} className={styles.xPdfCard} onClick={() => setPdfPreviewUrl(url)}>
+                  <FileText size={20} />
+                  <span className={styles.xPdfName}>PDF {i + 1}</span>
+                  <ExternalLink size={11} />
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Actions row */}
+          <div className={styles.xActions}>
+            <button
+              className={`${styles.xActionBtn} ${likedByUser ? styles.xActionBtnLiked : ''}`}
+              onClick={() => onToggleLike?.(post.id)}
+            >
+              <Heart size={14} fill={likedByUser ? 'currentColor' : 'none'} />
+              {(post.likes_count || 0) > 0 && <span>{post.likes_count}</span>}
+            </button>
+
+            {post.location_tag && (
+              <span className={styles.xLocation}>
+                <MapPin size={12} />
+                {post.location_tag}
+              </span>
+            )}
+
+            <button className={styles.xActionBtn} onClick={onReply}>
+              <MessageCircle size={14} />
+              {!isReply && <span>Reply</span>}
+            </button>
+
+            <button className={`${styles.xActionBtn} ${styles.xFlagBtn}`} onClick={onFlag}>
+              <Flag size={14} />
+              <span className={styles.xFlagLabel}>Flag</span>
+            </button>
+          </div>
         </div>
-      )}
+      </div>
 
-
+      {/* Lightbox */}
       {lightboxIdx !== null && (
         <div className={styles.lightboxOverlay} onClick={() => setLightboxIdx(null)}>
           <div className={styles.lightboxContent} onClick={(e) => e.stopPropagation()}>
-            <button className={styles.lightboxClose} onClick={() => setLightboxIdx(null)} data-tooltip="Close">
+            <button className={styles.lightboxClose} onClick={() => setLightboxIdx(null)}>
               <X size={20} />
             </button>
             {imagePhotos.length > 1 && (
               <>
                 <button
                   className={`${styles.lightboxNav} ${styles.lightboxPrev}`}
-                  onClick={() => setLightboxIdx((prev) => prev === null ? 0 : (prev - 1 + imagePhotos.length) % imagePhotos.length)}
-                  data-tooltip="Previous"
+                  onClick={() => setLightboxIdx((p) => p === null ? 0 : (p - 1 + imagePhotos.length) % imagePhotos.length)}
                 >
                   <ChevronLeft size={24} />
                 </button>
                 <button
                   className={`${styles.lightboxNav} ${styles.lightboxNext}`}
-                  onClick={() => setLightboxIdx((prev) => prev === null ? 0 : (prev + 1) % imagePhotos.length)}
-                  data-tooltip="Next"
+                  onClick={() => setLightboxIdx((p) => p === null ? 0 : (p + 1) % imagePhotos.length)}
                 >
                   <ChevronRight size={24} />
                 </button>
@@ -258,29 +202,140 @@ export function LiveFeedPost({ post, getReplies, eventId, displayName, avatarUrl
         </div>
       )}
 
+      {/* PDF preview */}
       {pdfPreviewUrl && (
         <div className={styles.lightboxOverlay} onClick={() => setPdfPreviewUrl(null)}>
           <div className={styles.pdfPreviewContent} onClick={(e) => e.stopPropagation()}>
-            <button className={styles.lightboxClose} onClick={() => setPdfPreviewUrl(null)} data-tooltip="Close">
+            <button className={styles.lightboxClose} onClick={() => setPdfPreviewUrl(null)}>
               <X size={20} />
             </button>
-            <iframe
-              src={pdfPreviewUrl}
-              className={styles.pdfPreviewIframe}
-              title="PDF Preview"
-            />
-            <a
-              href={pdfPreviewUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.pdfPreviewOpenBtn}
-            >
+            <iframe src={pdfPreviewUrl} className={styles.pdfPreviewIframe} title="PDF Preview" />
+            <a href={pdfPreviewUrl} target="_blank" rel="noopener noreferrer" className={styles.pdfPreviewOpenBtn}>
               <ExternalLink size={14} /> Open in new tab
             </a>
           </div>
         </div>
       )}
+    </>
+  )
+}
 
+/** Main exported component — handles parent + its replies as an X-style thread group */
+export function LiveFeedPost({ post, getReplies, eventId, displayName, avatarUrl, profileMap, teamMembers, getParentPost, isReply, likedByUser, onToggleLike }: LiveFeedPostProps) {
+  const childReplies = getReplies(post.id)
+  const [showIssueForm, setShowIssueForm] = useState(false)
+  const [showReplyForm, setShowReplyForm] = useState(false)
+  const [repliesExpanded, setRepliesExpanded] = useState(false)
+
+  // Only top-level posts manage their own reply threads
+  if (isReply) {
+    // Replies render as slim PostRows — no sub-threading shown
+    return (
+      <PostRow
+        post={post}
+        displayName={displayName}
+        avatarUrl={avatarUrl}
+        isReply
+        likedByUser={likedByUser}
+        onToggleLike={onToggleLike}
+        onFlag={() => setShowIssueForm(true)}
+        onReply={() => {}} // replies to replies not shown inline
+      />
+    )
+  }
+
+  // ----- Top-level thread group -----
+  const hasReplies = childReplies.length > 0
+  const showThreadLine = hasReplies && repliesExpanded
+
+  return (
+    <>
+      <div className={styles.xThreadGroup}>
+        {/* Parent post */}
+        <PostRow
+          post={post}
+          displayName={displayName}
+          avatarUrl={avatarUrl}
+          hasReplies={hasReplies}
+          showThreadLine={showThreadLine}
+          likedByUser={likedByUser}
+          onToggleLike={onToggleLike}
+          onFlag={() => setShowIssueForm(true)}
+          onReply={() => setShowReplyForm((v) => !v)}
+        />
+
+        {/* Inline reply composer (shows when user hits Reply) */}
+        {showReplyForm && !hasReplies && (
+          <div className={styles.xInlineReply}>
+            <PostForm
+              eventId={eventId}
+              parentId={post.id}
+              parentAuthorName={displayName || 'User'}
+              teamMembers={teamMembers}
+              onSuccess={() => setShowReplyForm(false)}
+              compact
+            />
+          </div>
+        )}
+
+        {/* Expand/collapse pill — only shown when there are replies */}
+        {hasReplies && (
+          <button
+            className={styles.xShowRepliesBtn}
+            onClick={() => {
+              setRepliesExpanded((v) => !v)
+              setShowReplyForm(false)
+            }}
+          >
+            <MessageCircle size={13} />
+            {repliesExpanded
+              ? 'Hide replies'
+              : `Show ${childReplies.length} repl${childReplies.length === 1 ? 'y' : 'ies'}`}
+          </button>
+        )}
+
+        {/* Expanded replies — flat, single-level */}
+        {repliesExpanded && (
+          <div className={styles.xRepliesBlock}>
+            {childReplies.map((reply) => (
+              <div key={reply.id} className={styles.xReplyRow}>
+                <PostRow
+                  post={reply}
+                  displayName={profileMap[reply.user_id]?.display_name}
+                  avatarUrl={profileMap[reply.user_id]?.avatar_url}
+                  isReply
+                  likedByUser={likedByUser}
+                  onToggleLike={onToggleLike}
+                  onFlag={() => setShowIssueForm(true)}
+                  onReply={() => setShowReplyForm(true)}
+                />
+              </div>
+            ))}
+            {/* Reply composer attached to thread */}
+            {showReplyForm && (
+              <div className={styles.xInlineReply}>
+                <PostForm
+                  eventId={eventId}
+                  parentId={post.id}
+                  parentAuthorName={displayName || 'User'}
+                  teamMembers={teamMembers}
+                  onSuccess={() => { setShowReplyForm(false) }}
+                  compact
+                />
+              </div>
+            )}
+            <button
+              className={styles.xReplyToThreadBtn}
+              onClick={() => setShowReplyForm((v) => !v)}
+            >
+              <MessageCircle size={13} />
+              {showReplyForm ? 'Cancel' : 'Reply to thread'}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Issue Flag modal */}
       {showIssueForm && (
         <div className={styles.modalOverlay} onClick={() => setShowIssueForm(false)}>
           <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>

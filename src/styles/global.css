@@ -121,3 +121,11 @@ img, video {
   opacity: 0;
   transform: translateX(-50%) translateY(-4px);
 }
+
+/* ── Page-specific overrides ── */
+
+/* Hide AppTour floating help button on the Live Feed page (it overlaps the composer) */
+body:has([data-page="live-feed"]) .helpBtn,
+body:has([data-page="live-feed"]) [class*="helpBtn"] {
+  display: none !important;
+}

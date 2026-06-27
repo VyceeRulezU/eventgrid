@@ -282,12 +282,12 @@ export function LiveFeedPage() {
 
   if (loading) {
     return (
-      <div className={styles.page}>
-        <div className={styles.loadingWrap}>
-          <img src="/ng-new-logo.png" alt="Loading" className={styles.loadingImg} />
-          <div className={styles.loadingText}>Loading live feed...</div>
-        </div>
+    <div className={styles.page} data-page="live-feed">
+      <div className={styles.loadingWrap}>
+        <img src="/ng-new-logo.png" alt="Loading" className={styles.loadingImg} />
+        <div className={styles.loadingText}>Loading live feed...</div>
       </div>
+    </div>
     )
   }
 
@@ -308,7 +308,7 @@ export function LiveFeedPage() {
   }
 
   return (
-    <div className={styles.page}>
+    <div className={styles.page} data-page="live-feed">
       <PageHero
         icon={Radio}
         title={`Live Feed${eventName ? ` | ${eventName}` : ''}`}
@@ -333,46 +333,51 @@ export function LiveFeedPage() {
         }
       />
 
-      <div className={`${styles.feedLayout} ${!showIssues ? styles.feedLayoutFull : ''}`}>
-        <div className={styles.feedMain}>
-          <div className={styles.feedTimeline} ref={timelineRef}>
-            {topLevelPosts.length === 0 ? (
-              <div className="empty-state" style={{ padding: 'var(--space-10) var(--space-4)' }}>
-                <div className="empty-state__icon">
-                  <Radio size={20} />
+      <div className={styles.feedBody}>
+        <div className={`${styles.feedLayout} ${!showIssues ? styles.feedLayoutFull : ''}`}>
+          <div className={styles.feedMain}>
+            <div className={styles.feedTimeline} ref={timelineRef}>
+              {topLevelPosts.length === 0 ? (
+                <div className="empty-state" style={{ padding: 'var(--space-10) var(--space-4)' }}>
+                  <div className="empty-state__icon">
+                    <Radio size={20} />
+                  </div>
+                  <div className="empty-state__title">No updates yet</div>
+                  <div className="empty-state__description">
+                    Post the first update to start the live feed
+                  </div>
                 </div>
-                <div className="empty-state__title">No updates yet</div>
-                <div className="empty-state__description">
-                  Post the first update to start the live feed
-                </div>
-              </div>
-            ) : (
-              topLevelPosts.map((post) => (
-                <LiveFeedPost
-                  key={post.id}
-                  post={post}
-                  getReplies={getReplies}
-                  eventId={eventId!}
-                  displayName={profileMap[post.user_id]?.display_name}
-                  avatarUrl={profileMap[post.user_id]?.avatar_url}
-                  profileMap={profileMap}
-                  teamMembers={teamMembers}
-                  getParentPost={getParentPost}
-                  likedByUser={likedPostIds.has(post.id)}
-                  onToggleLike={handleToggleLike}
-                />
-              ))
-            )}
+              ) : (
+                topLevelPosts.map((post) => (
+                  <LiveFeedPost
+                    key={post.id}
+                    post={post}
+                    getReplies={getReplies}
+                    eventId={eventId!}
+                    displayName={profileMap[post.user_id]?.display_name}
+                    avatarUrl={profileMap[post.user_id]?.avatar_url}
+                    profileMap={profileMap}
+                    teamMembers={teamMembers}
+                    getParentPost={getParentPost}
+                    likedByUser={likedPostIds.has(post.id)}
+                    onToggleLike={handleToggleLike}
+                  />
+                ))
+              )}
+            </div>
           </div>
 
-          <PostForm eventId={eventId!} teamMembers={teamMembers} />
+          {showIssues && (
+            <div className={styles.feedSidebar}>
+              <IssuesPanel eventId={eventId!} />
+            </div>
+          )}
         </div>
 
-        {showIssues && (
-          <div className={styles.feedSidebar}>
-            <IssuesPanel eventId={eventId!} />
-          </div>
-        )}
+        {/* Composer lives OUTSIDE the scrollable layout — always pinned at bottom */}
+        <div className={styles.composerShell}>
+          <PostForm eventId={eventId!} teamMembers={teamMembers} />
+        </div>
       </div>
     </div>
   )

@@ -6,7 +6,7 @@ import { useUIStore } from '@/store/ui.store'
 import { compressImage } from '@/lib/compressImage'
 import { uploadFile } from '@/lib/storage'
 import { createNotification, sendPushNotification } from '@/lib/notifications'
-import { Send, Paperclip, FileText, X, MapPin, User, MessageCircle } from 'lucide-react'
+import { Send, Paperclip, FileText, X, MapPin, User, MessageCircle, Plus } from 'lucide-react'
 import type { LiveFeedPost } from '@/types'
 import styles from './LiveBoardPage.module.css'
 
@@ -33,11 +33,14 @@ export function PostForm({ eventId, parentId, parentAuthorName, teamMembers = []
 
   const [message, setMessage] = useState('')
   const [locationTag, setLocationTag] = useState('')
+  const [showLocation, setShowLocation] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
   const [files, setFiles] = useState<File[]>([])
   const [previews, setPreviews] = useState<string[]>([])
   const [sending, setSending] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   // Mention autocomplete state
   const [mentionOpen, setMentionOpen] = useState(false)
@@ -55,19 +58,37 @@ export function PostForm({ eventId, parentId, parentAuthorName, teamMembers = []
     setMentionIndex(0)
   }, [filteredMembers.length])
 
+  // Auto-grow textarea (1 line idle → 4 lines max)
+  useEffect(() => {
+    const ta = textareaRef.current
+    if (!ta) return
+    ta.style.height = 'auto'
+    const lineH = 24 // px, matches line-height:1.5 * font-size:16px
+    const maxH = lineH * 4 + 8 // 4 lines + padding
+    ta.style.height = Math.min(ta.scrollHeight, maxH) + 'px'
+  }, [message])
+
+  // Close + menu on outside click
+  useEffect(() => {
+    if (!menuOpen) return
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [menuOpen])
+
   function handleTextChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     const val = e.target.value
     setMessage(val)
-
     const pos = e.target.selectionStart || 0
     setCursorPos(pos)
-
-    // Look for @ before cursor
     const textBefore = val.slice(0, pos)
     const atIdx = textBefore.lastIndexOf('@')
     if (atIdx !== -1 && (atIdx === 0 || textBefore[atIdx - 1] === ' ')) {
       const query = textBefore.slice(atIdx + 1)
-      // Only show if there's no space in the query (still typing the name)
       if (!query.includes(' ') && query.length < 30) {
         setMentionQuery(query)
         setMentionOpen(true)
@@ -89,19 +110,17 @@ export function PostForm({ eventId, parentId, parentAuthorName, teamMembers = []
 
   function handleMentionKeyDown(e: React.KeyboardEvent) {
     if (!mentionOpen) return
-    if (e.key === 'ArrowDown') {
+    if (e.key === 'ArrowDown') { e.preventDefault(); setMentionIndex((p) => (p + 1) % filteredMembers.length) }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setMentionIndex((p) => (p - 1 + filteredMembers.length) % filteredMembers.length) }
+    else if (e.key === 'Enter' || e.key === 'Tab') { if (filteredMembers.length > 0) { e.preventDefault(); selectMember(filteredMembers[mentionIndex]) } }
+    else if (e.key === 'Escape') setMentionOpen(false)
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    handleMentionKeyDown(e)
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
       e.preventDefault()
-      setMentionIndex((prev) => (prev + 1) % filteredMembers.length)
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault()
-      setMentionIndex((prev) => (prev - 1 + filteredMembers.length) % filteredMembers.length)
-    } else if (e.key === 'Enter' || e.key === 'Tab') {
-      if (filteredMembers.length > 0) {
-        e.preventDefault()
-        selectMember(filteredMembers[mentionIndex])
-      }
-    } else if (e.key === 'Escape') {
-      setMentionOpen(false)
+      handleSubmit()
     }
   }
 
@@ -110,12 +129,11 @@ export function PostForm({ eventId, parentId, parentAuthorName, teamMembers = []
     setFiles((prev) => [...prev, ...selected])
     selected.forEach((f) => {
       const reader = new FileReader()
-      reader.onload = () => {
-        setPreviews((prev) => [...prev, reader.result as string])
-      }
+      reader.onload = () => setPreviews((prev) => [...prev, reader.result as string])
       reader.readAsDataURL(f)
     })
     e.target.value = ''
+    setMenuOpen(false)
   }
 
   const removeFile = (idx: number) => {
@@ -126,11 +144,9 @@ export function PostForm({ eventId, parentId, parentAuthorName, teamMembers = []
   const handleSubmit = async () => {
     if (!message.trim() || !user || sending) return
     setSending(true)
-
     try {
       const urls: string[] = []
       const mediaRows: { event_id: string; uploader_id: string; url: string; storage_path: string }[] = []
-
       for (const f of files) {
         const ext = f.name.split('.').pop()
         const path = `live-feed/${eventId}/${user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
@@ -139,18 +155,12 @@ export function PostForm({ eventId, parentId, parentAuthorName, teamMembers = []
         try {
           const { url: publicUrl } = await uploadFile('event-media', blob, path)
           urls.push(publicUrl)
-          mediaRows.push({
-            event_id: eventId,
-            uploader_id: user.id,
-            url: publicUrl,
-            storage_path: path,
-          })
+          mediaRows.push({ event_id: eventId, uploader_id: user.id, url: publicUrl, storage_path: path })
         } catch {
           showNotification({ variant: 'error', title: 'Upload failed', message: 'Could not upload file' })
           continue
         }
       }
-
       const insertData: Record<string, any> = {
         event_id: eventId,
         user_id: user.id,
@@ -158,125 +168,127 @@ export function PostForm({ eventId, parentId, parentAuthorName, teamMembers = []
         photo_urls: JSON.stringify(urls),
         location_tag: locationTag.trim() || null,
       }
-      if (parentId) {
-        insertData.parent_id = parentId
-      }
-
-      const { data, error } = await supabase
-        .from('live_feed_posts')
-        .insert(insertData)
-        .select()
-        .single()
-
-      if (error) {
-        showNotification({ variant: 'error', title: 'Failed to post', message: error.message })
-        setSending(false)
-        return
-      }
-
-      if (data) {
-        addPost(data as unknown as LiveFeedPost)
-      }
-
-      // Notify @mentioned users
+      if (parentId) insertData.parent_id = parentId
+      const { data, error } = await supabase.from('live_feed_posts').insert(insertData).select().single()
+      if (error) { showNotification({ variant: 'error', title: 'Failed to post', message: error.message }); setSending(false); return }
+      if (data) addPost(data as unknown as LiveFeedPost)
       if (teamMembers.length > 0) {
-        const mentionedNames = [...new Set(
-          message.match(/@(\w[\w\s]*\w|\w)/g)?.map(t => t.slice(1).trim()) || []
-        )]
+        const mentionedNames = [...new Set(message.match(/@(\w[\w\s]*\w|\w)/g)?.map(t => t.slice(1).trim()) || [])]
         for (const name of mentionedNames) {
           const member = teamMembers.find(m => m.display_name === name)
           if (member && member.id !== user.id) {
-            createNotification(
-              member.id,
-              'mention',
-              `${profile?.display_name || user.email} mentioned you`,
-              message.trim().slice(0, 200),
-              eventId,
-            )
-            sendPushNotification({
-              type: 'mention',
-              recipientId: member.id,
-              eventId,
-              payload: {
-                title: `${profile?.display_name || user.email} mentioned you`,
-                body: message.trim().slice(0, 200),
-                url: `/events/${eventId}/live-board`,
-                tag: 'mention',
-              },
-            })
+            createNotification(member.id, 'mention', `${profile?.display_name || user.email} mentioned you`, message.trim().slice(0, 200), eventId)
+            sendPushNotification({ type: 'mention', recipientId: member.id, eventId, payload: { title: `${profile?.display_name || user.email} mentioned you`, body: message.trim().slice(0, 200), url: `/events/${eventId}/live-board`, tag: 'mention' } })
           }
         }
       }
-
-      if (mediaRows.length > 0) {
-        await supabase.from('media').insert(mediaRows)
-      }
-
+      if (mediaRows.length > 0) await supabase.from('media').insert(mediaRows)
       setMessage('')
       setFiles([])
       setPreviews([])
       setLocationTag('')
+      setShowLocation(false)
       onSuccess?.()
     } catch (err: any) {
       showNotification({ variant: 'error', title: 'Failed to post', message: err.message })
     }
-
     setSending(false)
   }
 
   const isReply = !!parentId
 
   return (
-    <div className={`${styles.postForm} ${compact ? styles.postFormCompact : ''}`}>
+    <div className={`${styles.composer} ${compact ? styles.composerCompact : ''}`}>
+
+      {/* Reply badge */}
       {isReply && (
-        <div className={styles.postFormReplyIndicator}>
-          <MessageCircle size={12} />
+        <div className={styles.composerReplyBadge}>
+          <MessageCircle size={11} />
           Replying to {parentAuthorName || 'post'}
         </div>
       )}
-      <div className={styles.postFormHeader}>
-        {profile?.avatar_url ? (
-          <img src={profile.avatar_url} alt="" className={styles.postFormAvatar} />
-        ) : (
-          <div className={styles.postFormAvatarPlaceholder}>
-            <User size={16} />
-          </div>
-        )}
-        <span className={styles.postFormName}>
-          {profile?.display_name || 'Share an update...'}
-        </span>
-      </div>
 
+      {/* Attachment previews */}
       {previews.length > 0 && (
-        <div className={styles.postFormPreviewsWrap}>
-          <div className={styles.postFormPreviews}>
-            {previews.map((p, i) => (
-              <div key={i} className={styles.postFormPreviewItem}>
-                {files[i]?.type === 'application/pdf' || files[i]?.name?.toLowerCase().endsWith('.pdf') ? (
-                  <div className={styles.postFormPdfPreview}>
-                    <FileText size={20} />
-                  </div>
-                ) : (
-                  <img src={p} alt="" className={styles.postFormPreviewImg} />
-                )}
-                <button className={styles.postFormPreviewRemove} onClick={() => removeFile(i)}>
-                  <X size={12} />
-                </button>
-              </div>
-            ))}
-          </div>
+        <div className={styles.composerPreviews}>
+          {previews.map((p, i) => (
+            <div key={i} className={styles.composerPreviewItem}>
+              {files[i]?.type === 'application/pdf' || files[i]?.name?.toLowerCase().endsWith('.pdf')
+                ? <div className={styles.composerPdfThumb}><FileText size={18} /></div>
+                : <img src={p} alt="" className={styles.composerPreviewImg} />}
+              <button className={styles.composerPreviewRemove} onClick={() => removeFile(i)}><X size={10} /></button>
+            </div>
+          ))}
         </div>
       )}
 
-      <div className={styles.postFormFooter}>
-        <div className={styles.postFormMentionWrap}>
+      {/* Location chip */}
+      {showLocation && (
+        <div className={styles.composerLocationRow}>
+          <MapPin size={12} />
+          <input
+            className={styles.composerLocationInput}
+            placeholder="Add location…"
+            value={locationTag}
+            onChange={(e) => setLocationTag(e.target.value)}
+            autoFocus
+          />
+          <button className={styles.composerLocationClear} onClick={() => { setLocationTag(''); setShowLocation(false) }}>
+            <X size={10} />
+          </button>
+        </div>
+      )}
+
+      {/* ── Pill input row ── */}
+      <div className={styles.composerRow}>
+
+        {/* + menu */}
+        <div className={styles.composerMenuWrap} ref={menuRef}>
+          <button
+            className={styles.composerPlusBtn}
+            onClick={() => setMenuOpen((v) => !v)}
+            title="Add attachment or location"
+            type="button"
+          >
+            <Plus size={15} />
+          </button>
+
+          {menuOpen && (
+            <div className={styles.composerMenu}>
+              <label className={styles.composerMenuItem}>
+                <Paperclip size={15} />
+                Attach file
+                <input type="file" accept="image/*,.pdf" multiple ref={fileRef} style={{ display: 'none' }} onChange={handleFileSelect} />
+              </label>
+              <button
+                className={styles.composerMenuItem}
+                type="button"
+                onClick={() => { setShowLocation((v) => !v); setMenuOpen(false) }}
+              >
+                <MapPin size={15} />
+                {showLocation ? 'Remove location' : 'Add location'}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Avatar */}
+        <div className={styles.composerAvatar}>
+          {profile?.avatar_url
+            ? <img src={profile.avatar_url} alt="" className={styles.composerAvatarImg} />
+            : <div className={styles.composerAvatarPlaceholder}><User size={13} /></div>}
+        </div>
+
+        {/* Textarea + mention dropdown */}
+        <div className={styles.composerInputWrap}>
           <textarea
             ref={textareaRef}
-            className={styles.postFormInput}
-            placeholder={isReply ? 'Write a reply...' : "What's happening?"}
+            className={styles.composerInput}
+            placeholder={isReply ? 'Write a reply… (⌘↵)' : "What's happening? (⌘↵ to post)"}
             value={message}
+            rows={1}
             onChange={handleTextChange}
-            onKeyDown={handleMentionKeyDown}
+            onKeyDown={handleKeyDown}
           />
           {mentionOpen && filteredMembers.length > 0 && (
             <div className={styles.mentionDropdown}>
@@ -286,44 +298,26 @@ export function PostForm({ eventId, parentId, parentAuthorName, teamMembers = []
                   className={`${styles.mentionItem} ${i === mentionIndex ? styles.mentionItemActive : ''}`}
                   onMouseDown={() => selectMember(m)}
                 >
-                  {m.avatar_url ? (
-                    <img src={m.avatar_url} alt="" className={styles.mentionAvatar} />
-                  ) : (
-                    <div className={styles.mentionAvatarPlaceholder}>
-                      <User size={12} />
-                    </div>
-                  )}
+                  {m.avatar_url
+                    ? <img src={m.avatar_url} alt="" className={styles.mentionAvatar} />
+                    : <div className={styles.mentionAvatarPlaceholder}><User size={12} /></div>}
                   <span>{m.display_name || 'Unknown'}</span>
                 </button>
               ))}
             </div>
           )}
         </div>
-        <div className={styles.postFormActionsRow}>
-          <div className={styles.postFormLeft}>
-            <label className={styles.postFormAttachBtn}>
-              <Paperclip size={16} />
-              <input type="file" accept="image/*,.pdf" multiple ref={fileRef} style={{ display: 'none' }} onChange={handleFileSelect} />
-            </label>
-            <div className={styles.postFormLocation}>
-              <MapPin size={14} />
-              <input
-                className={styles.postFormLocationInput}
-                placeholder="Location (optional)"
-                value={locationTag}
-                onChange={(e) => setLocationTag(e.target.value)}
-              />
-            </div>
-          </div>
-          <button
-            className={`btn btn-primary btn-sm ${styles.postFormSendBtn}`}
-            onClick={handleSubmit}
-            disabled={sending || !message.trim()}
-          >
-            <Send size={14} />
-            {sending ? 'Posting...' : isReply ? 'Reply' : 'Post'}
-          </button>
-        </div>
+
+        {/* Send button */}
+        <button
+          className={styles.composerSendBtn}
+          onClick={handleSubmit}
+          disabled={sending || !message.trim()}
+          type="button"
+          title="Send (⌘↵)"
+        >
+          <Send size={15} />
+        </button>
       </div>
     </div>
   )

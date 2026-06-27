@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Calendar, CircleDollarSign, Users, LayoutDashboard, ListChecks } from 'lucide-react'
+import { Calendar, Wallet, Users, LayoutDashboard, ListChecks } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { useEventStore } from '@/store/event.store'
 import styles from './BottomTabBar.module.css'
@@ -17,7 +17,7 @@ export function BottomTabBar() {
 
   if (role === 'planner' || role === 'super_admin') {
     const financialsUrl = activeEvent?.id ? `/events/${activeEvent.id}/financials` : '/financials'
-    items.push({ to: financialsUrl, label: 'Financials', icon: CircleDollarSign })
+    items.push({ to: financialsUrl, label: 'Financials', icon: Wallet })
   }
 
   items.push({ to: isAdmin ? '/admin/vendors' : '/vendors', label: 'Vendors', icon: Users })

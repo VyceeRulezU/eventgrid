@@ -74,7 +74,7 @@ export function FinancialsPage() {
   const [importing, setImporting] = useState(false)
   const [importError, setImportError] = useState<string | null>(null)
   const importRef = useRef<HTMLInputElement>(null)
-  const [events, setEvents] = useState<{ id: string; name: string }[]>([])
+  const [events, setEvents] = useState<{ id: string; name: string; slug: string | null }[]>([])
   const { query, setQuery, filtered } = useSearch(entries, ['vendor_name', 'category'])
   const [form, setForm] = useState({
     eventId: eventId || '',
@@ -177,7 +177,7 @@ export function FinancialsPage() {
     async function load() {
       let evtQuery = supabase
         .from('events')
-        .select('id, name')
+        .select('id, name, slug')
         .is('deleted_at', null)
         .order('event_date', { ascending: false })
       if (role !== 'super_admin') {
@@ -187,7 +187,7 @@ export function FinancialsPage() {
       }
       const { data: evts } = await evtQuery
 
-      if (evts) setEvents(evts as unknown as { id: string; name: string }[])
+      if (evts) setEvents(evts as unknown as { id: string; name: string; slug: string | null }[])
 
       const defaultEid = eventId || evts?.[0]?.id
       if (defaultEid) {
@@ -257,12 +257,12 @@ export function FinancialsPage() {
     async function checkAndRedirect() {
       const { data: evts } = await supabase
         .from('events')
-        .select('id')
+        .select('id, slug')
         .is('deleted_at', null)
         .order('event_date', { ascending: false })
         .limit(1)
       if (!eventId && evts && evts.length > 0) {
-        navigate(`/events/${evts[0].id}/financials`, { replace: true })
+        navigate(`/events/${evts[0].slug || evts[0].id}/financials`, { replace: true })
         return
       }
       load()
@@ -469,7 +469,7 @@ export function FinancialsPage() {
                 }
                 items={[
                   { label: '— All Events —', value: '' },
-                  ...events.map((e) => ({ label: e.name, value: e.id })),
+                  ...events.map((e) => ({ label: e.name, value: e.slug || e.id })),
                 ]}
                 onSelect={(item) => {
                   if (item.value) navigate(`/events/${item.value}/financials`)

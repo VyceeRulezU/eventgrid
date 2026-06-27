@@ -2,6 +2,7 @@ import { SEO } from '@/components/shared/SEO'
 import Navbar from '@/components/layout/Navbar'
 import HeroSection from '@/pages/landing/HeroSection'
 import PartnersSection from '@/pages/landing/PartnersSection'
+import MobileAppFeature from '@/pages/landing/MobileAppFeature'
 import StepsSection from '@/pages/landing/StepsSection'
 import ProblemSection from '@/pages/landing/ProblemSection'
 import BentoFeaturesSection from '@/pages/landing/BentoFeaturesSection'
@@ -43,6 +44,9 @@ export function LandingPage() {
 
         {/* SECTION: Bento Feature Grid */}
         <BentoFeaturesSection />
+
+        {/* SECTION: Mobile App Feature */}
+        <MobileAppFeature />
 
         {/* SECTION: Feature Spotlight Group */}
         <div className={styles.spotlightGroup}>
