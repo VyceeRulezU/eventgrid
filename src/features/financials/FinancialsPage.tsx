@@ -65,6 +65,7 @@ export function FinancialsPage() {
   const [eventOwnerId, setEventOwnerId] = useState<string | null>(null)
   const [eventOrgId, setEventOrgId] = useState<string | null>(null)
   const [isPartner, setIsPartner] = useState(false)
+  const [resolvedEventId, setResolvedEventId] = useState<string | null>(null)
   const [entries, setEntries] = useState<FinancialEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -202,6 +203,7 @@ export function FinancialsPage() {
             resolvedId = evt.id
             setEventOwnerId(evt.created_by)
             setEventOrgId(evt.org_id)
+            setResolvedEventId(evt.id)
           }
         } else {
           const { data: evt } = await supabase
@@ -213,6 +215,7 @@ export function FinancialsPage() {
           if (evt) {
             setEventOwnerId(evt.created_by)
             setEventOrgId(evt.org_id)
+            setResolvedEventId(evt.id)
           }
         }
 
@@ -228,6 +231,7 @@ export function FinancialsPage() {
         }
 
         setForm(f => ({ ...f, eventId: resolvedId }))
+        setResolvedEventId(resolvedId)
 
         const [{ data }, { data: cpData }] = await Promise.all([
           supabase
@@ -410,7 +414,8 @@ export function FinancialsPage() {
     })
   }
 
-  const activeEventName = events.find((e) => e.id === eventId)?.name
+  const activeEventId = resolvedEventId || eventId || events[0]?.id || ''
+  const activeEventName = events.find((e) => e.id === activeEventId)?.name
   const isOwner = user && (
     user.id === eventOwnerId ||
     role === 'super_admin' ||
@@ -444,7 +449,7 @@ export function FinancialsPage() {
               <DropdownMenu
                 trigger={
                   <span style={{ color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
-                    {events.find((e) => e.id === eventId || e.slug === eventId)?.name || 'Select event'}
+                    {events.find((e) => e.id === activeEventId || e.slug === activeEventId)?.name || 'Select event'}
                   </span>
                 }
                 items={[
@@ -867,13 +872,13 @@ export function FinancialsPage() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
           <IncomeTab
-            eventId={eventId || events[0]?.id || ''}
+            eventId={activeEventId}
             onUpdate={(payments) => {
               setClientPayments(payments)
             }}
           />
-          <BudgetAllocations eventId={eventId || events[0]?.id || ''} />
-          <PettyCashLog eventId={eventId || events[0]?.id || ''} onTotalChange={setPettyCashTotal} />
+          <BudgetAllocations eventId={activeEventId} />
+          <PettyCashLog eventId={activeEventId} onTotalChange={setPettyCashTotal} />
         </div>
       )}
     </div>
