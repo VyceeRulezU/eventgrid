@@ -1,0 +1,65 @@
+# Copy of root .gitignore patterns (EAS uses .easignore instead of .gitignore)
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+apps/*/node_modules
+packages/*/node_modules
+
+dist
+dist-ssr
+apps/*/dist
+*.local
+.env.test
+
+# Expo
+apps/mobile/.expo/
+apps/mobile/ios/
+apps/mobile/android/
+
+# Environment secrets — never commit these
+.env
+.env.*
+!.env.example
+!.env.test.example
+.env.studio
+playwright/.auth.json
+test-results/
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Temp
+dev_err.txt
+dev_out.txt
+
+# Not needed for mobile builds
+.vercel
+/studio/
+/env.studio
+/doc/
+/docs/
+
+# Root web app files — excluded from EAS Build
+/package.json
+/package-lock.json
+/src/
+/index.html
+/vite.config.ts
+/vite-env.d.ts
+/tsconfig*.json
+/public/
