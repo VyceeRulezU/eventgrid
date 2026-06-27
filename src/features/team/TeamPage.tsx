@@ -467,7 +467,7 @@ export function TeamPage() {
       taskCount: taskCounts[m.user_id] || 0,
       profile: m.profile,
       createdAt: m.created_at,
-      canRemove: canManage || (m.role === 'partner' && role === 'planner'),
+      canRemove: canManage || (m.role === 'partner' && (role as string) === 'planner'),
       onRemove: () => setConfirmRemove({ type: 'member', id: m.id, name: m.profile?.display_name || m.profile?.email || 'this member' }),
     })),
     ...pendingInvitations.map(inv => ({
@@ -498,7 +498,7 @@ export function TeamPage() {
         subtitle={`${allMembers.length} member${allMembers.length !== 1 ? 's' : ''} · ${reports.length} report${reports.length !== 1 ? 's' : ''}`}
         actions={
           <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
-            {role !== 'planner' && (
+            {(role as string) !== 'planner' && (
               <button className="btn btn-secondary btn-sm" onClick={() => { setReportStatus('update'); setReportMessage(''); setEditingReportId(null); setReportModalMode('create'); setActiveTab('reports') }}>
                 <Send size={14} />
                 Submit Report

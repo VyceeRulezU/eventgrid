@@ -143,8 +143,6 @@ export function EventDashboardPage() {
     role === 'super_admin' ||
     eventRole === 'coordinator'
 
-  const isPartner = eventRole === 'partner'
-
   const headerInputRef = useRef<HTMLInputElement>(null)
   const [uploadingHeader, setUploadingHeader] = useState(false)
 
