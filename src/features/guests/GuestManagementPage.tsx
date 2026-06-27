@@ -249,19 +249,17 @@ export function GuestManagementPage() {
       <div className={styles.toolbar} style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', flexWrap: 'wrap', marginBottom: 'var(--space-3)' }}>
         <SearchBar value={listSearch} onChange={setListSearch} placeholder="Search name or phone..." containerStyle={{ maxWidth: 260 }} />
         <button className="btn btn-ghost btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={loadGuests} title="Refresh"><RefreshCw size={14} /></button>
-        <div className={styles.filterSelect}>
-          <DropdownMenu
-            trigger={rsvpFilter === 'all' ? 'All RSVP' : rsvpFilter.charAt(0).toUpperCase() + rsvpFilter.slice(1)}
-            items={[
-              { label: 'All RSVP', value: 'all' },
-              { label: 'Confirmed', value: 'confirmed' },
-              { label: 'Pending', value: 'pending' },
-              { label: 'Declined', value: 'declined' },
-              { label: 'Maybe', value: 'maybe' },
-            ]}
-            onSelect={(item) => setRsvpFilter(item.value as RSVP | 'all')}
-          />
-        </div>
+        <DropdownMenu
+          trigger={rsvpFilter === 'all' ? 'All RSVP' : rsvpFilter.charAt(0).toUpperCase() + rsvpFilter.slice(1)}
+          items={[
+            { label: 'All RSVP', value: 'all' },
+            { label: 'Confirmed', value: 'confirmed' },
+            { label: 'Pending', value: 'pending' },
+            { label: 'Declined', value: 'declined' },
+            { label: 'Maybe', value: 'maybe' },
+          ]}
+          onSelect={(item) => setRsvpFilter(item.value as RSVP | 'all')}
+        />
         <button className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => { setShowAdd(true); setAddConsent(false) }}><Plus size={14} /> Add</button>
         <button className="btn btn-secondary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => { setShowCSV(true); setCsvConsent(false) }}><Upload size={14} /> CSV</button>
       </div>

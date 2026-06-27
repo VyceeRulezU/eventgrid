@@ -115,18 +115,6 @@
   border-color: var(--color-accent);
 }
 
-.filterSelect {
-  min-height: 36px;
-  padding: var(--space-1) var(--space-3);
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  color: var(--color-text-primary);
-  font-family: var(--font-base);
-  font-size: var(--text-xs);
-  outline: none;
-}
-
 /* ---- Split Panel (replaces table view) ---- */
 .guestSplitPanel {
   display: flex;
