@@ -51,7 +51,6 @@ function PostRow({
   displayName,
   avatarUrl,
   isReply,
-  hasReplies,
   showThreadLine,
   likedByUser,
   onToggleLike,
@@ -62,7 +61,6 @@ function PostRow({
   displayName?: string | null
   avatarUrl?: string | null
   isReply?: boolean
-  hasReplies?: boolean
   showThreadLine?: boolean  // draw line below avatar (parent with replies)
   likedByUser?: boolean
   onToggleLike?: (id: string) => void
@@ -221,7 +219,7 @@ function PostRow({
 }
 
 /** Main exported component — handles parent + its replies as an X-style thread group */
-export function LiveFeedPost({ post, getReplies, eventId, displayName, avatarUrl, profileMap, teamMembers, getParentPost, isReply, likedByUser, onToggleLike }: LiveFeedPostProps) {
+export function LiveFeedPost({ post, getReplies, eventId, displayName, avatarUrl, profileMap, teamMembers, isReply, likedByUser, onToggleLike }: LiveFeedPostProps) {
   const childReplies = getReplies(post.id)
   const [showIssueForm, setShowIssueForm] = useState(false)
   const [showReplyForm, setShowReplyForm] = useState(false)
@@ -256,7 +254,6 @@ export function LiveFeedPost({ post, getReplies, eventId, displayName, avatarUrl
           post={post}
           displayName={displayName}
           avatarUrl={avatarUrl}
-          hasReplies={hasReplies}
           showThreadLine={showThreadLine}
           likedByUser={likedByUser}
           onToggleLike={onToggleLike}

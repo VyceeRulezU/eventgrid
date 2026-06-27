@@ -372,3 +372,9 @@
     height: 12px;
   }
 }
+
+@media (max-width: 375px) {
+  .markAllReadText {
+    display: none;
+  }
+}

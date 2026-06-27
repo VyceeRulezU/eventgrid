@@ -169,9 +169,9 @@ export function NotificationsPage() {
                 ))}
               </div>
               {unreadCount > 0 && (
-                <button className="btn btn-secondary btn-sm" onClick={handleMarkAllRead}>
+                <button className="btn btn-secondary btn-sm" onClick={handleMarkAllRead} style={{ flexShrink: 0 }}>
                   <CheckCheck size={14} />
-                  Mark All Read
+                  <span className={styles.markAllReadText}>Mark All Read</span>
                 </button>
               )}
               <button className="btn btn-ghost btn-sm btn-icon" onClick={() => { setLoading(true); user && getNotifications(user.id, 200).then((d) => { setNotifications(d); setLoading(false) }) }} data-tooltip="Refresh">
@@ -202,9 +202,9 @@ export function NotificationsPage() {
                 ))}
               </div>
               {unreadCount > 0 && (
-                <button className="btn btn-secondary btn-sm" onClick={handleMarkAllRead}>
+                <button className="btn btn-secondary btn-sm" onClick={handleMarkAllRead} style={{ flexShrink: 0 }}>
                   <CheckCheck size={14} />
-                  Mark All Read
+                  <span className={styles.markAllReadText}>Mark All Read</span>
                 </button>
               )}
               <button className="btn btn-ghost btn-sm btn-icon" onClick={() => { setLoading(true); user && getNotifications(user.id, 200).then((d) => { setNotifications(d); setLoading(false) }) }} data-tooltip="Refresh">
