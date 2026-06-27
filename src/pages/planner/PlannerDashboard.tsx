@@ -368,21 +368,18 @@ function AddCoordinatorModal({ events, onClose }: { events: { id: string; name: 
               <label style={{ display: 'block', fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 'var(--space-2)' }}>
                 Assign to Event (Optional)
               </label>
-              <div className="input-wrapper" style={{ margin: 0 }}>
-                <select
-                  className="input"
-                  value={selectedEventId}
-                  onChange={(e) => setSelectedEventId(e.target.value)}
-                  style={{ width: '100%', height: '42px' }}
-                >
-                  <option value="">No event (Organisation level only)</option>
-                  {events.map((evt) => (
-                    <option key={evt.id} value={evt.id}>
-                      {evt.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <DropdownMenu
+                trigger={
+                  <span style={{ color: 'var(--color-text-primary)' }}>
+                    {events.find((e) => e.id === selectedEventId)?.name || 'No event (Organisation level only)'}
+                  </span>
+                }
+                items={[
+                  { label: 'No event (Organisation level only)', value: '' },
+                  ...events.map((evt) => ({ label: evt.name, value: evt.id })),
+                ]}
+                onSelect={(item) => setSelectedEventId(item.value)}
+              />
             </div>
 
             {/* Search bar */}
@@ -765,13 +762,13 @@ export function PlannerDashboard() {
         <h2 className={styles.quickActionsTitle}>Quick Actions</h2>
         <div className={styles.quickActionsBtns}>
           <button type="button" className="btn btn-secondary" onClick={() => setShowAddCoordinator(true)}>
-            <UserPlus size={16} /> Add Coordinator
+            <UserPlus size={18} /> Add Coordinator
           </button>
           <button type="button" className="btn btn-secondary" onClick={() => setShowInviteClient(true)}>
-            <ExternalLink size={16} /> Invite Client
+            <ExternalLink size={18} /> Invite Client
           </button>
           <Link to="/events/new" className="btn btn-primary" id="tour-create-event">
-            <Plus size={16} /> Create Event
+            <Plus size={18} /> Create Event
           </Link>
         </div>
       </div>

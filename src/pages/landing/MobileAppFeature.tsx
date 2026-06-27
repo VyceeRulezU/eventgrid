@@ -68,7 +68,7 @@ export default function MobileAppFeature() {
                       <Bell size={14} />
                       <span className={styles.bellBadge}>2</span>
                     </span>
-                    <div className={styles.userAvatar}>VI</div>
+                    <div className={styles.userAvatar}>CO</div>
                   </div>
                 </div>
 
@@ -80,9 +80,9 @@ export default function MobileAppFeature() {
                     {/* Parent Post */}
                     <div className={styles.feedPost}>
                       <div className={styles.postHeader}>
-                        <div className={styles.postAvatar}>VI</div>
+                        <div className={styles.postAvatar}>CO</div>
                         <div className={styles.postMeta}>
-                          <span className={styles.postName}>Victor Ironali</span>
+                          <span className={styles.postName}>Chinedu Okafor</span>
                           <span className={styles.postTime}>
                             <Clock size={10} style={{ marginRight: 2, display: 'inline-block', verticalAlign: 'middle' }} />
                             10m ago
@@ -145,9 +145,9 @@ export default function MobileAppFeature() {
                   {/* Post 2: Critical Event Issue */}
                   <div className={`${styles.feedPost} ${styles.flaggedIssueCard}`}>
                     <div className={styles.postHeader}>
-                      <div className={styles.postAvatar}>VI</div>
+                      <div className={styles.postAvatar}>CO</div>
                       <div className={styles.postMeta}>
-                        <span className={styles.postName}>Victor Ironali</span>
+                        <span className={styles.postName}>Chinedu Okafor</span>
                         <span className={styles.postTime}>
                           <Clock size={10} style={{ marginRight: 2, display: 'inline-block', verticalAlign: 'middle' }} />
                           2m ago
@@ -237,9 +237,9 @@ export default function MobileAppFeature() {
               </div>
               <div className={styles.stepTextCol}>
                 <span className={styles.stepBadge}>Step 02</span>
-                <h3 className={styles.stepTitle}>Set Your Goals</h3>
+                <h3 className={styles.stepTitle}>Ditch the Walkies</h3>
                 <p className={styles.stepDesc}>
-                  Define your event targets, build your checklist, and invite your team to collaborate in real-time.
+                  Coordinate your on-site team instantly with smart updates, announcements, and direct messages, eliminating noisy radio chatter.
                 </p>
               </div>
             </div>
@@ -251,9 +251,9 @@ export default function MobileAppFeature() {
               </div>
               <div className={styles.stepTextCol}>
                 <span className={styles.stepBadge}>Step 03</span>
-                <h3 className={styles.stepTitle}>Watch It Grow</h3>
+                <h3 className={styles.stepTitle}>Resolve Issues Live</h3>
                 <p className={styles.stepDesc}>
-                  Sit back and watch your event timeline, budgets, and vendors update automatically as event day approaches.
+                  Track critical flags on the live event feed and coordinate instantly to solve problems as they happen on event day.
                 </p>
               </div>
             </div>

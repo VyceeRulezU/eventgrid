@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Receipt, Trash2 } from 'lucide-react'
+import { Plus, Wallet, Trash2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -83,7 +83,7 @@ export function PettyCashLog({ eventId, onTotalChange }: PettyCashLogProps) {
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-3)' }}>
         <h3 style={{ margin: 0, fontSize: 'var(--text-base)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-          <Receipt size={16} style={{ color: 'var(--color-text-muted)' }} />
+          <Wallet size={16} style={{ color: 'var(--color-text-muted)' }} />
           Miscellaneous
         </h3>
         <button className="btn btn-ghost btn-sm" onClick={() => setShowForm(!showForm)}>

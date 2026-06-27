@@ -251,3 +251,43 @@
   color: var(--color-text-muted);
   padding: 0 var(--space-2);
 }
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+@media (max-width: 768px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-4);
+  }
+
+  .toolbarLeft {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    flex: none;
+    gap: var(--space-3);
+  }
+
+  .toolbarLeft > * {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+  }
+
+  .toolbarRight {
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+@media (max-width: 500px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+}

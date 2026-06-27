@@ -313,7 +313,7 @@ export function AdminVendorDirectoryPage() {
               <button className="modal-card-close" onClick={() => { resetForm(); setShowForm(false) }} disabled={saving}><X size={20} /></button>
             </div>
             <div className="modal-card-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
+              <div className={styles.formGrid}>
                 <div className="input-wrapper" style={{ gridColumn: '1 / -1' }}>
                   <label className="input-label">Vendor Name</label>
                   <input className="input" placeholder="Vendor name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />

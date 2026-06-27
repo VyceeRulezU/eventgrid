@@ -98,8 +98,6 @@ export function FinancialsPage() {
   const [activeTab, setActiveTab] = useState<'vendors' | 'income'>('vendors')
   const [clientPayments, setClientPayments] = useState<{ amount: number; status: string; due_date: string | null; description: string }[]>([])
   const [pettyCashTotal, setPettyCashTotal] = useState(0)
-  const [refreshKey, setRefreshKey] = useState(0)
-
   // CSV Parser — no external deps, handles comma-delimited files
   function parseCsv(text: string): Record<string, string>[] {
     const lines = text.replace(/\r/g, '').split('\n').filter((l) => l.trim())
@@ -229,9 +227,6 @@ export function FinancialsPage() {
           if (eaData?.role === 'partner') setIsPartner(true)
         }
 
-        // Auto-redirect to first event if no eventId in URL
-        // (handled above but also handled here if resolvedId is set without eventId)
-
         setForm(f => ({ ...f, eventId: resolvedId }))
 
         const [{ data }, { data: cpData }] = await Promise.all([
@@ -253,22 +248,7 @@ export function FinancialsPage() {
       setLoading(false)
     }
 
-    // Auto-redirect to the first event if no eventId in the URL
-    async function checkAndRedirect() {
-      const { data: evts } = await supabase
-        .from('events')
-        .select('id, slug')
-        .is('deleted_at', null)
-        .order('event_date', { ascending: false })
-        .limit(1)
-      if (!eventId && evts && evts.length > 0) {
-        navigate(`/events/${evts[0].slug || evts[0].id}/financials`, { replace: true })
-        return
-      }
-      load()
-    }
-
-    checkAndRedirect()
+    load()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, org, role, eventId])
 
@@ -448,7 +428,7 @@ export function FinancialsPage() {
     )
   }
 
-  if (eventOwnerId && !canView) {
+  if (eventId && eventOwnerId && !canView) {
     return <Navigate to="/financials" replace />
   }
 
@@ -464,7 +444,7 @@ export function FinancialsPage() {
               <DropdownMenu
                 trigger={
                   <span style={{ color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
-                    {events.find((e) => e.id === eventId)?.name || 'Select event'}
+                    {events.find((e) => e.id === eventId || e.slug === eventId)?.name || 'Select event'}
                   </span>
                 }
                 items={[
@@ -888,10 +868,8 @@ export function FinancialsPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
           <IncomeTab
             eventId={eventId || events[0]?.id || ''}
-            refreshKey={refreshKey}
             onUpdate={(payments) => {
               setClientPayments(payments)
-              setRefreshKey(k => k + 1)
             }}
           />
           <BudgetAllocations eventId={eventId || events[0]?.id || ''} />

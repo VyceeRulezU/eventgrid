@@ -31,11 +31,10 @@ const statusConfig = {
 
 interface IncomeTabProps {
   eventId: string
-  refreshKey: number
   onUpdate: (payments: ClientPayment[]) => void
 }
 
-export function IncomeTab({ eventId, refreshKey, onUpdate }: IncomeTabProps) {
+export function IncomeTab({ eventId, onUpdate }: IncomeTabProps) {
   const showNotification = useUIStore((s) => s.showNotification)
 
   const [payments, setPayments] = useState<ClientPayment[]>([])
@@ -48,7 +47,7 @@ export function IncomeTab({ eventId, refreshKey, onUpdate }: IncomeTabProps) {
 
   useEffect(() => {
     loadPayments()
-  }, [eventId, refreshKey])
+  }, [eventId])
 
   async function loadPayments() {
     const { data } = await supabase

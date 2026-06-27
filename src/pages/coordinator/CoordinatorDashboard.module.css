@@ -42,6 +42,39 @@
   align-items: center;
 }
 
+@media (max-width: 768px) {
+  .quickActions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .quickActionsBtns {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .quickActionsBtns > button,
+  .quickActionsBtns > a {
+    justify-content: center;
+  }
+
+  /* Two secondary buttons side-by-side */
+  .quickActionsBtns > *:nth-child(1),
+  .quickActionsBtns > *:nth-child(2) {
+    flex: 1 1 calc(50% - (var(--space-3) / 2));
+    min-width: 0;
+  }
+
+  /* One primary button full width on its own row */
+  .quickActionsBtns > *:nth-child(3) {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+}
+
 /* ── Overview Bento Cards ── */
 .statsGrid {
   display: grid;
@@ -171,6 +204,12 @@
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-md);
   border: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+@media (max-width: 640px) {
+  .barSparkline {
+    display: none !important;
+  }
 }
 
 .barSparklineBar {
