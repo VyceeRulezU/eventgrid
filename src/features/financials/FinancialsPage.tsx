@@ -208,7 +208,7 @@ export function FinancialsPage() {
         } else {
           const { data: evt } = await supabase
               .from('events')
-              .select('created_by, org_id')
+              .select('id, created_by, org_id')
               .eq('id', resolvedId)
               .is('deleted_at', null)
               .single()
