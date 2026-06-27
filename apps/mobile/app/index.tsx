@@ -42,7 +42,7 @@ export default function IndexScreen() {
   }, [])
 
   if (splashDone) {
-    return user ? <Redirect href="/(app)/events" /> : <Redirect href="/(auth)/login" />
+    return user ? <Redirect href="/(app)/events" /> : <Redirect href="/(auth)/welcome" />
   }
 
   const barWidthPct = barWidth.interpolate({
