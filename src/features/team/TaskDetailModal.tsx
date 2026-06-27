@@ -53,7 +53,7 @@ export interface TaskDetail {
 interface TaskDetailModalProps {
   task: TaskDetail
   onClose: () => void
-  onUpdate: () => void
+  onUpdate: () => Promise<void> | void
 }
 
 export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProps) {
@@ -168,7 +168,7 @@ export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProp
         sendPushNotification({ type: 'task_assigned', recipientId: editAssigneeId, eventId: task.event_id, payload: { title: editTitle.trim(), body: 'A task has been reassigned to you', url: `/events/${task.event_id}/tasks`, tag: `task-${task.id}` } })
       }
       showNotification({ variant: 'success', title: 'Task updated successfully' })
-      onUpdate()
+      try { await onUpdate() } catch {}
       onClose()
     }
     setSavingEdit(false)
@@ -268,15 +268,15 @@ export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProp
           <div className={styles.infoGrid}>
             <div>
               <div className={styles.fieldLabel}>Event</div>
-              <div style={{ fontWeight: 600, color: 'var(--color-accent)', padding: '8px 0' }}>{task.event.name}</div>
+              <div className={styles.eventName}>{task.event.name}</div>
             </div>
             <div>
               <div className={styles.fieldLabel}>Phase</div>
               {isManager ? (
-                <DropdownMenu
-                  trigger={
-                    <span>{phases.find((p) => p.id === editPhaseId)?.phase_name || 'No Phase'}</span>
-                  }
+                  <DropdownMenu
+                    trigger={
+                      <span className={styles.phaseTrigger}>{phases.find((p) => p.id === editPhaseId)?.phase_name || 'No Phase'}</span>
+                    }
                   items={[
                     { label: 'No Phase', value: '' },
                     ...phases.map((p) => ({ label: p.phase_name, value: p.id }))

@@ -88,15 +88,14 @@ export function BudgetAllocations({ eventId }: BudgetAllocationsProps) {
   }
 
   async function saveAllocation(category: string) {
-    const existing = allocations.find(a => a.category === category)
-    if (existing?.id) {
-      const { error } = await supabase.from('budget_allocations').update({ allocated: Math.round(editValue * 100) }).eq('id', existing.id)
-      if (error) { showNotification({ variant: 'error', title: 'Failed', message: error.message }); return }
-    } else {
-      const { error } = await supabase.from('budget_allocations').insert({ event_id: eventId, category, allocated: Math.round(editValue * 100) })
-      if (error) { showNotification({ variant: 'error', title: 'Failed', message: error.message }); return }
-    }
-    setAllocations(allocations.map(a => a.category === category ? { ...a, allocated: Math.round(editValue * 100) } : a))
+    const kobo = Math.round(editValue * 100)
+    const { data, error } = await supabase
+      .from('budget_allocations')
+      .upsert({ event_id: eventId, category, allocated: kobo }, { onConflict: 'event_id,category' })
+      .select('id')
+      .single()
+    if (error) { showNotification({ variant: 'error', title: 'Failed', message: error.message }); return }
+    setAllocations(allocations.map(a => a.category === category ? { ...a, id: data.id, allocated: kobo } : a))
     setEditingCat(null)
   }
 
@@ -118,11 +117,10 @@ export function BudgetAllocations({ eventId }: BudgetAllocationsProps) {
       return
     }
     setAddingSaving(true)
-    // Insert a zero-allocation row so it persists
     const { data, error } = await supabase
       .from('budget_allocations')
-      .insert({ event_id: eventId, category: trimmed, allocated: 0 })
-      .select()
+      .upsert({ event_id: eventId, category: trimmed, allocated: 0 }, { onConflict: 'event_id,category' })
+      .select('id')
       .single()
     setAddingSaving(false)
     if (error) { showNotification({ variant: 'error', title: 'Failed', message: error.message }); return }

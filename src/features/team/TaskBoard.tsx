@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useResolvedEventId } from '@/hooks/useResolvedEventId'
-import { Columns, List, Plus, ListChecks } from 'lucide-react'
+import { Columns, List, Plus, Upload, ListChecks } from 'lucide-react'
 import { PageHero } from '@/components/shared/PageHero'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { TaskCard } from './TaskCard'
 import { CreateTaskModal } from './CreateTaskModal'
+import { BulkTaskUpload } from './BulkTaskUpload'
 import { TaskDetailModal } from './TaskDetailModal'
 import type { TaskDetail } from './TaskDetailModal'
 import type { Task, EventPhase } from '@/types'
@@ -43,6 +44,7 @@ export function TaskBoard() {
     typeof window !== 'undefined' && window.innerWidth < 768 ? 'list' : 'kanban'
   )
   const [showCreate, setShowCreate] = useState(false)
+  const [showBulkUpload, setShowBulkUpload] = useState(false)
   const [members, setMembers] = useState<TeamMember[]>([])
   const [dragOverCol, setDragOverCol] = useState<string | null>(null)
   const [detailTask, setDetailTask] = useState<TaskDetail | null>(null)
@@ -61,40 +63,16 @@ export function TaskBoard() {
     })
   }
 
-  async function handleRefreshDetail(taskId: string) {
-    const { data } = await supabase
-      .from('tasks')
-      .select('*, assignee:profiles!tasks_assignee_id_fkey(display_name, avatar_url)')
-      .eq('id', taskId)
-      .single()
-    if (data) {
-      const updatedTask = data as unknown as TaskWithAssignee
-      const phase = phases.find((p) => p.id === updatedTask.phase_id)
-      setDetailTask({
-        ...updatedTask,
-        event: { id: eventId!, name: eventName },
-        phase: phase ? { phase_name: phase.phase_name } : null,
-        assignee: updatedTask.assignee ? {
-          display_name: updatedTask.assignee.display_name,
-          email: members.find((m) => m.user_id === updatedTask.assignee_id)?.email || undefined,
-          avatar_url: updatedTask.assignee.avatar_url,
-        } : null,
-      })
-    } else {
-      setDetailTask(null)
-    }
-  }
-
   useEffect(() => {
     if (!eventId) return
     supabase.from('events').select('name').eq('id', eventId).single().then(({ data }) => { if (data) setEventName(data.name) })
-    loadData()
+    loadData(true)
   }, [eventId])
 
 
 
-  async function loadData() {
-    setLoading(true)
+  async function loadData(showLoading?: boolean) {
+    if (showLoading) setLoading(true)
 
     const [{ data: tasksData }, { data: eaData }, { data: phasesData }] = await Promise.all([
       supabase
@@ -196,7 +174,7 @@ export function TaskBoard() {
   if (loading) {
     return (
       <div className={styles.page}>
-        <PageHero icon={ListChecks} title={`Task Board${eventName ? ` | ${eventName}` : ''}`} subtitle="Loading tasks..." backTo={`/events/${paramId}`} />
+        <PageHero icon={ListChecks} title={`Task Board${eventName ? ` | ${eventName}` : ''}`} subtitle="Loading tasks..." />
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 200, gap: 'var(--space-4)' }}>
           <img src="/ng-new-logo.png" alt="Loading" style={{ width: 48, height: 48, opacity: 0.5 }} />
           <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>Loading tasks...</div>
@@ -211,7 +189,6 @@ export function TaskBoard() {
           icon={ListChecks}
           title={`Task Board${eventName ? ` | ${eventName}` : ''}`}
           subtitle={`${tasks.length} task${tasks.length !== 1 ? 's' : ''}`}
-          backTo={`/events/${paramId}`}
         actions={
           <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
             <div className={styles.viewToggle}>
@@ -236,6 +213,12 @@ export function TaskBoard() {
                 Add Task
               </button>
             )}
+            {canCreate && (
+              <button className="btn btn-secondary btn-sm" style={{ borderRadius: 'var(--radius-sm)', gap: 'var(--space-1)' }} onClick={() => setShowBulkUpload(true)}>
+                <Upload size={14} />
+                Upload CSV
+              </button>
+            )}
           </div>
         }
       />
@@ -253,7 +236,20 @@ export function TaskBoard() {
         />
       )}
 
-      {!showCreate && tasks.length === 0 ? (
+      {showBulkUpload && (
+        <BulkTaskUpload
+          eventId={eventId!}
+          members={members}
+          phases={phases}
+          onDone={() => {
+            setShowBulkUpload(false)
+            loadData()
+          }}
+          onCancel={() => setShowBulkUpload(false)}
+        />
+      )}
+
+      {!showCreate && !showBulkUpload && tasks.length === 0 ? (
         <div className={styles.emptyState}>
           <Columns size={24} style={{ marginBottom: 'var(--space-2)', opacity: 0.4 }} />
           <div style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>No tasks yet</div>
@@ -312,10 +308,7 @@ export function TaskBoard() {
         <TaskDetailModal
           task={detailTask}
           onClose={() => setDetailTask(null)}
-          onUpdate={() => {
-            loadData()
-            handleRefreshDetail(detailTask.id)
-          }}
+          onUpdate={loadData}
         />
       )}
     </div>

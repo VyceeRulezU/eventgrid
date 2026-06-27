@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Wallet, Trash2 } from 'lucide-react'
+import { Plus, Wallet, Trash2, Pencil, X, Check } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -33,6 +33,9 @@ export function PettyCashLog({ eventId, onTotalChange }: PettyCashLogProps) {
   const [saving, setSaving] = useState(false)
   const [desc, setDesc] = useState('')
   const [amount, setAmount] = useState(0)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editDesc, setEditDesc] = useState('')
+  const [editAmount, setEditAmount] = useState(0)
 
   useEffect(() => {
     loadEntries()
@@ -77,6 +80,31 @@ export function PettyCashLog({ eventId, onTotalChange }: PettyCashLogProps) {
     if (!error) setEntries(entries.filter(e => e.id !== id))
   }
 
+  function startEdit(entry: PettyCashEntry) {
+    setEditingId(entry.id)
+    setEditDesc(entry.description)
+    setEditAmount(entry.amount / 100)
+  }
+
+  function cancelEdit() {
+    setEditingId(null)
+    setEditDesc('')
+    setEditAmount(0)
+  }
+
+  async function handleSaveEdit(id: string) {
+    if (!editDesc.trim() || editAmount <= 0) return
+    setSaving(true)
+    const { error } = await supabase
+      .from('petty_cash')
+      .update({ description: editDesc.trim(), amount: Math.round(editAmount * 100) })
+      .eq('id', id)
+    if (error) { showNotification({ variant: 'error', title: 'Failed', message: error.message }); setSaving(false); return }
+    setEntries(entries.map(e => e.id === id ? { ...e, description: editDesc.trim(), amount: Math.round(editAmount * 100) } : e))
+    cancelEdit()
+    setSaving(false)
+  }
+
   if (loading) return null
 
   return (
@@ -112,20 +140,40 @@ export function PettyCashLog({ eventId, onTotalChange }: PettyCashLogProps) {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-1)' }}>
           {entries.map(e => (
-            <div key={e.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-2) var(--space-3)', background: 'var(--color-surface-1)', borderRadius: 'var(--radius-md)', fontSize: 'var(--text-sm)' }}>
-              <div>
-                <div style={{ fontWeight: 500 }}>{e.description}</div>
-                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
-                  {new Date(e.logged_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+            editingId === e.id ? (
+              <div key={e.id} style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'end', padding: 'var(--space-2) var(--space-3)', background: 'var(--color-surface-1)', borderRadius: 'var(--radius-md)' }}>
+                <div className="input-wrapper" style={{ flex: 1 }}>
+                  <input className="input" style={{ fontSize: 'var(--text-xs)', minHeight: 28 }} value={editDesc} onChange={e => setEditDesc(e.target.value)} autoFocus />
                 </div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-                <span style={{ fontWeight: 600, color: 'var(--color-error)' }}>{formatNaira(e.amount)}</span>
-                <button className="btn btn-ghost btn-icon" onClick={() => handleDelete(e.id)} style={{ width: 24, height: 24, color: 'var(--color-text-muted)' }} data-tooltip="Delete entry">
-                  <Trash2 size={12} />
+                <div className="input-wrapper" style={{ width: 100 }}>
+                  <input className="input" style={{ fontSize: 'var(--text-xs)', minHeight: 28 }} type="number" min={0} value={editAmount || ''} onChange={e => setEditAmount(Number(e.target.value))} />
+                </div>
+                <button className="btn btn-primary btn-sm" onClick={() => handleSaveEdit(e.id)} disabled={saving || !editDesc.trim() || editAmount <= 0} style={{ minHeight: 28, padding: '0 8px', fontSize: 'var(--text-xs)' }}>
+                  <Check size={12} />
+                </button>
+                <button className="btn btn-ghost btn-sm" onClick={cancelEdit} style={{ minHeight: 28, padding: '0 8px' }}>
+                  <X size={12} />
                 </button>
               </div>
-            </div>
+            ) : (
+              <div key={e.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-2) var(--space-3)', background: 'var(--color-surface-1)', borderRadius: 'var(--radius-md)', fontSize: 'var(--text-sm)' }}>
+                <div>
+                  <div style={{ fontWeight: 500 }}>{e.description}</div>
+                  <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                    {new Date(e.logged_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                  <span style={{ fontWeight: 600, color: 'var(--color-error)' }}>{formatNaira(e.amount)}</span>
+                  <button className="btn btn-ghost btn-icon" onClick={() => startEdit(e)} style={{ width: 24, height: 24, color: 'var(--color-text-muted)' }} data-tooltip="Edit entry">
+                    <Pencil size={12} />
+                  </button>
+                  <button className="btn btn-ghost btn-icon" onClick={() => handleDelete(e.id)} style={{ width: 24, height: 24, color: 'var(--color-text-muted)' }} data-tooltip="Delete entry">
+                    <Trash2 size={12} />
+                  </button>
+                </div>
+              </div>
+            )
           ))}
         </div>
       )}

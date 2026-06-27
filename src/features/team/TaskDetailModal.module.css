@@ -54,6 +54,26 @@
   margin-bottom: var(--space-4);
 }
 
+.infoGrid > div {
+  min-width: 0;
+}
+
+.eventName {
+  font-weight: 600;
+  color: var(--color-accent);
+  padding: 8px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.phaseTrigger {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+
 .descriptionText {
   font-size: var(--text-sm);
   color: var(--color-text-primary);
