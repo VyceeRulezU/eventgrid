@@ -70,7 +70,7 @@
 }
 
 .logoImg {
-  height: 6rem;
+  height: 4rem;
   width: auto;
   display: none;
 }
@@ -82,7 +82,7 @@
 }
 
 @media (min-width: 1024px) {
-  .logoImg { display: block; height: 64px; }
+  .logoImg { display: block; height: 54px; }
 }
 
 .collapseBtn {

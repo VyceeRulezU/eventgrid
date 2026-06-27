@@ -29,7 +29,9 @@
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
         "VIBRATE",
-        "RECEIVE_BOOT_COMPLETED"
+        "RECEIVE_BOOT_COMPLETED",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "plugins": [
@@ -57,12 +59,21 @@
       ],
       [
         "expo-camera",
-        { "cameraPermission": "NaliGrid uses your camera to capture event photos." }
+        {
+          "cameraPermission": "NaliGrid uses your camera to capture event photos."
+        }
       ]
     ],
     "scheme": "naligrid",
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "95c57225-619f-41d4-834e-36ff1b65579c"
+      }
+    },
+    "owner": "naligrid-app"
   }
 }
