@@ -360,7 +360,7 @@ export function EventAssetsPage() {
   const renderThumbnail = (asset: EventAsset) => {
     const isImg = isImageType(asset.mime_type)
     if (isImg && asset.file_url) {
-      return <img src={asset.file_url} alt={asset.name} className={styles.cardThumbImg} />
+      return <img src={asset.file_url} alt={asset.name} className={styles.cardThumbImg} loading="lazy" />
     }
     const thumbUrl = signedUrls[asset.id] || asset.file_url
     if (asset.mime_type === 'application/pdf' && thumbUrl) {

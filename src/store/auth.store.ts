@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { User } from '@supabase/supabase-js'
 import type { Profile, UserRole } from '@/types'
+import { Sentry } from '@/lib/sentry'
 
 interface AuthStore {
   user: User | null
@@ -32,10 +33,17 @@ export const useAuthStore = create<AuthStore>((set) => ({
   org: null,
   betaLabelVisible: true,
   isLoading: true,
-  setUser: (user) => set((state) => ({
-    user,
-    role: !user ? null : (deriveAdminRole(state.profile) || state.profile?.role || (user?.user_metadata?.role as UserRole)) ?? null,
-  })),
+  setUser: (user) => {
+    if (user) {
+      Sentry.setUser({ id: user.id, email: user.email || undefined })
+    } else {
+      Sentry.setUser(null)
+    }
+    return set((state) => ({
+      user,
+      role: !user ? null : (deriveAdminRole(state.profile) || state.profile?.role || (user?.user_metadata?.role as UserRole)) ?? null,
+    }))
+  },
   setProfile: (profile) => set((state) => ({
     profile,
     role: deriveAdminRole(profile) || (profile?.role || state.role || null),
@@ -43,5 +51,8 @@ export const useAuthStore = create<AuthStore>((set) => ({
   setOrg: (org) => set({ org }),
   setBetaLabelVisible: (betaLabelVisible) => set({ betaLabelVisible }),
   setLoading: (isLoading) => set({ isLoading }),
-  clearAuth: () => set({ user: null, profile: null, role: null, org: null, betaLabelVisible: true, isLoading: false }),
+  clearAuth: () => {
+    Sentry.setUser(null)
+    set({ user: null, profile: null, role: null, org: null, betaLabelVisible: true, isLoading: false })
+  },
 }))

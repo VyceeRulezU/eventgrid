@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Upload, X, Info, Sparkles, ChevronRight, LogOut, ArrowLeft, Star, Check, Calendar, Users, User, Briefcase, Building2, MapPin, Target, ArrowUpCircle } from 'lucide-react'
+import { Upload, X, Info, Sparkles, ChevronRight, LogOut, ArrowLeft, Check, Calendar, Users, User, Briefcase, Building2, MapPin, Target, ArrowUpCircle } from 'lucide-react'
+import { OnboardingTestimonials } from '@/components/onboarding/OnboardingTestimonials'
 import { SEO } from '@/components/shared/SEO'
 import { supabase } from '@/lib/supabase'
 import { uploadFile } from '@/lib/storage'
@@ -272,25 +273,7 @@ export function PlannerOnboarding() {
           </p>
         </div>
 
-        <div className={styles.leftTestimonial}>
-          <div className={styles.testimonialCard}>
-            <div className={styles.testimonialStars}>
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star key={i} size={12} fill="currentColor" />
-              ))}
-            </div>
-            <p className={styles.testimonialQuote}>
-              "NaliGrid scaled our wedding coordination efficiency. We managed 25 premium weddings in Lagos last year alone!"
-            </p>
-            <div className={styles.testimonialUser}>
-              <img className={styles.testimonialAvatar} src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&h=100&fit=crop&crop=face" alt="Funmi Oladipupo" />
-              <div className={styles.testimonialDetails}>
-                <span className={styles.testimonialName}>Funmi Oladipupo</span>
-                <span className={styles.testimonialRole}>Creative Director, Elegance Events</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <OnboardingTestimonials />
 
         <div className={styles.leftFooter}>
           <div className={styles.footerLinks}>

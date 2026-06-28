@@ -47,6 +47,8 @@ export function GuestManagementPage() {
   const [addConsent, setAddConsent] = useState(false)
   const [csvConsent, setCsvConsent] = useState(false)
   const [showDetail, setShowDetail] = useState(false)
+  const PAGE_SIZE = 50
+  const [page, setPage] = useState(1)
 
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth < 768)
@@ -58,7 +60,7 @@ export function GuestManagementPage() {
     if (!eventId) return
     setLoading(true)
     Promise.all([
-      supabase.from('guests').select('*').eq('event_id', eventId).order('created_at'),
+      supabase.from('guests').select('*').eq('event_id', eventId).order('created_at').limit(500),
       supabase.from('seating_tables').select('*').eq('event_id', eventId).order('table_name'),
       supabase.from('events').select('name').eq('id', eventId).single(),
     ]).then(([gRes, tRes, eRes]) => {
@@ -78,6 +80,14 @@ export function GuestManagementPage() {
     if (rsvpFilter === 'all') return base
     return base.filter((g) => g.rsvp_status === rsvpFilter)
   }, [listSearched, checkinSearched, rsvpFilter, tab])
+
+  const totalPages = Math.max(1, Math.ceil(filteredGuests.length / PAGE_SIZE))
+
+  useEffect(() => { setPage(1) }, [listSearch, checkinSearch, rsvpFilter])
+  const paginatedGuests = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE
+    return filteredGuests.slice(start, start + PAGE_SIZE)
+  }, [filteredGuests, page])
 
   const rsvpCounts = { confirmed: guests.filter(g => g.rsvp_status === 'confirmed').length, declined: guests.filter(g => g.rsvp_status === 'declined').length, pending: guests.filter(g => g.rsvp_status === 'pending').length, maybe: guests.filter(g => g.rsvp_status === 'maybe').length, total: guests.length }
 
@@ -99,8 +109,9 @@ export function GuestManagementPage() {
     setShowAdd(false)
     setNewGuest({ first_name: '', last_name: '', phone: '', email: '', group_name: '', is_vip: false, plus_one: false })
     setAddConsent(false)
-    const { data } = await supabase.from('guests').select('*').eq('event_id', eventId).order('created_at')
+    const { data } = await supabase.from('guests').select('*').eq('event_id', eventId).order('created_at').limit(500)
     setGuests((data || []) as unknown as Guest[])
+    setPage(1)
   }
 
   const handleCheckin = async (guestId: string) => {
@@ -160,8 +171,9 @@ export function GuestManagementPage() {
     setShowCSV(false)
     setCsvPreview([])
     setCsvConsent(false)
-    const { data } = await supabase.from('guests').select('*').eq('event_id', eventId).order('created_at')
+    const { data } = await supabase.from('guests').select('*').eq('event_id', eventId).order('created_at').limit(500)
     setGuests((data || []) as unknown as Guest[])
+    setPage(1)
   }
 
   const handleSelectGuest = useCallback((guest: Guest & { table_name?: string }) => {
@@ -275,15 +287,15 @@ export function GuestManagementPage() {
           {/* Left panel: guest list */}
           <div className={`${styles.guestListPanel} ${showDetail && isMobile ? styles.guestListPanelFull : ''}`} style={{ display: showDetail && isMobile ? 'none' : 'flex' }}>
             <div className={styles.guestListHeader}>
-              <span>{filteredGuests.length} of {guests.length} guests</span>
+              <span>{filteredGuests.length} of {guests.length} guest{guests.length !== 1 ? 's' : ''}{guests.length >= 500 ? ' (showing first 500)' : ''}</span>
             </div>
             <div className={styles.guestListScroll}>
-              {filteredGuests.length === 0 ? (
+              {paginatedGuests.length === 0 ? (
                 <div className={styles.guestDetailEmpty}>
                   <Users size={28} className={styles.guestDetailEmptyIcon} />
                   <div style={{ fontSize: 'var(--text-sm)' }}>No guests found</div>
                 </div>
-              ) : filteredGuests.map((g) => {
+              ) : paginatedGuests.map((g) => {
                 const initial = (g.first_name || '?').charAt(0).toUpperCase()
                 const isSelected = selectedGuest?.id === g.id
                 return (
@@ -311,6 +323,13 @@ export function GuestManagementPage() {
                 )
               })}
             </div>
+            {totalPages > 1 && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 'var(--space-3)', borderTop: '1px solid var(--color-border)', fontSize: 'var(--text-xs)' }}>
+                <button className="btn btn-ghost btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>Previous</button>
+                <span style={{ color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>Page {page} of {totalPages}</span>
+                <button className="btn btn-ghost btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Next</button>
+              </div>
+            )}
           </div>
 
           {/* Right panel: guest detail */}

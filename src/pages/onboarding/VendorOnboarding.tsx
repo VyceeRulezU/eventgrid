@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ChevronRight, LogOut, ArrowLeft, Star, Info } from 'lucide-react'
+import { ChevronRight, LogOut, ArrowLeft, Info } from 'lucide-react'
+import { OnboardingTestimonials } from '@/components/onboarding/OnboardingTestimonials'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -130,25 +131,7 @@ export function VendorOnboarding() {
           </p>
         </div>
 
-        <div className={styles.leftTestimonial}>
-          <div className={styles.testimonialCard}>
-            <div className={styles.testimonialStars}>
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star key={i} size={12} fill="currentColor" />
-              ))}
-            </div>
-            <p className={styles.testimonialQuote}>
-              "Listing my catering services on NaliGrid has doubled my corporate bookings. Planners assign checklists directly to me."
-            </p>
-            <div className={styles.testimonialUser}>
-              <img className={styles.testimonialAvatar} src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=face" alt="Chioma Nnaji" />
-              <div className={styles.testimonialDetails}>
-                <span className={styles.testimonialName}>Chioma Nnaji</span>
-                <span className={styles.testimonialRole}>Catering Director</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <OnboardingTestimonials />
 
         <div className={styles.leftFooter}>
           <div className={styles.footerLinks}>

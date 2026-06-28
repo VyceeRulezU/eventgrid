@@ -79,7 +79,8 @@ export function TaskBoard() {
         .from('tasks')
         .select('*, assignee:profiles!tasks_assignee_id_fkey(display_name, avatar_url)')
         .eq('event_id', eventId)
-        .order('created_at', { ascending: true }),
+        .order('created_at', { ascending: true })
+        .limit(200),
       supabase
         .from('event_access')
         .select('user_id, role')

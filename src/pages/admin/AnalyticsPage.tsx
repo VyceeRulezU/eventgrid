@@ -50,11 +50,13 @@ export function AnalyticsPage() {
         guests: guestCount || 0,
       })
 
+      const yearStart = new Date().getUTCFullYear() + '-01-01'
+
       const [{ data: profiles }, { data: events }, { data: orgs }, { data: vendors }] = await Promise.all([
-        supabase.from('profiles').select('created_at').order('created_at'),
-        supabase.from('events').select('created_at').order('created_at'),
-        supabase.from('organizations').select('created_at').order('created_at'),
-        supabase.from('vendors').select('created_at').order('created_at'),
+        supabase.from('profiles').select('created_at').gte('created_at', yearStart).order('created_at'),
+        supabase.from('events').select('created_at').gte('created_at', yearStart).order('created_at'),
+        supabase.from('organizations').select('created_at').gte('created_at', yearStart).order('created_at'),
+        supabase.from('vendors').select('created_at').gte('created_at', yearStart).order('created_at'),
       ])
 
       const months = getMonthRange()

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { Info, Sparkles, ChevronRight, LogOut, ArrowLeft, Star } from 'lucide-react'
+import { Info, Sparkles, ChevronRight, LogOut, ArrowLeft } from 'lucide-react'
+import { OnboardingTestimonials } from '@/components/onboarding/OnboardingTestimonials'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -184,25 +185,7 @@ export function CoordinatorOnboarding() {
           </p>
         </div>
 
-        <div className={styles.leftTestimonial}>
-          <div className={styles.testimonialCard}>
-            <div className={styles.testimonialStars}>
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star key={i} size={12} fill="currentColor" />
-              ))}
-            </div>
-            <p className={styles.testimonialQuote}>
-              "NaliGrid keeps my event day tasks completely organized. I can view the timeline on my phone and update checklists in real-time."
-            </p>
-            <div className={styles.testimonialUser}>
-              <img className={styles.testimonialAvatar} src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face" alt="Tobi Adeleke" />
-              <div className={styles.testimonialDetails}>
-                <span className={styles.testimonialName}>Tobi Adeleke</span>
-                <span className={styles.testimonialRole}>Lead Day-of Coordinator</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <OnboardingTestimonials />
 
         <div className={styles.leftFooter}>
           <div className={styles.footerLinks}>

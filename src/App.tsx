@@ -31,19 +31,6 @@ import { PlannerOnboarding } from '@/pages/onboarding/PlannerOnboarding'
 import { CoordinatorOnboarding } from '@/pages/onboarding/CoordinatorOnboarding'
 import { TeamMemberOnboarding } from '@/pages/onboarding/TeamMemberOnboarding'
 import { VendorOnboarding } from '@/pages/onboarding/VendorOnboarding'
-import { PlannerDashboard } from '@/pages/planner/PlannerDashboard'
-import { CoordinatorDashboard } from '@/pages/coordinator/CoordinatorDashboard'
-import { NotificationsPage } from '@/pages/notifications/NotificationsPage'
-import { VendorPortal } from '@/pages/vendor/VendorPortal'
-import { EventsListPage } from '@/features/events/EventsListPage'
-import { CreateEventPage } from '@/features/events/CreateEventPage'
-import { EventDashboardPage } from '@/features/events/EventDashboardPage'
-import { VendorsPage } from '@/features/vendors/VendorsPage'
-import { EventVendorsPage } from '@/features/vendors/EventVendorsPage'
-import { VendorDirectoryPage } from '@/features/vendors/VendorDirectoryPage'
-import { TeamPage } from '@/features/team/TeamPage'
-import { TaskBoard } from '@/features/team/TaskBoard'
-import { LiveFeedPage } from '@/features/live-board/LiveFeedPage'
 import { CoordinatorsLandingPage } from '@/pages/roles/CoordinatorsLandingPage'
 import { VendorsLandingPage } from '@/pages/roles/VendorsLandingPage'
 import { PlannersLandingPage } from '@/pages/roles/PlannersLandingPage'
@@ -88,8 +75,21 @@ const AdminVendorsPage = lazy(() => import('@/pages/admin/AdminVendorsPage').the
 const AdminVendorDirectoryPage = lazy(() => import('@/pages/admin/AdminVendorDirectoryPage').then(m => ({ default: m.AdminVendorDirectoryPage })))
 const AdminTestimonialsPage = lazy(() => import('@/pages/admin/AdminTestimonialsPage').then(m => ({ default: m.AdminTestimonialsPage })))
 const AdminManagePage = lazy(() => import('@/pages/admin/AdminManagePage').then(m => ({ default: m.AdminManagePage })))
+const EventsListPage = lazy(() => import('@/features/events/EventsListPage').then(m => ({ default: m.EventsListPage })))
+const CreateEventPage = lazy(() => import('@/features/events/CreateEventPage').then(m => ({ default: m.CreateEventPage })))
+const EventDashboardPage = lazy(() => import('@/features/events/EventDashboardPage').then(m => ({ default: m.EventDashboardPage })))
+const LiveFeedPage = lazy(() => import('@/features/live-board/LiveFeedPage').then(m => ({ default: m.LiveFeedPage })))
+const PlannerDashboard = lazy(() => import('@/pages/planner/PlannerDashboard').then(m => ({ default: m.PlannerDashboard })))
+const CoordinatorDashboard = lazy(() => import('@/pages/coordinator/CoordinatorDashboard').then(m => ({ default: m.CoordinatorDashboard })))
+const VendorPortal = lazy(() => import('@/pages/vendor/VendorPortal').then(m => ({ default: m.VendorPortal })))
+const NotificationsPage = lazy(() => import('@/pages/notifications/NotificationsPage').then(m => ({ default: m.NotificationsPage })))
+const TeamPage = lazy(() => import('@/features/team/TeamPage').then(m => ({ default: m.TeamPage })))
+const TaskBoard = lazy(() => import('@/features/team/TaskBoard').then(m => ({ default: m.TaskBoard })))
 
 
+const VendorsPage = lazy(() => import('@/features/vendors/VendorsPage').then(m => ({ default: m.VendorsPage })))
+const EventVendorsPage = lazy(() => import('@/features/vendors/EventVendorsPage').then(m => ({ default: m.EventVendorsPage })))
+const VendorDirectoryPage = lazy(() => import('@/features/vendors/VendorDirectoryPage').then(m => ({ default: m.VendorDirectoryPage })))
 const EventAssetsPage = lazy(() => import('@/features/assets/EventAssetsPage').then(m => ({ default: m.EventAssetsPage })))
 const AftermathPage = lazy(() => import('@/features/aftermath/AftermathPage').then(m => ({ default: m.AftermathPage })))
 const CompletedEventReport = lazy(() => import('@/features/aftermath/CompletedEventReport').then(m => ({ default: m.CompletedEventReport })))
@@ -593,13 +593,19 @@ export function App() {
 
           <Route element={<AuthGuard><AppShell /></AuthGuard>}>
             <Route path="/dashboard/planner" element={
-              <RoleGuard allowedRole="planner"><PlannerDashboard /></RoleGuard>
+              <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
+                <RoleGuard allowedRole="planner"><PlannerDashboard /></RoleGuard>
+              </Suspense>
             } />
             <Route path="/dashboard/coordinator" element={
-              <RoleGuard allowedRole="coordinator"><CoordinatorDashboard /></RoleGuard>
+              <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
+                <RoleGuard allowedRole="coordinator"><CoordinatorDashboard /></RoleGuard>
+              </Suspense>
             } />
             <Route path="/dashboard/vendor" element={
-              <RoleGuard allowedRole="vendor"><VendorPortal /></RoleGuard>
+              <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
+                <RoleGuard allowedRole="vendor"><VendorPortal /></RoleGuard>
+              </Suspense>
             } />
             <Route path="/dashboard/client" element={<Navigate to="/vendors/directory" replace />} />
             <Route path="/dashboard/my-tasks" element={
@@ -611,13 +617,41 @@ export function App() {
             <Route path="/dashboard/admin_support" element={<Navigate to="/admin/events" replace />} />
             <Route path="/dashboard/admin_monitor" element={<Navigate to="/admin/events" replace />} />
 
-            <Route path="/events" element={<EventsListPage />} />
-            <Route path="/events/new" element={<CreateEventPage />} />
-            <Route path="/events/:id" element={<EventDashboardPage />} />
-            <Route path="/events/:id/team" element={<TeamPage />} />
-            <Route path="/events/:id/tasks" element={<TaskBoard />} />
-            <Route path="/events/:id/vendors" element={<EventVendorsPage />} />
-          <Route path="/events/:id/live-board" element={<LiveFeedPage />} />
+            <Route path="/events" element={
+              <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
+                <EventsListPage />
+              </Suspense>
+            } />
+            <Route path="/events/new" element={
+              <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
+                <CreateEventPage />
+              </Suspense>
+            } />
+            <Route path="/events/:id" element={
+              <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
+                <EventDashboardPage />
+              </Suspense>
+            } />
+            <Route path="/events/:id/team" element={
+              <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
+                <TeamPage />
+              </Suspense>
+            } />
+            <Route path="/events/:id/tasks" element={
+              <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
+                <TaskBoard />
+              </Suspense>
+            } />
+            <Route path="/events/:id/vendors" element={
+              <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
+                <EventVendorsPage />
+              </Suspense>
+            } />
+          <Route path="/events/:id/live-board" element={
+            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
+              <LiveFeedPage />
+            </Suspense>
+          } />
           <Route path="/events/:id/assets" element={
             <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
               <EventAssetsPage />
@@ -648,9 +682,21 @@ export function App() {
                 <RoleGuard allowedRole="planner"><FinancialsPage /></RoleGuard>
               </Suspense>
             } />
-            <Route path="/vendors" element={<VendorsPage />} />
-            <Route path="/vendors/directory" element={<VendorDirectoryPage />} />
-          <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/vendors" element={
+              <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
+                <VendorsPage />
+              </Suspense>
+            } />
+            <Route path="/vendors/directory" element={
+              <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
+                <VendorDirectoryPage />
+              </Suspense>
+            } />
+          <Route path="/notifications" element={
+            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
+              <NotificationsPage />
+            </Suspense>
+          } />
           <Route path="/settings" element={
             <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
               <SettingsPage />

@@ -4,11 +4,8 @@
 CREATE OR REPLACE FUNCTION public.merge_vendors(source_id UUID, target_id UUID)
 RETURNS void AS $$
 BEGIN
-  -- 1. Enforce super admin permission check
-  IF NOT EXISTS (
-    SELECT 1 FROM public.profiles
-    WHERE id = auth.uid() AND role = 'super_admin'
-  ) THEN
+  -- 1. Enforce super admin permission check using platform's standard helper
+  IF NOT public.is_super_admin() THEN
     RAISE EXCEPTION 'Access denied. Only super admins can merge vendors.';
   END IF;
 

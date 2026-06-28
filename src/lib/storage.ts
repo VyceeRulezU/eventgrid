@@ -165,3 +165,22 @@ export function getFileUrl(bucket: string, path: string): string {
 export function getStorageProvider(): StorageProvider {
   return config.provider
 }
+
+/** Return an optimized image URL with optional resize.
+ *  For Supabase storage, adds transform params. For R2, returns CDN URL as-is. */
+export function getOptimizedMediaUrl(
+  bucket: string,
+  path: string,
+  options?: { width?: number; height?: number; resize?: 'cover' | 'contain' | 'fill' }
+): string {
+  const base = getFileUrl(bucket, path)
+
+  if (config.provider === 'r2') return base
+
+  const params = new URLSearchParams()
+  if (options?.width) params.set('width', String(options.width))
+  if (options?.height) params.set('height', String(options.height))
+  if (options?.resize) params.set('resize', options.resize)
+  const qs = params.toString()
+  return qs ? `${base}?${qs}` : base
+}
