@@ -1,15 +1,196 @@
+.tableScroll {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.thead {
+  background-color: var(--color-surface-3);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.th {
+  padding: var(--space-4);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.thActions {
+  text-align: right;
+}
+
+.tr {
+  border-bottom: 1px solid var(--color-border-subtle);
+  transition: background-color var(--transition-fast) ease;
+}
+
+.tr:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.td {
+  padding: var(--space-4);
+  vertical-align: middle;
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+}
+
+.tdActions {
+  text-align: right;
+}
+
+/* Category cell styling */
+.categoryCell {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.thumbnail {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.categoryText {
+  display: flex;
+  flex-direction: column;
+}
+
+.categoryName {
+  font-weight: var(--weight-semibold);
+  color: #FFFFFF;
+}
+
+.categorySub {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+/* Status badge styling */
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  border-radius: var(--radius-full);
+}
+
+.statusOnTrack {
+  background-color: rgba(16, 185, 129, 0.12);
+  color: #10B981;
+}
+
+.statusOver {
+  background-color: rgba(239, 68, 68, 0.12);
+  color: #EF4444;
+}
+
+.statusUnallocated {
+  background-color: rgba(156, 163, 175, 0.12);
+  color: #9CA3AF;
+}
+
+/* Progress column styling */
+.progressContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 140px;
+}
+
+.progressBarBg {
+  flex: 1;
+  height: 6px;
+  background-color: var(--color-surface-3);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.progressBarFill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progressPct {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: #FFFFFF;
+  min-width: 32px;
+  text-align: right;
+}
+
+/* Budget column styling */
+.budgetWrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.allocatedText {
+  font-weight: var(--weight-bold);
+  color: #FFFFFF;
+}
+
+.actualText {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.editInputWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.nairaPrefix {
+  position: absolute;
+  left: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+/* Actions Column styling */
+.actionButtons {
+  display: inline-flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
+.editActions {
+  display: inline-flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
+/* Original overrides custom layout */
 .addRowWrap {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  margin-top: var(--space-3);
-  padding-top: var(--space-3);
+  gap: var(--space-3);
+  padding: var(--space-4);
   border-top: 1px solid var(--color-border-subtle);
+  background-color: rgba(255, 255, 255, 0.01);
 }
 
 .addRowInput {
   flex: 1;
   font-size: var(--text-sm);
+  max-width: 320px;
 }
 
 .addRowBtn {
@@ -19,8 +200,8 @@
 .addCatBtn {
   font-size: var(--text-xs);
   color: var(--color-text-muted);
-  height: 26px;
-  padding: 0 8px;
+  height: 28px;
+  padding: 0 10px;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -29,8 +210,28 @@
 .totalRow {
   display: flex;
   justify-content: space-between;
-  padding-top: var(--space-2);
+  padding: var(--space-4);
   font-size: var(--text-sm);
   font-weight: 700;
   align-items: center;
+  background-color: var(--color-surface-3);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.exportDropdown button {
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 4px 10px;
+  min-height: 28px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-accent);
+  gap: 4px;
+  width: auto;
+  justify-content: flex-start;
+}
+
+.exportDropdown button:hover {
+  border-color: transparent;
 }

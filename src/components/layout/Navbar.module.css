@@ -201,7 +201,7 @@
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  padding: 90px var(--space-6) 24px var(--space-6);
+  padding: 90px var(--space-6) 0 var(--space-6);
   box-sizing: border-box;
   overflow-y: hidden; /* Menu panel body doesn't scroll itself */
   gap: var(--space-4);
@@ -311,6 +311,7 @@
   max-width: 480px;
   margin-top: auto;
   padding-top: var(--space-4);
+  padding-bottom: 2.5rem; /* Lift buttons above iOS home indicator bar and system gesture zones */
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   background-color: rgba(11, 15, 23, 0.99); /* Keep background solid so scrolled text is hidden behind it */
   z-index: 10;
