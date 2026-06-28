@@ -13,7 +13,8 @@ function formatNaira(kobo: number) {
 }
 
 export function exportBudgetToExcel(rows: BudgetRow[], eventName: string) {
-  const data = rows.map((r) => ({
+  const hasOther = rows.some(r => r.category === 'Other')
+  const dataRows = rows.map((r) => ({
     Category: r.category,
     'Allocated (₦)': r.allocated / 100,
     'Actual Spend (₦)': r.actual / 100,
@@ -21,8 +22,18 @@ export function exportBudgetToExcel(rows: BudgetRow[], eventName: string) {
     '% Used': r.allocated > 0 ? `${Math.round((r.actual / r.allocated) * 100)}%` : '—',
   }))
 
+  const totalAllocated = rows.reduce((s, r) => s + r.allocated, 0)
+  const totalActual = rows.reduce((s, r) => s + r.actual, 0)
+  dataRows.push({
+    Category: 'GRAND TOTAL',
+    'Allocated (₦)': totalAllocated / 100,
+    'Actual Spend (₦)': totalActual / 100,
+    'Variance (₦)': (totalAllocated - totalActual) / 100,
+    '% Used': totalAllocated > 0 ? `${Math.round((totalActual / totalAllocated) * 100)}%` : '—',
+  })
+
   const wb = XLSX.utils.book_new()
-  const ws = XLSX.utils.json_to_sheet(data)
+  const ws = XLSX.utils.json_to_sheet(dataRows)
 
   const colWidths = [
     { wch: 22 },
@@ -99,6 +110,14 @@ export function exportBudgetToPDF(rows: BudgetRow[], eventName: string) {
     ]
   })
 
+  tableData.push([
+    'GRAND TOTAL',
+    formatNaira(totalAllocated),
+    formatNaira(totalActual),
+    formatNaira(totalVariance),
+    totalAllocated > 0 ? `${Math.round((totalActual / totalAllocated) * 100)}%` : '—',
+  ])
+
   ;(doc as any).autoTable({
     head: [['Category', 'Allocated', 'Actual Spend', 'Variance', '% Used']],
     body: tableData,
@@ -133,6 +152,10 @@ export function exportBudgetToPDF(rows: BudgetRow[], eventName: string) {
         } else if (!val.startsWith('—')) {
           data.cell.textColor = [34, 197, 94]
         }
+      }
+      if (data.section === 'body' && data.row.index === tableData.length - 1) {
+        data.cell.fontStyle = 'bold'
+        data.cell.textColor = [212, 160, 23]
       }
     },
     margin: { left: 14, right: 14 },

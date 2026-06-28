@@ -166,7 +166,7 @@ export function BudgetAllocations({ eventId, eventName }: BudgetAllocationsProps
             { label: 'Export as PDF', value: 'pdf' },
           ]}
           onSelect={(item) => {
-            const rows = allocations.filter(a => a.allocated > 0 || a.actual > 0)
+            const rows = allocations.filter(a => a.allocated > 0 || a.actual > 0 || a.category === 'Other')
             if (item.value === 'excel') exportBudgetToExcel(rows, eventName || '')
             else exportBudgetToPDF(rows, eventName || '')
           }}

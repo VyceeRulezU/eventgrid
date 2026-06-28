@@ -156,7 +156,7 @@ export function EventVendorsPage({ standalone = true }: { standalone?: boolean }
                 <thead className={styles.thead}>
                   <tr>
                     <th className={styles.th}>Vendor</th>
-                    <th className={styles.th}>Service</th>
+                    <th className={`${styles.th} ${styles.thService}`}>Service</th>
                     {isOwner && <th className={`${styles.th} ${styles.thCenter}`}>Amount</th>}
                     <th className={`${styles.th} ${styles.thCenter}`}>Booking</th>
                     <th className={`${styles.th} ${styles.thCenter}`}>Payment</th>
