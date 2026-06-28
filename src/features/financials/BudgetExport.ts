@@ -33,7 +33,6 @@ export function exportBudgetToExcel(rows: BudgetRow[], eventName: string, pettyC
 
   const totalAllocated = rows.reduce((s, r) => s + r.allocated, 0)
   const totalActual = rows.reduce((s, r) => s + r.actual, 0) + pettyCashTotal
-  const totalVariance = totalAllocated - totalActual
   dataRows.push({
     Category: 'GRAND TOTAL',
     'Allocated (₦)': totalAllocated / 100,
