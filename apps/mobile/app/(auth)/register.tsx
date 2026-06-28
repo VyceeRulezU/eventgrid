@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import { useRouter } from 'expo-router'
 import { Eye, EyeOff, Mail, Lock, User, Phone, Check, X, ArrowLeft, Award } from 'lucide-react-native'
 import { AntDesign } from '@expo/vector-icons'
 import * as Linking from 'expo-linking'
+import { useAuthStore } from '@naligrid/shared'
 import { supabase } from '../../lib/supabase'
 
 const { width } = Dimensions.get('window')
@@ -51,6 +52,13 @@ const ROLES: RoleOption[] = [
 
 export default function RegisterScreen() {
   const router = useRouter()
+  const { user } = useAuthStore()
+
+  useEffect(() => {
+    if (user) {
+      router.replace('/(app)/dashboard')
+    }
+  }, [user])
 
   // Stepper
   const [step, setStep] = useState<'role' | 'form'>('role')
@@ -543,7 +551,7 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1F2937',
+    backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: '#374151',
     borderRadius: 8,

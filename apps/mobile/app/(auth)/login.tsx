@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   View,
   Text,
@@ -15,10 +15,18 @@ import { useRouter } from 'expo-router'
 import { Eye, EyeOff, Mail, Lock, Key, ArrowLeft } from 'lucide-react-native'
 import { AntDesign } from '@expo/vector-icons'
 import * as Linking from 'expo-linking'
+import { useAuthStore } from '@naligrid/shared'
 import { supabase } from '../../lib/supabase'
 
 export default function LoginScreen() {
   const router = useRouter()
+  const { user } = useAuthStore()
+
+  useEffect(() => {
+    if (user) {
+      router.replace('/(app)/dashboard')
+    }
+  }, [user])
 
   // Sign In values
   const [email, setEmail] = useState('')
@@ -321,7 +329,7 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1F2937', // var(--color-surface-2)
+    backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: '#374151', // var(--color-border)
     borderRadius: 8, // var(--radius-md)

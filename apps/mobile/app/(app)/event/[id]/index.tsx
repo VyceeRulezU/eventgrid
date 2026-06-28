@@ -282,7 +282,7 @@ export default function EventOverviewScreen() {
             {/* Quick Action Navigation Segment */}
             <TouchableOpacity
               style={styles.boardLinkBtn}
-              onPress={() => router.push(`/(app)/event/${id}/board`)}
+              onPress={() => router.push(`/(app)/event/${id}/tasks` as any)}
               activeOpacity={0.8}
             >
               <TrendingUp size={16} color="#111827" />
@@ -291,85 +291,79 @@ export default function EventOverviewScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Timeline Milestones Section */}
+          {/* Phase Cards Grid */}
           <Text style={styles.sectionTitle}>Operational Phases</Text>
           
-          <View style={styles.timelineContainer}>
-            {/* Timeline Vertical Guide Line */}
-            <View style={styles.timelineGuideLine} />
-
+          <View style={styles.phasesGrid}>
             {phases.map((phase) => {
               const tc = taskCounts[phase.id] || { total: 0, done: 0 }
               const taskProgressPct = tc.total > 0 ? Math.round((tc.done / tc.total) * 100) : 0
 
               return (
-                <View key={phase.id} style={styles.timelineRow}>
-                  {/* Timeline Dot Marker */}
-                  <TouchableOpacity
-                    style={[styles.timelineNode, phase.status === 'completed' && styles.timelineNodeCompleted]}
-                    onPress={() => togglePhaseStatus(phase)}
-                    disabled={!canManage}
-                    activeOpacity={0.7}
-                  >
-                    {getPhaseIcon(phase.status)}
-                  </TouchableOpacity>
-
-                  {/* Phase Card Content */}
-                  <View style={[styles.phaseCard, getPhaseBadgeStyle(phase.status)]}>
-                    <View style={styles.phaseCardHeader}>
-                      <Text style={styles.phaseCardNum}>Phase {phase.phase_number}</Text>
-                      <Text style={[styles.phaseStatusText, {
-                        color: phase.status === 'completed' ? '#22C55E' : phase.status === 'in_progress' ? '#EAB308' : phase.status === 'blocked' ? '#EF4444' : '#9CA3AF'
-                      }]}>
-                        {phase.status.replace('_', ' ')}
-                      </Text>
-                    </View>
-
-                    <Text style={styles.phaseCardName} numberOfLines={2}>{phase.phase_name}</Text>
-
-                    {/* Task Progress details on Card */}
-                    {tc.total > 0 && (
-                      <View style={styles.phaseTasksContainer}>
-                        <View style={styles.phaseTasksRow}>
-                          <Text style={styles.phaseTasksLabel}>Tasks Checklist</Text>
-                          <Text style={styles.phaseTasksVal}>{tc.done}/{tc.total} done</Text>
-                        </View>
-                        <View style={styles.phaseTasksTrack}>
-                          <View style={[styles.phaseTasksFill, { width: `${taskProgressPct}%` }]} />
-                        </View>
-                      </View>
-                    )}
-
+                <View key={phase.id} style={[styles.phaseCard, getPhaseBadgeStyle(phase.status)]}>
+                  <View style={styles.phaseCardTop}>
+                    <Text style={styles.phaseCardNum}>Phase {phase.phase_number}</Text>
                     <TouchableOpacity
-                      style={styles.manageTasksLink}
-                      onPress={() => router.push(`/(app)/event/${id}/board`)}
+                      onPress={() => togglePhaseStatus(phase)}
+                      disabled={!canManage}
                       activeOpacity={0.7}
                     >
-                      <Text style={styles.manageTasksLinkText}>
-                        {canManage ? 'Manage Deliverables' : 'View Tasks'}
-                      </Text>
-                      <ChevronRight size={12} color="#D4A017" />
+                      {getPhaseIcon(phase.status)}
                     </TouchableOpacity>
                   </View>
+
+                  <Text style={styles.phaseCardName} numberOfLines={2}>{phase.phase_name}</Text>
+
+                  <View style={styles.phaseCardStatusRow}>
+                    <View style={[styles.phaseStatusDot, {
+                      backgroundColor: phase.status === 'completed' ? '#22C55E' : phase.status === 'in_progress' ? '#EAB308' : phase.status === 'blocked' ? '#EF4444' : '#6B7280'
+                    }]} />
+                    <Text style={[styles.phaseStatusText, {
+                      color: phase.status === 'completed' ? '#22C55E' : phase.status === 'in_progress' ? '#EAB308' : phase.status === 'blocked' ? '#EF4444' : '#9CA3AF'
+                    }]}>
+                      {phase.status.replace('_', ' ')}
+                    </Text>
+                  </View>
+
+                  {tc.total > 0 && (
+                    <View style={styles.phaseTasksContainer}>
+                      <View style={styles.phaseTasksRow}>
+                        <Text style={styles.phaseTasksLabel}>Tasks</Text>
+                        <Text style={styles.phaseTasksVal}>{tc.done}/{tc.total} done</Text>
+                      </View>
+                      <View style={styles.phaseTasksTrack}>
+                        <View style={[styles.phaseTasksFill, { width: `${taskProgressPct}%` }]} />
+                      </View>
+                    </View>
+                  )}
+
+                  <TouchableOpacity
+                    style={styles.manageTasksLink}
+                    onPress={() => router.push(`/(app)/event/${id}/tasks` as any)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.manageTasksLinkText}>
+                      {canManage ? 'Manage Deliverables' : 'View Tasks'}
+                    </Text>
+                    <ChevronRight size={12} color="#D4A017" />
+                  </TouchableOpacity>
                 </View>
               )
             })}
 
-            {/* Dash Add Custom Phase Card inside Timeline */}
+            {/* Add Phase Card — same size as phase cards */}
             {canManage && (
-              <View style={styles.timelineRow}>
-                <View style={[styles.timelineNode, { backgroundColor: '#111827' }]}>
-                  <Plus size={16} color="#6B7280" />
+              <TouchableOpacity
+                style={styles.addPhaseCard}
+                onPress={() => setShowAddModal(true)}
+                activeOpacity={0.8}
+              >
+                <View style={styles.addPhaseIconWrap}>
+                  <Plus size={24} color="#D4A017" />
                 </View>
-                <TouchableOpacity
-                  style={styles.addPhaseCard}
-                  onPress={() => setShowAddModal(true)}
-                  activeOpacity={0.8}
-                >
-                  <Plus size={20} color="#D4A017" />
-                  <Text style={styles.addPhaseText}>Add Phase</Text>
-                </TouchableOpacity>
-              </View>
+                <Text style={styles.addPhaseTitle}>Add a Phase</Text>
+                <Text style={styles.addPhaseSub}>Create a new operational phase</Text>
+              </TouchableOpacity>
             )}
           </View>
         </ScrollView>
@@ -539,45 +533,17 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
-  timelineContainer: {
-    position: 'relative',
-    paddingLeft: 20,
-  },
-  timelineGuideLine: {
-    position: 'absolute',
-    left: 8,
-    top: 10,
-    bottom: 24,
-    width: 2,
-    backgroundColor: '#374151',
-  },
-  timelineRow: {
-    flexDirection: 'row',
-    marginBottom: 20,
-    position: 'relative',
-  },
-  timelineNode: {
-    position: 'absolute',
-    left: -20,
-    top: 14,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: '#111827',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 3,
-  },
-  timelineNodeCompleted: {
-    backgroundColor: '#111827',
+  phasesGrid: {
+    gap: 16,
+    marginBottom: 24,
   },
   phaseCard: {
-    flex: 1,
-    marginLeft: 16,
     backgroundColor: '#1F2937',
     borderRadius: 14,
     borderWidth: 1.5,
+    borderColor: '#374151',
     padding: 16,
+    minHeight: 180,
   },
   badgeCompleted: {
     borderColor: 'rgba(34, 197, 94, 0.25)',
@@ -591,17 +557,29 @@ const styles = StyleSheet.create({
   badgeDefault: {
     borderColor: '#374151',
   },
-  phaseCardHeader: {
+  phaseCardTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   phaseCardNum: {
     fontSize: 10,
     fontWeight: '600',
     color: '#6B7280',
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  phaseCardStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 12,
+  },
+  phaseStatusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
   phaseStatusText: {
     fontSize: 10,
@@ -657,24 +635,34 @@ const styles = StyleSheet.create({
     color: '#D4A017',
   },
   addPhaseCard: {
-    flex: 1,
-    marginLeft: 16,
-    backgroundColor: 'transparent',
-    borderWidth: 2,
+    backgroundColor: '#1F2937',
+    borderRadius: 14,
+    borderWidth: 1.5,
     borderStyle: 'dashed',
     borderColor: '#374151',
-    borderRadius: 14,
-    height: 80,
+    padding: 16,
+    minHeight: 180,
     alignItems: 'center',
     justifyContent: 'center',
-    flexDirection: 'row',
     gap: 8,
   },
-  addPhaseText: {
-    fontSize: 14,
-    fontWeight: '700',
+  addPhaseIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(212, 160, 23, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addPhaseTitle: {
+    fontSize: 16,
+    fontWeight: '800',
     color: '#D4A017',
-    textTransform: 'uppercase',
+    marginTop: 4,
+  },
+  addPhaseSub: {
+    fontSize: 12,
+    color: '#6B7280',
   },
   modalBg: {
     flex: 1,

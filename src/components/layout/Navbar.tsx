@@ -1,8 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Menu, X } from 'lucide-react'
+import { Menu, X, ChevronDown } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import styles from './Navbar.module.css'
+
+import weddingImg from '@/assets/images/wedding_event_hall.png'
+import corporateImg from '@/assets/images/corporate_event_hall.png'
+import traditionalImg from '@/assets/images/traditional_event.png'
 
 interface NavLinkItem {
   label: string
@@ -11,10 +15,79 @@ interface NavLinkItem {
 }
 
 const NAV_LINKS: NavLinkItem[] = [
-  { label: 'Features',         href: '#features', isHash: true },
-  { label: 'How It Works',     href: '#how-it-works', isHash: true },
-  { label: 'Pricing',          href: '/pricing', isHash: false },
-  { label: 'For Coordinators',  href: '/coordinators', isHash: false },
+  { label: 'For Planners', href: '/planners', isHash: false },
+  { label: 'For Coordinators', href: '/coordinators', isHash: false },
+  { label: 'For Vendors', href: '/vendors-landing', isHash: false },
+]
+
+interface MegaMenuItem {
+  key: string
+  title: string
+  desc: string
+  image: string
+  href: string
+}
+
+const PLATFORM_FEATURES: MegaMenuItem[] = [
+  {
+    key: 'pipeline',
+    title: 'Event Pipeline',
+    desc: 'Organize timelines into milestone phases.',
+    image: weddingImg,
+    href: '/features/pipeline',
+  },
+  {
+    key: 'live-board',
+    title: 'Live Board',
+    desc: 'Real-time check-in operational dashboard.',
+    image: corporateImg,
+    href: '/features/live-board',
+  },
+  {
+    key: 'client-portal',
+    title: 'Client Portal',
+    desc: 'Stakeholder visibility and progress tracking.',
+    image: traditionalImg,
+    href: '/features/client-portal',
+  },
+  {
+    key: 'vendor-tracker',
+    title: 'Vendor Tracker',
+    desc: 'Search, filter, and coordinate vendor teams.',
+    image: corporateImg,
+    href: '/features/vendor-tracker',
+  },
+  {
+    key: 'aftermath',
+    title: 'Aftermath Reports',
+    desc: 'Analytical Naira budgets and payout reports.',
+    image: weddingImg,
+    href: '/features/aftermath-reports',
+  },
+]
+
+const COMPANY_LINKS: MegaMenuItem[] = [
+  {
+    key: 'about',
+    title: 'About Us',
+    desc: 'Our mission to power Nigerian event teams.',
+    image: traditionalImg,
+    href: '/about',
+  },
+  {
+    key: 'blog',
+    title: 'Blog & Insights',
+    desc: 'Tips and tricks for premium planner success.',
+    image: corporateImg,
+    href: '/blog',
+  },
+  {
+    key: 'contact',
+    title: 'Contact Sales',
+    desc: 'Deploy custom setups for enterprise clients.',
+    image: weddingImg,
+    href: '/contact',
+  },
 ]
 
 interface NavbarProps {
@@ -22,9 +95,14 @@ interface NavbarProps {
 }
 
 export default function Navbar({ landing }: NavbarProps) {
-  const [scrolled, setScrolled]     = useState(false)
-  const [menuOpen, setMenuOpen]     = useState(false)
-  const menuRef                      = useRef<HTMLDivElement>(null)
+  const [scrolled, setScrolled] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+  
+  // Mega Menu state
+  const [showMega, setShowMega] = useState(false)
+  const [hoveredFeature, setHoveredFeature] = useState<MegaMenuItem>(PLATFORM_FEATURES[0])
+
   const user = useAuthStore((s) => s.user)
   const role = useAuthStore((s) => s.role)
   const profile = useAuthStore((s) => s.profile)
@@ -94,6 +172,23 @@ export default function Navbar({ landing }: NavbarProps) {
     }
   }
 
+  const handleMegaLinkClick = (href: string) => {
+    setShowMega(false)
+    setMenuOpen(false)
+    if (href.startsWith('#')) {
+      if (location.pathname === '/home') {
+        const target = document.querySelector(href)
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth' })
+        }
+      } else {
+        navigate(`/home${href}`)
+      }
+    } else {
+      navigate(href)
+    }
+  }
+
   return (
     <header
       className={`${styles.header} ${scrolled ? styles.scrolled : ''}`}
@@ -106,15 +201,84 @@ export default function Navbar({ landing }: NavbarProps) {
 
         {/* Desktop nav links */}
         <nav className={styles.desktopNav} aria-label="Main navigation">
-          {NAV_LINKS.map((link) => (
-            <button
-              key={link.href}
-              className={styles.navLink}
-              onClick={() => handleNavClick(link)}
-            >
-              {link.label}
+          {NAV_LINKS.map((link) => {
+            const isActive = location.pathname === link.href
+            return (
+              <button
+                key={link.href}
+                className={`${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}
+                onClick={() => handleNavClick(link)}
+              >
+                {link.label}
+              </button>
+            )
+          })}
+
+          {/* More Features Menu trigger */}
+          <div
+            className={styles.megaMenuWrapper}
+            onMouseEnter={() => setShowMega(true)}
+            onMouseLeave={() => setShowMega(false)}
+          >
+            <button className={`${styles.navLink} ${styles.triggerBtn}`}>
+              More Features <ChevronDown size={14} className={`${styles.chevron} ${showMega ? styles.chevronOpen : ''}`} />
             </button>
-          ))}
+
+            {showMega && (
+              <div className={styles.megaMenuContainer}>
+                <div className={styles.megaMenuInner}>
+                  {/* Dynamic Preview Left Panel */}
+                  <div style={{ backgroundImage: `url(${hoveredFeature.image})` }} className={styles.megaMenuLeft}>
+                    <div className={styles.megaMenuOverlay} />
+                    <div className={styles.megaMenuLeftContent}>
+                      <div className={styles.megaMenuLeftTitle}>{hoveredFeature.title}</div>
+                      <div className={styles.megaMenuLeftDesc}>{hoveredFeature.desc}</div>
+                    </div>
+                  </div>
+
+                  {/* Grid columns */}
+                  <div className={styles.megaMenuCols}>
+                    {/* Platform Features column */}
+                    <div className={styles.megaMenuCol}>
+                      <div className={styles.megaMenuColTitle}>Platform Features</div>
+                      {PLATFORM_FEATURES.map((item) => (
+                        <button
+                          key={item.key}
+                          className={styles.megaMenuItem}
+                          onMouseEnter={() => setHoveredFeature(item)}
+                          onClick={() => handleMegaLinkClick(item.href)}
+                        >
+                          <div className={styles.megaMenuItemTitle}>{item.title}</div>
+                          <div className={styles.megaMenuItemDesc}>{item.desc}</div>
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Company column */}
+                    <div className={styles.megaMenuCol}>
+                      <div className={styles.megaMenuColTitle}>Company</div>
+                      {COMPANY_LINKS.map((item) => (
+                        <button
+                          key={item.key}
+                          className={styles.megaMenuItem}
+                          onMouseEnter={() => setHoveredFeature(item)}
+                          onClick={() => handleMegaLinkClick(item.href)}
+                        >
+                          <div className={styles.megaMenuItemTitle}>{item.title}</div>
+                          <div className={styles.megaMenuItemDesc}>{item.desc}</div>
+                        </button>
+                      ))}
+
+                      {/* Register for Free button */}
+                      <Link to="/register" className={styles.megaMenuCtaBtn} onClick={() => setShowMega(false)}>
+                        Register for Free →
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </nav>
 
         {/* Desktop CTA buttons */}
@@ -155,17 +319,46 @@ export default function Navbar({ landing }: NavbarProps) {
       {/* Mobile menu */}
       {menuOpen && (
         <div className={styles.mobileMenu} role="dialog" aria-label="Mobile navigation">
-          <nav className={styles.mobileNav} aria-label="Main navigation">
-            {NAV_LINKS.map((link) => (
-              <button
-                key={link.href}
-                className={styles.mobileNavLink}
-                onClick={() => handleNavClick(link)}
-              >
-                {link.label}
-              </button>
-            ))}
-          </nav>
+          <div className={styles.mobileNavScrollWrapper}>
+            <nav className={styles.mobileNav} aria-label="Main navigation">
+              <div className={styles.mobileNavHeader}>Products & Audiences</div>
+              {NAV_LINKS.map((link) => {
+                const isActive = location.pathname === link.href
+                return (
+                  <button
+                    key={link.href}
+                    className={`${styles.mobileNavLink} ${isActive ? styles.mobileNavLinkActive : ''}`}
+                    onClick={() => handleNavClick(link)}
+                  >
+                    {link.label}
+                  </button>
+                )
+              })}
+
+              <div className={styles.mobileNavHeader} style={{ marginTop: 'var(--space-4)' }}>Platform Features</div>
+              {PLATFORM_FEATURES.map((item) => (
+                <button
+                  key={item.key}
+                  className={styles.mobileNavLink}
+                  onClick={() => handleMegaLinkClick(item.href)}
+                >
+                  {item.title}
+                </button>
+              ))}
+
+              <div className={styles.mobileNavHeader} style={{ marginTop: 'var(--space-4)' }}>Company</div>
+              {COMPANY_LINKS.map((item) => (
+                <button
+                  key={item.key}
+                  className={styles.mobileNavLink}
+                  onClick={() => handleMegaLinkClick(item.href)}
+                >
+                  {item.title}
+                </button>
+              ))}
+            </nav>
+          </div>
+          
           <div className={styles.mobileCta}>
             {isLoggedIn ? (
               <Link

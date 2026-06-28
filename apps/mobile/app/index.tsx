@@ -42,7 +42,7 @@ export default function IndexScreen() {
   }, [])
 
   if (splashDone) {
-    return user ? <Redirect href="/dashboard" /> : <Redirect href="/(auth)/welcome" />
+    return user ? <Redirect href="/(app)/dashboard" /> : <Redirect href="/(auth)/welcome" />
   }
 
   const barWidthPct = barWidth.interpolate({

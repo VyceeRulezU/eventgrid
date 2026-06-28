@@ -1858,6 +1858,51 @@
   gap: 6px;
 }
 
+.phaseAddCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 210px;
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-surface-2);
+  border: 1px dashed var(--color-border-subtle);
+  border-radius: var(--radius-xl);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+}
+
+.phaseAddCard:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: var(--color-surface-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.phaseAddCardIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: var(--color-surface-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast);
+}
+
+.phaseAddCard:hover .phaseAddCardIcon {
+  background: var(--color-accent-muted);
+}
+
+.phaseAddCardLabel {
+  font-size: var(--text-base);
+  font-weight: var(--weight-bold);
+  margin: 0;
+}
+
 /* ── Categorized Modules Grid ── */
 .modulesTabContent {
   display: flex;

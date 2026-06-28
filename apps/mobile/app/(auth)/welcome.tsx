@@ -274,16 +274,16 @@ const styles = StyleSheet.create({
   },
   activeDot: {
     width: 14,
-    backgroundColor: '#E91E63', // Hot pink / Magenta highlight
+    backgroundColor: '#D4A017', // Gold highlight
   },
   button: {
     width: '100%',
     height: 52,
-    backgroundColor: '#E91E63', // Hot pink / Magenta theme accent
+    backgroundColor: '#D4A017', // Gold theme accent
     borderRadius: 26,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#E91E63',
+    shadowColor: '#D4A017',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: '#111827', // Dark inverse text for readability
     fontSize: 15,
     fontWeight: '700',
     letterSpacing: 0.2,
@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   loginLinkText: {
-    color: '#E91E63',
+    color: '#D4A017', // Gold redirect link
     fontSize: 13,
     fontWeight: '700',
   },

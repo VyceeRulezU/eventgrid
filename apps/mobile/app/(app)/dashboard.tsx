@@ -20,6 +20,8 @@ import {
   LogOut,
   ChevronRight,
   Sparkles,
+  User,
+  Settings,
 } from 'lucide-react-native'
 import { useAuthStore } from '@naligrid/shared'
 import { supabase } from '../../lib/supabase'
@@ -135,8 +137,8 @@ export default function DashboardScreen() {
             {(user?.user_metadata?.display_name as string) || 'Event Professional'}
           </Text>
         </View>
-        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.7}>
-          <LogOut size={18} color="#EF4444" />
+        <TouchableOpacity style={styles.profileBtn} onPress={() => router.push('/(app)/profile')} activeOpacity={0.7}>
+          <User size={20} color="#D4A017" />
         </TouchableOpacity>
       </View>
 
@@ -305,9 +307,9 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginTop: 2,
   },
-  logoutBtn: {
+  profileBtn: {
     padding: 8,
-    backgroundColor: 'rgba(239, 68, 68, 0.08)',
+    backgroundColor: 'rgba(212, 160, 23, 0.08)',
     borderRadius: 8,
   },
   scrollContent: {
