@@ -119,7 +119,7 @@ export function VendorDirectoryPage() {
       const { data: claimsData } = await supabase
         .from('vendor_claims')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', user?.id)
       if (claimsData) {
         setMyClaims(claimsData)
       }
@@ -617,7 +617,9 @@ export function VendorDirectoryPage() {
                           {vendor.name || 'Unnamed vendor'}
                         </div>
                         {vendor.is_verified && (
-                          <BadgeCheck size={16} style={{ color: 'var(--color-accent)', fill: 'rgba(212,160,23,0.1)', flexShrink: 0 }} title="Verified business" />
+                          <span title="Verified business" style={{ display: 'inline-flex', flexShrink: 0 }}>
+                            <BadgeCheck size={16} style={{ color: 'var(--color-accent)', fill: 'rgba(212,160,23,0.1)' }} />
+                          </span>
                         )}
                       </div>
                       <span className="badge badge-medium" style={{ fontSize: 'var(--text-xs)' }}>
@@ -743,7 +745,9 @@ export function VendorDirectoryPage() {
                           <span className={vendor.name ? styles.vendorName : styles.vendorNameMuted} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                             {vendor.name || 'Unnamed vendor'}
                             {vendor.is_verified && (
-                              <BadgeCheck size={14} style={{ color: 'var(--color-accent)', fill: 'rgba(212,160,23,0.1)' }} title="Verified business" />
+                              <span title="Verified business" style={{ display: 'inline-flex' }}>
+                                <BadgeCheck size={14} style={{ color: 'var(--color-accent)', fill: 'rgba(212,160,23,0.1)' }} />
+                              </span>
                             )}
                           </span>
                           {!vendor.is_verified && (
