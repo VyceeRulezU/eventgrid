@@ -83,6 +83,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 /* ── Main content ── */
@@ -150,7 +152,9 @@
 /* ── Content area ── */
 .mainContent {
   width: 100%;
+  max-width: 100%;
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 /* ── Stats strip ── */
@@ -196,6 +200,9 @@
   display: flex;
   gap: var(--space-6);
   align-items: flex-start;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 .sidebar {
   width: 220px;
@@ -268,6 +275,9 @@
 .contentPanel {
   flex: 1;
   min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 /* ── View Toggle (Timeline section) ── */
@@ -616,6 +626,22 @@
 }
 @media (max-width: 1024px) {
   .mediaPreviewCard { width: 70vw; }
+  .guestActionsWrap {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .guestActionsWrap button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 11px;
+    padding: var(--space-2) var(--space-1);
+    min-height: 38px;
+    white-space: nowrap;
+    width: 100%;
+  }
 }
 
 /* ── RSVP badges ── */
@@ -819,6 +845,15 @@
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-lg);
   padding: var(--space-4);
+  flex: 1 1 calc(25% - var(--space-4));
+  min-width: 200px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .finCard {
+    flex: 1 1 calc(50% - var(--space-4));
+  }
 }
 
 .finLabel {
@@ -870,4 +905,30 @@
 
 .finTable tr:hover td {
   background: var(--color-surface-3);
+}
+
+.guestActionsWrap {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.finCardsGrid {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 480px) {
+  .finCardsGrid {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .finCard {
+    width: 100% !important;
+    flex: 1 1 100% !important;
+  }
 }

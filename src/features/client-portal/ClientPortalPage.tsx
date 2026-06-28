@@ -509,8 +509,8 @@ export function ClientPortalPage() {
 
         {/* Financials */}
         {activeTab === 'financials' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--space-4)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)', width: '100%' }}>
+            <div className={styles.finCardsGrid}>
               <div className={styles.finCard}>
                 <div className={styles.finLabel}>Total Budget</div>
                 <div className={styles.finValue}>₦{(event.budget_total || 0).toLocaleString()}</div>
@@ -764,7 +764,7 @@ export function ClientPortalPage() {
                   )}
                 </span>
               </div>
-              <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
+              <div className={styles.guestActionsWrap}>
                 <button type="button" className="btn btn-secondary btn-sm" onClick={() => {
                   const headers = 'first_name,last_name,email,phone,group_name\n';
                   const blob = new Blob([headers], { type: 'text/csv;charset=utf-8;' });
