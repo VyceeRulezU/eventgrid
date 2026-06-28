@@ -4,34 +4,74 @@ const EMAIL = process.env.E2E_TEST_EMAIL
 const PASSWORD = process.env.E2E_TEST_PASSWORD
 const hasAuth = Boolean(EMAIL && PASSWORD)
 
-test('home page loads', async ({ page }) => {
-  await page.goto('/')
-  await expect(page.locator('body')).toBeAttached()
-})
+test.describe('public pages', () => {
+  test('home page loads with hero section', async ({ page }) => {
+    await page.goto('/')
+    await expect(page.locator('body')).toBeAttached()
+    await expect(page.locator('#hero')).toBeAttached({ timeout: 10000 })
+  })
 
-test('login page loads', async ({ page }) => {
-  await page.goto('/login')
-  await expect(page.locator('body')).toBeAttached()
-})
+  test('landing page has navbar', async ({ page }) => {
+    await page.goto('/')
+    const navbar = page.locator('header')
+    await expect(navbar).toBeVisible()
+  })
 
-test('guest RSVP page handles missing params', async ({ page }) => {
-  await page.goto('/rsvp')
-  // Should show either error message or the form (if event/guest happen to match)
-  await expect(page.locator('body')).toBeAttached()
-})
+  test('login page loads with form', async ({ page }) => {
+    await page.goto('/login')
+    await expect(page.locator('body')).toBeAttached()
+    await expect(page.locator('form').or(page.locator('button, input[type="email"]'))).toBeAttached({ timeout: 5000 })
+  })
 
-test('guest RSVP page handles invalid link', async ({ page }) => {
-  await page.goto('/rsvp?e=bad&g=bad')
-  await expect(page.locator('body')).toBeAttached()
+  test('register page loads', async ({ page }) => {
+    await page.goto('/register')
+    await expect(page.locator('body')).toBeAttached()
+  })
+
+  test('404 page for unknown routes', async ({ page }) => {
+    await page.goto('/this-route-does-not-exist')
+    // Should not crash — app shows 404 page or fallback
+    await expect(page.locator('body')).toBeAttached()
+  })
+
+  test('guest RSVP page handles missing params', async ({ page }) => {
+    await page.goto('/rsvp')
+    await expect(page.locator('body')).toBeAttached()
+  })
+
+  test('guest RSVP page handles invalid link', async ({ page }) => {
+    await page.goto('/rsvp?e=bad&g=bad')
+    await expect(page.locator('body')).toBeAttached()
+  })
 })
 
 test.describe('authenticated', () => {
-  test.skip(!hasAuth, 'E2E_TEST_EMAIL/PASSWORD not set')
+  test.skip(!hasAuth, 'E2E_TEST_EMAIL/PASSWORD not set — skipping authenticated tests')
 
-  test('key pages load', async ({ page }) => {
-    for (const path of ['/', '/events', '/tasks', '/vendors']) {
-      await page.goto(path)
-      await expect(page.locator('body')).toBeAttached()
-    }
+  test('dashboard loads after login', async ({ page }) => {
+    await page.goto('/dashboard/planner')
+    await expect(page.locator('body')).toBeAttached()
+    // Should see sidebar or main nav
+    await expect(page.locator('aside, header, nav')).toBeAttached({ timeout: 15000 })
+  })
+
+  test('events list page loads', async ({ page }) => {
+    await page.goto('/events')
+    await expect(page.locator('body')).toBeAttached({ timeout: 15000 })
+  })
+
+  test('tasks page loads', async ({ page }) => {
+    await page.goto('/tasks')
+    await expect(page.locator('body')).toBeAttached({ timeout: 15000 })
+  })
+
+  test('vendors page loads', async ({ page }) => {
+    await page.goto('/vendors')
+    await expect(page.locator('body')).toBeAttached({ timeout: 15000 })
+  })
+
+  test('settings page loads', async ({ page }) => {
+    await page.goto('/settings')
+    await expect(page.locator('body')).toBeAttached({ timeout: 15000 })
   })
 })
