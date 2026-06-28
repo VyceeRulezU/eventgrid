@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion'
 import AnimatedStatValue from '../../components/shared/AnimatedStatValue'
 import styles from './ProblemSection.module.css'
 
@@ -39,6 +40,15 @@ const STATS = [
   },
 ]
 
+const stepVariants = {
+  hidden: { opacity: 0, x: -20 },
+  visible: (i: number) => ({
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.5, ease: 'easeOut', delay: i * 0.15 },
+  }),
+}
+
 export default function ProblemSection() {
   return (
     <section className={styles.section} id="problem-statement">
@@ -46,21 +56,41 @@ export default function ProblemSection() {
         <div className={styles.layout}>
 
           {/* Left Column — bold headline */}
-          <div className={styles.leftCol}>
+          <motion.div
+            className={styles.leftCol}
+            initial={{ opacity: 0, x: -40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, ease: 'easeOut' }}
+          >
             <h2 className={styles.headline}>
               The new way<br />
               to run an event<br />
               — like a digital<br />
               4-phase process
             </h2>
-          </div>
+          </motion.div>
 
           {/* Right Column — steps + stats */}
-          <div className={styles.rightCol}>
+          <motion.div
+            className={styles.rightCol}
+            initial={{ opacity: 0, x: 40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, ease: 'easeOut', delay: 0.1 }}
+          >
             {/* Numbered Steps */}
             <div className={styles.stepsList}>
-              {STEPS.map((step) => (
-                <div key={step.number} className={styles.stepRow}>
+              {STEPS.map((step, i) => (
+                <motion.div
+                  key={step.number}
+                  className={styles.stepRow}
+                  variants={stepVariants}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  custom={i}
+                >
                   <div className={styles.stepLeft}>
                     <span className={styles.stepNumber}>{step.number}</span>
                     <div className={styles.stepConnector} />
@@ -69,20 +99,26 @@ export default function ProblemSection() {
                     <h3 className={styles.stepTitle}>{step.title}</h3>
                     <p className={styles.stepDesc}>{step.desc}</p>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
 
             {/* Stats Row */}
-            <div className={styles.statsRow}>
+            <motion.div
+              className={styles.statsRow}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, ease: 'easeOut', delay: 0.4 }}
+            >
               {STATS.map((stat, idx) => (
                 <div key={idx} className={styles.statItem}>
                   <AnimatedStatValue value={stat.value} className={styles.statValue} />
                   <p className={styles.statLabel}>{stat.label}</p>
                 </div>
               ))}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
         </div>
       </div>

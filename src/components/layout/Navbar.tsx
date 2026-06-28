@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { Menu, X, ChevronDown } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import styles from './Navbar.module.css'
@@ -96,9 +97,15 @@ interface NavbarProps {
 
 export default function Navbar({ landing }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false)
+  const [hidden, setHidden] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const menuOpenRef = useRef(false)
   const menuRef = useRef<HTMLDivElement>(null)
+  const lastScrollY = useRef(0)
   
+  /* ── Sync menuOpen state to ref for scroll handler (avoids stale closure) ── */
+  useEffect(() => { menuOpenRef.current = menuOpen }, [menuOpen])
+
   // Mega Menu state
   const [showMega, setShowMega] = useState(false)
   const [hoveredFeature, setHoveredFeature] = useState<MegaMenuItem>(PLATFORM_FEATURES[0])
@@ -113,9 +120,18 @@ export default function Navbar({ landing }: NavbarProps) {
   const avatarLetter = displayName ? displayName.charAt(0).toUpperCase() : (user?.email?.charAt(0).toUpperCase() || 'U')
   const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url || null
 
-  /* ── Scroll detection ── */
+  /* ── Scroll detection + hide/show on direction ── */
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 60)
+    const onScroll = () => {
+      const y = window.scrollY
+      setScrolled(y > 60)
+      if (y > lastScrollY.current && y > 80 && !menuOpenRef.current) {
+        setHidden(true)
+      } else if (y < lastScrollY.current) {
+        setHidden(false)
+      }
+      lastScrollY.current = y
+    }
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
@@ -190,8 +206,10 @@ export default function Navbar({ landing }: NavbarProps) {
   }
 
   return (
-    <header
+    <motion.header
       className={`${styles.header} ${scrolled ? styles.scrolled : ''}`}
+      animate={{ y: hidden ? -86 : 0 }}
+      transition={{ duration: 0.3, ease: 'easeInOut' }}
       ref={menuRef}
     >
       <div className={styles.container}>
@@ -399,6 +417,6 @@ export default function Navbar({ landing }: NavbarProps) {
           </div>
         </div>
       )}
-    </header>
+    </motion.header>
   )
 }

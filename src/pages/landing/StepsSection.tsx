@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion'
 import { CalendarRange, ClipboardList, Users, Activity } from 'lucide-react'
 import styles from './StepsSection.module.css'
 
@@ -35,15 +36,31 @@ const STEPS: Step[] = [
   },
 ]
 
+const containerVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.2 } },
+}
+
+const childVariants = {
+  hidden: { opacity: 0, y: 40 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+}
+
 export default function StepsSection() {
   return (
     <section className={styles.section} id="how-it-works" aria-label="Planning Steps">
       <div className={styles.container}>
         {/* Title Section */}
-        <div className={styles.header}>
+        <motion.div
+          className={styles.header}
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+        >
           <span className={styles.tagline}>The Process</span>
           <h2 className={styles.title}>From Conception to Execution</h2>
-        </div>
+        </motion.div>
 
         {/* Timeline visualization */}
         <div className={styles.timelineContainer}>
@@ -52,9 +69,15 @@ export default function StepsSection() {
             <div className={styles.glowBeamInner} />
           </div>
 
-          <div className={styles.stepsGrid}>
+          <motion.div
+            className={styles.stepsGrid}
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
             {STEPS.map((step, idx) => (
-              <div key={step.number} className={styles.stepCard} style={{ '--step-index': idx } as React.CSSProperties}>
+              <motion.div key={step.number} className={styles.stepCard} style={{ '--step-index': idx } as React.CSSProperties} variants={childVariants}>
                 {/* Vertical indicator line connecting beam to card */}
                 <div className={styles.indicatorContainer}>
                   <div className={styles.indicatorDot} />
@@ -69,9 +92,9 @@ export default function StepsSection() {
                   <h3 className={styles.stepTitle}>{step.title}</h3>
                   <p className={styles.stepDesc}>{step.desc}</p>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

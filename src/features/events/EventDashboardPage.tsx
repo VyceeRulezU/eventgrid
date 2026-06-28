@@ -872,7 +872,7 @@ export function EventDashboardPage() {
             <button type="button" className={`${styles.headerEditBtn} ${styles.mobileHide}`} onClick={() => setShowEditModal(true)} aria-label="Edit event">
               <Pencil size={14} />
             </button>
-            <span className={`badge badge-${statusBadge}`}>
+            <span className={`badge badge-${statusBadge} ${styles.mobileHide}`}>
               <span className="badge-dot" />
               {activeEvent.status.replace('_', ' ')}
             </span>

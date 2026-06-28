@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react'
 import { NavLink, useNavigate, Link, useParams } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, Calendar, Wallet, Users, BookOpen,
   Settings, LogOut, X, ArrowLeft, ListChecks, Radio,
@@ -24,6 +26,7 @@ type NavCategory = {
 }
 
 export function Sidebar() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024)
   const role = useAuthStore((s) => s.role)
   const profile = useAuthStore((s) => s.profile)
   const clearAuth = useAuthStore((s) => s.clearAuth)
@@ -32,6 +35,12 @@ export function Sidebar() {
   const unreadCount = useNotificationStore((s) => s.unreadCount)
   const navigate = useNavigate()
   const { id: eventId } = useParams<{ id: string }>()
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 1024)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   const isAdmin = role === 'super_admin'
   const isAdminRole = role && ['super_admin', 'admin_monitor', 'admin_support'].includes(role)
@@ -92,8 +101,31 @@ export function Sidebar() {
 
   return (
     <>
-      {sidebarOpen && <div className={styles.overlay} onClick={() => setSidebarOpen(false)} />}
-      <aside className={`${styles.sidebar} ${sidebarOpen ? styles.open : ''} ${sidebarCollapsed ? styles.collapsed : ''}`}>
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.div
+            className={styles.overlay}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.12 }}
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+      <motion.aside
+        className={`${styles.sidebar} ${sidebarOpen ? styles.open : ''} ${sidebarCollapsed ? styles.collapsed : ''}`}
+        animate={
+          isMobile
+            ? { x: sidebarOpen ? 0 : '-100%' }
+            : { width: sidebarCollapsed ? 72 : 320, x: 0 }
+        }
+        transition={{
+          type: 'tween',
+          duration: 0.12,
+          ease: 'easeOut',
+        }}
+      >
         <div className={styles.header}>
           <Link to="/home" className={styles.logo} onClick={() => setSidebarOpen(false)}>
             <img src="/ng-logo-wg.svg" alt="NaliGrid" className={styles.logoImg} />
@@ -299,7 +331,7 @@ export function Sidebar() {
             <span>Log out</span>
           </button>
         </div>
-      </aside>
+      </motion.aside>
 
     </>)
   }
