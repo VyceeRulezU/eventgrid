@@ -13,7 +13,6 @@ function formatNaira(kobo: number) {
 }
 
 export function exportBudgetToExcel(rows: BudgetRow[], eventName: string) {
-  const hasOther = rows.some(r => r.category === 'Other')
   const dataRows = rows.map((r) => ({
     Category: r.category,
     'Allocated (₦)': r.allocated / 100,
