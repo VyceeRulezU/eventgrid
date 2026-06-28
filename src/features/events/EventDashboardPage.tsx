@@ -450,12 +450,22 @@ export function EventDashboardPage() {
     if (phasesToInsert.length === 0) return
 
     setAddingPhase(true)
-    const maxPhaseNum = phases.length > 0 ? Math.max(...phases.map(p => p.phase_number)) : 0
+    const { data: existingPhases } = await supabase
+      .from('event_phases')
+      .select('phase_number')
+      .eq('event_id', activeEvent!.id)
+    const usedNumbers = new Set((existingPhases || []).map(p => p.phase_number))
+    const numbers: number[] = []
+    let candidate = 1
+    while (numbers.length < phasesToInsert.length) {
+      if (!usedNumbers.has(candidate)) numbers.push(candidate)
+      candidate++
+    }
     
     const insertPayload = phasesToInsert.map((name, index) => ({
       event_id: activeEvent!.id,
       phase_name: name,
-      phase_number: maxPhaseNum + 1 + index,
+      phase_number: numbers[index],
       status: 'not_started'
     }))
 
