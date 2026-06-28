@@ -21,18 +21,19 @@ export function exportBudgetToExcel(rows: BudgetRow[], eventName: string, pettyC
     '% Used': r.allocated > 0 ? `${Math.round((r.actual / r.allocated) * 100)}%` : '—',
   }))
 
+  const totalAllocated = rows.reduce((s, r) => s + r.allocated, 0)
+  const totalActual = rows.reduce((s, r) => s + r.actual, 0)
+
   if (pettyCashTotal > 0) {
+    dataRows.push({})
     dataRows.push({
-      Category: 'Petty Cash',
-      'Allocated (₦)': 0,
-      'Actual Spend (₦)': pettyCashTotal / 100,
-      'Variance (₦)': -pettyCashTotal / 100,
+      Category: 'Petty Cash (Misc.)',
+      'Allocated (₦)': pettyCashTotal / 100,
+      'Actual Spend (₦)': 0,
+      'Variance (₦)': pettyCashTotal / 100,
       '% Used': '—',
     })
   }
-
-  const totalAllocated = rows.reduce((s, r) => s + r.allocated, 0)
-  const totalActual = rows.reduce((s, r) => s + r.actual, 0) + pettyCashTotal
   dataRows.push({
     Category: 'GRAND TOTAL',
     'Allocated (₦)': totalAllocated / 100,
@@ -91,9 +92,9 @@ export function exportBudgetToPDF(rows: BudgetRow[], eventName: string, pettyCas
   const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
   doc.text(`Generated ${today}`, 196 - doc.getTextWidth(`Generated ${today}`), 30)
 
-  // Summary row
+  // Summary row (excludes petty cash)
   const totalAllocated = rows.reduce((s, r) => s + r.allocated, 0)
-  const totalActual = rows.reduce((s, r) => s + r.actual, 0) + pettyCashTotal
+  const totalActual = rows.reduce((s, r) => s + r.actual, 0)
   const totalVariance = totalAllocated - totalActual
 
   doc.setFontSize(10)
@@ -120,11 +121,12 @@ export function exportBudgetToPDF(rows: BudgetRow[], eventName: string, pettyCas
   })
 
   if (pettyCashTotal > 0) {
+    tableData.push(['', '', '', '', ''])
     tableData.push([
-      'Petty Cash',
+      'Petty Cash (Misc.)',
+      formatNaira(pettyCashTotal),
       formatNaira(0),
       formatNaira(pettyCashTotal),
-      formatNaira(-pettyCashTotal),
       '—',
     ])
   }
