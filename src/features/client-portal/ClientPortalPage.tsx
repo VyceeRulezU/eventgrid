@@ -8,7 +8,7 @@ import {
   List, Columns, Menu,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { uploadFile } from '@/lib/storage'
+import { uploadFile as storageUpload } from '@/lib/storage'
 import { notify } from '@/lib/notifications'
 import { PhaseTimelineTracker } from '@/components/shared/PhaseTimelineTracker'
 import { PhaseSegmentBar } from '@/components/shared/PhasePipeline'
@@ -1050,7 +1050,7 @@ export function ClientPortalPage() {
                   try {
                     const ext = uploadFile.name.split('.').pop() || 'bin'
                     const path = `${data.event.id}/portal/${crypto.randomUUID()}.${ext}`
-                    const { url } = await uploadFile('event-media', uploadFile, path)
+                    const { url } = await storageUpload('event-media', uploadFile, path)
                     const mime = uploadFile.type
                     const assetType = mime.startsWith('image/') ? 'image' : 'document'
                     const { error: insertErr } = await supabase.from('event_assets').insert({
