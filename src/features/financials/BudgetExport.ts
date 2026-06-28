@@ -12,7 +12,7 @@ function formatNaira(kobo: number) {
   return `₦${(kobo / 100).toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
 }
 
-export function exportBudgetToExcel(rows: BudgetRow[], eventName: string) {
+export function exportBudgetToExcel(rows: BudgetRow[], eventName: string, pettyCashTotal = 0) {
   const dataRows = rows.map((r) => ({
     Category: r.category,
     'Allocated (₦)': r.allocated / 100,
@@ -21,8 +21,19 @@ export function exportBudgetToExcel(rows: BudgetRow[], eventName: string) {
     '% Used': r.allocated > 0 ? `${Math.round((r.actual / r.allocated) * 100)}%` : '—',
   }))
 
+  if (pettyCashTotal > 0) {
+    dataRows.push({
+      Category: 'Petty Cash',
+      'Allocated (₦)': 0,
+      'Actual Spend (₦)': pettyCashTotal / 100,
+      'Variance (₦)': -pettyCashTotal / 100,
+      '% Used': '—',
+    })
+  }
+
   const totalAllocated = rows.reduce((s, r) => s + r.allocated, 0)
-  const totalActual = rows.reduce((s, r) => s + r.actual, 0)
+  const totalActual = rows.reduce((s, r) => s + r.actual, 0) + pettyCashTotal
+  const totalVariance = totalAllocated - totalActual
   dataRows.push({
     Category: 'GRAND TOTAL',
     'Allocated (₦)': totalAllocated / 100,
@@ -47,7 +58,7 @@ export function exportBudgetToExcel(rows: BudgetRow[], eventName: string) {
   XLSX.writeFile(wb, `${eventName || 'Budget'}-Allocations.xlsx`)
 }
 
-export function exportBudgetToPDF(rows: BudgetRow[], eventName: string) {
+export function exportBudgetToPDF(rows: BudgetRow[], eventName: string, pettyCashTotal = 0) {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
 
   // Header bar
@@ -83,7 +94,7 @@ export function exportBudgetToPDF(rows: BudgetRow[], eventName: string) {
 
   // Summary row
   const totalAllocated = rows.reduce((s, r) => s + r.allocated, 0)
-  const totalActual = rows.reduce((s, r) => s + r.actual, 0)
+  const totalActual = rows.reduce((s, r) => s + r.actual, 0) + pettyCashTotal
   const totalVariance = totalAllocated - totalActual
 
   doc.setFontSize(10)
@@ -108,6 +119,16 @@ export function exportBudgetToPDF(rows: BudgetRow[], eventName: string) {
       r.allocated > 0 ? `${pct}%` : '—',
     ]
   })
+
+  if (pettyCashTotal > 0) {
+    tableData.push([
+      'Petty Cash',
+      formatNaira(0),
+      formatNaira(pettyCashTotal),
+      formatNaira(-pettyCashTotal),
+      '—',
+    ])
+  }
 
   tableData.push([
     'GRAND TOTAL',

@@ -65,7 +65,7 @@ export function TopBar() {
     if (/^\/events\/[^/]+\/guests$/.test(path)) return { title: 'Guests', subtitle: 'Manage guest list' }
     if (/^\/events\/[^/]+\/live-board$/.test(path)) return { title: 'Live Feed', subtitle: 'Real-time event updates' }
     if (/^\/events\/[^/]+\/aftermath$/.test(path)) return { title: 'Aftermath', subtitle: 'Event reports' }
-    if (/^\/events\/[^/]+\/assets$/.test(path)) return { title: 'Moodboard', subtitle: 'Inspiration and assets' }
+    if (/^\/events\/[^/]+\/assets$/.test(path)) return { title: 'Assets', subtitle: 'Inspiration and assets' }
     if (/^\/events\/[^/]+\/report$/.test(path)) return { title: 'Event Report', subtitle: '' }
     if (/^\/events\/[^/]+$/.test(path)) return { title: 'Event Dashboard', subtitle: '' }
     return { title: 'NaliGrid', subtitle: '' }

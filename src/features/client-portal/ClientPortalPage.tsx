@@ -382,7 +382,7 @@ export function ClientPortalPage() {
                   className={`${styles.sidebarItem} ${sidebarSection === 'assets' ? styles.sidebarItemActive : ''}`}
                   onClick={() => { setSidebarSection('assets'); setSidebarOpen(false) }}
                 >
-                  <Image size={15} /> Moodboard & Assets
+                  <Image size={15} /> Assets
                 </button>
               </div>
               <div className={styles.sidebarSection}>
@@ -1032,7 +1032,7 @@ export function ClientPortalPage() {
                   className={styles.formInput}
                   value={uploadCategory}
                   onChange={(e) => setUploadCategory(e.target.value)}
-                  placeholder="e.g. Moodboard, Venue, Decor"
+                  placeholder="e.g. Assets, Venue, Decor"
                 />
               </div>
             </div>

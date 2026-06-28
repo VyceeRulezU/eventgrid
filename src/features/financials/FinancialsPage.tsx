@@ -877,7 +877,7 @@ export function FinancialsPage() {
               setClientPayments(payments)
             }}
           />
-          <BudgetAllocations eventId={activeEventId} eventName={activeEventName} />
+          <BudgetAllocations eventId={activeEventId} eventName={activeEventName} pettyCashTotal={pettyCashTotal} />
           <PettyCashLog eventId={activeEventId} onTotalChange={setPettyCashTotal} />
         </div>
       )}

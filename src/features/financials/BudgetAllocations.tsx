@@ -26,6 +26,7 @@ interface BudgetRow {
 interface BudgetAllocationsProps {
   eventId: string
   eventName?: string
+  pettyCashTotal?: number
 }
 
 function getCategorySublabel(category: string): string {
@@ -44,7 +45,7 @@ function getCategorySublabel(category: string): string {
   return 'Allocated event budget'
 }
 
-export function BudgetAllocations({ eventId, eventName }: BudgetAllocationsProps) {
+export function BudgetAllocations({ eventId, eventName, pettyCashTotal = 0 }: BudgetAllocationsProps) {
   const showNotification = useUIStore((s) => s.showNotification)
   const [allocations, setAllocations] = useState<BudgetRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -167,8 +168,8 @@ export function BudgetAllocations({ eventId, eventName }: BudgetAllocationsProps
           ]}
           onSelect={(item) => {
             const rows = allocations.filter(a => a.allocated > 0 || a.actual > 0 || a.category === 'Other')
-            if (item.value === 'excel') exportBudgetToExcel(rows, eventName || '')
-            else exportBudgetToPDF(rows, eventName || '')
+            if (item.value === 'excel') exportBudgetToExcel(rows, eventName || '', pettyCashTotal)
+            else exportBudgetToPDF(rows, eventName || '', pettyCashTotal)
           }}
         />
       </div>

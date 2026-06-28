@@ -52,7 +52,7 @@ function isImageType(mime: string | null): boolean {
 
 const ASSET_TYPE_OPTIONS = [
   { label: 'All Types', value: 'all' },
-  { label: 'Moodboard', value: 'moodboard' },
+  { label: 'Assets', value: 'moodboard' },
   { label: 'Image', value: 'image' },
   { label: 'Document', value: 'document' },
   { label: 'Other', value: 'other' },
@@ -530,7 +530,7 @@ export function EventAssetsPage() {
                     className={styles.formInput}
                     value={formCategory}
                     onChange={(e) => setFormCategory(e.target.value)}
-                    placeholder="e.g. Moodboard, Venue, Decor"
+                    placeholder="e.g. Assets, Venue, Decor"
                     list="category-suggestions"
                   />
                   <datalist id="category-suggestions">
@@ -546,7 +546,7 @@ export function EventAssetsPage() {
                     value={formType}
                     onChange={(e) => setFormType(e.target.value as EventAsset['asset_type'])}
                   >
-                    <option value="moodboard">Moodboard</option>
+                    <option value="moodboard">Assets</option>
                     <option value="image">Image</option>
                     <option value="document">Document</option>
                     <option value="other">Other</option>

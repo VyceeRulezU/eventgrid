@@ -11,7 +11,7 @@ interface SearchBarProps {
 
 export function SearchBar({ value, onChange, placeholder = 'Search...', containerStyle, autoFocus }: SearchBarProps) {
   return (
-    <div style={{ position: 'relative', width: '100%', maxWidth: 320, ...containerStyle }}>
+    <div style={{ position: 'relative', width: '100%', ...containerStyle }}>
       <Search
         size={16}
         style={{
