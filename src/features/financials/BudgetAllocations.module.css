@@ -54,14 +54,6 @@
   gap: var(--space-3);
 }
 
-.thumbnail {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  object-fit: cover;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
 .categoryText {
   display: flex;
   flex-direction: column;
@@ -70,12 +62,18 @@
 .categoryName {
   font-weight: var(--weight-semibold);
   color: #FFFFFF;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .categorySub {
   font-size: var(--text-xs);
   color: var(--color-text-muted);
   margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Status badge styling */

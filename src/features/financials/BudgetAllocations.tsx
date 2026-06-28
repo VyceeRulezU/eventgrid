@@ -28,44 +28,6 @@ interface BudgetAllocationsProps {
   eventName?: string
 }
 
-function getCategoryThumbnail(category: string): string {
-  const c = category.toLowerCase()
-  if (c.includes('venue') || c.includes('facility')) {
-    return 'https://images.unsplash.com/photo-1519741497674-611481863552?w=80&q=80'
-  }
-  if (c.includes('catering') || c.includes('food')) {
-    return 'https://images.unsplash.com/photo-1555244162-803834f70033?w=80&q=80'
-  }
-  if (c.includes('decor') || c.includes('design') || c.includes('florals')) {
-    return 'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=80&q=80'
-  }
-  if (c.includes('audio') || c.includes('visual') || c.includes('sound') || c.includes('av')) {
-    return 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=80&q=80'
-  }
-  if (c.includes('photo')) {
-    return 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=80&q=80'
-  }
-  if (c.includes('video')) {
-    return 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=80&q=80'
-  }
-  if (c.includes('transport') || c.includes('logistic') || c.includes('car')) {
-    return 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=80&q=80'
-  }
-  if (c.includes('fashion') || c.includes('beauty') || c.includes('makeup') || c.includes('attire')) {
-    return 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=80&q=80'
-  }
-  if (c.includes('entertain') || c.includes('music') || c.includes('band') || c.includes('mc') || c.includes('dj')) {
-    return 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=80&q=80'
-  }
-  if (c.includes('stationery') || c.includes('print') || c.includes('invite')) {
-    return 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=80&q=80'
-  }
-  if (c.includes('security') || c.includes('bouncer')) {
-    return 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=80&q=80'
-  }
-  return 'https://images.unsplash.com/photo-1513151233558-d860c5398176?w=80&q=80'
-}
-
 function getCategorySublabel(category: string): string {
   const c = category.toLowerCase()
   if (c.includes('venue') || c.includes('facility')) return 'Rentals, halls & logistics'
@@ -247,11 +209,6 @@ export function BudgetAllocations({ eventId, eventName }: BudgetAllocationsProps
                     {/* Category column */}
                     <td className={styles.td}>
                       <div className={styles.categoryCell}>
-                        <img 
-                          src={getCategoryThumbnail(row.category)} 
-                          alt="" 
-                          className={styles.thumbnail} 
-                        />
                         <div className={styles.categoryText}>
                           <div className={styles.categoryName}>{row.category}</div>
                           <div className={styles.categorySub}>{getCategorySublabel(row.category)}</div>
