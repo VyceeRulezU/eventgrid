@@ -25,9 +25,9 @@ export function exportBudgetToExcel(rows: BudgetRow[], eventName: string, pettyC
   const totalActual = rows.reduce((s, r) => s + r.actual, 0)
 
   if (pettyCashTotal > 0) {
-    dataRows.push({})
+    dataRows.push({ Category: '', 'Allocated (₦)': 0, 'Actual Spend (₦)': 0, 'Variance (₦)': 0, '% Used': '' })
     dataRows.push({
-      Category: 'Petty Cash (Misc.)',
+      Category: 'Miscellaneous',
       'Allocated (₦)': pettyCashTotal / 100,
       'Actual Spend (₦)': 0,
       'Variance (₦)': pettyCashTotal / 100,
@@ -123,7 +123,7 @@ export function exportBudgetToPDF(rows: BudgetRow[], eventName: string, pettyCas
   if (pettyCashTotal > 0) {
     tableData.push(['', '', '', '', ''])
     tableData.push([
-      'Petty Cash (Misc.)',
+      'Miscellaneous',
       formatNaira(pettyCashTotal),
       formatNaira(0),
       formatNaira(pettyCashTotal),
