@@ -4,6 +4,7 @@ import Konva from 'konva'
 import useImage from 'use-image'
 import { Plus, Trash2, Upload, Image } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { uploadFile } from '@/lib/storage'
 import { useUIStore } from '@/store/ui.store'
 import type { SeatingTable } from '@/types'
 import styles from './FloorPlanCanvas.module.css'
@@ -144,11 +145,14 @@ export function FloorPlanCanvas({ eventId, tables, onTablesChange }: Props) {
       const file = input.files?.[0]
       if (!file) return
       const path = `${eventId}/floor-plan/${crypto.randomUUID()}.${file.name.split('.').pop()}`
-      const { error: uploadErr } = await supabase.storage.from('event-media').upload(path, file, { upsert: true })
-      if (uploadErr) { showNotification({ variant: 'error', title: 'Upload failed', message: uploadErr.message }); return }
-      const { data: { publicUrl } } = supabase.storage.from('event-media').getPublicUrl(path)
-      await supabase.from('events').update({ floor_plan_image_url: publicUrl }).eq('id', eventId)
-      setFloorPlanImageUrl(publicUrl)
+      try {
+        const { url } = await uploadFile('event-media', file, path)
+        await supabase.from('events').update({ floor_plan_image_url: url }).eq('id', eventId)
+        setFloorPlanImageUrl(url)
+      } catch (err: any) {
+        showNotification({ variant: 'error', title: 'Upload failed', message: err.message || 'Upload error' })
+        return
+      }
       showNotification({ variant: 'success', title: 'Venue plan uploaded' })
     }
     input.click()

@@ -51,8 +51,8 @@ export function AdminReferralsPage({ embedded }: { embedded?: boolean }) {
   const loadData = useCallback(async () => {
     setLoading(true)
     const [pRes, rRes] = await Promise.all([
-      supabase.from('referral_partners').select('*').order('created_at', { ascending: false }),
-      supabase.from('referral_redemptions').select('*, referred_user:referred_user_id(display_name, email)').order('created_at', { ascending: false }),
+      supabase.from('referral_partners').select('*').order('created_at', { ascending: false }).limit(200),
+      supabase.from('referral_redemptions').select('*, referred_user:referred_user_id(display_name, email)').order('created_at', { ascending: false }).limit(200),
     ])
     if (pRes.data) setPartners(pRes.data)
     if (rRes.data) setRedemptions(rRes.data as any)

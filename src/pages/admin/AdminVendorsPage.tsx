@@ -52,12 +52,14 @@ export function AdminVendorsPage() {
         .from('organizations')
         .select('id, name')
         .order('name', { ascending: true })
+        .limit(200)
 
       const vendsQuery = supabase
         .from('vendors')
         .select('*')
         .is('deleted_at', null)
         .order('name', { ascending: true })
+        .limit(500)
 
       const isAdminRole = role && ['super_admin', 'admin_monitor', 'admin_support'].includes(role)
 

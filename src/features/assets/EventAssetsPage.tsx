@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { compressImage } from '@/lib/compressImage'
+import { uploadFile } from '@/lib/storage'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { Document, Page, pdfjs } from 'react-pdf'
 import {
@@ -262,18 +263,7 @@ export function EventAssetsPage() {
         fileToUpload = compressed
       }
 
-      const { error: uploadErr } = await supabase.storage
-        .from('event-media')
-        .upload(path, fileToUpload, {
-          contentType: formFile.type,
-          upsert: false,
-        })
-      if (uploadErr) throw uploadErr
-
-      const { data: pubUrlData } = supabase.storage
-        .from('event-media')
-        .getPublicUrl(path)
-      const url = pubUrlData?.publicUrl
+      const { url } = await uploadFile('event-media', fileToUpload, path)
 
       const { error: insertErr } = await supabase.from('event_assets').insert({
         event_id: id,

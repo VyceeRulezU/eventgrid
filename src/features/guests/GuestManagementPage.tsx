@@ -16,6 +16,7 @@ import type { Guest, SeatingTable } from '@/types'
 
 import { Checkbox } from '@/components/ui/Checkbox'
 import { PageHero } from '@/components/shared/PageHero'
+import { checkRateLimit } from '@/lib/rateLimit'
 import { useSearch } from '@/hooks/useSearch'
 import { SearchBar } from '@/components/shared/SearchBar'
 import styles from './GuestManagementPage.module.css'
@@ -93,6 +94,7 @@ export function GuestManagementPage() {
 
   const handleAddGuest = async () => {
     if (!newGuest.first_name.trim() || !eventId) { showToast({ type: 'warning', title: 'First name is required' }); return }
+    if (!checkRateLimit('add-guest', 20, 60000)) { showToast({ type: 'warning', title: 'Too many requests', body: 'Please wait a moment before adding more guests' }); return }
     const { error } = await supabase.from('guests').insert({ event_id: eventId, ...newGuest, rsvp_status: 'pending' })
     if (error) { showToast({ type: 'error', title: 'Failed to add guest', body: error.message }); return }
     if (newGuest.email && eventName && eventId) {
@@ -140,6 +142,7 @@ export function GuestManagementPage() {
 
   const handleCSVImport = async () => {
     if (!eventId) return
+    if (!checkRateLimit('csv-import', 5, 60000)) { showToast({ type: 'warning', title: 'Too many requests', body: 'Please wait before importing again' }); return }
     const rows = csvPreview.map((r) => ({
       event_id: eventId,
       first_name: r.first_name || r['First Name'] || r.name || r.Name || '',

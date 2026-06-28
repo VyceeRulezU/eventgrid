@@ -91,6 +91,28 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
 
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: 1fr;
+    border-top: none;
+    border-bottom: none;
+  }
+  .gridCell:first-child {
+    border-right: none;
+  }
+  .gridCell {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  }
+  .gridCell:last-child {
+    border-bottom: none;
+  }
+  .card {
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+  }
+}
+
 .gridCell {
   display: flex;
   align-items: center;

@@ -56,6 +56,7 @@ export function AdminEventsListPage() {
       .select('*')
       .is('deleted_at', null)
       .order('created_at', { ascending: false })
+      .limit(200)
 
     const { data } = await query
 
@@ -64,16 +65,27 @@ export function AdminEventsListPage() {
       return
     }
 
-    const eventsWithPhases = await Promise.all(
-      (data as unknown as Event[]).map(async (event) => {
-        const { data: phases } = await supabase
+    const rawEvents = data as unknown as Event[]
+    const eventIds = rawEvents.map((e) => e.id)
+    const { data: allPhases } = eventIds.length
+      ? await supabase
           .from('event_phases')
           .select('*')
-          .eq('event_id', event.id)
+          .in('event_id', eventIds)
           .order('phase_number', { ascending: true })
-        return { ...event, phases: (phases as unknown as EventPhase[]) || [] } as Event & { phases?: EventPhase[] }
-      })
-    )
+      : { data: [] }
+
+    const phasesByEvent = new Map<string, EventPhase[]>()
+    for (const phase of (allPhases as unknown as EventPhase[]) || []) {
+      const list = phasesByEvent.get(phase.event_id) || []
+      list.push(phase)
+      phasesByEvent.set(phase.event_id, list)
+    }
+
+    const eventsWithPhases = rawEvents.map((event) => ({
+      ...event,
+      phases: phasesByEvent.get(event.id) || [],
+    }))
 
     const creatorIds = [...new Set(eventsWithPhases.map((e) => e.created_by).filter(Boolean))]
     const { data: creators } = creatorIds.length

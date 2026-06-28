@@ -153,6 +153,7 @@ export function AdminSurveyResponsesPage({ embedded }: { embedded?: boolean }) {
       .from('survey_responses')
       .select('*')
       .order('created_at', { ascending: false })
+      .limit(200)
       .then(({ data }) => {
         setResponses((data || []) as SurveyResponse[])
         setLoading(false)
