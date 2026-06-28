@@ -60,6 +60,7 @@ export function VendorDirectoryPage() {
     email: '',
     instagram: '',
     website: '',
+    notes: '',
   })
 
   // Merge state (super admin only)
