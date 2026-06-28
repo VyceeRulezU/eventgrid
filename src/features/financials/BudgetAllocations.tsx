@@ -51,6 +51,8 @@ export function BudgetAllocations({ eventId, eventName, pettyCashTotal = 0 }: Bu
   const [loading, setLoading] = useState(true)
   const [editingCat, setEditingCat] = useState<string | null>(null)
   const [editValue, setEditValue] = useState(0)
+  const [renamingCat, setRenamingCat] = useState<string | null>(null)
+  const [renameValue, setRenameValue] = useState('')
 
   // New category state
   const [showAddRow, setShowAddRow] = useState(false)
@@ -122,11 +124,26 @@ export function BudgetAllocations({ eventId, eventName, pettyCashTotal = 0 }: Bu
   async function deleteAllocation(category: string) {
     const existing = allocations.find(a => a.category === category)
     if (existing?.id) {
-      const { error } = await supabase.from('budget_allocations').delete().eq('id', existing.id)
+      const { error } = await supabase.from('budget_allocations').update({ allocated: 0 }).eq('id', existing.id)
       if (error) { showNotification({ variant: 'error', title: 'Failed', message: error.message }); return }
     }
-    setAllocations(allocations.map(a => a.category === category ? { ...a, id: '', allocated: 0 } : a))
+    setAllocations(allocations.map(a => a.category === category ? { ...a, allocated: 0 } : a))
     setEditingCat(null)
+  }
+
+  async function renameAllocation(oldName: string, newName: string) {
+    const existing = allocations.find(a => a.category === oldName)
+    if (!existing?.id) return
+    const trimmed = newName.trim()
+    if (!trimmed || trimmed === oldName) { setRenamingCat(null); return }
+    if (allocations.some(a => a.category.toLowerCase() === trimmed.toLowerCase() && a.category !== oldName)) {
+      showNotification({ variant: 'warning', title: 'Already exists', message: `"${trimmed}" is already in your budget list.` })
+      return
+    }
+    const { error } = await supabase.from('budget_allocations').update({ category: trimmed }).eq('id', existing.id)
+    if (error) { showNotification({ variant: 'error', title: 'Failed', message: error.message }); return }
+    setAllocations(allocations.map(a => a.category === oldName ? { ...a, category: trimmed } : a))
+    setRenamingCat(null)
   }
 
   async function handleAddCategory() {
@@ -211,8 +228,30 @@ export function BudgetAllocations({ eventId, eventName, pettyCashTotal = 0 }: Bu
                     <td className={styles.td}>
                       <div className={styles.categoryCell}>
                         <div className={styles.categoryText}>
-                          <div className={styles.categoryName}>{row.category}</div>
-                          <div className={styles.categorySub}>{getCategorySublabel(row.category)}</div>
+                          {renamingCat === row.category ? (
+                            <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                              <input
+                                className="input"
+                                type="text"
+                                value={renameValue}
+                                onChange={e => setRenameValue(e.target.value)}
+                                style={{ width: 150, minHeight: 28, fontSize: 'var(--text-xs)' }}
+                                autoFocus
+                                onKeyDown={e => {
+                                  if (e.key === 'Enter') renameAllocation(row.category, renameValue)
+                                  if (e.key === 'Escape') setRenamingCat(null)
+                                }}
+                                onBlur={() => { if (renameValue !== row.category) renameAllocation(row.category, renameValue); else setRenamingCat(null) }}
+                              />
+                              <button className="btn btn-primary btn-sm" onClick={() => renameAllocation(row.category, renameValue)} style={{ minHeight: 28, padding: '0 8px', fontSize: 'var(--text-xs)' }}><Check size={12} /></button>
+                              <button className="btn btn-ghost btn-sm" onClick={() => setRenamingCat(null)} style={{ minHeight: 28, padding: '0 8px', fontSize: 'var(--text-xs)' }}><X size={12} /></button>
+                            </div>
+                          ) : (
+                            <>
+                              <div className={styles.categoryName}>{row.category}</div>
+                              <div className={styles.categorySub}>{getCategorySublabel(row.category)}</div>
+                            </>
+                          )}
                         </div>
                       </div>
                     </td>
@@ -292,7 +331,14 @@ export function BudgetAllocations({ eventId, eventName, pettyCashTotal = 0 }: Bu
                             onClick={() => { setEditingCat(row.category); setEditValue(row.allocated / 100) }}
                             style={{ gap: 4, padding: '0 8px', minHeight: 28, fontSize: 'var(--text-xs)' }}
                           >
-                            <Pencil size={12} /> Edit
+                            <Pencil size={12} /> Budget
+                          </button>
+                          <button 
+                            className="btn btn-ghost btn-sm" 
+                            onClick={() => { setRenamingCat(row.category); setRenameValue(row.category) }}
+                            style={{ gap: 4, padding: '0 8px', minHeight: 28, fontSize: 'var(--text-xs)' }}
+                          >
+                            <Pencil size={12} /> Rename
                           </button>
                           {(row.id || row.allocated > 0) && (
                             <button 

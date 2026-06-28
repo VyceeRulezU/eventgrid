@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
-import { LayoutGrid, List, Users, Plus, Pencil, Star, Trash2, Phone, Mail, Building, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { LayoutGrid, List, Users, Plus, Pencil, Star, Trash2, Phone, Mail, Building, X, ChevronLeft, ChevronRight, BadgeCheck, Globe, GitMerge } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -7,6 +7,7 @@ import { AdminPageHero } from '@/components/shared/AdminPageHero'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { useSearch } from '@/hooks/useSearch'
 import { SearchBar } from '@/components/shared/SearchBar'
+import { sendInvite } from '@/lib/edgeFunctions'
 import type { Vendor } from '@/types'
 import styles from '@/features/vendors/VendorDirectoryPage.module.css'
 
@@ -37,6 +38,36 @@ export function AdminVendorDirectoryPage() {
   const [page, setPage] = useState(1)
   const ITEMS_PER_PAGE = 15
 
+  // Claims state
+  const [myClaims, setMyClaims] = useState<any[]>([])
+  const [showClaimModal, setShowClaimModal] = useState(false)
+  const [claimingVendor, setClaimingVendor] = useState<Vendor | null>(null)
+  const [claimForm, setClaimForm] = useState({
+    business_email: '',
+    business_phone: '',
+    website: '',
+    proof_url: '',
+  })
+
+  // Edit suggestions state
+  const [showSuggestModal, setShowSuggestModal] = useState(false)
+  const [suggestingVendor, setSuggestingVendor] = useState<Vendor | null>(null)
+  const [suggestForm, setSuggestForm] = useState({
+    name: '',
+    category: '',
+    contact_name: '',
+    phone: '',
+    email: '',
+    instagram: '',
+    website: '',
+    notes: '',
+  })
+
+  // Merge state (super admin only)
+  const [showMergeModal, setShowMergeModal] = useState(false)
+  const [targetVendorId, setTargetVendorId] = useState<string>('')
+  const [selectedVendorIds, setSelectedVendorIds] = useState<string[]>([])
+
   const filtered = useMemo(() => {
     if (!categoryFilter) return searched
     return searched.filter((v) => v.category === categoryFilter)
@@ -58,12 +89,15 @@ export function AdminVendorDirectoryPage() {
     email: '',
     rating: 0,
     notes: '',
+    instagram: '',
+    website: '',
   })
 
   useEffect(() => {
     if (!user) { setLoading(false); return }
 
     async function load() {
+      // Left join so vendors without organizations still appear
       const { data } = await supabase
         .from('vendors')
         .select('*, organizations(name)')
@@ -85,6 +119,16 @@ export function AdminVendorDirectoryPage() {
         })
         setVendors(mapped)
       }
+
+      // Load user's claims
+      const { data: claimsData } = await supabase
+        .from('vendor_claims')
+        .select('*')
+        .eq('user_id', user?.id)
+      if (claimsData) {
+        setMyClaims(claimsData)
+      }
+
       setLoading(false)
     }
 
@@ -93,29 +137,60 @@ export function AdminVendorDirectoryPage() {
 
   const availableTypes = [...new Set([...DEFAULT_TYPES, ...vendors.map((v) => v.category)])]
 
+  /* ══════════════════════════════════════════════
+     Vendor form / CRUD — scoped to user's org
+     ══════════════════════════════════════════════ */
   const org = useAuthStore((s) => s.org)
   const resetForm = () => {
-    setForm({ category: DEFAULT_TYPES[0], name: '', contact_name: '', phone: '', email: '', rating: 0, notes: '' })
+    setForm({ 
+      category: DEFAULT_TYPES[0], 
+      name: '', 
+      contact_name: '', 
+      phone: '', 
+      email: '', 
+      rating: 0, 
+      notes: '',
+      instagram: '',
+      website: '',
+    })
     setEditingVendor(null)
   }
 
   const openEdit = (vendor: Vendor) => {
-    if (vendor.org_id !== org?.id) {
-      showNotification({ variant: 'warning', title: 'Read-only', message: 'You can only edit vendors from your own organization.' })
-      return
+    const isOwner = vendor.claimed_by_vendor_id === user?.id && vendor.is_verified === true
+    const isCreatorOrg = vendor.org_id === org?.id && vendor.is_verified === false
+    const isSuperAdmin = role === 'super_admin'
+
+    if (isOwner || isCreatorOrg || isSuperAdmin) {
+      setEditingVendor(vendor)
+      setForm({
+        category: vendor.category,
+        name: vendor.name,
+        contact_name: vendor.contact_name || '',
+        phone: vendor.phone || '',
+        email: vendor.email || '',
+        rating: vendor.rating || 0,
+        notes: vendor.notes || '',
+        instagram: vendor.instagram || '',
+        website: vendor.website || '',
+      })
+      setShowForm(true)
+    } else {
+      setSuggestingVendor(vendor)
+      setSuggestForm({
+        name: vendor.name,
+        category: vendor.category,
+        contact_name: vendor.contact_name || '',
+        phone: vendor.phone || '',
+        email: vendor.email || '',
+        instagram: vendor.instagram || '',
+        website: vendor.website || '',
+        notes: vendor.notes || '',
+      })
+      setShowSuggestModal(true)
     }
-    setEditingVendor(vendor)
-    setForm({
-      category: vendor.category,
-      name: vendor.name,
-      contact_name: vendor.contact_name || '',
-      phone: vendor.phone || '',
-      email: vendor.email || '',
-      rating: vendor.rating || 0,
-      notes: vendor.notes || '',
-    })
-    setShowForm(true)
   }
+
 
   const handleSave = async () => {
     if (!form.name.trim()) {
@@ -134,18 +209,6 @@ export function AdminVendorDirectoryPage() {
       return
     }
 
-    if (form.email.trim()) {
-      const emailDuplicate = vendors.find(
-        (v) =>
-          v.email && v.email.toLowerCase() === form.email.trim().toLowerCase() &&
-          v.id !== editingVendor?.id
-      )
-      if (emailDuplicate) {
-        showNotification({ variant: 'warning', title: 'Duplicate email', message: `"${form.email.trim()}" is already used by "${emailDuplicate.name}".` })
-        return
-      }
-    }
-
     setSaving(true)
 
     if (editingVendor) {
@@ -159,6 +222,8 @@ export function AdminVendorDirectoryPage() {
           email: form.email || null,
           rating: form.rating || null,
           notes: form.notes || null,
+          instagram: form.instagram || null,
+          website: form.website || null,
         })
         .eq('id', editingVendor.id)
 
@@ -183,6 +248,8 @@ export function AdminVendorDirectoryPage() {
           email: form.email || null,
           rating: form.rating || null,
           notes: form.notes || null,
+          instagram: form.instagram || null,
+          website: form.website || null,
         })
         .select()
         .single()
@@ -197,6 +264,18 @@ export function AdminVendorDirectoryPage() {
       if (data) {
         const newVendor = { ...data as unknown as Vendor, org_name: org?.name || 'My Organization' }
         setVendors([newVendor, ...vendors])
+
+        if (form.email.trim()) {
+          const { error: inviteError } = await sendInvite({
+            type: 'vendor_welcome',
+            email: form.email.trim(),
+            vendor_name: form.name.trim(),
+            invited_by_name: user?.user_metadata?.display_name || user?.email || 'A planner',
+          })
+          if (inviteError) {
+            console.error('Failed to send vendor welcome email:', inviteError)
+          }
+        }
       }
       showNotification({ variant: 'success', title: 'Vendor added' })
     }
@@ -219,13 +298,120 @@ export function AdminVendorDirectoryPage() {
       .select('id')
 
     if (error || !data || data.length === 0) {
-      console.error('[AdminVendorDirectoryPage] delete failed', { error, data, id })
+      console.error('[VendorDirectoryPage] delete failed', { error, data, id })
       showNotification({ variant: 'error', title: 'Failed to delete', message: error?.message || 'No rows were updated. You may not have permission to delete this vendor.' })
       return
     }
 
     setVendors(vendors.filter((v) => v.id !== id))
     showNotification({ variant: 'success', title: 'Vendor deleted' })
+  }
+
+  const handleClaim = async () => {
+    if (!claimingVendor || !user) return
+    if (!claimForm.business_email.trim() && !claimForm.business_phone.trim()) {
+      showNotification({ variant: 'warning', title: 'Missing info', message: 'Please enter a contact email or phone number to verify ownership.' })
+      return
+    }
+    setSaving(true)
+    const { data: claimData, error } = await supabase
+      .from('vendor_claims')
+      .insert({
+        vendor_id: claimingVendor.id,
+        user_id: user.id,
+        business_email: claimForm.business_email.trim() || null,
+        business_phone: claimForm.business_phone.trim() || null,
+        proof_url: claimForm.proof_url.trim() || null,
+        status: 'pending',
+      })
+      .select()
+      .single()
+
+    setSaving(false)
+    if (error) {
+      showNotification({ variant: 'error', title: 'Claim failed', message: error.message })
+      return
+    }
+    if (claimData) {
+      setMyClaims([...myClaims, claimData])
+      showNotification({ variant: 'success', title: 'Claim submitted', message: 'Your ownership claim request has been submitted for verification.' })
+    }
+    setShowClaimModal(false)
+    setClaimingVendor(null)
+  }
+
+  const handleSuggestEdit = async () => {
+    if (!suggestingVendor || !user) return
+    setSaving(true)
+    const { error } = await supabase
+      .from('vendor_edit_suggestions')
+      .insert({
+        vendor_id: suggestingVendor.id,
+        suggested_by: user.id,
+        suggested_data: {
+          name: suggestForm.name.trim(),
+          category: suggestForm.category,
+          contact_name: suggestForm.contact_name.trim() || null,
+          phone: suggestForm.phone.trim() || null,
+          email: suggestForm.email.trim() || null,
+          instagram: suggestForm.instagram.trim() || null,
+          website: suggestForm.website.trim() || null,
+          notes: suggestForm.notes.trim() || null,
+        },
+        status: 'pending',
+      })
+
+    setSaving(false)
+    if (error) {
+      showNotification({ variant: 'error', title: 'Failed to submit', message: error.message })
+      return
+    }
+    showNotification({ variant: 'success', title: 'Suggestion submitted', message: 'Thank you! Your suggestion has been sent to the vendor owner and admin.' })
+    setShowSuggestModal(false)
+    setSuggestingVendor(null)
+  }
+
+  const handleMergeSelected = async () => {
+    if (!targetVendorId) {
+      showNotification({ variant: 'warning', title: 'Select Target', message: 'Please select which vendor profile should survive the merge.' })
+      return
+    }
+
+    setSaving(true)
+    const sourceIds = selectedVendorIds.filter(id => id !== targetVendorId)
+
+    let successCount = 0
+    let lastError = null
+
+    for (const sourceId of sourceIds) {
+      const { error } = await supabase.rpc('merge_vendors', {
+        source_id: sourceId,
+        target_id: targetVendorId,
+      })
+      if (error) {
+        lastError = error
+      } else {
+        successCount++
+      }
+    }
+
+    setSaving(false)
+
+    if (lastError && successCount === 0) {
+      showNotification({ variant: 'error', title: 'Merge failed', message: lastError.message })
+      return
+    }
+
+    showNotification({ 
+      variant: 'success', 
+      title: 'Merge complete', 
+      message: `Successfully merged ${successCount} duplicate profile(s) into the target.` 
+    })
+
+    setVendors(vendors.filter(v => !sourceIds.includes(v.id)))
+    setSelectedVendorIds([])
+    setShowMergeModal(false)
+    setTargetVendorId('')
   }
 
   const renderStars = (rating: number) => {
@@ -262,8 +448,8 @@ export function AdminVendorDirectoryPage() {
     <div>
       <AdminPageHero
         icon={Building}
-        title="Vendor Directory"
-        subtitle="Browse and manage your vendor network"
+        title="Global Vendor Directory"
+        subtitle="Manage and verify all vendor records on the platform"
         actions={
           <button className="btn btn-primary btn-sm" onClick={() => { resetForm(); setShowForm(true) }}>
             <Plus size={16} /> Add Vendor
@@ -342,6 +528,14 @@ export function AdminVendorDirectoryPage() {
                   <label className="input-label">Email</label>
                   <input className="input" placeholder="Email address" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
                 </div>
+                <div className="input-wrapper">
+                  <label className="input-label">Instagram</label>
+                  <input className="input" placeholder="e.g. royal_bakes" value={form.instagram} onChange={(e) => setForm({ ...form, instagram: e.target.value })} />
+                </div>
+                <div className="input-wrapper">
+                  <label className="input-label">Website</label>
+                  <input className="input" placeholder="e.g. royalbakes.com" value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} />
+                </div>
                 <div className="input-wrapper" style={{ gridColumn: '1 / -1' }}>
                   <label className="input-label">Notes</label>
                   <textarea className="input" style={{ minHeight: 80, resize: 'vertical' }} placeholder="Additional notes..." value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
@@ -358,6 +552,106 @@ export function AdminVendorDirectoryPage() {
         </div>
       )}
 
+      {showClaimModal && claimingVendor && (
+        <div className="overlay" onClick={() => { if (!saving) { setShowClaimModal(false); setClaimingVendor(null) } }}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 480 }}>
+            <div className="modal-card-header">
+              <div className="modal-card-title">Claim ownership of {claimingVendor.name}</div>
+              <button className="modal-card-close" onClick={() => { setShowClaimModal(false); setClaimingVendor(null) }} disabled={saving}><X size={20} /></button>
+            </div>
+            <div className="modal-card-body">
+              <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-4)' }}>
+                Submit contact details to verify you are the authorized representative of this business.
+              </p>
+              <div className={styles.formGrid}>
+                <div className="input-wrapper">
+                  <label className="input-label">Official Email</label>
+                  <input className="input" type="email" placeholder="e.g. contact@business.com" value={claimForm.business_email} onChange={(e) => setClaimForm({ ...claimForm, business_email: e.target.value })} />
+                </div>
+                <div className="input-wrapper">
+                  <label className="input-label">Official Phone</label>
+                  <input className="input" placeholder="e.g. +234..." value={claimForm.business_phone} onChange={(e) => setClaimForm({ ...claimForm, business_phone: e.target.value })} />
+                </div>
+                <div className="input-wrapper" style={{ gridColumn: '1 / -1' }}>
+                  <label className="input-label">Website URL</label>
+                  <input className="input" placeholder="e.g. business.com" value={claimForm.website} onChange={(e) => setClaimForm({ ...claimForm, website: e.target.value })} />
+                </div>
+                <div className="input-wrapper" style={{ gridColumn: '1 / -1' }}>
+                  <label className="input-label">Verification Proof URL / Social Handle</label>
+                  <input className="input" placeholder="e.g. instagram.com/business or corporate website URL" value={claimForm.proof_url} onChange={(e) => setClaimForm({ ...claimForm, proof_url: e.target.value })} />
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-4)' }}>
+                <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleClaim} disabled={saving}>
+                  {saving ? 'Submitting...' : 'Submit Claim'}
+                </button>
+                <button className="btn btn-ghost" onClick={() => { setShowClaimModal(false); setClaimingVendor(null) }} disabled={saving}>Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showSuggestModal && suggestingVendor && (
+        <div className="overlay" onClick={() => { if (!saving) { setShowSuggestModal(false); setSuggestingVendor(null) } }}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 520 }}>
+            <div className="modal-card-header">
+              <div className="modal-card-title">Suggest an Edit for {suggestingVendor.name}</div>
+              <button className="modal-card-close" onClick={() => { setShowSuggestModal(false); setSuggestingVendor(null) }} disabled={saving}><X size={20} /></button>
+            </div>
+            <div className="modal-card-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+              <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-4)' }}>
+                This is a verified listing. You can suggest edits to correct contact numbers, emails, or social profiles.
+              </p>
+              <div className={styles.formGrid}>
+                <div className="input-wrapper" style={{ gridColumn: '1 / -1' }}>
+                  <label className="input-label">Business Name</label>
+                  <input className="input" value={suggestForm.name} onChange={(e) => setSuggestForm({ ...suggestForm, name: e.target.value })} />
+                </div>
+                <div className="input-wrapper">
+                  <label className="input-label">Category</label>
+                  <DropdownMenu
+                    trigger={suggestForm.category}
+                    items={availableTypes.map((t) => ({ label: t, value: t }))}
+                    onSelect={(item) => setSuggestForm({ ...suggestForm, category: item.value })}
+                  />
+                </div>
+                <div className="input-wrapper">
+                  <label className="input-label">Contact Name</label>
+                  <input className="input" value={suggestForm.contact_name} onChange={(e) => setSuggestForm({ ...suggestForm, contact_name: e.target.value })} />
+                </div>
+                <div className="input-wrapper">
+                  <label className="input-label">Phone</label>
+                  <input className="input" value={suggestForm.phone} onChange={(e) => setSuggestForm({ ...suggestForm, phone: e.target.value })} />
+                </div>
+                <div className="input-wrapper">
+                  <label className="input-label">Email</label>
+                  <input className="input" value={suggestForm.email} onChange={(e) => setSuggestForm({ ...suggestForm, email: e.target.value })} />
+                </div>
+                <div className="input-wrapper">
+                  <label className="input-label">Instagram</label>
+                  <input className="input" value={suggestForm.instagram} onChange={(e) => setSuggestForm({ ...suggestForm, instagram: e.target.value })} />
+                </div>
+                <div className="input-wrapper">
+                  <label className="input-label">Website</label>
+                  <input className="input" value={suggestForm.website} onChange={(e) => setSuggestForm({ ...suggestForm, website: e.target.value })} />
+                </div>
+                <div className="input-wrapper" style={{ gridColumn: '1 / -1' }}>
+                  <label className="input-label">Corrected Details Notes</label>
+                  <textarea className="input" style={{ minHeight: 80 }} placeholder="Please describe why this change is needed..." value={suggestForm.notes} onChange={(e) => setSuggestForm({ ...suggestForm, notes: e.target.value })} />
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-4)' }}>
+                <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleSuggestEdit} disabled={saving}>
+                  {saving ? 'Submitting...' : 'Submit Suggestions'}
+                </button>
+                <button className="btn btn-ghost" onClick={() => { setShowSuggestModal(false); setSuggestingVendor(null) }} disabled={saving}>Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {filtered.length > 0 ? (
         <>
           {view === 'grid' ? (
@@ -366,27 +660,50 @@ export function AdminVendorDirectoryPage() {
                 <div key={vendor.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 600, fontSize: 'var(--text-base)', color: 'var(--color-text-primary)', marginBottom: 'var(--space-1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {vendor.name || 'Unnamed vendor'}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 'var(--space-1)', minWidth: 0 }}>
+                        {role === 'super_admin' && (
+                          <input
+                            type="checkbox"
+                            checked={selectedVendorIds.includes(vendor.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedVendorIds([...selectedVendorIds, vendor.id])
+                              } else {
+                                setSelectedVendorIds(selectedVendorIds.filter(id => id !== vendor.id))
+                              }
+                            }}
+                            style={{ cursor: 'pointer', accentColor: 'var(--color-accent)', margin: 0 }}
+                          />
+                        )}
+                        <div style={{ fontWeight: 600, fontSize: 'var(--text-base)', color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {vendor.name || 'Unnamed vendor'}
+                        </div>
+                        {vendor.is_verified && (
+                          <span title="Verified business" style={{ display: 'inline-flex', flexShrink: 0 }}>
+                            <BadgeCheck size={16} style={{ color: 'var(--color-accent)', fill: 'rgba(212,160,23,0.1)' }} />
+                          </span>
+                        )}
                       </div>
                       <span className="badge badge-medium" style={{ fontSize: 'var(--text-xs)' }}>
                         {vendor.category}
                       </span>
                     </div>
-                    {(vendor.org_id === org?.id || role === 'super_admin') && (
-                      <div style={{ display: 'flex', gap: 'var(--space-1)' }}>
-                        {vendor.org_id === org?.id && (
-                          <button className="btn btn-ghost btn-sm btn-icon" onClick={() => openEdit(vendor)} aria-label="Edit" style={{ width: 32, minHeight: 32 }}>
-                            <Pencil size={12} />
-                          </button>
-                        )}
-                        {role === 'super_admin' && (
-                          <button className="btn btn-ghost btn-sm btn-icon" onClick={() => handleDelete(vendor.id)} aria-label="Delete" style={{ width: 32, minHeight: 32, color: 'var(--color-error)' }}>
-                            <Trash2 size={12} />
-                          </button>
-                        )}
-                      </div>
-                    )}
+                    <div style={{ display: 'flex', gap: 'var(--space-1)' }}>
+                      <button
+                        className="btn btn-ghost btn-sm btn-icon"
+                        onClick={() => openEdit(vendor)}
+                        aria-label="Edit"
+                        style={{ width: 32, minHeight: 32 }}
+                        title={vendor.org_id === org?.id || role === 'super_admin' || (vendor.claimed_by_vendor_id === user?.id && vendor.is_verified) ? 'Edit details' : 'Suggest an edit'}
+                      >
+                        <Pencil size={12} />
+                      </button>
+                      {(vendor.org_id === org?.id || role === 'super_admin') && (
+                        <button className="btn btn-ghost btn-sm btn-icon" onClick={() => handleDelete(vendor.id)} aria-label="Delete" style={{ width: 32, minHeight: 32, color: 'var(--color-error)' }}>
+                          <Trash2 size={12} />
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {vendor.org_name && (
@@ -426,11 +743,38 @@ export function AdminVendorDirectoryPage() {
                         {vendor.email}
                       </div>
                     )}
+                    {vendor.website && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontSize: 'var(--text-sm)', color: 'var(--color-text-primary)' }}>
+                        <Globe size={12} style={{ color: 'var(--color-text-muted)' }} />
+                        <a href={vendor.website.startsWith('http') ? vendor.website : `https://${vendor.website}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-accent)', textDecoration: 'none' }}>
+                          {vendor.website}
+                        </a>
+                      </div>
+                    )}
                   </div>
 
                   {vendor.notes && (
                     <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', borderTop: '1px solid var(--color-border-subtle)', paddingTop: 'var(--space-2)' }}>
                       {vendor.notes}
+                    </div>
+                  )}
+
+                  {!vendor.is_verified && (
+                    <div style={{ marginTop: 'auto', paddingTop: 'var(--space-2)', borderTop: '1px dashed var(--color-border-subtle)' }}>
+                      {myClaims.some(c => c.vendor_id === vendor.id && c.status === 'pending') ? (
+                        <span style={{ fontSize: 11, color: 'var(--color-warning)', fontWeight: 500 }}>Claim pending validation</span>
+                      ) : role === 'vendor' ? (
+                        <button
+                          type="button"
+                          className="btn btn-ghost btn-sm"
+                          style={{ padding: 0, height: 'auto', minHeight: 'auto', color: 'var(--color-accent)', fontSize: 11 }}
+                          onClick={() => { setClaimingVendor(vendor); setClaimForm({ business_email: vendor.email || '', business_phone: vendor.phone || '', website: vendor.website || '', proof_url: '' }); setShowClaimModal(true) }}
+                        >
+                          Claim this business
+                        </button>
+                      ) : (
+                        <span style={{ fontSize: 10, color: 'var(--color-text-muted)', fontStyle: 'italic' }}>Unclaimed profile</span>
+                      )}
                     </div>
                   )}
                 </div>
@@ -442,6 +786,7 @@ export function AdminVendorDirectoryPage() {
                 <table className={styles.table}>
                   <thead className={styles.thead}>
                     <tr>
+                      {role === 'super_admin' && <th className={styles.th} style={{ width: 40 }}>Select</th>}
                       <th className={styles.th}>Type</th>
                       <th className={styles.th}>Name</th>
                       <th className={styles.th}>Organization</th>
@@ -454,15 +799,41 @@ export function AdminVendorDirectoryPage() {
                   <tbody>
                     {paginated.map((vendor) => (
                       <tr key={vendor.id} className={styles.tr}>
+                        {role === 'super_admin' && (
+                          <td className={styles.td}>
+                            <input
+                              type="checkbox"
+                              checked={selectedVendorIds.includes(vendor.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedVendorIds([...selectedVendorIds, vendor.id])
+                                } else {
+                                  setSelectedVendorIds(selectedVendorIds.filter(id => id !== vendor.id))
+                                }
+                              }}
+                              style={{ cursor: 'pointer', accentColor: 'var(--color-accent)' }}
+                            />
+                          </td>
+                        )}
                         <td className={styles.td}>
                           <span className={`badge badge-medium ${styles.typeBadge}`}>
                             {vendor.category}
                           </span>
                         </td>
                         <td className={styles.td}>
-                          <span className={vendor.name ? styles.vendorName : styles.vendorNameMuted}>
+                          <span className={vendor.name ? styles.vendorName : styles.vendorNameMuted} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                             {vendor.name || 'Unnamed vendor'}
+                            {vendor.is_verified && (
+                              <span title="Verified business" style={{ display: 'inline-flex' }}>
+                                <BadgeCheck size={14} style={{ color: 'var(--color-accent)', fill: 'rgba(212,160,23,0.1)' }} />
+                              </span>
+                            )}
                           </span>
+                          {!vendor.is_verified && (
+                            <span style={{ fontSize: 10, marginLeft: 8, color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
+                              {myClaims.some(c => c.vendor_id === vendor.id && c.status === 'pending') ? '(Claim pending)' : '(Unclaimed)'}
+                            </span>
+                          )}
                         </td>
                         <td className={styles.td}>
                           <span className={vendor.org_id === org?.id ? styles.orgLabelYours : styles.orgLabel}>
@@ -488,17 +859,16 @@ export function AdminVendorDirectoryPage() {
                         </td>
                         <td className={`${styles.td} ${styles.tdActions}`}>
                           <div className={styles.rowActions}>
-                            {vendor.org_id === org?.id && (
-                              <button
-                                type="button"
-                                className={styles.iconBtn}
-                                onClick={() => openEdit(vendor)}
-                                aria-label={`Edit ${vendor.name || vendor.category}`}
-                              >
-                                <Pencil size={13} />
-                              </button>
-                            )}
-                            {role === 'super_admin' && (
+                            <button
+                              type="button"
+                              className={styles.iconBtn}
+                              onClick={() => openEdit(vendor)}
+                              aria-label={`Edit ${vendor.name || vendor.category}`}
+                              title={vendor.org_id === org?.id || role === 'super_admin' || (vendor.claimed_by_vendor_id === user?.id && vendor.is_verified) ? 'Edit details' : 'Suggest an edit'}
+                            >
+                              <Pencil size={13} />
+                            </button>
+                            {(vendor.org_id === org?.id || role === 'super_admin') && (
                               <button
                                 type="button"
                                 className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
@@ -506,6 +876,16 @@ export function AdminVendorDirectoryPage() {
                                 aria-label={`Delete ${vendor.name || vendor.category}`}
                               >
                                 <Trash2 size={13} />
+                              </button>
+                            )}
+                            {!vendor.is_verified && role === 'vendor' && !myClaims.some(c => c.vendor_id === vendor.id && c.status === 'pending') && (
+                              <button
+                                type="button"
+                                className="btn btn-ghost btn-sm"
+                                style={{ padding: '2px 6px', fontSize: 10, height: 'auto', minHeight: 'auto', color: 'var(--color-accent)' }}
+                                onClick={() => { setClaimingVendor(vendor); setClaimForm({ business_email: vendor.email || '', business_phone: vendor.phone || '', website: vendor.website || '', proof_url: '' }); setShowClaimModal(true) }}
+                              >
+                                Claim
                               </button>
                             )}
                           </div>
@@ -565,6 +945,103 @@ export function AdminVendorDirectoryPage() {
               Add Vendor
             </button>
           )}
+        </div>
+      )}
+
+      {/* Floating Merge Bar (Super Admin Only) */}
+      {role === 'super_admin' && selectedVendorIds.length >= 2 && (
+        <div style={{
+          position: 'fixed',
+          bottom: 'var(--space-6)',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          backgroundColor: 'var(--color-surface-2)',
+          border: '1px solid var(--color-accent)',
+          borderRadius: 'var(--radius-lg)',
+          padding: 'var(--space-3) var(--space-6)',
+          boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'var(--space-4)',
+          zIndex: 100,
+        }}>
+          <span style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+            {selectedVendorIds.length} vendors selected
+          </span>
+          <button 
+            type="button" 
+            className="btn btn-primary btn-sm"
+            onClick={() => {
+              setTargetVendorId(selectedVendorIds[0]);
+              setShowMergeModal(true);
+            }}
+          >
+            <GitMerge size={14} style={{ marginRight: 6 }} />
+            Merge Selected
+          </button>
+          <button 
+            type="button" 
+            className="btn btn-ghost btn-sm"
+            onClick={() => setSelectedVendorIds([])}
+          >
+            Clear
+          </button>
+        </div>
+      )}
+
+      {/* Merge Modal (Super Admin Only) */}
+      {showMergeModal && selectedVendorIds.length >= 2 && (
+        <div className="overlay" onClick={() => { if (!saving) { setShowMergeModal(false) } }}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 560 }}>
+            <div className="modal-card-header">
+              <div className="modal-card-title">Merge Duplicate Vendors</div>
+              <button className="modal-card-close" onClick={() => { setShowMergeModal(false) }} disabled={saving}><X size={20} /></button>
+            </div>
+            <div className="modal-card-body">
+              <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-4)' }}>
+                Select the primary vendor profile that you want to **KEEP**. All other selected profiles will be soft-deleted, and their linked event bookings will be moved to the primary profile.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', marginBottom: 'var(--space-4)' }}>
+                {vendors.filter(v => selectedVendorIds.includes(v.id)).map(vendor => (
+                  <label 
+                    key={vendor.id} 
+                    style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 'var(--space-3)', 
+                      padding: 'var(--space-3)', 
+                      borderRadius: 'var(--radius-md)', 
+                      border: targetVendorId === vendor.id ? '1px solid var(--color-accent)' : '1px solid var(--color-border-subtle)',
+                      backgroundColor: targetVendorId === vendor.id ? 'rgba(212, 160, 23, 0.05)' : 'var(--color-surface-3)',
+                      cursor: 'pointer' 
+                    }}
+                  >
+                    <input 
+                      type="radio" 
+                      name="target_vendor" 
+                      checked={targetVendorId === vendor.id}
+                      onChange={() => setTargetVendorId(vendor.id)}
+                      style={{ accentColor: 'var(--color-accent)' }}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>
+                        {vendor.name} {vendor.is_verified && '⭐ (Verified)'}
+                      </div>
+                      <div style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>
+                        {vendor.category} • {vendor.contact_name || 'No contact'} • {vendor.email || 'No email'}
+                      </div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+              <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-4)' }}>
+                <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleMergeSelected} disabled={saving}>
+                  {saving ? 'Merging...' : 'Confirm & Merge'}
+                </button>
+                <button className="btn btn-ghost" onClick={() => { setShowMergeModal(false) }} disabled={saving}>Cancel</button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
