@@ -5,13 +5,21 @@
 --   3. auto_archive_events() function for daily cron
 --   4. Triggers to log task/phase status changes and deletions to event_activity
 
--- ── 1. Add archived_at to events ─────────────────────────────────────────────
+-- ── 1. Add columns + fix status CHECK constraint ─────────────────────────────
 
 ALTER TABLE public.events
   ADD COLUMN IF NOT EXISTS archived_at timestamptz;
 
 ALTER TABLE public.events
   ADD COLUMN IF NOT EXISTS activated_at timestamptz;
+
+-- Allow 'archived' status for auto-archive feature
+ALTER TABLE public.events
+  DROP CONSTRAINT IF EXISTS events_status_check;
+
+ALTER TABLE public.events
+  ADD CONSTRAINT events_status_check
+  CHECK (status IN ('draft', 'active', 'in_progress', 'completed', 'cancelled', 'archived'));
 
 -- ── 2. Auto-archive function (called by cron or Edge Function) ──────────────
 --

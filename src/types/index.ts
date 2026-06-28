@@ -85,7 +85,7 @@ export interface Event {
   guest_count: number | null
   size_tier: 'intimate' | 'standard' | 'large' | null
   budget_total: number | null
-  status: 'draft' | 'active' | 'in_progress' | 'completed' | 'cancelled'
+  status: 'draft' | 'active' | 'in_progress' | 'completed' | 'cancelled' | 'archived'
   payment_status: 'unpaid' | 'paid'
   payment_provider: string | null
   amount_paid: number | null

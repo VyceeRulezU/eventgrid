@@ -14,10 +14,22 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
 
   try {
-    const { data, error } = await supabase.rpc('auto_archive_events')
+    const today = new Date().toISOString().split('T')[0]
+    const now = new Date().toISOString()
+
+    const { data, error } = await supabase
+      .from('events')
+      .update({ status: 'archived', archived_at: now, updated_at: now })
+      .eq('payment_status', 'paid')
+      .lt('event_date', today)
+      .neq('status', 'archived')
+      .neq('status', 'cancelled')
+      .neq('status', 'draft')
+      .is('archived_at', null)
+      .select('id, name')
 
     if (error) {
-      console.error('auto-archive RPC error:', error)
+      console.error('auto-archive error:', error)
       return new Response(
         JSON.stringify({ error: error.message }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },

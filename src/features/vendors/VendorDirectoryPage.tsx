@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
-import { LayoutGrid, List, Users, Plus, Pencil, Star, Trash2, Phone, Mail, Building, X, ChevronLeft, ChevronRight, BadgeCheck, Globe } from 'lucide-react'
+import { LayoutGrid, List, Users, Plus, Pencil, Star, Trash2, Phone, Mail, Building, X, ChevronLeft, ChevronRight, BadgeCheck, Globe, GitMerge } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -60,8 +60,12 @@ export function VendorDirectoryPage() {
     email: '',
     instagram: '',
     website: '',
-    notes: '',
   })
+
+  // Merge state (super admin only)
+  const [showMergeModal, setShowMergeModal] = useState(false)
+  const [targetVendorId, setTargetVendorId] = useState<string>('')
+  const [selectedVendorIds, setSelectedVendorIds] = useState<string[]>([])
 
   const filtered = useMemo(() => {
     if (!categoryFilter) return searched
@@ -366,6 +370,49 @@ export function VendorDirectoryPage() {
     setSuggestingVendor(null)
   }
 
+  const handleMergeSelected = async () => {
+    if (!targetVendorId) {
+      showNotification({ variant: 'warning', title: 'Select Target', message: 'Please select which vendor profile should survive the merge.' })
+      return
+    }
+
+    setSaving(true)
+    const sourceIds = selectedVendorIds.filter(id => id !== targetVendorId)
+
+    let successCount = 0
+    let lastError = null
+
+    for (const sourceId of sourceIds) {
+      const { error } = await supabase.rpc('merge_vendors', {
+        source_id: sourceId,
+        target_id: targetVendorId,
+      })
+      if (error) {
+        lastError = error
+      } else {
+        successCount++
+      }
+    }
+
+    setSaving(false)
+
+    if (lastError && successCount === 0) {
+      showNotification({ variant: 'error', title: 'Merge failed', message: lastError.message })
+      return
+    }
+
+    showNotification({ 
+      variant: 'success', 
+      title: 'Merge complete', 
+      message: `Successfully merged ${successCount} duplicate profile(s) into the target.` 
+    })
+
+    setVendors(vendors.filter(v => !sourceIds.includes(v.id)))
+    setSelectedVendorIds([])
+    setShowMergeModal(false)
+    setTargetVendorId('')
+  }
+
   const renderStars = (rating: number) => {
     return (
       <div style={{ display: 'flex', gap: 2 }}>
@@ -612,7 +659,21 @@ export function VendorDirectoryPage() {
                 <div key={vendor.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 'var(--space-1)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 'var(--space-1)', minWidth: 0 }}>
+                        {role === 'super_admin' && (
+                          <input
+                            type="checkbox"
+                            checked={selectedVendorIds.includes(vendor.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedVendorIds([...selectedVendorIds, vendor.id])
+                              } else {
+                                setSelectedVendorIds(selectedVendorIds.filter(id => id !== vendor.id))
+                              }
+                            }}
+                            style={{ cursor: 'pointer', accentColor: 'var(--color-accent)', margin: 0 }}
+                          />
+                        )}
                         <div style={{ fontWeight: 600, fontSize: 'var(--text-base)', color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {vendor.name || 'Unnamed vendor'}
                         </div>
@@ -724,6 +785,7 @@ export function VendorDirectoryPage() {
                 <table className={styles.table}>
                   <thead className={styles.thead}>
                     <tr>
+                      {role === 'super_admin' && <th className={styles.th} style={{ width: 40 }}>Select</th>}
                       <th className={styles.th}>Type</th>
                       <th className={styles.th}>Name</th>
                       <th className={styles.th}>Organization</th>
@@ -736,6 +798,22 @@ export function VendorDirectoryPage() {
                   <tbody>
                     {paginated.map((vendor) => (
                       <tr key={vendor.id} className={styles.tr}>
+                        {role === 'super_admin' && (
+                          <td className={styles.td}>
+                            <input
+                              type="checkbox"
+                              checked={selectedVendorIds.includes(vendor.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedVendorIds([...selectedVendorIds, vendor.id])
+                                } else {
+                                  setSelectedVendorIds(selectedVendorIds.filter(id => id !== vendor.id))
+                                }
+                              }}
+                              style={{ cursor: 'pointer', accentColor: 'var(--color-accent)' }}
+                            />
+                          </td>
+                        )}
                         <td className={styles.td}>
                           <span className={`badge badge-medium ${styles.typeBadge}`}>
                             {vendor.category}
@@ -866,6 +944,104 @@ export function VendorDirectoryPage() {
               Add Vendor
             </button>
           )}
+        </div>
+      )}
+
+      {/* Floating Merge Bar (Super Admin Only) */}
+      {role === 'super_admin' && selectedVendorIds.length >= 2 && (
+        <div style={{
+          position: 'fixed',
+          bottom: 'var(--space-6)',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          backgroundColor: 'var(--color-surface-2)',
+          border: '1px solid var(--color-accent)',
+          borderRadius: 'var(--radius-lg)',
+          padding: 'var(--space-3) var(--space-6)',
+          boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'var(--space-4)',
+          zIndex: 100,
+        }}>
+          <span style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+            {selectedVendorIds.length} vendors selected
+          </span>
+          <button 
+            type="button" 
+            className="btn btn-primary btn-sm"
+            onClick={() => {
+              // Pre-populate with first selected as default target
+              setTargetVendorId(selectedVendorIds[0]);
+              setShowMergeModal(true);
+            }}
+          >
+            <GitMerge size={14} style={{ marginRight: 6 }} />
+            Merge Selected
+          </button>
+          <button 
+            type="button" 
+            className="btn btn-ghost btn-sm"
+            onClick={() => setSelectedVendorIds([])}
+          >
+            Clear
+          </button>
+        </div>
+      )}
+
+      {/* Merge Modal (Super Admin Only) */}
+      {showMergeModal && selectedVendorIds.length >= 2 && (
+        <div className="overlay" onClick={() => { if (!saving) { setShowMergeModal(false) } }}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 560 }}>
+            <div className="modal-card-header">
+              <div className="modal-card-title">Merge Duplicate Vendors</div>
+              <button className="modal-card-close" onClick={() => { setShowMergeModal(false) }} disabled={saving}><X size={20} /></button>
+            </div>
+            <div className="modal-card-body">
+              <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-4)' }}>
+                Select the primary vendor profile that you want to **KEEP**. All other selected profiles will be soft-deleted, and their linked event bookings will be moved to the primary profile.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', marginBottom: 'var(--space-4)' }}>
+                {vendors.filter(v => selectedVendorIds.includes(v.id)).map(vendor => (
+                  <label 
+                    key={vendor.id} 
+                    style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 'var(--space-3)', 
+                      padding: 'var(--space-3)', 
+                      borderRadius: 'var(--radius-md)', 
+                      border: targetVendorId === vendor.id ? '1px solid var(--color-accent)' : '1px solid var(--color-border-subtle)',
+                      backgroundColor: targetVendorId === vendor.id ? 'rgba(212, 160, 23, 0.05)' : 'var(--color-surface-3)',
+                      cursor: 'pointer' 
+                    }}
+                  >
+                    <input 
+                      type="radio" 
+                      name="target_vendor" 
+                      checked={targetVendorId === vendor.id}
+                      onChange={() => setTargetVendorId(vendor.id)}
+                      style={{ accentColor: 'var(--color-accent)' }}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>
+                        {vendor.name} {vendor.is_verified && '⭐ (Verified)'}
+                      </div>
+                      <div style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>
+                        {vendor.category} • {vendor.contact_name || 'No contact'} • {vendor.email || 'No email'}
+                      </div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+              <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-4)' }}>
+                <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleMergeSelected} disabled={saving}>
+                  {saving ? 'Merging...' : 'Confirm & Merge'}
+                </button>
+                <button className="btn btn-ghost" onClick={() => { setShowMergeModal(false) }} disabled={saving}>Cancel</button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
