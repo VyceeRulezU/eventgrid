@@ -1,6 +1,7 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { createHmac } from 'node:crypto'
 import { recordReferralCommission } from '../_shared/referral.ts'
+import { reportError } from '../_shared/sentry.ts'
 
 const supabaseAdmin = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -10,16 +11,17 @@ const supabaseAdmin = createClient(
 const BASE_AMOUNT = Number(Deno.env.get('BASE_ACTIVATION_AMOUNT')) || 2000000
 
 Deno.serve(async (req) => {
-  const body = await req.text()
+  try {
+    const body = await req.text()
 
-  const signature = req.headers.get('x-paystack-signature')
-  const secretKey = Deno.env.get('PAYSTACK_SECRET_KEY')!
-  const hash = createHmac('sha512', secretKey).update(body).digest('hex')
+    const signature = req.headers.get('x-paystack-signature')
+    const secretKey = Deno.env.get('PAYSTACK_SECRET_KEY')!
+    const hash = createHmac('sha512', secretKey).update(body).digest('hex')
 
-  if (!signature || hash !== signature) {
-    console.error('Invalid Paystack signature')
-    return new Response('Invalid signature', { status: 401 })
-  }
+    if (!signature || hash !== signature) {
+      console.error('Invalid Paystack signature')
+      return new Response('Invalid signature', { status: 401 })
+    }
 
   const event = JSON.parse(body)
   console.log('Paystack webhook event:', event.event)
@@ -173,5 +175,10 @@ Deno.serve(async (req) => {
     }
   }
 
-  return new Response('OK', { status: 200 })
+    return new Response('OK', { status: 200 })
+  } catch (err) {
+    console.error('Paystack webhook error:', err)
+    await reportError(err, { function: 'paystack-webhook' })
+    return new Response(JSON.stringify({ error: 'Internal error' }), { status: 500 })
+  }
 })

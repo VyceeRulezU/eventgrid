@@ -1,6 +1,7 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { createHmac } from 'node:crypto'
 import { recordReferralCommission } from '../_shared/referral.ts'
+import { reportError } from '../_shared/sentry.ts'
 
 const supabaseAdmin = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -8,9 +9,10 @@ const supabaseAdmin = createClient(
 )
 
 Deno.serve(async (req) => {
-  const body = await req.text()
+  try {
+    const body = await req.text()
 
-  const signature = req.headers.get('x-korapay-signature')
+    const signature = req.headers.get('x-korapay-signature')
   const secretKey = Deno.env.get('KORAPAY_SECRET_KEY')
   if (!secretKey) {
     console.error('KORAPAY_SECRET_KEY not set')
@@ -150,5 +152,10 @@ Deno.serve(async (req) => {
     }
   }
 
-  return new Response('OK', { status: 200 })
+    return new Response('OK', { status: 200 })
+  } catch (err) {
+    console.error('Korapay webhook error:', err)
+    await reportError(err, { function: 'korapay-webhook' })
+    return new Response(JSON.stringify({ error: 'Internal error' }), { status: 500 })
+  }
 })

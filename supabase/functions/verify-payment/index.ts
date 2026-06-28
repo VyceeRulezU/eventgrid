@@ -1,6 +1,7 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { withIdempotency } from '../_shared/idempotency.ts'
 import { recordReferralCommission } from '../_shared/referral.ts'
+import { reportError } from '../_shared/sentry.ts'
 
 const supabaseAdmin = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -272,6 +273,7 @@ Deno.serve(async (req) => {
 
   } catch (err) {
     console.error('Verification error:', err)
+    await reportError(err, { function: 'verify-payment' })
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }

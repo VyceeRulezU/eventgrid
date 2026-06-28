@@ -1,4 +1,5 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2'
+import { reportError } from '../_shared/sentry.ts'
 
 const supabaseAdmin = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -758,6 +759,7 @@ Deno.serve(async (req) => {
 
   } catch (err) {
     console.error('send-invite error:', err)
+    await reportError(err, { function: 'send-invite' })
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

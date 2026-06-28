@@ -1,4 +1,5 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2'
+import { reportError } from '../_shared/sentry.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -44,6 +45,7 @@ Deno.serve(async (req) => {
     )
   } catch (err) {
     console.error('auto-archive error:', err)
+    await reportError(err, { function: 'auto-archive' })
     return new Response(
       JSON.stringify({ error: err instanceof Error ? err.message : 'Internal error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
