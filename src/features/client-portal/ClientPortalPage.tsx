@@ -159,10 +159,13 @@ export function ClientPortalPage() {
               setEventVendors((vendorsRes.data || []) as unknown as EventVendor[])
               setPortalAssets((assetsRes.data || []) as unknown as PortalAsset[])
               setGuests((guestsRes.data || []) as unknown as Guest[])
-              const isFirstAccess = !portal.last_accessed
               supabase.from('client_portals').update({ last_accessed: new Date().toISOString() }).eq('id', portal.id).then(({ error: laErr }) => {
-                if (!laErr && event?.created_by && isFirstAccess) {
-                  notify({ type: 'client_action_required', recipientId: event.created_by, eventId: event.id, payload: { title: 'Client accessed portal', body: 'Your client has accessed the event portal', url: `/events/${event.id}/portal`, tag: `portal-${portal.id}` } })
+                if (!laErr && event?.created_by && !portal.last_accessed) {
+                  supabase.from('notifications').select('id').eq('user_id', event.created_by).eq('type', 'client_action_required').eq('event_id', event.id).maybeSingle().then(({ data: existing }) => {
+                    if (!existing) {
+                      notify({ type: 'client_action_required', recipientId: event.created_by, eventId: event.id, payload: { title: 'Client accessed portal', body: 'Your client has accessed the event portal', url: `/events/${event.id}/portal`, tag: `portal-${portal.id}` } })
+                    }
+                  })
                 }
               })
               setData({
