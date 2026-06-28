@@ -31,6 +31,34 @@ Deno.serve(async (req) => {
       })
     }
 
+    // ── Validate event_date is within 12 months ───────────────────────────
+    const { data: eventToActivate, error: eventFetchErr } = await supabaseAdmin
+      .from('events')
+      .select('event_date, name, status')
+      .eq('id', event_id)
+      .maybeSingle()
+
+    if (eventFetchErr || !eventToActivate) {
+      return new Response(JSON.stringify({ error: 'Event not found' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+      })
+    }
+
+    if (eventToActivate.event_date) {
+      const eventDate = new Date(eventToActivate.event_date)
+      const now = new Date()
+      const monthsAhead = (eventDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30)
+      if (monthsAhead > 12) {
+        return new Response(JSON.stringify({
+          error: `Event date (${eventToActivate.event_date}) is more than 12 months away. Update your event date before activating.`
+        }), {
+          status: 422,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        })
+      }
+    }
+
     const key = idempotency_key || `payment_${event_id}_${reference}`
 
     return await withIdempotency(key, event_id, reference, async () => {
@@ -128,6 +156,7 @@ Deno.serve(async (req) => {
         })
       }
 
+      const now = new Date().toISOString()
       const { data: updatedEvent, error: updateErr } = await supabaseAdmin
         .from('events')
         .update({
@@ -135,8 +164,9 @@ Deno.serve(async (req) => {
           payment_status: 'paid',
           payment_provider: provider,
           amount_paid: Math.round(amountPaid * 100),
-          paid_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          paid_at: now,
+          updated_at: now,
+          activated_at: now,
           paystack_ref: reference,
         })
         .eq('id', event_id)

@@ -151,7 +151,44 @@ export interface Vendor {
   rating: number | null
   notes: string | null
   is_verified: boolean
+  claimed_by_vendor_id: string | null
+  claimed_at: string | null
+  claim_verified_at: string | null
+  verified_by_admin_id: string | null
+  website: string | null
   deleted_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface VendorClaim {
+  id: string
+  vendor_id: string
+  user_id: string
+  business_email: string | null
+  business_phone: string | null
+  proof_url: string | null
+  status: 'pending' | 'approved' | 'rejected'
+  admin_notes: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface VendorEditSuggestion {
+  id: string
+  vendor_id: string
+  suggested_by: string
+  suggested_data: {
+    name?: string
+    category?: string
+    contact_name?: string | null
+    phone?: string | null
+    email?: string | null
+    instagram?: string | null
+    website?: string | null
+    notes?: string | null
+  }
+  status: 'pending' | 'approved' | 'rejected'
   created_at: string
   updated_at: string
 }
