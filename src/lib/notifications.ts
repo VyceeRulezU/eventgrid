@@ -159,7 +159,11 @@ export function subscribeToNotifications(
         onNotification(payload.new as Notification)
       },
     )
-    .subscribe()
+    .subscribe((status) => {
+      if (status === 'CHANNEL_ERROR') {
+        console.warn('[Realtime] Notification subscription failed — check that Realtime is enabled in Supabase project settings.')
+      }
+    })
 
   return () => {
     supabase.removeChannel(channel)

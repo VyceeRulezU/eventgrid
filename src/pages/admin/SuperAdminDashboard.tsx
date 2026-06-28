@@ -212,10 +212,6 @@ export function SuperAdminDashboard() {
         supabase.from('storage.objects').select('size'),
       ])
 
-      console.log('[SAD] plannerCount', plannerCount, 'coordinatorCount', coordinatorCount, 'tEventCount', tEventCount, 'aEventCount', aEventCount)
-      console.log('[SAD] allEventsData count:', allEventsData?.length, 'allPaymentsData count:', allPaymentsData?.length, 'liveEventsRaw count:', liveEventsRaw?.length)
-      console.log('[SAD] profilesForSignups count:', profilesForSignups?.length, 'recentPaymentsRaw (paid events) count:', recentPaymentsRaw?.length, 'recentEventsRaw count:', recentEventsRaw?.length)
-
       setTotalPlanners(plannerCount || 0)
       setTotalCoordinators(coordinatorCount || 0)
       setTotalEvents(tEventCount || 0)

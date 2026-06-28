@@ -45,7 +45,7 @@ const stepVariants = {
   visible: (i: number) => ({
     opacity: 1,
     x: 0,
-    transition: { duration: 0.5, ease: 'easeOut', delay: i * 0.15 },
+    transition: { duration: 0.5, ease: 'easeOut' as const, delay: i * 0.15 },
   }),
 }
 

@@ -52,6 +52,9 @@ dev_out.txt
 /studio/
 /env.studio
 
+# Scratch/dev scripts (may contain hardcoded credentials)
+/scratch/
+
 # Documentation (tracked separately)
 /doc/
 /docs/
