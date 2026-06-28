@@ -99,7 +99,7 @@ export function exportBudgetToPDF(rows: BudgetRow[], eventName: string) {
     ]
   })
 
-  doc.autoTable({
+  ;(doc as any).autoTable({
     head: [['Category', 'Allocated', 'Actual Spend', 'Variance', '% Used']],
     body: tableData,
     startY: 74,
@@ -125,7 +125,7 @@ export function exportBudgetToPDF(rows: BudgetRow[], eventName: string) {
     footStyles: {
       fillColor: [31, 41, 55],
     },
-    didParseCell(data) {
+    didParseCell(data: any) {
       if (data.section === 'body' && data.column.index === 3) {
         const val = data.cell.raw as string
         if (val.startsWith('₦-')) {
