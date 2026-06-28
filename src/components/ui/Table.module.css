@@ -2,7 +2,6 @@
   background-color: var(--color-surface-2);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-xl);
-  overflow: clip;
 }
 
 .bulkBar {
@@ -26,8 +25,12 @@
 
 .tableScroll {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
+.tableWrap {
+  min-width: 100%;
+}
 .table {
   width: 100%;
   border-collapse: collapse;

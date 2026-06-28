@@ -5,6 +5,7 @@ import {
   CheckCircle2, Circle, Clock, AlertTriangle,
   FileText, Upload, X, Download, FileSpreadsheet,
   Send, Trash2, UserPlus, Mail, Loader2, ExternalLink,
+  List, Columns, Menu,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { notify } from '@/lib/notifications'
@@ -71,6 +72,10 @@ export function ClientPortalPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<ClientTab>('timeline')
+  const [sidebarSection, setSidebarSection] = useState<'timeline' | 'vendors' | 'guests' | 'financials' | 'assets' | 'gallery'>('timeline')
+  const [timelineView, setTimelineView] = useState<'timeline' | 'list'>('timeline')
+  const [timelineFilter, setTimelineFilter] = useState<'all' | 'active' | 'done'>('all')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [eventVendors, setEventVendors] = useState<EventVendor[]>([])
   const [portalAssets, setPortalAssets] = useState<PortalAsset[]>([])
   const [guests, setGuests] = useState<Guest[]>([])
@@ -90,6 +95,15 @@ export function ClientPortalPage() {
   const [sendingBulk, setSendingBulk] = useState(false)
   const [sendingInvites, setSendingInvites] = useState<Set<string>>(new Set())
   const fileRef = useRef<HTMLInputElement>(null)
+
+  /* Sync activeTab with sidebar + timeline state */
+  useEffect(() => {
+    if (sidebarSection === 'timeline') {
+      setActiveTab(timelineView === 'timeline' ? 'timeline' : timelineFilter)
+    } else {
+      setActiveTab(sidebarSection)
+    }
+  }, [sidebarSection, timelineView, timelineFilter])
 
   const sendInviteToGuest = async (guest: Guest) => {
     if (!data || !guest.email) return
@@ -145,8 +159,9 @@ export function ClientPortalPage() {
               setEventVendors((vendorsRes.data || []) as unknown as EventVendor[])
               setPortalAssets((assetsRes.data || []) as unknown as PortalAsset[])
               setGuests((guestsRes.data || []) as unknown as Guest[])
+              const isFirstAccess = !portal.last_accessed
               supabase.from('client_portals').update({ last_accessed: new Date().toISOString() }).eq('id', portal.id).then(({ error: laErr }) => {
-                if (!laErr && event?.created_by) {
+                if (!laErr && event?.created_by && isFirstAccess) {
                   notify({ type: 'client_action_required', recipientId: event.created_by, eventId: event.id, payload: { title: 'Client accessed portal', body: 'Your client has accessed the event portal', url: `/events/${event.id}/portal`, tag: `portal-${portal.id}` } })
                 }
               })
@@ -227,6 +242,14 @@ export function ClientPortalPage() {
       <SEO title={`Event Portal | ${event.name}`} description={`Client portal for ${event.name}`} noindex />
       <header className={styles.portalHeader}>
         <div className={styles.headerLeft}>
+          <button
+            type="button"
+            className={styles.headerMenuBtn}
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Open navigation"
+          >
+            <Menu size={18} />
+          </button>
           <img src="/ng-logo-wg.svg" alt="NaliGrid" className={styles.headerLogoLg} />
           <div className={styles.headerDivider} />
           <span className={styles.headerPortalBadge}>Client Portal</span>
@@ -288,33 +311,124 @@ export function ClientPortalPage() {
           )}
         </div>
 
-        {/* Pill tab bar */}
-        <div className={styles.tabBar}>
-          {([
-            ['timeline', 'Timeline', <Clock key="t" size={13} />],
-            ['all', 'All Phases', phases.length],
-            ['active', 'Active', activeCount > 0 ? activeCount : null],
-            ['done', 'Done', completed > 0 ? completed : null],
-            ['gallery', 'Gallery', media.length > 0 ? media.length : null],
-            ['financials', 'Financials', null],
-            ['vendors', 'Vendors', eventVendors.length > 0 ? eventVendors.length : null],
-            ['assets', 'Moodboard', portalAssets.length > 0 ? portalAssets.length : null],
-            ['guests', 'Guests', guests.length > 0 ? guests.length : null],
-          ] as const).map(([key, label, badge]) => (
+        {/* ── Sidebar layout ── */}
+        <div className={styles.portalLayout}>
+          <aside className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ''}`}>
+            <nav className={styles.sidebarNav}>
+              <div className={styles.sidebarSection}>
+                <div className={styles.sidebarSectionTitle}>Timeline & Milestones</div>
+                <button
+                  type="button"
+                  className={`${styles.sidebarItem} ${sidebarSection === 'timeline' && timelineView === 'timeline' ? styles.sidebarItemActive : ''}`}
+                  onClick={() => { setSidebarSection('timeline'); setTimelineView('timeline'); setSidebarOpen(false) }}
+                >
+                  <Columns size={15} /> Timeline View
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.sidebarItem} ${sidebarSection === 'timeline' && timelineView === 'list' && timelineFilter === 'all' ? styles.sidebarItemActive : ''}`}
+                  onClick={() => { setSidebarSection('timeline'); setTimelineView('list'); setTimelineFilter('all'); setSidebarOpen(false) }}
+                >
+                  <List size={15} /> All Phases
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.sidebarItem} ${sidebarSection === 'timeline' && timelineView === 'list' && timelineFilter === 'active' ? styles.sidebarItemActive : ''}`}
+                  onClick={() => { setSidebarSection('timeline'); setTimelineView('list'); setTimelineFilter('active'); setSidebarOpen(false) }}
+                >
+                  <Clock size={15} /> Active
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.sidebarItem} ${sidebarSection === 'timeline' && timelineView === 'list' && timelineFilter === 'done' ? styles.sidebarItemActive : ''}`}
+                  onClick={() => { setSidebarSection('timeline'); setTimelineView('list'); setTimelineFilter('done'); setSidebarOpen(false) }}
+                >
+                  <CheckCircle2 size={15} /> Done
+                </button>
+              </div>
+              <div className={styles.sidebarSection}>
+                <button
+                  type="button"
+                  className={`${styles.sidebarItem} ${sidebarSection === 'vendors' ? styles.sidebarItemActive : ''}`}
+                  onClick={() => { setSidebarSection('vendors'); setSidebarOpen(false) }}
+                >
+                  <Users size={15} /> Vendors
+                </button>
+              </div>
+              <div className={styles.sidebarSection}>
+                <button
+                  type="button"
+                  className={`${styles.sidebarItem} ${sidebarSection === 'guests' ? styles.sidebarItemActive : ''}`}
+                  onClick={() => { setSidebarSection('guests'); setSidebarOpen(false) }}
+                >
+                  <UserPlus size={15} /> Guest List
+                </button>
+              </div>
+              <div className={styles.sidebarSection}>
+                <button
+                  type="button"
+                  className={`${styles.sidebarItem} ${sidebarSection === 'financials' ? styles.sidebarItemActive : ''}`}
+                  onClick={() => { setSidebarSection('financials'); setSidebarOpen(false) }}
+                >
+                  <FileText size={15} /> Financials
+                </button>
+              </div>
+              <div className={styles.sidebarSection}>
+                <button
+                  type="button"
+                  className={`${styles.sidebarItem} ${sidebarSection === 'assets' ? styles.sidebarItemActive : ''}`}
+                  onClick={() => { setSidebarSection('assets'); setSidebarOpen(false) }}
+                >
+                  <Image size={15} /> Moodboard & Assets
+                </button>
+              </div>
+              <div className={styles.sidebarSection}>
+                <button
+                  type="button"
+                  className={`${styles.sidebarItem} ${sidebarSection === 'gallery' ? styles.sidebarItemActive : ''}`}
+                  onClick={() => { setSidebarSection('gallery'); setSidebarOpen(false) }}
+                >
+                  <Image size={15} /> Gallery
+                </button>
+              </div>
+            </nav>
+          </aside>
+          {sidebarOpen && <div className={styles.sidebarOverlay} onClick={() => setSidebarOpen(false)} />}
+          <div className={styles.contentPanel}>
+
+        {/* View toggle for Timeline section */}
+        {sidebarSection === 'timeline' && (
+          <div className={styles.viewToggle}>
             <button
-              key={key}
               type="button"
-              className={`${styles.tabBtn} ${activeTab === key ? styles.tabBtnActive : ''}`}
-              onClick={() => setActiveTab(key as ClientTab)}
+              className={`${styles.viewBtn} ${timelineView === 'timeline' ? styles.viewBtnActive : ''}`}
+              onClick={() => setTimelineView('timeline')}
             >
-              {typeof badge === 'object' ? badge : null}
-              {label}
-              {typeof badge === 'number' && badge !== null ? (
-                <span className={styles.tabCount}>{badge}</span>
-              ) : null}
+              <Columns size={14} /> Timeline View
             </button>
-          ))}
-        </div>
+            <button
+              type="button"
+              className={`${styles.viewBtn} ${timelineView === 'list' ? styles.viewBtnActive : ''}`}
+              onClick={() => setTimelineView('list')}
+            >
+              <List size={14} /> List View
+            </button>
+            {timelineView === 'list' && (
+              <div className={styles.filterGroup}>
+                {(['all', 'active', 'done'] as const).map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    className={`${styles.filterBtn} ${timelineFilter === f ? styles.filterBtnActive : ''}`}
+                    onClick={() => setTimelineFilter(f)}
+                  >
+                    {f === 'all' ? 'All' : f === 'active' ? 'Active' : 'Done'}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Timeline */}
         {activeTab === 'timeline' && (
@@ -771,8 +885,10 @@ export function ClientPortalPage() {
             </Table>
           </>
         )}
-      </div>
-      </div>
+        </div>{/* end contentPanel */}
+      </div>{/* end portalLayout */}
+      </div>{/* end mainContent */}
+      </div>{/* end portalBody */}
 
       {/* ── Invite Guest Modal ── */}
       {showInviteForm && (

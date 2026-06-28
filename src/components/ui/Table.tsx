@@ -63,7 +63,8 @@ export function Table({
         </div>
       ) : (
         <div className={styles.tableScroll}>
-          <table className={styles.table} style={{ minWidth }}>
+          <div className={styles.tableWrap} style={{ minWidth }}>
+          <table className={styles.table}>
             <thead className={styles.thead}>
               <tr>
                 {columns.map((col) => (
@@ -80,6 +81,7 @@ export function Table({
               {children}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
