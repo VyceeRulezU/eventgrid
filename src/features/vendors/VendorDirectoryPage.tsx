@@ -98,15 +98,26 @@ export function VendorDirectoryPage() {
 
     async function load() {
       // Left join so vendors without organizations still appear
-      const { data } = await supabase
+      const { data: vendorData } = await supabase
         .from('vendors')
         .select('*, organizations(name)')
         .is('deleted_at', null)
         .order('name', { ascending: true })
 
-      if (data) {
+      // Also fetch vendor profiles as fallback directory entries
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('id, display_name, email, phone, role, org_id')
+        .eq('role', 'vendor')
+
+      const vendorIds = new Set((vendorData || []).map((v: any) => v.claimed_by_vendor_id).filter(Boolean))
+      const existingEmails = new Set((vendorData || []).map((v: any) => v.email?.toLowerCase()).filter(Boolean))
+
+      const vendorsList: (Vendor & { org_name?: string })[] = []
+
+      if (vendorData) {
         const seen = new Set<string>()
-        const mapped = (data as unknown as Array<Record<string, unknown>>).map((v: Record<string, unknown>) => {
+        const mapped = (vendorData as unknown as Array<Record<string, unknown>>).map((v: Record<string, unknown>) => {
           const orgEntry = (v.organizations as { name: string } | null)
           return { ...v, org_name: orgEntry?.name || '' } as Vendor & { org_name?: string }
         }).filter((v: any) => {
@@ -117,8 +128,41 @@ export function VendorDirectoryPage() {
           }
           return true
         })
-        setVendors(mapped)
+        vendorsList.push(...mapped)
       }
+
+      // Add vendor profiles that don't have a vendors table entry
+      if (profileData) {
+        for (const p of profileData as any[]) {
+          if (vendorIds.has(p.id)) continue
+          if (p.email && existingEmails.has(p.email.toLowerCase())) continue
+          vendorsList.push({
+            id: `profile-${p.id}`,
+            org_id: p.org_id || null,
+            name: p.display_name || p.email || 'Vendor',
+            category: 'Services',
+            contact_name: p.display_name || null,
+            phone: p.phone || null,
+            email: p.email || null,
+            instagram: null,
+            rating: null,
+            notes: null,
+            is_verified: false,
+            claimed_by_vendor_id: p.id,
+            claimed_at: null,
+            claim_verified_at: null,
+            verified_by_admin_id: null,
+            website: null,
+            deleted_at: null,
+            created_at: '',
+            updated_at: '',
+            org_name: '',
+          })
+          vendorIds.add(p.id)
+        }
+      }
+
+      setVendors(vendorsList)
 
       // Load user's claims
       const { data: claimsData } = await supabase
@@ -688,22 +732,24 @@ export function VendorDirectoryPage() {
                         {vendor.category}
                       </span>
                     </div>
-                    <div style={{ display: 'flex', gap: 'var(--space-1)' }}>
-                      <button
-                        className="btn btn-ghost btn-sm btn-icon"
-                        onClick={() => openEdit(vendor)}
-                        aria-label="Edit"
-                        style={{ width: 32, minHeight: 32 }}
-                        title={vendor.org_id === org?.id || role === 'super_admin' || (vendor.claimed_by_vendor_id === user?.id && vendor.is_verified) ? 'Edit details' : 'Suggest an edit'}
-                      >
-                        <Pencil size={12} />
-                      </button>
-                      {(vendor.org_id === org?.id || role === 'super_admin') && (
-                        <button className="btn btn-ghost btn-sm btn-icon" onClick={() => handleDelete(vendor.id)} aria-label="Delete" style={{ width: 32, minHeight: 32, color: 'var(--color-error)' }}>
-                          <Trash2 size={12} />
+                    {!vendor.id.startsWith('profile-') && (
+                      <div style={{ display: 'flex', gap: 'var(--space-1)' }}>
+                        <button
+                          className="btn btn-ghost btn-sm btn-icon"
+                          onClick={() => openEdit(vendor)}
+                          aria-label="Edit"
+                          style={{ width: 32, minHeight: 32 }}
+                          title={vendor.org_id === org?.id || role === 'super_admin' || (vendor.claimed_by_vendor_id === user?.id && vendor.is_verified) ? 'Edit details' : 'Suggest an edit'}
+                        >
+                          <Pencil size={12} />
                         </button>
-                      )}
-                    </div>
+                        {(vendor.org_id === org?.id || role === 'super_admin') && (
+                          <button className="btn btn-ghost btn-sm btn-icon" onClick={() => handleDelete(vendor.id)} aria-label="Delete" style={{ width: 32, minHeight: 32, color: 'var(--color-error)' }}>
+                            <Trash2 size={12} />
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {vendor.org_name && (
@@ -759,7 +805,7 @@ export function VendorDirectoryPage() {
                     </div>
                   )}
 
-                  {!vendor.is_verified && (
+                  {!vendor.id.startsWith('profile-') && !vendor.is_verified && vendor.claimed_by_vendor_id !== user?.id && (
                     <div style={{ marginTop: 'auto', paddingTop: 'var(--space-2)', borderTop: '1px dashed var(--color-border-subtle)' }}>
                       {myClaims.some(c => c.vendor_id === vendor.id && c.status === 'pending') ? (
                         <span style={{ fontSize: 11, color: 'var(--color-warning)', fontWeight: 500 }}>Claim pending validation</span>
@@ -829,7 +875,7 @@ export function VendorDirectoryPage() {
                               </span>
                             )}
                           </span>
-                          {!vendor.is_verified && (
+                          {!vendor.id.startsWith('profile-') && !vendor.is_verified && vendor.claimed_by_vendor_id !== user?.id && (
                             <span style={{ fontSize: 10, marginLeft: 8, color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
                               {myClaims.some(c => c.vendor_id === vendor.id && c.status === 'pending') ? '(Claim pending)' : '(Unclaimed)'}
                             </span>
@@ -859,16 +905,18 @@ export function VendorDirectoryPage() {
                         </td>
                         <td className={`${styles.td} ${styles.tdActions}`}>
                           <div className={styles.rowActions}>
-                            <button
-                              type="button"
-                              className={styles.iconBtn}
-                              onClick={() => openEdit(vendor)}
-                              aria-label={`Edit ${vendor.name || vendor.category}`}
-                              title={vendor.org_id === org?.id || role === 'super_admin' || (vendor.claimed_by_vendor_id === user?.id && vendor.is_verified) ? 'Edit details' : 'Suggest an edit'}
-                            >
-                              <Pencil size={13} />
-                            </button>
-                            {(vendor.org_id === org?.id || role === 'super_admin') && (
+                            {!vendor.id.startsWith('profile-') && (
+                              <button
+                                type="button"
+                                className={styles.iconBtn}
+                                onClick={() => openEdit(vendor)}
+                                aria-label={`Edit ${vendor.name || vendor.category}`}
+                                title={vendor.org_id === org?.id || role === 'super_admin' || (vendor.claimed_by_vendor_id === user?.id && vendor.is_verified) ? 'Edit details' : 'Suggest an edit'}
+                              >
+                                <Pencil size={13} />
+                              </button>
+                            )}
+                            {!vendor.id.startsWith('profile-') && (vendor.org_id === org?.id || role === 'super_admin') && (
                               <button
                                 type="button"
                                 className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
@@ -878,7 +926,7 @@ export function VendorDirectoryPage() {
                                 <Trash2 size={13} />
                               </button>
                             )}
-                            {!vendor.is_verified && role === 'vendor' && !myClaims.some(c => c.vendor_id === vendor.id && c.status === 'pending') && (
+                            {!vendor.id.startsWith('profile-') && !vendor.is_verified && role === 'vendor' && !myClaims.some(c => c.vendor_id === vendor.id && c.status === 'pending') && (
                               <button
                                 type="button"
                                 className="btn btn-ghost btn-sm"

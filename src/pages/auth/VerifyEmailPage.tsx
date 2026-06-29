@@ -30,7 +30,7 @@ export function VerifyEmailPage() {
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email,
-        options: { emailRedirectTo: import.meta.env.VITE_APP_URL },
+        options: { emailRedirectTo: `${import.meta.env.VITE_APP_URL}/login?email=${encodeURIComponent(email)}&verified=true` },
       })
       if (error) throw error
       showToast({ type: 'success', title: 'Verification email sent', body: 'Check your inbox for the new confirmation link.' })
@@ -55,8 +55,7 @@ export function VerifyEmailPage() {
       )
       const body = await res.json()
       if (body?.success === true) {
-        showToast({ type: 'success', title: 'Email confirmed', body: 'Your email has been verified. You can now sign in.' })
-        navigate('/login', { replace: true })
+        navigate(`/login?email=${encodeURIComponent(email)}&verified=true`, { replace: true })
       } else {
         showToast({ type: 'error', title: 'Confirmation failed', body: body?.error || 'Could not confirm your email. Try signing in.' })
       }

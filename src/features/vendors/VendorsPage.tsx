@@ -38,6 +38,21 @@ export function VendorsPage() {
   const showModal = useUIStore((s) => s.showModal)
 
   const orgId = org?.id || profile?.org_id
+
+  useEffect(() => {
+    if (role === 'vendor') {
+      navigate('/vendors/directory', { replace: true })
+    }
+  }, [role, navigate])
+
+  if (role === 'vendor') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: 'var(--space-4)' }}>
+        <img src="/ng-new-logo.png" alt="Loading" style={{ width: 48, height: 48, opacity: 0.5 }} />
+        <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>Redirecting to directory...</div>
+      </div>
+    )
+  }
   const [vendors, setVendors] = useState<Vendor[]>([])
   const [loading, setLoading] = useState(true)
   const [events, setEvents] = useState<{ id: string; name: string }[]>([])

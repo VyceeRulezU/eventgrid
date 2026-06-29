@@ -61,6 +61,7 @@ export function MyTasksPage() {
   const PAGE_SIZE = 10
 
   const isPlanner = role === 'planner'
+  const canCreateTask = isPlanner || role === 'vendor'
 
   useEffect(() => {
     if (!user) { setLoading(false); return }
@@ -176,7 +177,7 @@ export function MyTasksPage() {
         subtitle={`${filteredTasks.length} task${filteredTasks.length !== 1 ? 's' : ''}` + (isPlanner ? ' created' : ' assigned to you')}
         actions={
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-            {isPlanner && (
+            {canCreateTask && (
               <button
                 className="btn btn-primary btn-sm"
                 onClick={() => setShowCreate(true)}

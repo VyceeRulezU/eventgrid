@@ -163,7 +163,7 @@ export function EventsListPage() {
           icon={Calendar}
           title="Events"
           subtitle="Manage all your events in one place"
-          actions={org || role === 'super_admin' ? <Link to="/events/new" className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }}><Plus size={16} /> Create Event</Link> : undefined}
+          actions={org || role === 'super_admin' || role === 'vendor' ? <Link to="/events/new" className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }}><Plus size={16} /> Create Event</Link> : undefined}
         />
         <div className="empty-state">
           <div className="empty-state__icon"><Calendar size={24} /></div>
@@ -175,7 +175,7 @@ export function EventsListPage() {
           ) : (
             <div className="empty-state__description">You haven't been added to any events yet</div>
           )}
-          {(org || role === 'super_admin') && <Link to="/events/new" className="btn btn-primary"><Plus size={16} /> Create Event</Link>}
+          {(org || role === 'super_admin' || role === 'vendor') && <Link to="/events/new" className="btn btn-primary"><Plus size={16} /> Create Event</Link>}
         </div>
       </div>
     )
@@ -187,7 +187,7 @@ export function EventsListPage() {
         icon={Calendar}
         title="Events"
         subtitle={`${events.length} event${events.length !== 1 ? 's' : ''}${org ? ' in your organisation' : ''}`}
-        actions={org || role === 'super_admin' ? <Link to="/events/new" className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }}><Plus size={16} /> Create Event</Link> : undefined}
+        actions={org || role === 'super_admin' || role === 'vendor' ? <Link to="/events/new" className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }}><Plus size={16} /> Create Event</Link> : undefined}
       />
 
       <div className={styles.tableCard}>

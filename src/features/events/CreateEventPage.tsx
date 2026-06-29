@@ -8,6 +8,7 @@ import { useUIStore } from '@/store/ui.store'
 import { generateSlug } from '@/lib/slug'
 import { CalendarModal } from '@/components/ui/CalendarModal'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
+import styles from './CreateEventPage.module.css'
 
 async function ensureOwnOrg(userId: string, displayName: string): Promise<{ id: string; name: string; logo_url: string | null; show_beta_label: boolean; owner_id?: string | null } | null> {
   const { data: ownedOrgs } = await supabase
@@ -295,23 +296,21 @@ export function CreateEventPage() {
 
   if (step === 'details') {
     return (
-      <div style={{ maxWidth: 600, margin: '0 auto' }}>
+      <div className={styles.page}>
         <StepIndicator stepIndex={stepIndex} />
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-6)' }}>
+        <div className={styles.header}>
           <button className="btn btn-ghost btn-icon" onClick={() => navigate('/events')} aria-label="Back">
             <ArrowLeft size={20} />
           </button>
           <h2>Create Event</h2>
         </div>
 
-        <div className="card" style={{ marginBottom: 'var(--space-4)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-3)' }}>
-            <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              Template
-            </span>
+        <div className={`card ${styles.templateCard}`}>
+          <div className={styles.templateLabel}>
+            <span className={styles.templateLabelText}>Template</span>
           </div>
-          <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap', marginBottom: 'var(--space-3)' }}>
+          <div className={styles.templateButtons}>
             <button
               type="button"
               className={`btn ${templateMode === 'default' ? 'btn-primary' : 'btn-ghost'} btn-sm`}
@@ -342,13 +341,11 @@ export function CreateEventPage() {
             </div>
           )}
           {templateMode === 'copy' && existingEvents.length === 0 && (
-            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
-              No existing events found to copy from.
-            </div>
+            <div className={styles.copyEmpty}>No existing events found to copy from.</div>
           )}
         </div>
 
-      <div className="card">
+        <div className={`card ${styles.formCard}`}>
           <div className="input-wrapper">
             <label className="input-label">Event Name <span className="required">*</span></label>
             <input
@@ -372,7 +369,7 @@ export function CreateEventPage() {
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)', marginTop: 'var(--space-4)' }}>
+          <div className={styles.fieldGroup}>
             <div className="input-wrapper">
               <label className="input-label">Event Date</label>
               <button className="input" type="button" onClick={() => setCalendarOpen(true)} style={{ textAlign: 'left', display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer' }}>
@@ -400,14 +397,14 @@ export function CreateEventPage() {
           </div>
 
           {suggestedTier && (
-            <div className="card" style={{ marginTop: 'var(--space-4)', padding: 'var(--space-3)', backgroundColor: 'var(--color-accent-muted)', border: '1px solid var(--color-accent-border)' }}>
-              <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--color-accent)' }}>
+            <div className={`card ${styles.suggestedTier}`}>
+              <span className={styles.suggestedTierText}>
                 Suggested tier: {suggestedTier === 'intimate' ? 'Intimate (Under 100)' : suggestedTier === 'standard' ? 'Standard (100–300)' : 'Large (300+)'}
               </span>
             </div>
           )}
 
-          <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-6)' }}>
+          <div className={styles.actions}>
             <button className="btn btn-primary btn-lg" style={{ flex: 1 }} onClick={handleContinue} disabled={saving}>
               Continue
             </button>
@@ -422,56 +419,43 @@ export function CreateEventPage() {
 
   if (step === 'activate') {
     return (
-      <div style={{ maxWidth: 700, margin: '0 auto' }}>
+      <div className={styles.activatePage}>
         <StepIndicator stepIndex={stepIndex} />
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-5)' }}>
+        <div className={styles.activateHeader}>
           <button className="btn btn-ghost btn-icon" onClick={() => setStep('details')} aria-label="Back">
             <ArrowLeft size={20} />
           </button>
           <h2 style={{ margin: 0 }}>Activate Event</h2>
         </div>
 
-        <div style={{
-          borderRadius: 'var(--radius-lg)', overflow: 'hidden', marginBottom: 'var(--space-5)',
-          height: 220, position: 'relative',
-        }}>
+        <div className={styles.activateImageWrap}>
           <img
             src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800&q=80"
             alt="Event celebration"
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            className={styles.activateImage}
           />
-          <div style={{
-            position: 'absolute', inset: 0,
-            background: 'linear-gradient(to top, rgba(0,0,0,0.65), transparent)',
-          }} />
-          <div style={{
-            position: 'absolute', bottom: 'var(--space-4)', left: 'var(--space-4)',
-            color: 'white',
-          }}>
-            <div style={{ fontSize: 'var(--text-lg)', fontWeight: 700 }}>{form.name}</div>
-            <div style={{ fontSize: 'var(--text-sm)', opacity: 0.85 }}>{form.eventType}{form.eventDate ? ` · ${form.eventDate}` : ''}</div>
+          <div className={styles.activateImageOverlay} />
+          <div className={styles.activateImageText}>
+            <div className={styles.activateImageName}>{form.name}</div>
+            <div className={styles.activateImageMeta}>{form.eventType}{form.eventDate ? ` · ${form.eventDate}` : ''}</div>
           </div>
         </div>
 
-        <div className="card" style={{ marginBottom: 'var(--space-5)', textAlign: 'center', padding: 'var(--space-6)' }}>
-          <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--color-success-bg)', color: 'var(--color-success)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto var(--space-3)' }}>
+        <div className={`card ${styles.freeCard}`}>
+          <div className={styles.freeIconWrap}>
             <Gift size={24} />
           </div>
-          <div style={{ fontSize: 'var(--text-display)', fontWeight: 800, color: 'var(--color-accent)', letterSpacing: '-0.02em' }}>
-            Free
-          </div>
-          <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
-            Activate for free — no payment required
-          </div>
+          <div className={styles.freePrice}>Free</div>
+          <div className={styles.freeSubtext}>Activate for free — no payment required</div>
         </div>
 
-        <div className="card" style={{ marginBottom: 'var(--space-5)', padding: 'var(--space-4)', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', lineHeight: 1.7 }}>
-          <div style={{ fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 'var(--space-2)', fontSize: 'var(--text-sm)' }}>
+        <div className={`card ${styles.perksCard}`}>
+          <div className={styles.perksTitle}>
             <ShieldCheck size={14} style={{ display: 'inline', marginRight: 'var(--space-1)', verticalAlign: 'middle' }} />
             What you get:
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-2)' }}>
+          <div className={styles.perksGrid}>
             <span>✓ Full planning dashboard</span>
             <span>✓ Vendor management</span>
             <span>✓ Budget & financial tracking</span>
@@ -481,7 +465,7 @@ export function CreateEventPage() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
+        <div className={styles.activateActions}>
           <button className="btn btn-primary btn-lg" style={{ flex: 1 }} onClick={handleActivateFree} disabled={saving}>
             <Gift size={18} />
             {saving ? 'Activating...' : 'Activate Free'}

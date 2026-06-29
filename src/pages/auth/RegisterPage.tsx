@@ -18,7 +18,8 @@ import traditionalImg from '@/assets/images/traditional_event.png'
 const roles: { value: UserRole; label: string; desc: string; image: string }[] = [
   { value: 'planner', label: 'Event Planner', desc: 'Manage event setups, client portals, budgeting, and teams', image: weddingImg },
   { value: 'coordinator', label: 'Coordinator', desc: 'Operational day-of coordination, assigning tasks, and timelines', image: traditionalImg },
-  { value: 'client', label: 'Client / Guest', desc: 'View your invited events and browse the vendor directory', image: corporateImg },
+  { value: 'vendor', label: 'Vendor', desc: 'List your services, get discovered by planners, and manage bookings', image: corporateImg },
+  { value: 'client', label: 'Client / Guest', desc: 'View your invited events and browse the vendor directory', image: weddingImg },
 ]
 
 const passwordChecks = [
@@ -124,40 +125,12 @@ export function RegisterPage() {
         password,
         options: {
           data: metadata,
-          emailRedirectTo: import.meta.env.VITE_APP_URL,
+          emailRedirectTo: `${import.meta.env.VITE_APP_URL}/login?email=${encodeURIComponent(email)}&verified=true`,
           ...(captchaToken && { captchaToken }),
         },
       }))
 
       if (error) throw error
-
-      // Auto-confirm the user via the existing edge function (same pattern as AcceptAdminInvite)
-      let confirmed = false
-      try {
-        const res = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/confirm-signup`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}` },
-            body: JSON.stringify({ email: email.trim() }),
-          }
-        )
-        const body = await res.json()
-        confirmed = body?.success === true
-      } catch { /* best-effort */ }
-
-      if (confirmed) {
-        // Sign the user in automatically after confirmation
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password,
-        })
-        if (!signInError) {
-          sendWelcomeEmail({ email: email.trim(), first_name: name, role }).catch(() => {})
-          navigate('/', { replace: true })
-          return
-        }
-      }
 
       sendWelcomeEmail({ email: email.trim(), first_name: name, role }).catch(() => {})
       navigate('/verify-email')
@@ -250,7 +223,7 @@ export function RegisterPage() {
               <div className={styles.formHeader}>
                 <h1>Create Account</h1>
                 <p className={styles.formSubtitle}>
-                  Signing up as <strong>{isSuperAdminInvite ? 'Super Admin' : role === 'planner' ? 'Event Planner' : role === 'coordinator' ? 'Coordinator' : 'Client / Guest'}</strong>.
+                  Signing up as <strong>{isSuperAdminInvite ? 'Super Admin' : role === 'planner' ? 'Event Planner' : role === 'coordinator' ? 'Coordinator' : role === 'vendor' ? 'Vendor' : 'Client / Guest'}</strong>.
                 </p>
               </div>
 

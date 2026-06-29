@@ -688,12 +688,12 @@ export function App() {
           } />
           <Route path="/financials" element={
               <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
-                <RoleGuard allowedRole="planner"><FinancialsPage /></RoleGuard>
+                <RoleGuard allowedRole={['planner', 'vendor']}><FinancialsPage /></RoleGuard>
               </Suspense>
             } />
           <Route path="/events/:id/financials" element={
               <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
-                <RoleGuard allowedRole="planner"><FinancialsPage /></RoleGuard>
+                <RoleGuard allowedRole={['planner', 'vendor']}><FinancialsPage /></RoleGuard>
               </Suspense>
             } />
           <Route path="/events/:id/proposals" element={

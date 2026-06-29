@@ -1,67 +1,543 @@
-.page {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: var(--space-6);
-}
+/* ==========================================================================
+   VENDOR DASHBOARD - MODERN & PREMIUM STYLES
+   ========================================================================== */
 
-.header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  margin-bottom: var(--space-6);
-}
-
-.title {
-  font-size: var(--text-xl);
-  font-weight: 700;
-  margin: 0;
-}
-
-.subtitle {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-  margin: 2px 0 0;
-}
-
-.content {
-  min-height: 200px;
-}
-
-.eventsList {
+.dashboard {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-8);
+  padding-bottom: var(--space-12);
+  animation: fadeIn 0.4s ease;
 }
 
-.eventCard {
-  background: var(--color-surface-2);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4);
-}
-
-.eventInfo {
+/* ── Quick Actions Header ── */
+.quickActions {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  margin-bottom: var(--space-3);
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  padding: 0 0 var(--space-2);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
 }
 
-.eventInfo div {
+.quickActionsTitle {
+  font-size: 1.35rem;
+  font-weight: var(--weight-extrabold);
+  color: var(--color-text-primary);
+  margin: 0;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #fff 0%, var(--color-text-secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.quickActionsBtns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .quickActions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .quickActionsBtns {
+    width: 100%;
+  }
+
+  .quickActionsBtns > a {
+    justify-content: center;
+  }
+
+  .quickActionsBtns > *:nth-child(1),
+  .quickActionsBtns > *:nth-child(2) {
+    flex: 1 1 calc(50% - (var(--space-3) / 2));
+    min-width: 0;
+  }
+
+  .quickActionsBtns > *:nth-child(3) {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+}
+
+/* ── Overview Bento Cards ── */
+.statsGrid {
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: repeat(4, 1fr);
+}
+
+@media (max-width: 1240px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.statCard {
+  background: linear-gradient(180deg, var(--color-surface-2) 0%, rgba(31, 41, 55, 0.6) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 24px;
+  padding: var(--space-5) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  transition: all var(--transition-base);
+  box-shadow:
+    0 10px 25px -10px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.statCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: transparent;
+  transition: background var(--transition-base);
+}
+
+.statCardClickable {
+  cursor: pointer;
+}
+
+.statCardClickable:hover {
+  transform: translateY(-4px);
+  border-color: var(--color-accent-border);
+  box-shadow:
+    0 20px 35px -15px rgba(212, 160, 23, 0.15),
+    0 4px 20px -5px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.statCardClickable:hover::before {
+  background: var(--color-accent);
+}
+
+/* Reviews Due card - prominent gold styling */
+.statCardReviewsDue {
+  border: 1px solid rgba(212, 160, 23, 0.3);
+  background: linear-gradient(180deg, rgba(212, 160, 23, 0.08) 0%, rgba(31, 41, 55, 0.6) 100%);
+  box-shadow:
+    0 10px 25px -10px rgba(212, 160, 23, 0.15),
+    inset 0 1px 0 rgba(212, 160, 23, 0.1);
+}
+
+.statCardReviewsDue::before {
+  background: var(--color-accent);
+  height: 4px;
+}
+
+.statCardReviewsDue .statValue {
+  background: linear-gradient(135deg, var(--color-accent) 50%, #fbbf24 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.statCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.statLabel {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.statBadge {
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+.statBadgePositive {
+  background-color: rgba(34, 197, 94, 0.12);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.statBadgeNegative {
+  background-color: rgba(239, 68, 68, 0.12);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.statBadgeNeutral {
+  background-color: var(--color-surface-3);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+}
+
+.statValue {
+  font-size: 2.25rem;
+  font-weight: 900;
+  color: var(--color-text-primary);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  margin: var(--space-1) 0;
+  background: linear-gradient(135deg, #fff 50%, #d1d5db 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.barSparkline {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 32px;
+  padding-top: 4px;
+}
+
+@media (max-width: 640px) {
+  .barSparkline {
+    display: none !important;
+  }
+}
+
+.barSparklineBar {
+  flex: 1;
+  min-height: 3px;
+  border-radius: 2px 2px 0 0;
+  background-color: var(--color-accent);
+  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Section Card ── */
+.sectionCard {
+  background: var(--color-surface-2);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow:
+    0 10px 30px -10px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-5) var(--space-6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: linear-gradient(180deg, rgba(255,255,255,0.01) 0%, transparent 100%);
+  gap: var(--space-3);
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: var(--weight-extrabold);
+  display: flex;
+  align-items: center;
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+  gap: var(--space-2);
+}
+
+.sectionLink {
+  font-size: var(--text-xs);
+  color: var(--color-accent);
+  text-decoration: none;
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  transition: color var(--transition-fast);
+}
+
+.sectionLink:hover {
+  color: var(--color-accent-hover);
+}
+
+/* ── Data Table ── */
+.tableScroll {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+}
+
+.tableHead {
+  display: grid;
+  padding: var(--space-4) var(--space-6);
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  background-color: rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  column-gap: var(--space-4);
+}
+
+.tableHeadEvents {
+  display: flex;
+  min-width: 600px;
+}
+
+.tableHeadCenter {
+  text-align: center;
+  justify-content: center;
+  display: flex;
+}
+
+.tableBody {
+  display: flex;
+  flex-direction: column;
+}
+
+.tableBody .tableRow {
+  transition: all var(--transition-fast);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.tableBody .tableRow:nth-child(odd) {
+  background-color: rgba(255, 255, 255, 0.005);
+}
+
+.tableBody .tableRow:nth-child(even) {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+.tableRow {
+  display: grid;
+  padding: var(--space-5) var(--space-6);
+  align-items: center;
+  column-gap: var(--space-4);
+}
+
+.tableRowEvents {
+  display: flex;
+  min-width: 600px;
+}
+
+.tableHeadEvents > *,
+.tableRowEvents > * {
+  min-width: 0;
+}
+
+.tableHeadEvents > :nth-child(1),
+.tableRowEvents > :nth-child(1) { flex: 2; min-width: 140px; }
+.tableHeadEvents > :nth-child(2),
+.tableRowEvents > :nth-child(2) { flex: 1; min-width: 80px; }
+.tableHeadEvents > :nth-child(3),
+.tableRowEvents > :nth-child(3) { flex: 1; min-width: 80px; }
+.tableHeadEvents > :nth-child(4),
+.tableRowEvents > :nth-child(4) { flex: 0.6; min-width: 70px; }
+
+.tableRowClickable {
+  cursor: pointer;
+}
+
+.tableRowClickable:hover {
+  background-color: rgba(212, 160, 23, 0.04) !important;
+  transform: scale(1.002);
+}
+
+.cellPrimary {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--color-text-primary);
+}
+
+.cellSecondary {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+}
+
+.cellTruncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.cellCenter {
+  text-align: center;
+  justify-content: center;
+  display: flex;
+}
+
+/* ── Two-column layout ── */
+.twoCol {
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 820px) {
+  .twoCol {
+    grid-template-columns: 2fr 1.05fr;
+    align-items: stretch;
+  }
+}
+
+/* ── Shortcuts list ── */
+.shortcutList {
+  display: flex;
+  flex-direction: column;
+}
+
+.shortcutItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  padding: var(--space-4) var(--space-5);
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  background-color: transparent;
+  cursor: pointer;
+  font-family: var(--font-base);
+  text-align: left;
+  transition: all var(--transition-fast);
+}
+
+.shortcutItem:last-child {
+  border-bottom: none;
+}
+
+.shortcutItem:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.shortcutItem:hover .shortcutIcon {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.shortcutItem:hover .shortcutArrow {
+  transform: translateX(4px);
+  color: var(--color-accent);
+}
+
+.shortcutIcon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+  transition: all var(--transition-fast);
+}
+
+.shortcutText {
+  flex: 1;
+  min-width: 0;
+}
+
+.shortcutLabel {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--color-text-primary);
+}
+
+.shortcutDesc {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.shortcutArrow {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+}
+
+/* ── Activity List ── */
+.activityList {
+  display: flex;
+  flex-direction: column;
+}
+
+.activityItem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background var(--transition-fast);
+}
+
+.activityItem:last-child {
+  border-bottom: none;
+}
+
+.activityItem:hover {
+  background-color: rgba(255, 255, 255, 0.01);
+}
+
+.activityIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+  margin-top: 2px;
+}
+
+.activityContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.activityDesc {
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.activityMeta {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-top: 4px;
   display: flex;
   align-items: center;
   gap: var(--space-2);
 }
 
-.status {
-  font-size: var(--text-xs);
-  padding: 2px 8px;
-  border-radius: var(--radius-full);
-  background: var(--color-surface-3);
-  color: var(--color-text-muted);
-  text-transform: capitalize;
+.activityDot {
+  opacity: 0.4;
 }
 
-.status[data-status='completed'] {
-  background: rgba(52, 211, 153, 0.1);
-  color: #34D399;
+/* Keyframes */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }

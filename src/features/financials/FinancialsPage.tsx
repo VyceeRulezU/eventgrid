@@ -181,6 +181,15 @@ export function FinancialsPage() {
       if (role !== 'super_admin') {
         const conditions = [`created_by.eq.${userId}`]
         if (orgId) conditions.push(`org_id.eq.${orgId}`)
+        // Include events the user has access to via event_access
+        const { data: accessData } = await supabase
+          .from('event_access')
+          .select('event_id')
+          .eq('user_id', userId)
+        if (accessData && accessData.length > 0) {
+          const ids = [...new Set(accessData.map((a: any) => a.event_id).filter(Boolean))]
+          conditions.push(`id.in.(${ids.join(',')})`)
+        }
         evtQuery = evtQuery.or(conditions.join(','))
       }
       evtQuery = evtQuery.order('event_date', { ascending: false })
@@ -419,7 +428,8 @@ export function FinancialsPage() {
   const isOwner = user && (
     user.id === eventOwnerId ||
     role === 'super_admin' ||
-    (role === 'planner' && profile?.org_id && profile.org_id === eventOrgId)
+    (role === 'planner' && profile?.org_id && profile.org_id === eventOrgId) ||
+    (role === 'vendor' && profile?.org_id && profile.org_id === eventOrgId)
   )
   // Partners can view financials read-only
   const canView = isOwner || isPartner

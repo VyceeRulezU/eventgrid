@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Mail, Key, Eye, EyeOff } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { ArrowLeft, Mail, Key, Eye, EyeOff, CheckCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
 import { SEO } from '@/components/shared/SEO'
@@ -9,7 +9,11 @@ import { useCaptchaToken, CaptchaField, hasCaptcha } from '@/lib/captcha'
 import styles from './Auth.module.css'
 
 export function LoginPage() {
-  const [email, setEmail] = useState('')
+  const [searchParams] = useSearchParams()
+  const prefilledEmail = searchParams.get('email') || ''
+  const isVerified = searchParams.get('verified') === 'true'
+  const [email, setEmail] = useState(prefilledEmail)
+  const [emailLocked, setEmailLocked] = useState(!!prefilledEmail)
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const { token: captchaTokenValue, setToken: setCaptchaToken, getToken: getCaptchaToken } = useCaptchaToken()
@@ -18,6 +22,12 @@ export function LoginPage() {
   
   const navigate = useNavigate()
   const showToast = useUIStore((s) => s.showToast)
+
+  useEffect(() => {
+    if (isVerified && prefilledEmail) {
+      showToast({ type: 'success', title: 'Email verified', body: 'Your email has been confirmed. Sign in with your password.' })
+    }
+  }, [])
 
   async function authRequestWithTimeout<T>(promise: Promise<T>, timeoutMs = 15000) {
     let timeoutId: number | null = null
@@ -103,7 +113,14 @@ export function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 required
+                disabled={emailLocked}
+                style={emailLocked ? { opacity: 0.6, cursor: 'not-allowed' } : undefined}
               />
+              {emailLocked && (
+                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-accent)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <CheckCircle size={12} /> Email verified — just enter your password
+                </div>
+              )}
             </div>
 
             {!magicLinkMode && (

@@ -89,6 +89,25 @@ export function VendorOnboarding() {
       showToast({ type: 'error', title: 'Session sync failed', body: authErr.message })
     }
 
+    // Insert into vendors directory
+    const { error: vendorErr } = await supabase.from('vendors').insert({
+      org_id: profile?.org_id || null,
+      name: name.trim(),
+      category,
+      contact_name: name.trim(),
+      phone: phone.trim() || null,
+      email: user.email || null,
+      instagram: instagram.trim() || null,
+      is_verified: false,
+      claimed_by_vendor_id: user.id,
+      claimed_at: new Date().toISOString(),
+    })
+
+    if (vendorErr) {
+      console.error('Failed to insert into vendors table:', vendorErr)
+      showToast({ type: 'warning', title: 'Directory listing pending', body: 'Your profile will appear in the vendor directory once an admin approves it.' })
+    }
+
     // Update profile in store
     if (profile) {
       setProfile({

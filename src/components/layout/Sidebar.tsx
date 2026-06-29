@@ -60,7 +60,7 @@ export function Sidebar() {
     managementItems.push({ to: '/events', label: 'Events', icon: Calendar })
   }
 
-  if (role === 'planner' || hasOriginalRole) {
+  if (role === 'planner' || role === 'vendor' || hasOriginalRole) {
     const financialsUrl = activeEvent?.id
       ? `/events/${activeEvent.id}/financials`
       : '/financials'
@@ -68,7 +68,9 @@ export function Sidebar() {
   }
 
   if (!isAdmin && (!isAdminRole || hasOriginalRole)) {
-    managementItems.push({ to: '/vendors', label: 'Vendors', icon: Users })
+    if (role !== 'vendor') {
+      managementItems.push({ to: '/vendors', label: 'Vendors', icon: Users })
+    }
     managementItems.push({ to: '/vendors/directory', label: 'Vendor Directory', icon: BookOpen })
   }
 

@@ -141,7 +141,7 @@ export interface EventVendor {
 
 export interface Vendor {
   id: string
-  org_id: string
+  org_id: string | null
   name: string
   category: string
   contact_name: string | null
