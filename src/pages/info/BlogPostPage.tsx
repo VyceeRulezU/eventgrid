@@ -150,7 +150,7 @@ export function BlogPostPage() {
   return (
     <div className={styles.pageWrapper}>
       <SEO
-        title={`${post.title} | NaliGrid Blog`}
+        title={post.metaTitle || `${post.title} | NaliGrid Blog`}
         description={post.excerpt}
         url={`/blog/${post.slug.current}`}
         image={getFeaturedImageUrl(post)}

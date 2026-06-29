@@ -1,6 +1,7 @@
 export interface StaticPost {
   _id: string
   title: string
+  metaTitle?: string
   slug: { current: string }
   excerpt: string
   category: string
@@ -488,9 +489,239 @@ const POST_RECONCILE: StaticPost = {
   ],
 }
 
+const POST_VENDOR_MGMT: StaticPost = {
+  _id: 'static-005',
+  title: 'The Hidden Cost of Managing Vendors the Nigerian Way',
+  metaTitle: 'Vendor Management for Nigerian Event Planners — A Better Way | NaliGrid',
+  slug: { current: 'vendor-management-nigerian-event-planners' },
+  excerpt:
+    'Nigerian event planners spend more time managing vendor communication than any other part of their job. Here\'s the real cost of doing it manually — and what professional vendor management looks like.',
+  category: 'Event Planning',
+  tags: ['Vendor Management Nigeria', 'Event Vendor Coordination', 'Nigerian Event Planners'],
+  publishedAt: '2026-06-29T00:00:00.000Z',
+  readTime: '6 min read',
+  featuredImage: {
+    placeholderUrl: 'https://i.ibb.co/B5QJhXJ8/img-1.jpg',
+    alt: 'Nigerian event planner managing multiple vendor communications',
+  },
+  body: [
+    {
+      type: 'paragraph',
+      text: 'Ask any Nigerian event planner what takes up the most time in their work, and the answer is rarely "planning the event." It\'s vendor management.',
+    },
+    {
+      type: 'paragraph',
+      text: 'Sourcing vendors. Getting quotes. Following up on quotes. Negotiating. Confirming bookings. Chasing deposits. Tracking who has been paid and who hasn\'t. Following up on deliverables. Confirming arrivals. Settling outstanding balances after the event.',
+    },
+    {
+      type: 'paragraph',
+      text: 'For a single wedding with 20 vendors, a planner might make over 200 vendor-related calls, messages, and follow-ups between first contact and final settlement. Spread that across multiple simultaneous events — which most established planners are running — and vendor management becomes the job, with the actual creative and strategic work of event planning squeezed into the gaps.',
+    },
+
+    { type: 'sectionImage', placeholderUrl: 'https://i.ibb.co/MrjsyRk/img-2.jpg', alt: 'Event planner overwhelmed by vendor messages and calls', caption: 'Vendor management often consumes more time than the actual creative work of planning events.' },
+
+    {
+      type: 'heading', level: 2, text: 'The Problem With How It\'s Currently Done',
+    },
+    {
+      type: 'paragraph',
+      text: 'Most Nigerian event planners manage vendors through a combination of WhatsApp, phone calls, and a spreadsheet that is either perpetually out of date or so carefully maintained that updating it takes 20 minutes every time something changes.',
+    },
+    {
+      type: 'paragraph',
+      text: 'The process typically looks like this:',
+    },
+    {
+      type: 'paragraph',
+      text: 'A planner gets a quote from a caterer over WhatsApp. They compare it mentally (or in a separate notes app) with two other quotes they got earlier in the week. They negotiate, confirm via voice note, and make a note somewhere — in the spreadsheet, in their phone notes, or in their memory — that the caterer has been confirmed at ₦850,000 with a ₦300,000 deposit due by the end of the month.',
+    },
+    {
+      type: 'paragraph',
+      text: 'Three weeks later, when the planner is reconciling their budget and trying to remember whether the deposit was paid, they scroll through weeks of messages in a WhatsApp conversation to find the relevant exchange. The deposit was paid but the receipt is in the vendor\'s WhatsApp message, not attached to anything organised. The balance is ₦550,000 but the planner isn\'t entirely sure because a price adjustment was discussed in a voice note that was never written down.',
+    },
+    {
+      type: 'paragraph',
+      text: 'This is the baseline for most Nigerian event planners. It works, in the same way that carrying water in a bucket works when you don\'t have running water. It gets the job done but it is inefficient, error-prone, and exhausting.',
+    },
+
+    { type: 'sectionImage', placeholderUrl: 'https://i.ibb.co/JRHNXXMT/img-3.jpg', alt: 'Disorganised vendor spreadsheet and WhatsApp messages', caption: 'The spreadsheet-and-WhatsApp system works — until you\'re managing multiple events with dozens of vendors.' },
+
+    {
+      type: 'heading', level: 2, text: 'What Vendor Chaos Actually Costs',
+    },
+    {
+      type: 'paragraph',
+      text: 'The obvious cost is time. The less visible cost is money and professional risk.',
+    },
+    {
+      type: 'paragraph', bold: 'Double payments.',
+      text: 'When payment records aren\'t clear, planners sometimes pay a vendor twice — advance paid, balance not recorded, second "advance" sent because the planner wasn\'t sure. The vendor may or may not flag it.',
+    },
+    {
+      type: 'paragraph', bold: 'Missed payments.',
+      text: 'The opposite problem: a vendor balance that was supposed to be paid two weeks before the event slips through because the tracking was in a spreadsheet that hadn\'t been updated. The vendor shows up to the event having not received their balance, and the dispute happens during setup.',
+    },
+    {
+      type: 'paragraph', bold: 'Scope creep without documentation.',
+      text: 'A vendor agrees verbally to include an extra service. No written record. On event day, they claim it was never part of the agreement. The planner has no documentation to prove otherwise.',
+    },
+    {
+      type: 'paragraph', bold: 'Quote comparison errors.',
+      text: 'Comparing three catering quotes stored across three separate WhatsApp conversations, three PDFs, and a voice note is not the same as a side-by-side comparison table. Planners make decisions with incomplete information because the information is too fragmented to compare properly.',
+    },
+    {
+      type: 'paragraph', bold: 'Post-event reconciliation time.',
+      text: 'After the event, when the planner is trying to close out the books and confirm what was spent versus what was budgeted, reconstructing the financial picture from WhatsApp messages and a partially updated spreadsheet can take hours. For planners running multiple events, this administrative debt compounds quickly.',
+    },
+
+    { type: 'sectionImage', placeholderUrl: 'https://i.ibb.co/4ZBb08md/img-4.jpg', alt: 'Nigerian Naira notes and receipts spread on a desk', caption: 'Poor vendor payment tracking leads to double payments, missed deadlines, and hours of reconciliation work.' },
+
+    {
+      type: 'heading', level: 2, text: 'What Professional Vendor Management Looks Like',
+    },
+    {
+      type: 'paragraph',
+      text: 'The starting point is having a single place where every vendor for every event exists, with a clear record of the status at every stage.',
+    },
+    {
+      type: 'paragraph',
+      text: 'Not a WhatsApp group. Not a spreadsheet. A structured system where each vendor record holds:',
+    },
+    {
+      type: 'paragraph', bold: 'Who they are and what they\'re delivering',
+      text: '',
+    },
+    {
+      type: 'paragraph', bold: 'What was agreed (price, scope, timeline)',
+      text: '',
+    },
+    {
+      type: 'paragraph', bold: 'What has been paid and what remains outstanding',
+      text: '',
+    },
+    {
+      type: 'paragraph', bold: 'What their current booking status is',
+      text: '',
+    },
+    {
+      type: 'paragraph', bold: 'The documents that support the relationship (quotes, contracts, receipts)',
+      text: '',
+    },
+    {
+      type: 'paragraph', bold: 'Their performance rating after the event',
+      text: '',
+    },
+    {
+      type: 'paragraph',
+      text: 'When this exists for every vendor on every event, three things change immediately.',
+    },
+    {
+      type: 'paragraph', bold: 'Decisions become faster.',
+      text: 'A planner comparing three photography quotes can see them side by side in 30 seconds instead of searching through three separate conversations. The comparison includes not just price but the photographer\'s rating from previous events.',
+    },
+    {
+      type: 'paragraph', bold: 'Financial clarity becomes automatic.',
+      text: 'The total committed to vendors, the total paid, and the total outstanding is always visible and always current. The planner doesn\'t need to reconcile anything — the system has been tracking it all along.',
+    },
+    {
+      type: 'paragraph', bold: 'Vendor relationships become professional.',
+      text: 'When a planner can tell a vendor exactly what was agreed, what has been paid, and what is outstanding, with documentation to support each point, the professional dynamic changes. Disputes are resolved with records, not arguments.',
+    },
+
+    { type: 'sectionImage', placeholderUrl: 'https://i.ibb.co/4Z1rZnqm/img-5.jpg', alt: 'Organised vendor management dashboard on a laptop', caption: 'A structured vendor system transforms how planners work — faster decisions, automatic financial clarity, and professional vendor relationships.' },
+
+    {
+      type: 'heading', level: 2, text: 'The Payment Tracking Problem, Specifically',
+    },
+    {
+      type: 'paragraph',
+      text: 'The financial side of vendor management is where manual systems most consistently fail.',
+    },
+    {
+      type: 'paragraph',
+      text: 'A planner might be managing ₦3,000,000 in vendor payments for a single large event. Spread across 20 vendors, each with different deposit structures and balance due dates, that\'s 40 separate payment actions to track, schedule, and document.',
+    },
+    {
+      type: 'paragraph',
+      text: 'In a spreadsheet, this requires the planner to:',
+    },
+    {
+      type: 'paragraph', bold: 'Remember to update the spreadsheet every time a payment is made',
+      text: '',
+    },
+    {
+      type: 'paragraph', bold: 'Calculate balances manually (or remember to refresh formulas)',
+      text: '',
+    },
+    {
+      type: 'paragraph', bold: 'Track payment dates separately',
+      text: '',
+    },
+    {
+      type: 'paragraph', bold: 'Cross-reference receipts that live in email or WhatsApp',
+      text: '',
+    },
+    {
+      type: 'paragraph',
+      text: 'When a payment is made and the spreadsheet isn\'t immediately updated — which happens constantly when a planner is in the middle of event execution — the record becomes unreliable. By the end of an active event season, a planner\'s spreadsheet might be weeks behind reality.',
+    },
+    {
+      type: 'paragraph', bold: 'NaliGrid\'s financial module',
+      text: 'was built specifically to replace this spreadsheet. Every vendor payment — advance paid, balance outstanding, payment date, receipt — lives in one place, updated in real time, with balances calculated automatically. The planner never has to do the maths. The system does.',
+    },
+    {
+      type: 'paragraph', bold: 'And critically:',
+      text: 'this information is visible only to the planner. Coordinators, vendors, and clients see none of it. A planner\'s margins, their vendor costs, and their pricing are private by design.',
+    },
+
+    { type: 'sectionImage', placeholderUrl: 'https://i.ibb.co/xS8vCxx6/img-6.jpg', alt: 'NaliGrid financial dashboard showing vendor payment tracking', caption: 'Real-time payment tracking eliminates the need for manual spreadsheets and gives planners instant financial clarity.' },
+
+    {
+      type: 'heading', level: 2, text: 'The Vendor Directory Problem',
+    },
+    {
+      type: 'paragraph',
+      text: 'Beyond the financial tracking, there\'s another challenge that experienced planners handle better than newer ones simply through years of accumulated contacts: finding good vendors.',
+    },
+    {
+      type: 'paragraph',
+      text: 'In Nigeria, vendor discovery still happens primarily through referrals. A planner asks another planner who they use for catering. They check the vendor\'s Instagram. They ask in a professional WhatsApp group. The process is slow, informal, and heavily dependent on who you know.',
+    },
+    {
+      type: 'paragraph', bold: 'NaliGrid\'s vendor directory',
+      text: 'addresses this. It contains vendors across every event category — catering, decor, photography, DJ and sound, live band, ushers, AV and LED, hair and makeup, cakes, security, printing, transportation, venues, cocktails and drinks, lighting and special effects, accommodation, and wardrobe — covering Lagos, Abuja, Port Harcourt, Ibadan, and Enugu.',
+    },
+    {
+      type: 'paragraph',
+      text: 'Planners can browse by category and city, see pricing tier indicators, and add any vendor directly to an event. Vendors they\'ve worked with can be rated after each event, building a private performance record that helps with future booking decisions.',
+    },
+
+    { type: 'sectionImage', placeholderUrl: 'https://i.ibb.co/B5QJhXJ8/img-1.jpg', alt: 'NaliGrid vendor directory showing event categories and cities', caption: 'A searchable vendor directory across Lagos, Abuja, Port Harcourt, Ibadan, and Enugu — with performance ratings from past events.' },
+
+    {
+      type: 'heading', level: 2, text: 'Starting the Shift',
+    },
+    {
+      type: 'paragraph',
+      text: 'The planners who manage vendors most effectively are not necessarily the most experienced or the most connected. They\'re the ones who have built systems that don\'t rely on their memory, their WhatsApp history, or a spreadsheet that nobody else can navigate.',
+    },
+    {
+      type: 'paragraph',
+      text: 'The tools for building those systems now exist specifically for the Nigerian market.',
+    },
+    {
+      type: 'cta',
+      text: 'Create your first event for FREE.',
+      buttonText: 'Start managing vendors properly →',
+      buttonUrl: '/register',
+    },
+  ],
+}
+
 export const STATIC_POSTS: StaticPost[] = [
-  POST_WHATSAPP_EXCEL,
+  POST_VENDOR_MGMT,
   POST_ESCROW,
+  POST_WHATSAPP_EXCEL,
   POST_CHECKLIST,
   POST_RECONCILE,
 ]
