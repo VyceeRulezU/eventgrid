@@ -11,31 +11,55 @@ A multi-role SaaS platform for the event industry in Nigeria. Replaces WhatsApp 
 
 ## Tech Stack
 
-| Layer       | Technology                                        |
-| ----------- | ------------------------------------------------- |
-| Frontend    | React 19 + Vite 8                                 |
-| Styling     | Vanilla CSS + CSS Modules (CSS custom properties) |
-| State       | Zustand 5                                         |
-| Backend     | Supabase (Auth + PostgreSQL + Realtime + Storage) |
-| Payments    | Paystack + Korapay                                |
-| PDF Export  | @react-pdf/renderer                               |
-| Drag & Drop | @dnd-kit                                          |
-| Charts      | Recharts                                          |
-| Forms       | React Hook Form + Zod                             |
-| Deployment  | Vercel                                            |
+| Layer           | Technology                                                    |
+| --------------- | ------------------------------------------------------------- |
+| Frontend        | React 19 + Vite 8 + TypeScript 6                             |
+| Styling         | Vanilla CSS + CSS Modules (CSS custom properties)            |
+| State           | Zustand 5                                                     |
+| Backend         | Supabase (Auth + PostgreSQL + Realtime + Storage + Edge Functions) |
+| Payments        | Paystack + Korapay (dual Nigerian gateways)                   |
+| PDF Export      | @react-pdf/renderer, jspdf + jspdf-autotable                  |
+| Drag & Drop     | @dnd-kit                                                      |
+| Charts          | Recharts                                                      |
+| Forms           | React Hook Form + Zod                                         |
+| Spreadsheets    | xlsx, papaparse (CSV import/export)                           |
+| Animations      | framer-motion, react-konva (canvas)                          |
+| Monitoring      | Sentry, Vercel Analytics + Speed Insights                     |
+| Testing         | Vitest (unit), Playwright (E2E), GitHub Actions (CI)          |
+| CAPTCHA         | Cloudflare Turnstile                                          |
+| Push            | Web Push API + PWA (service worker, manifest)                 |
+| Mobile          | Expo SDK 54 (iOS + Android companion app)                     |
+| Deployment      | Vercel (web) + EAS (mobile)                                   |
 
 ## Features
 
-- **Role-Based Access** — Planner, Coordinator, Vendor, Client, Team Member — everyone sees only what they need
+- **Role-Based Access** — Planner, Coordinator, Vendor, Client, Team Member, Admin — everyone sees only what they need
 - **9-Phase Event Pipeline** — From lead onboarding to post-event analysis
 - **Payment Tracker** — Naira-based tracking replacing Excel, visible only to the planner
 - **Live Event Board** — Real-time status monitoring on event day via Supabase Realtime
-- **Vendor Management** — Sourcing, quotes, booking, payments, and portal access
-- **Task Board** — Kanban-style task management per event
-- **Guest Management** — List, RSVP, seating plan, CSV import, check-in
+- **Vendor Management** — Global vendor directory, sourcing, quotes, booking, payments, claims, merge, and portal access
+- **Task Board** — Kanban-style + list view, drag-and-drop, CSV bulk upload
+- **Guest Management** — List, RSVP, seating planner (drag-and-drop tables), CSV import, check-in
 - **Client Portal** — Token-based read-only view for clients (no account required)
 - **Aftermath & Reports** — Media library, issue log, PDF report generation
+- **Budget Management** — Budget categories, allocations, petty cash, P&L summary, Excel/PDF export
+- **Proposals** — Create, manage, and track client proposals
+- **Questionnaires** — Client intake forms and questionnaires
+- **Leads** — Lead tracking and pipeline management
+- **Invoicing** — Invoice generation and management
+- **Referrals** — Referral partner tracking with commission management
+- **Notifications** — In-app notification center with real-time push notifications (Web Push + PWA badge)
+- **Chat & Feedback** — Integrated feedback chat per event
+- **Calendar** — Event calendar view
+- **Checklists** — Per-event checklists
+- **Notebook** — Event notes and journaling
+- **Asset Management** — Event media and document library
+- **Reviews** — Post-event review collection
+- **Admin Dashboard** — Super admin analytics, event/vendor oversight, team management
+- **Mobile Companion App** — Expo/React Native app for iOS and Android
 - **Dual Payment Providers** — Paystack and Korapay supported
+- **Automated Archiving** — Background archiving of completed events
+- **E2E Testing** — Playwright test suite covering auth flows and core journeys
 
 ## Getting Started
 
@@ -87,9 +111,24 @@ All design tokens are defined in `src/styles/tokens.css` using CSS custom proper
 
 ```
 eventgrid/
+├── apps/
+│   └── mobile/                # Expo/React Native companion app
+├── packages/
+│   └── shared/                # Shared types, utils, design tokens (web + mobile)
 ├── public/
+│   ├── sw.js                  # Service worker (push notifications)
+│   ├── manifest.json
+│   └── site.webmanifest
 ├── supabase/
-│   └── migrations/            # Database migration SQL files
+│   ├── migrations/            # 130+ database migration SQL files
+│   ├── functions/             # 26 Edge Functions (webhooks, invites, archiving, AI)
+│   │   ├── paystack-webhook/
+│   │   ├── korapay-webhook/
+│   │   ├── send-invite/
+│   │   ├── auto-archive/
+│   │   ├── generate-report-narrative/
+│   │   └── ...
+│   └── seed.sql               # Comprehensive demo data
 ├── src/
 │   ├── assets/
 │   ├── components/
@@ -107,16 +146,28 @@ eventgrid/
 │   │   ├── planner/
 │   │   ├── coordinator/
 │   │   ├── vendor/
-│   │   └── client/
+│   │   ├── client/
+│   │   └── admin/             # Admin dashboard pages
 │   ├── features/
 │   │   ├── events/
-│   │   ├── financials/
+│   │   ├── financials/        # Budget, P&L, petty cash, CSV/Excel/PDF export
 │   │   ├── vendors/
 │   │   ├── team/
-│   │   ├── guests/
-│   │   ├── live-board/
-│   │   ├── aftermath/
-│   │   └── notifications/
+│   │   ├── guests/            # RSVP, seating planner, check-in
+│   │   ├── live-board/        # Real-time event day ops
+│   │   ├── aftermath/         # Post-event reports, media library
+│   │   ├── notifications/     # In-app + push notifications
+│   │   ├── proposals/
+│   │   ├── questionnaires/
+│   │   ├── leads/
+│   │   ├── invoicing/
+│   │   ├── referrals/
+│   │   ├── reviews/
+│   │   ├── checklists/
+│   │   ├── notebook/
+│   │   ├── calendar/
+│   │   ├── assets/
+│   │   └── chat/
 │   ├── hooks/
 │   ├── store/                 # Zustand stores
 │   ├── lib/
@@ -124,12 +175,22 @@ eventgrid/
 │   │   ├── korapay.ts         # Korapay integration
 │   │   ├── paystack.ts        # Paystack integration
 │   │   ├── payment.ts         # Unified payment abstraction
+│   │   ├── notifications.ts   # In-app notification system
+│   │   ├── webPush.ts         # Web Push subscription
+│   │   ├── edgeFunctions.ts   # Edge Function invocation wrappers
+│   │   ├── sentry.ts          # Error tracking
+│   │   ├── captcha.tsx        # Cloudflare Turnstile integration
+│   │   ├── pricing.ts         # Pricing configuration
 │   │   └── utils.ts           # Utility functions
 │   ├── types/
 │   └── styles/
 │       ├── tokens.css         # Design tokens (dark + light themes)
 │       ├── global.css         # Resets, base styles, typography
 │       └── components.css     # Shared component classes
+├── test/
+│   └── e2e/                   # Playwright end-to-end tests
+├── load-tests/                # Performance smoke tests
+├── playwright.config.ts
 ├── .env.local
 ├── package.json
 ├── vite.config.ts
@@ -143,8 +204,12 @@ eventgrid/
 | Planner                  | Self-register (pays per event) | Full suite + financials                |
 | Coordinator (Invited)    | Invited by planner             | Team ops + live board                  |
 | Coordinator (Standalone) | Self-register                  | Team ops + live board, no financials   |
-| Vendor                   | Invited by planner             | Own deliverables + arrival only        |
+| Vendor                   | Invited by planner             | Own deliverables, claims, arrival      |
 | Client                   | Invited by planner             | Read-only phase visibility + approvals |
+| Super Admin              | Internal                       | Full platform oversight                |
+| Admin Monitor            | Internal                       | Read-only analytics & reports          |
+| Admin Support            | Internal                       | Event-level support access             |
+| Referral Partner         | Self-register                  | Referral tracking + commissions        |
 
 ## The 9 Event Phases
 
@@ -178,6 +243,9 @@ npm run dev       # Start development server
 npm run build     # TypeScript check + production build
 npm run preview   # Preview production build locally
 npm run lint      # Run ESLint
+npm run typecheck # TypeScript type checking (no emit)
+npx vitest        # Run unit tests (Vitest)
+npx playwright test  # Run E2E tests (Playwright)
 ```
 
 ## Architecture
@@ -201,18 +269,102 @@ Browser (React + Vite)
 - Mobile-first — all interactive components usable on 390px screens
 - Issues are append-only — never deleted, resolved issues stay in the log
 - Currency is ₦ (Naira), dates are DD/MM/YYYY, phone numbers +234
+- Payment webhooks use idempotency keys to prevent double-processing
+- Completed events are automatically archived via cron-based Edge Function
 
 ## Supabase Setup
 
+### Database
+
 See `doc/02_DATABASE_SCHEMA.md` for the full schema including:
 
-- 17 table definitions with RLS policies
+- 17+ table definitions with RLS policies
 - Auto-update triggers
 - Profile creation trigger
 - Event phases auto-creation trigger
 - Storage bucket configuration
+- Activity logging triggers
+- Vendor merge RPC
 
-Run the SQL in Supabase SQL editor before using the app.
+Run the SQL migrations in order via the Supabase SQL editor or `supabase migration` CLI.
+
+### Edge Functions
+
+26 Supabase Edge Functions handle server-side logic:
+
+| Function | Purpose |
+| -------- | ------- |
+| `paystack-webhook` | Paystack payment callbacks (idempotent) |
+| `korapay-webhook` | Korapay payment webhook |
+| `send-invite` | Invite emails via Resend (HTML templates) |
+| `auto-archive` | Cron-based background archiving of old events |
+| `send-push-notification` | Web Push notification dispatch |
+| `generate-report-narrative` | AI-powered report narration (Gemini API) |
+| `guest-rsvp` | Guest RSVP processing |
+| `confirm-signup` | Post-signup account setup |
+| `onboarding-emails` | Onboarding email sequences |
+| `brevo-*` | Brevo email campaign integrations |
+
+### Demo Data
+
+Run `supabase/seed.sql` to populate the database with sample data (5 events, 12 vendors, tasks, guests, media, financial entries, etc.).
+
+## Testing
+
+### Unit Tests (Vitest)
+
+```bash
+npx vitest run       # Run all unit tests
+npx vitest           # Watch mode
+```
+
+Unit tests use `jsdom` environment with `@testing-library/jest-dom` matchers. Test files live in `src/test/`.
+
+### E2E Tests (Playwright)
+
+```bash
+npx playwright test           # Run all E2E tests
+npx playwright test --ui      # UI mode for debugging
+npx playwright show-report    # View HTML report
+```
+
+E2E tests live in `src/test/e2e/` and cover:
+- **Auth flows** — Login, registration, password reset (via Supabase magic links, bypassing CAPTCHA in test env)
+- **Public pages** — Home, login, register, 404, RSVP
+- **Authenticated flows** — Dashboard, events, financials
+
+Tests run sequentially (1 worker) against a production build served via `npm run preview`.
+
+### Performance Tests
+
+```bash
+node load-tests/api-smoke.mjs
+```
+
+Simple load test against the Supabase REST API (10 concurrent users × 20 requests, measures avg/p95/p99 response times).
+
+### CI Pipeline
+
+GitHub Actions runs on push/PR to `main`:
+1. TypeScript check (`tsc --noEmit`)
+2. Production build
+3. Unit tests (`vitest run`)
+4. E2E tests (`playwright test`)
+
+Playwright reports are uploaded as artifacts on failure.
+
+## Mobile App
+
+NaliGrid includes a companion mobile app built with Expo SDK 54:
+
+```bash
+cd apps/mobile
+npx expo start        # Start Expo dev server
+npx expo run:ios      # Build for iOS
+npx expo run:android  # Build for Android
+```
+
+The mobile app shares types, utilities, and design tokens with the web app via the `@naligrid/shared` package.
 
 ## Connect
 

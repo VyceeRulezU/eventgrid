@@ -1,5 +1,7 @@
 import { test, expect, type Page } from '@playwright/test'
 
+const ADMIN_LOGIN_PATH = process.env.VITE_ADMIN_LOGIN_PATH || '/admin/login'
+
 async function hasTurnstile(page: Page) {
   try {
     await page.waitForSelector('iframe[src*="challenges.cloudflare.com"]', { timeout: 5000 })
@@ -80,14 +82,14 @@ test.describe('admin login page', () => {
   test.use({ storageState: { cookies: [], origins: [] } })
 
   test('shows admin login form', async ({ page }) => {
-    await page.goto('/admin/login')
+    await page.goto(ADMIN_LOGIN_PATH)
     await expect(page.locator('#email')).toBeVisible()
     await expect(page.locator('#password')).toBeVisible()
     await expect(page.getByRole('button', { name: /sign in/i })).toBeVisible()
   })
 
   test('shows admin branding', async ({ page }) => {
-    await page.goto('/admin/login')
+    await page.goto(ADMIN_LOGIN_PATH)
     await expect(page.getByText(/admin portal/i)).toBeVisible()
   })
 })
@@ -154,7 +156,7 @@ test.describe('role guard', () => {
   })
 
   test('admin login page is public', async ({ page }) => {
-    await page.goto('/admin/login')
+    await page.goto(ADMIN_LOGIN_PATH)
     await expect(page.locator('#email')).toBeVisible()
   })
 })
@@ -317,7 +319,7 @@ test.describe('captcha', () => {
   })
 
   test('admin login page also shows captcha', async ({ page }) => {
-    await page.goto('/admin/login')
+    await page.goto(ADMIN_LOGIN_PATH)
     if (!(await hasTurnstile(page))) {
       test.skip(true, 'VITE_TURNSTILE_SITE_KEY not set — captcha disabled')
       return
