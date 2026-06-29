@@ -323,19 +323,11 @@ export function ProposalsPage() {
       }
 
       const budgetRowsHtml = grouped.map(r => `
-        <tr>
-          <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;font-size:13px;color:#374151;">${r.category}</td>
-          <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;font-size:13px;color:#6b7280;">${r.description || 'Proposed service'}</td>
-          <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;font-size:13px;color:#111827;text-align:right;font-weight:600;">${fmtMoney(r.amount)}</td>
-          <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;font-size:12px;color:#6b7280;text-align:right;">${proposal.total_amount > 0 ? Math.round((r.amount / proposal.total_amount) * 100) + '%' : '—'}</td>
+        <tr style="border-bottom:1px solid #e5e7eb;">
+          <td style="padding:8px 12px;font-size:13px;color:#374151;">${r.category}</td>
+          <td style="padding:8px 12px;font-size:13px;color:#6b7280;">${r.description || 'Proposed service'}</td>
+          <td style="padding:8px 12px;font-size:13px;color:#111827;text-align:right;font-weight:600;">${fmtMoney(r.amount)}</td>
         </tr>
-      `).join('')
-
-      const specsHtml = sections.map(s => `
-        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f3f4f6;">
-          <div><span style="font-weight:600;font-size:13px;color:#111827;">${s.title}</span>${s.description ? '<br/><span style="font-size:12px;color:#6b7280;">' + s.description + '</span>' : ''}</div>
-          <span style="font-weight:600;font-size:13px;color:#D4A017;white-space:nowrap;">${fmtMoney(s.amount)}</span>
-        </div>
       `).join('')
 
       const now = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -350,8 +342,8 @@ export function ProposalsPage() {
           template_name: 'Proposal Delivery',
           to: { email: proposal.client_email, name: 'Valued Client' },
           variables: {
-            subject: `You've received a proposal from ${profile?.display_name || 'an event planner'} on NaliGrid`,
-            body_html: `
+            '{{subject_content}}': `You've received a proposal from ${profile?.display_name || 'an event planner'} on NaliGrid`,
+            '{{body_html_content}}': `
               <div style="font-family: Arial, sans-serif; max-width: 600px; color: #333; line-height: 1.6; margin: 0 auto;">
                 <div style="background:#111827;padding:24px 32px;border-radius:8px 8px 0 0;">
                   <h1 style="color:#D4A017;margin:0;font-size:22px;font-weight:800;letter-spacing:-0.02em;">NaliGrid</h1>
@@ -372,7 +364,6 @@ export function ProposalsPage() {
                         <th style="padding:8px 12px;font-size:11px;color:#6b7280;text-transform:uppercase;text-align:left;">Category</th>
                         <th style="padding:8px 12px;font-size:11px;color:#6b7280;text-transform:uppercase;text-align:left;">Description</th>
                         <th style="padding:8px 12px;font-size:11px;color:#6b7280;text-transform:uppercase;text-align:right;">Amount</th>
-                        <th style="padding:8px 12px;font-size:11px;color:#6b7280;text-transform:uppercase;text-align:right;">%</th>
                       </tr>
                     </thead>
                     <tbody>${budgetRowsHtml}</tbody>
@@ -380,15 +371,9 @@ export function ProposalsPage() {
                       <tr style="border-top:2px solid #D4A017;">
                         <td style="padding:8px 12px;font-weight:700;font-size:13px;color:#111827;" colspan="2">Grand Total</td>
                         <td style="padding:8px 12px;font-weight:800;font-size:15px;color:#D4A017;text-align:right;">${fmtMoney(proposal.total_amount)}</td>
-                        <td style="padding:8px 12px;text-align:right;font-size:12px;color:#6b7280;">100%</td>
                       </tr>
                     </tfoot>
                   </table>
-
-                  ${specsHtml ? `
-                    <h3 style="font-size:13px;color:#111827;margin:24px 0 12px;text-transform:uppercase;letter-spacing:0.05em;">Detailed Specifications</h3>
-                    ${specsHtml}
-                  ` : ''}
 
                   <div style="background:#f9fafb;border-radius:6px;padding:16px;margin:24px 0;text-align:center;">
                     <p style="font-size:13px;color:#374151;margin:0 0 8px;">The detailed proposal document is also attached to this email.</p>
