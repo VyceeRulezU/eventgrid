@@ -5,6 +5,8 @@ const PASSWORD = process.env.E2E_TEST_PASSWORD
 const hasAuth = Boolean(EMAIL && PASSWORD)
 
 test.describe('public pages', () => {
+  test.use({ storageState: { cookies: [], origins: [] } })
+
   test('home page loads with hero section', async ({ page }) => {
     await page.goto('/')
     await expect(page.locator('body')).toBeAttached()
@@ -20,7 +22,7 @@ test.describe('public pages', () => {
   test('login page loads with form', async ({ page }) => {
     await page.goto('/login')
     await expect(page.locator('body')).toBeAttached()
-    await expect(page.locator('form').or(page.locator('button, input[type="email"]'))).toBeAttached({ timeout: 5000 })
+    await expect(page.locator('form').first()).toBeAttached({ timeout: 5000 })
   })
 
   test('register page loads', async ({ page }) => {
@@ -52,7 +54,7 @@ test.describe('authenticated', () => {
     await page.goto('/dashboard/planner')
     await expect(page.locator('body')).toBeAttached()
     // Should see sidebar or main nav
-    await expect(page.locator('aside, header, nav')).toBeAttached({ timeout: 15000 })
+    await expect(page.locator('aside, header, nav').first()).toBeAttached({ timeout: 15000 })
   })
 
   test('events list page loads', async ({ page }) => {
