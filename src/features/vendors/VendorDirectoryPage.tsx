@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
-import { LayoutGrid, List, Users, Plus, Pencil, Star, Trash2, Phone, Mail, Building, X, ChevronLeft, ChevronRight, BadgeCheck, Globe, GitMerge } from 'lucide-react'
+import { LayoutGrid, List, Users, Plus, Pencil, Star, Trash2, Phone, Mail, Building, X, ChevronLeft, ChevronRight, BadgeCheck, Globe, GitMerge, Upload } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -8,6 +8,7 @@ import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { useSearch } from '@/hooks/useSearch'
 import { SearchBar } from '@/components/shared/SearchBar'
 import { sendInvite } from '@/lib/edgeFunctions'
+import { VendorCSVImport } from './VendorCSVImport'
 import type { Vendor } from '@/types'
 import styles from './VendorDirectoryPage.module.css'
 
@@ -62,6 +63,8 @@ export function VendorDirectoryPage() {
     website: '',
     notes: '',
   })
+
+  const [showCSVImport, setShowCSVImport] = useState(false)
 
   // Merge state (super admin only)
   const [showMergeModal, setShowMergeModal] = useState(false)
@@ -495,9 +498,14 @@ export function VendorDirectoryPage() {
         title="Vendor Directory"
         subtitle="Browse and manage your vendor network"
         actions={
-          <button className="btn btn-primary btn-sm" onClick={() => { resetForm(); setShowForm(true) }}>
-            <Plus size={16} /> Add Vendor
-          </button>
+          <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+            <button className="btn btn-secondary btn-sm" onClick={() => setShowCSVImport(true)}>
+              <Upload size={14} /> Import CSV
+            </button>
+            <button className="btn btn-primary btn-sm" onClick={() => { resetForm(); setShowForm(true) }}>
+              <Plus size={16} /> Add Vendor
+            </button>
+          </div>
         }
       />
 
@@ -594,6 +602,18 @@ export function VendorDirectoryPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {showCSVImport && org?.id && (
+        <VendorCSVImport
+          orgId={org.id}
+          onDone={(imported) => {
+            const dirEntries = imported.map((v) => ({ ...v, org_name: org?.name || 'My Organization' }))
+            setVendors([...dirEntries, ...vendors])
+            setShowCSVImport(false)
+          }}
+          onCancel={() => setShowCSVImport(false)}
+        />
       )}
 
       {showClaimModal && claimingVendor && (
@@ -988,10 +1008,16 @@ export function VendorDirectoryPage() {
             {query || categoryFilter ? 'Try a different search or filter' : 'Add your first vendor to the directory'}
           </div>
           {!query && !categoryFilter && (
-            <button className="btn btn-primary" onClick={() => { resetForm(); setShowForm(true) }}>
-              <Plus size={16} />
-              Add Vendor
-            </button>
+            <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
+              <button className="btn btn-secondary" onClick={() => setShowCSVImport(true)}>
+                <Upload size={16} />
+                Import CSV
+              </button>
+              <button className="btn btn-primary" onClick={() => { resetForm(); setShowForm(true) }}>
+                <Plus size={16} />
+                Add Vendor
+              </button>
+            </div>
           )}
         </div>
       )}

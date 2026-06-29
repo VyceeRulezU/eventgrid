@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams, useNavigate, Link } from 'react-router-dom'
-import { Users, Plus, Pencil, Tag, Star, Trash2 } from 'lucide-react'
+import { Users, Plus, Pencil, Tag, Star, Trash2, Upload } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -9,6 +9,7 @@ import { Checkbox } from '@/components/ui/Checkbox'
 import { EditVendorModal } from './EditVendorModal'
 import { AddVendorModal } from './AddVendorModal'
 import { AddTypeModal } from './AddTypeModal'
+import { VendorCSVImport } from './VendorCSVImport'
 import { PageHero } from '@/components/shared/PageHero'
 import { useSearch } from '@/hooks/useSearch'
 import { SearchBar } from '@/components/shared/SearchBar'
@@ -61,6 +62,7 @@ export function VendorsPage() {
   const [selectedVendors, setSelectedVendors] = useState<Set<string>>(new Set())
   const [showAddType, setShowAddType] = useState(false)
   const [showAddVendor, setShowAddVendor] = useState(false)
+  const [showCSVImport, setShowCSVImport] = useState(false)
 
   const availableTypes = [...new Set([...DEFAULT_TYPES, ...vendors.map((v) => v.category)])]
 
@@ -241,6 +243,10 @@ export function VendorsPage() {
                 Add Type
               </button>
             </span>
+            <button className="btn btn-secondary btn-sm" onClick={() => setShowCSVImport(true)} style={{ borderRadius: 'var(--radius-sm)' }}>
+              <Upload size={14} />
+              Import CSV
+            </button>
             <button className="btn btn-primary btn-sm" onClick={() => setShowAddVendor(true)} style={{ borderRadius: 'var(--radius-sm)' }}>
               <Plus size={14} />
               Add Vendor
@@ -267,7 +273,18 @@ export function VendorsPage() {
         />
       )}
 
-      {!(showAddVendor || showAddType) && filtered.length === 0 ? (
+      {showCSVImport && orgId && (
+        <VendorCSVImport
+          orgId={orgId}
+          onDone={(imported) => {
+            setVendors([...imported, ...vendors])
+            setShowCSVImport(false)
+          }}
+          onCancel={() => setShowCSVImport(false)}
+        />
+      )}
+
+      {!(showAddVendor || showAddType || showCSVImport) && filtered.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state__icon">
             <Users size={24} />
@@ -281,6 +298,10 @@ export function VendorsPage() {
               <button className="btn btn-secondary" onClick={() => setShowAddType(true)} style={{ minHeight: 40 }}>
                 <Tag size={16} />
                 Add Vendor Type
+              </button>
+              <button className="btn btn-secondary" onClick={() => setShowCSVImport(true)} style={{ minHeight: 40 }}>
+                <Upload size={16} />
+                Import CSV
               </button>
               <button className="btn btn-primary" onClick={() => setShowAddVendor(true)} style={{ minHeight: 40 }}>
                 <Plus size={16} />
