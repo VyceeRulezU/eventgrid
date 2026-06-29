@@ -200,6 +200,7 @@ export function BudgetAllocations({ eventId, eventName, pettyCashTotal = 0 }: Bu
                 <th className={styles.th}>Status</th>
                 <th className={styles.th}>Progress</th>
                 <th className={styles.th}>Budget</th>
+                <th className={styles.th}>% of Total</th>
                 <th className={`${styles.th} ${styles.thActions}`}>Actions</th>
               </tr>
             </thead>
@@ -305,6 +306,13 @@ export function BudgetAllocations({ eventId, eventName, pettyCashTotal = 0 }: Bu
                       )}
                     </td>
 
+                    {/* % of Total column */}
+                    <td className={styles.td}>
+                      <span className={styles.pctText}>
+                        {totalAllocated > 0 ? `${((row.allocated / totalAllocated) * 100).toFixed(1)}%` : '—'}
+                      </span>
+                    </td>
+
                     {/* Actions column */}
                     <td className={`${styles.td} ${styles.tdActions}`}>
                       {isEditing ? (
@@ -405,7 +413,10 @@ export function BudgetAllocations({ eventId, eventName, pettyCashTotal = 0 }: Bu
               </button>
             )}
           </div>
-          <span>{formatNaira(totalActual)} / {formatNaira(totalAllocated)}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
+            <span>{formatNaira(totalActual)} / {formatNaira(totalAllocated)}</span>
+            <span className={styles.pctText}>100%</span>
+          </div>
         </div>
       </div>
     </div>

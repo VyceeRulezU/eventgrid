@@ -34,7 +34,7 @@ interface FinancialEntry {
   notes: string | null
 }
 
-const categories = [
+const DEFAULT_CATEGORIES = [
   'Venue & Facility', 'Catering', 'Decor & Design', 'Audio/Visual',
   'Photography', 'Videography', 'Transportation', 'Fashion & Beauty',
   'Entertainment', 'Stationery', 'Security', 'Other',
@@ -99,6 +99,7 @@ export function FinancialsPage() {
   const [activeTab, setActiveTab] = useState<'vendors' | 'income'>('vendors')
   const [clientPayments, setClientPayments] = useState<{ amount: number; status: string; due_date: string | null; description: string }[]>([])
   const [pettyCashTotal, setPettyCashTotal] = useState(0)
+  const [categories, setCategories] = useState(DEFAULT_CATEGORIES)
   // CSV Parser — no external deps, handles comma-delimited files
   function parseCsv(text: string): Record<string, string>[] {
     const lines = text.replace(/\r/g, '').split('\n').filter((l) => l.trim())
@@ -257,6 +258,17 @@ export function FinancialsPage() {
 
         if (data) setEntries(data as unknown as FinancialEntry[])
         if (cpData) setClientPayments(cpData as typeof clientPayments)
+
+        // Fetch budget allocation categories and merge with defaults
+        const { data: budgetCats } = await supabase
+          .from('budget_allocations')
+          .select('category')
+          .eq('event_id', resolvedId)
+        if (budgetCats && budgetCats.length > 0) {
+          const budgetCategoryNames = [...new Set(budgetCats.map((b: any) => b.category).filter(Boolean))] as string[]
+          const merged = [...new Set([...DEFAULT_CATEGORIES, ...budgetCategoryNames])]
+          setCategories(merged)
+        }
       }
       setLoading(false)
     }
