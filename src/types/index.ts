@@ -386,3 +386,176 @@ export interface RunSheetItem {
   created_at: string
   updated_at: string
 }
+
+export interface Lead {
+  id: string
+  org_id: string | null
+  event_id: string | null
+  created_by: string
+  client_name: string
+  client_email: string | null
+  client_phone: string | null
+  source: 'referral' | 'website' | 'social' | 'walk_in' | 'email' | 'call' | 'other'
+  status: 'new' | 'contacted' | 'qualified' | 'proposal_sent' | 'negotiating' | 'converted' | 'lost'
+  notes: string | null
+  budget_range: string | null
+  event_type: string | null
+  preferred_date: string | null
+  guest_count_estimate: number | null
+  converted_to_event_id: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface ProposalSection {
+  title: string
+  description?: string
+  amount?: number
+  items?: { description: string; amount: number }[]
+}
+
+export interface Proposal {
+  id: string
+  event_id: string | null
+  lead_id: string | null
+  org_id: string | null
+  created_by: string
+  title: string
+  description: string | null
+  valid_until: string | null
+  status: 'draft' | 'sent' | 'viewed' | 'accepted' | 'rejected' | 'expired'
+  sections: ProposalSection[]
+  total_amount: number
+  sent_at: string | null
+  viewed_at: string | null
+  responded_at: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface InvoiceItem {
+  description: string
+  quantity: number
+  unit_price: number
+  amount: number
+}
+
+export interface Invoice {
+  id: string
+  event_id: string
+  org_id: string | null
+  created_by: string
+  invoice_number: string
+  client_name: string | null
+  client_email: string | null
+  items: InvoiceItem[]
+  subtotal: number
+  discount: number
+  total: number
+  amount_paid: number
+  status: 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled'
+  due_date: string | null
+  issued_date: string
+  paid_at: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface EventChatMessage {
+  id: string
+  event_id: string
+  user_id: string
+  message: string
+  created_at: string
+}
+
+export interface Checklist {
+  id: string
+  event_id: string
+  phase_id: string | null
+  created_by: string
+  title: string
+  description: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface ChecklistItem {
+  id: string
+  checklist_id: string
+  text: string
+  is_checked: boolean
+  checked_by: string | null
+  checked_at: string | null
+  sort_order: number
+  created_at: string
+}
+
+export interface EventNote {
+  id: string
+  event_id: string
+  created_by: string
+  title: string
+  content: string
+  category: 'general' | 'ideas' | 'todo' | 'notes' | 'important'
+  is_pinned: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface Questionnaire {
+  id: string
+  event_id: string | null
+  org_id: string | null
+  created_by: string
+  title: string
+  description: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface QuestionnaireQuestion {
+  id: string
+  questionnaire_id: string
+  question_text: string
+  question_type: 'text' | 'textarea' | 'select' | 'radio' | 'checkbox' | 'rating'
+  options: string[]
+  is_required: boolean
+  sort_order: number
+  created_at: string
+}
+
+export interface QuestionnaireResponse {
+  id: string
+  questionnaire_id: string
+  event_id: string | null
+  respondent_name: string
+  respondent_email: string | null
+  answers: Record<string, string | string[]>
+  submitted_at: string
+}
+
+export interface GuestMessage {
+  id: string
+  event_id: string
+  subject: string
+  body: string
+  sent_by: string
+  recipient_filter: 'all' | 'vip' | 'pending_rsvp' | 'confirmed' | 'declined' | 'maybe' | 'checked_in'
+  sent_count: number
+  opened_count: number
+  created_at: string
+}
+
+export interface CalendarEvent {
+  id: string
+  title: string
+  date: string
+  type: 'event' | 'task_due' | 'phase_due' | 'vendor_payment'
+  event_id?: string
+  status?: string
+  color?: string
+}

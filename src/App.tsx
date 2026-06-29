@@ -94,6 +94,15 @@ const EventAssetsPage = lazy(() => import('@/features/assets/EventAssetsPage').t
 const AftermathPage = lazy(() => import('@/features/aftermath/AftermathPage').then(m => ({ default: m.AftermathPage })))
 const CompletedEventReport = lazy(() => import('@/features/aftermath/CompletedEventReport').then(m => ({ default: m.CompletedEventReport })))
 const GuestRsvpPage = lazy(() => import('@/features/guests/GuestRsvpPage').then(m => ({ default: m.GuestRsvpPage })))
+const LeadsPage = lazy(() => import('@/features/leads/LeadsPage').then(m => ({ default: m.LeadsPage })))
+const ProposalsPage = lazy(() => import('@/features/proposals/ProposalsPage').then(m => ({ default: m.ProposalsPage })))
+const InvoicesPage = lazy(() => import('@/features/invoicing/InvoicesPage').then(m => ({ default: m.InvoicesPage })))
+const CalendarPage = lazy(() => import('@/features/calendar/CalendarPage').then(m => ({ default: m.CalendarPage })))
+const ChatPage = lazy(() => import('@/features/chat/ChatPage').then(m => ({ default: m.ChatPage })))
+const ChecklistsPage = lazy(() => import('@/features/checklists/ChecklistsPage').then(m => ({ default: m.ChecklistsPage })))
+const NotebookPage = lazy(() => import('@/features/notebook/NotebookPage').then(m => ({ default: m.NotebookPage })))
+const QuestionnairesPage = lazy(() => import('@/features/questionnaires/QuestionnairesPage').then(m => ({ default: m.QuestionnairesPage })))
+const QuestionnaireFormPage = lazy(() => import('@/pages/questionnaire/QuestionnaireFormPage').then(m => ({ default: m.QuestionnaireFormPage })))
 import { PremiumModalContainer } from '@/components/ui/PremiumModal'
 import { NotificationsDrawer } from '@/features/notifications/NotificationsDrawer'
 import { AlertTriangle, Terminal, ExternalLink, RefreshCw } from 'lucide-react'
@@ -578,6 +587,11 @@ export function App() {
             <GuestRsvpPage />
           </Suspense>
         } />
+        <Route path="/questionnaire/:id" element={
+          <Suspense fallback={<div className="empty-state"><div className="empty-state__title">Loading...</div></div>}>
+            <QuestionnaireFormPage />
+          </Suspense>
+        } />
         <Route path="/onboarding/planner" element={
           <AuthGuard><PlannerOnboarding /></AuthGuard>
         } />
@@ -682,6 +696,36 @@ export function App() {
                 <RoleGuard allowedRole="planner"><FinancialsPage /></RoleGuard>
               </Suspense>
             } />
+          <Route path="/events/:id/proposals" element={
+            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
+              <ProposalsPage />
+            </Suspense>
+          } />
+          <Route path="/events/:id/invoices" element={
+            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
+              <InvoicesPage />
+            </Suspense>
+          } />
+          <Route path="/events/:id/chat" element={
+            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
+              <ChatPage />
+            </Suspense>
+          } />
+          <Route path="/events/:id/checklists" element={
+            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
+              <ChecklistsPage />
+            </Suspense>
+          } />
+          <Route path="/events/:id/notebook" element={
+            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
+              <NotebookPage />
+            </Suspense>
+          } />
+          <Route path="/events/:id/questionnaires" element={
+            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
+              <QuestionnairesPage />
+            </Suspense>
+          } />
             <Route path="/vendors" element={
               <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
                 <VendorsPage />
@@ -692,6 +736,21 @@ export function App() {
                 <VendorDirectoryPage />
               </Suspense>
             } />
+          <Route path="/leads" element={
+            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
+              <LeadsPage />
+            </Suspense>
+          } />
+          <Route path="/calendar" element={
+            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
+              <CalendarPage />
+            </Suspense>
+          } />
+          <Route path="/proposals" element={
+            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
+              <ProposalsPage />
+            </Suspense>
+          } />
           <Route path="/notifications" element={
             <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
               <NotificationsPage />

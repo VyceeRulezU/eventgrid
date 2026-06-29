@@ -1,0 +1,89 @@
+.pageHeroActions {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .pageHeroActions {
+    width: 100%;
+  }
+  .pageHeroActions > * {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.table th {
+  text-align: left;
+  padding: 10px 12px;
+  font-weight: 600;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-1);
+}
+
+.table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  vertical-align: middle;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tr:hover td {
+  background: var(--color-surface-1);
+}
+
+.clientName {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.contactInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+}
+
+.contactInfo span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sourceBadge {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  text-transform: capitalize;
+  background: var(--color-surface-2);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.statusDot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+}

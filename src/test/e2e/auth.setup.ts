@@ -105,22 +105,28 @@ setup('authenticate', async ({ page, baseURL }) => {
   const actionLink = data.properties.action_link
   console.log('Navigating browser to magic link...')
 
-  // Supabase verifies the token and HTTP-redirects the browser to appUrl with session in hash.
-  await page.goto(actionLink, { waitUntil: 'load' })
-
-  // Safety wait: ensure we've left the Supabase auth server domain
-  await page.waitForURL((url) => !url.href.includes('supabase.co'), { timeout: 30000 })
-
-  const finalUrl = page.url()
-  console.log('appUrl:', appUrl)
-  console.log('finalUrl:', finalUrl)
-
-  // If redirected to production site instead of local appUrl due to Supabase redirect restrictions
-  if (!finalUrl.includes(appUrl) && finalUrl.includes('#access_token=')) {
-    const hash = finalUrl.split('#')[1]
-    console.log('Copying auth hash to local dev URL...')
-    await page.goto(appUrl + '/#' + hash, { waitUntil: 'load' })
+  // Intercept the redirect in Node to prevent the browser from loading the production site
+  // and consuming the PKCE one-time code before the local app can exchange it.
+  let localLoginUrl = actionLink
+  try {
+    const res = await fetch(actionLink, { method: 'GET', redirect: 'manual' })
+    const redirectUrl = res.headers.get('location')
+    if (redirectUrl) {
+      console.log('Intercepted redirect URL:', redirectUrl)
+      const parsedRedirect = new URL(redirectUrl)
+      const localUrlObj = new URL(appUrl)
+      parsedRedirect.protocol = localUrlObj.protocol
+      parsedRedirect.host = localUrlObj.host
+      parsedRedirect.port = localUrlObj.port
+      localLoginUrl = parsedRedirect.toString()
+      console.log('Mapped local login URL:', localLoginUrl)
+    }
+  } catch (err) {
+    console.error('Failed to intercept redirect in Node fetch, falling back to browser navigation:', err)
   }
+
+  // Navigate directly to the local dev URL with the authentication parameters
+  await page.goto(localLoginUrl, { waitUntil: 'load' })
 
   // Ensure the authentication state is fully loaded and processed locally
   await page.waitForSelector('header', { state: 'visible', timeout: 15000 })

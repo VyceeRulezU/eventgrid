@@ -1,0 +1,23 @@
+.questionRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: var(--color-surface-1);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+}
+
+.addQForm {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+  align-items: center;
+}
+
+.responseCard {
+  padding: 8px;
+  background: var(--color-surface-1);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+}

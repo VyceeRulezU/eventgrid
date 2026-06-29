@@ -12,6 +12,7 @@ import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { Tabs } from '@/components/ui/Tabs'
 import { sendInvite } from '@/lib/edgeFunctions'
 import { SeatingPage } from '@/features/guests/seating/SeatingPage'
+import { GuestMessages } from '@/features/guests/GuestMessages'
 import type { Guest, SeatingTable } from '@/types'
 
 import { Checkbox } from '@/components/ui/Checkbox'
@@ -583,6 +584,10 @@ export function GuestManagementPage() {
           </div>
         </div>
       )}
+
+      <div style={{ marginTop: 'var(--space-6)' }}>
+        <GuestMessages eventId={eventId} />
+      </div>
 
     </div>
     </div>
