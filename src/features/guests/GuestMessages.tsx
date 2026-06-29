@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Send, MessageSquare, History } from 'lucide-react'
+import { Send, MessageSquare } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'

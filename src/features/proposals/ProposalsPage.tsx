@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Plus, X, FileSignature, Send, CheckCircle, XCircle } from 'lucide-react'
+import { Plus, X, FileSignature, Send, CheckCircle, XCircle, Calendar } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { PageHero } from '@/components/shared/PageHero'
 import { Tabs } from '@/components/ui/Tabs'
+import { CalendarModal } from '@/components/ui/CalendarModal'
 import { useResolvedEventId } from '@/hooks/useResolvedEventId'
 import styles from './ProposalsPage.module.css'
 import type { Proposal, ProposalSection } from '@/types'
@@ -22,7 +23,6 @@ function fmtMoney(kobo: number) {
 
 export function ProposalsPage() {
   const { id: paramId } = useParams<{ id: string }>()
-  const navigate = useNavigate()
   const eventId = useResolvedEventId().eventId
   const user = useAuthStore((s) => s.user)
   const profile = useAuthStore((s) => s.profile)
@@ -32,6 +32,7 @@ export function ProposalsPage() {
   const [proposals, setProposals] = useState<Proposal[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
+  const [showValidUntil, setShowValidUntil] = useState(false)
   const [saving, setSaving] = useState(false)
   const [activeTab, setActiveTab] = useState('all')
 
@@ -140,7 +141,12 @@ export function ProposalsPage() {
               <div className="input-wrapper"><label className="input-label">Title *</label><input className="input" value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="e.g. Wedding Planning Proposal" /></div>
               <div className="input-wrapper"><label className="input-label">Description</label><textarea className="input" rows={2} value={form.description} onChange={e => setForm({...form, description: e.target.value})} /></div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div className="input-wrapper"><label className="input-label">Valid Until</label><input className="input" type="date" value={form.validUntil} onChange={e => setForm({...form, validUntil: e.target.value})} /></div>
+                <div className="input-wrapper"><label className="input-label">Valid Until</label>
+                  <button className="input" type="button" onClick={() => setShowValidUntil(true)} style={{ textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Calendar size={14} /> {form.validUntil ? new Date(form.validUntil + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Select date...'}
+                  </button>
+                  <CalendarModal open={showValidUntil} value={form.validUntil} onChange={d => { setForm({...form, validUntil: d}); setShowValidUntil(false) }} onClose={() => setShowValidUntil(false)} />
+                </div>
                 <div className="input-wrapper"><label className="input-label">Client Email</label><input className="input" type="email" value={form.clientEmail} onChange={e => setForm({...form, clientEmail: e.target.value})} placeholder="client@example.com" /></div>
               </div>
 

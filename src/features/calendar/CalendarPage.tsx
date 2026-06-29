@@ -24,7 +24,6 @@ export function CalendarPage() {
   const today = new Date()
   const [viewDate, setViewDate] = useState(new Date())
   const [events, setEvents] = useState<CalendarEvent[]>([])
-  const [loading, setLoading] = useState(true)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
 
   const year = viewDate.getFullYear()
@@ -37,7 +36,6 @@ export function CalendarPage() {
   useEffect(() => { loadEvents() }, [user, profile])
 
   async function loadEvents() {
-    setLoading(true)
     const all: CalendarEvent[] = []
     let evtQuery = supabase.from('events').select('id, name, event_date, status, slug').is('deleted_at', null)
     if (profile?.org_id) {
@@ -61,7 +59,6 @@ export function CalendarPage() {
     }
 
     setEvents(all)
-    setLoading(false)
   }
 
   function prevMonth() {

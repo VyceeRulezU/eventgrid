@@ -11,8 +11,6 @@ import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 export function ChatPage() {
   const { id: eventId } = useParams<{ id: string }>()
   const user = useAuthStore((s) => s.user)
-  const profile = useAuthStore((s) => s.profile)
-
   const [messages, setMessages] = useState<(EventChatMessage & { profile?: { display_name: string | null; avatar_url: string | null } })[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(true)
