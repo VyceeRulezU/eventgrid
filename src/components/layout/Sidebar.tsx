@@ -6,7 +6,7 @@ import {
   Settings, LogOut, X, ArrowLeft, ListChecks, Radio,
   FileText, TrendingUp, MessageSquare, Bell, Image,
   PanelLeftClose, PanelLeft, Mail, UserPlus, ClipboardList,
-  FileSignature, CheckSquare, MessageCircle, Receipt,
+  FileSignature, CheckSquare, ReceiptText,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { useNotificationStore } from '@/store/notification.store'
@@ -80,6 +80,10 @@ export function Sidebar() {
     managementItems.push({ to: '/calendar', label: 'Calendar', icon: Calendar })
   }
 
+  if (role === 'planner' || role === 'coordinator' || isAdmin || hasOriginalRole) {
+    managementItems.push({ to: '/proposals', label: 'Proposals', icon: FileSignature })
+  }
+
   const categories: NavCategory[] = [
     { label: 'Main', items: mainItems },
     { label: 'Management', items: managementItems },
@@ -92,12 +96,10 @@ export function Sidebar() {
         { to: `/events/${eventId}/vendors`, label: 'Vendors', icon: Users },
         { to: `/events/${eventId}/guests`, label: 'Guests', icon: Calendar },
         { to: `/events/${eventId}/tasks`, label: 'Tasks', icon: ListChecks },
-        { to: `/events/${eventId}/chat`, label: 'Chat', icon: MessageCircle },
         { to: `/events/${eventId}/live-board`, label: 'Live Feed', icon: Radio },
         { to: `/events/${eventId}/checklists`, label: 'Checklists', icon: CheckSquare },
         { to: `/events/${eventId}/notebook`, label: 'Notebook', icon: BookOpen },
-        { to: `/events/${eventId}/proposals`, label: 'Proposals', icon: FileSignature },
-        { to: `/events/${eventId}/invoices`, label: 'Invoices', icon: Receipt },
+        { to: `/events/${eventId}/invoices`, label: 'Invoices', icon: ReceiptText },
         { to: `/events/${eventId}/questionnaires`, label: 'Surveys', icon: ClipboardList },
         { to: `/events/${eventId}/aftermath`, label: 'Aftermath', icon: FileText },
         { to: `/events/${eventId}/assets`, label: 'Assets', icon: Image },

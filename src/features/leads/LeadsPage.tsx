@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, X, Users, Mail, Phone, Calendar } from 'lucide-react'
+import { Plus, X, Users, Mail, Phone, Calendar, Pencil } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -9,6 +9,7 @@ import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { Tabs } from '@/components/ui/Tabs'
 import { useSearch } from '@/hooks/useSearch'
 import { PageHero } from '@/components/shared/PageHero'
+import { CalendarModal } from '@/components/ui/CalendarModal'
 import styles from './LeadsPage.module.css'
 import type { Lead } from '@/types'
 
@@ -36,6 +37,7 @@ export function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
+  const [showPreferredDate, setShowPreferredDate] = useState(false)
   const [saving, setSaving] = useState(false)
   const [selectedStatus, setSelectedStatus] = useState<string>('all')
   const [editingLead, setEditingLead] = useState<Lead | null>(null)
@@ -213,7 +215,12 @@ export function LeadsPage() {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div className="input-wrapper"><label className="input-label">Budget Range</label><input className="input" value={form.budgetRange} onChange={e => setForm({...form, budgetRange: e.target.value})} placeholder="e.g. ₦500K-1M" /></div>
-                <div className="input-wrapper"><label className="input-label">Preferred Date</label><input className="input" type="date" value={form.preferredDate} onChange={e => setForm({...form, preferredDate: e.target.value})} /></div>
+                <div className="input-wrapper"><label className="input-label">Preferred Date</label>
+                  <button className="input" type="button" onClick={() => setShowPreferredDate(true)} style={{ textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Calendar size={14} /> {form.preferredDate ? new Date(form.preferredDate + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Select date...'}
+                  </button>
+                  <CalendarModal open={showPreferredDate} value={form.preferredDate} onChange={d => { setForm({...form, preferredDate: d}); setShowPreferredDate(false) }} onClose={() => setShowPreferredDate(false)} />
+                </div>
               </div>
               <div className="input-wrapper"><label className="input-label">Guest Count</label><input className="input" type="number" value={form.guestCountEstimate} onChange={e => setForm({...form, guestCountEstimate: Number(e.target.value)})} /></div>
               <div className="input-wrapper"><label className="input-label">Notes</label><textarea className="input" rows={3} value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} /></div>
@@ -278,7 +285,7 @@ export function LeadsPage() {
                         {lead.status !== 'converted' && lead.status !== 'lost' && (
                           <button className="btn btn-ghost btn-icon btn-xs" onClick={() => handleConvert(lead)} title="Convert to event"><Calendar size={14} /></button>
                         )}
-                        <button className="btn btn-ghost btn-icon btn-xs" onClick={() => openEdit(lead)} title="Edit"><X size={14} style={{ transform: 'rotate(0)', padding: 1 }} /></button>
+                        <button className="btn btn-ghost btn-icon btn-xs" onClick={() => openEdit(lead)} title="Edit"><Pencil size={14} /></button>
                         <button className="btn btn-ghost btn-icon btn-xs" onClick={() => handleDelete(lead)} title="Delete"><X size={14} /></button>
                       </div>
                     </td>

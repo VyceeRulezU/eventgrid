@@ -9,6 +9,9 @@ import { supabase } from '@/lib/supabase'
 import styles from './TopBar.module.css'
 
 const routeMeta: Record<string, { title: string; subtitle: string }> = {
+  '/leads':                { title: 'Leads', subtitle: 'Track and convert prospects' },
+  '/proposals':            { title: 'Proposals', subtitle: 'Create and send proposals' },
+  '/calendar':             { title: 'Calendar', subtitle: 'View events and tasks' },
   '/dashboard/planner':   { title: 'Dashboard', subtitle: 'Overview of your events and tasks' },
   '/dashboard/coordinator': { title: 'Dashboard', subtitle: 'Your assigned projects' },
   '/dashboard/my-tasks':   { title: 'My Tasks', subtitle: 'Tasks assigned to you across all events' },
@@ -54,7 +57,7 @@ export function TopBar() {
 
   const meta = routeMeta[location.pathname] ?? getDynamicMeta(location.pathname)
   const isEventDetail = /^\/events\/[^/]+$/.test(location.pathname)
-  const isEventModule = /^\/events\/[^/]+\/(team|tasks|vendors|guests|live-board|aftermath|assets|financials|report)$/.test(location.pathname)
+  const isEventModule = /^\/events\/[^/]+\/(team|tasks|vendors|guests|live-board|aftermath|assets|financials|report|proposals|invoices|checklists|notebook|questionnaires)$/.test(location.pathname)
   const showBack = isEventDetail || isEventModule
 
   function getDynamicMeta(path: string): { title: string; subtitle: string } {
@@ -67,6 +70,11 @@ export function TopBar() {
     if (/^\/events\/[^/]+\/aftermath$/.test(path)) return { title: 'Aftermath', subtitle: 'Event reports' }
     if (/^\/events\/[^/]+\/assets$/.test(path)) return { title: 'Assets', subtitle: 'Inspiration and assets' }
     if (/^\/events\/[^/]+\/report$/.test(path)) return { title: 'Event Report', subtitle: '' }
+    if (/^\/events\/[^/]+\/proposals$/.test(path)) return { title: 'Proposals', subtitle: 'Create and send proposals' }
+    if (/^\/events\/[^/]+\/invoices$/.test(path)) return { title: 'Invoices', subtitle: 'Send invoices and track payments' }
+    if (/^\/events\/[^/]+\/checklists$/.test(path)) return { title: 'Checklists', subtitle: 'Event task checklists' }
+    if (/^\/events\/[^/]+\/notebook$/.test(path)) return { title: 'Notebook', subtitle: 'Event notes and ideas' }
+    if (/^\/events\/[^/]+\/questionnaires$/.test(path)) return { title: 'Questionnaires', subtitle: 'Client feedback surveys' }
     if (/^\/events\/[^/]+$/.test(path)) return { title: 'Event Dashboard', subtitle: '' }
     return { title: 'NaliGrid', subtitle: '' }
   }

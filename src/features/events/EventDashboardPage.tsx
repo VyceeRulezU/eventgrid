@@ -10,7 +10,7 @@ import {
   ExternalLink, FileText, CheckCircle2, Circle,
   CreditCard, Radio, ListChecks, BarChart3,
   Clock, ArrowRight, Zap, X, Pencil, Gift, Image, Trash2, Plus,
-  CheckSquare, BookOpen, MessageCircle, ClipboardList, Receipt, FileSignature,
+  CheckSquare, BookOpen, ClipboardList, ReceiptText, FileSignature,
 } from 'lucide-react'
 import { PageHero } from '@/components/shared/PageHero'
 import { ModuleLock } from '@/components/shared/ModuleLock'
@@ -1412,7 +1412,7 @@ export function EventDashboardPage() {
                   </div>
                 </Link>
                 <Link to={`/events/${id}/invoices`} className={styles.moduleCard}>
-                  <div className={styles.moduleIcon} style={{ background: 'rgba(34,197,94,0.12)', color: 'var(--color-success)' }}><Receipt size={18} /></div>
+                  <div className={styles.moduleIcon} style={{ background: 'rgba(34,197,94,0.12)', color: 'var(--color-success)' }}><ReceiptText size={18} /></div>
                   <div className={styles.moduleInfo}>
                     <span className={styles.moduleTitle}>Invoicing</span>
                     <span className={styles.moduleDesc}>Send invoices and track payments</span>
@@ -1461,13 +1461,6 @@ export function EventDashboardPage() {
           <div className={styles.moduleCategorySection}>
             <h3 className={styles.moduleCategoryTitle}>Communication & Documentation</h3>
             <div className={styles.modulesGrid}>
-              <Link to={`/events/${id}/chat`} className={styles.moduleCard}>
-                <div className={styles.moduleIcon} style={{ background: 'rgba(59,130,246,0.12)', color: '#3B82F6' }}><MessageCircle size={18} /></div>
-                <div className={styles.moduleInfo}>
-                  <span className={styles.moduleTitle}>Team Chat</span>
-                  <span className={styles.moduleDesc}>Real-time team messaging</span>
-                </div>
-              </Link>
               <Link to={`/events/${id}/checklists`} className={styles.moduleCard}>
                 <div className={styles.moduleIcon} style={{ background: 'rgba(245,158,11,0.12)', color: '#F59E0B' }}><CheckSquare size={18} /></div>
                 <div className={styles.moduleInfo}>

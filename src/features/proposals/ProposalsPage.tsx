@@ -30,6 +30,7 @@ export function ProposalsPage() {
 
   const isEventMode = !!paramId
   const [proposals, setProposals] = useState<Proposal[]>([])
+  const [eventName, setEventName] = useState('')
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [showValidUntil, setShowValidUntil] = useState(false)
@@ -49,8 +50,13 @@ export function ProposalsPage() {
   async function loadProposals() {
     setLoading(true)
     let query = supabase.from('proposals').select('*').order('created_at', { ascending: false })
-    if (isEventMode && eventId) query = query.eq('event_id', eventId)
-    else query = query.eq('created_by', user!.id)
+    if (isEventMode && eventId) {
+      query = query.eq('event_id', eventId)
+      const { data: evt } = await supabase.from('events').select('name').eq('id', eventId).single()
+      if (evt) setEventName(evt.name)
+    } else {
+      query = query.eq('created_by', user!.id)
+    }
     const { data } = await query
     if (data) setProposals(data as Proposal[])
     setLoading(false)
@@ -162,7 +168,7 @@ export function ProposalsPage() {
                         <strong style={{ fontSize: 'var(--text-sm)' }}>{s.title}</strong>
                         {s.description && <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>{s.description}</div>}
                       </div>
-                      <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)', whiteSpace: 'nowrap' }}>{fmtMoney(s.amount)}</div>
+                      <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)', whiteSpace: 'nowrap' }}>{fmtMoney(s.amount ?? 0)}</div>
                       <button className="btn btn-ghost btn-icon btn-xs" onClick={() => removeSection(i)}><X size={14} /></button>
                     </div>
                   ))}

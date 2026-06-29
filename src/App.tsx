@@ -98,7 +98,7 @@ const LeadsPage = lazy(() => import('@/features/leads/LeadsPage').then(m => ({ d
 const ProposalsPage = lazy(() => import('@/features/proposals/ProposalsPage').then(m => ({ default: m.ProposalsPage })))
 const InvoicesPage = lazy(() => import('@/features/invoicing/InvoicesPage').then(m => ({ default: m.InvoicesPage })))
 const CalendarPage = lazy(() => import('@/features/calendar/CalendarPage').then(m => ({ default: m.CalendarPage })))
-const ChatPage = lazy(() => import('@/features/chat/ChatPage').then(m => ({ default: m.ChatPage })))
+
 const ChecklistsPage = lazy(() => import('@/features/checklists/ChecklistsPage').then(m => ({ default: m.ChecklistsPage })))
 const NotebookPage = lazy(() => import('@/features/notebook/NotebookPage').then(m => ({ default: m.NotebookPage })))
 const QuestionnairesPage = lazy(() => import('@/features/questionnaires/QuestionnairesPage').then(m => ({ default: m.QuestionnairesPage })))
@@ -704,11 +704,6 @@ export function App() {
           <Route path="/events/:id/invoices" element={
             <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
               <InvoicesPage />
-            </Suspense>
-          } />
-          <Route path="/events/:id/chat" element={
-            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
-              <ChatPage />
             </Suspense>
           } />
           <Route path="/events/:id/checklists" element={

@@ -586,7 +586,7 @@ export function GuestManagementPage() {
       )}
 
       <div style={{ marginTop: 'var(--space-6)' }}>
-        <GuestMessages eventId={eventId} />
+        <GuestMessages eventId={eventId!} />
       </div>
 
     </div>

@@ -92,7 +92,7 @@ export function ChecklistsPage() {
 
   return (
     <div>
-      <PageHero icon={CheckSquare} title="Checklists"
+      <PageHero icon={CheckSquare} title="Checklists" subtitle="Create and track event task checklists"
         actions={
           <button className="btn btn-primary btn-sm" onClick={() => setShowForm(true)}>
             <Plus size={16} /> New Checklist

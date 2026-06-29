@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Plus, X, Receipt, Send, CheckCircle } from 'lucide-react'
+import { Plus, X, Receipt, Send, CheckCircle, Calendar } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { PageHero } from '@/components/shared/PageHero'
 import { Tabs } from '@/components/ui/Tabs'
+import { CalendarModal } from '@/components/ui/CalendarModal'
 import styles from './InvoicesPage.module.css'
 import type { Invoice, InvoiceItem } from '@/types'
 
@@ -22,10 +23,12 @@ export function InvoicesPage() {
   const showNotification = useUIStore((s) => s.showNotification)
 
   const [invoices, setInvoices] = useState<Invoice[]>([])
+  const [eventName, setEventName] = useState('')
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [activeTab, setActiveTab] = useState('all')
+  const [showDueDate, setShowDueDate] = useState(false)
 
   const [form, setForm] = useState({
     clientName: '', clientEmail: '', dueDate: '', notes: '',
@@ -38,8 +41,12 @@ export function InvoicesPage() {
   async function loadInvoices() {
     setLoading(true)
     if (!eventId) { setLoading(false); return }
-    const { data } = await supabase.from('invoices').select('*').eq('event_id', eventId).order('created_at', { ascending: false })
-    if (data) setInvoices(data as Invoice[])
+    const [{ data: invData }, { data: evtData }] = await Promise.all([
+      supabase.from('invoices').select('*').eq('event_id', eventId).order('created_at', { ascending: false }),
+      supabase.from('events').select('name').eq('id', eventId).single(),
+    ])
+    if (invData) setInvoices(invData as Invoice[])
+    if (evtData) setEventName(evtData.name)
     setLoading(false)
   }
 
@@ -97,7 +104,7 @@ export function InvoicesPage() {
 
   return (
     <div>
-      <PageHero icon={Receipt} title="Invoices"
+      <PageHero icon={Receipt} title={`Invoices${eventName ? ` | ${eventName}` : ''}`}
         actions={<button className="btn btn-primary btn-sm" onClick={() => setShowForm(true)}><Plus size={16} /> New Invoice</button>}
       />
 
@@ -117,7 +124,12 @@ export function InvoicesPage() {
                 <div className="input-wrapper"><label className="input-label">Client Email</label><input className="input" type="email" value={form.clientEmail} onChange={e => setForm({...form, clientEmail: e.target.value})} /></div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div className="input-wrapper"><label className="input-label">Due Date</label><input className="input" type="date" value={form.dueDate} onChange={e => setForm({...form, dueDate: e.target.value})} /></div>
+                <div className="input-wrapper"><label className="input-label">Due Date</label>
+                  <button className="input" type="button" onClick={() => setShowDueDate(true)} style={{ textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Calendar size={14} /> {form.dueDate ? new Date(form.dueDate + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Select date...'}
+                  </button>
+                  <CalendarModal open={showDueDate} value={form.dueDate} onChange={d => { setForm({...form, dueDate: d}); setShowDueDate(false) }} onClose={() => setShowDueDate(false)} />
+                </div>
                 <div className="input-wrapper"><label className="input-label">Discount (₦)</label><input className="input" type="number" value={form.discount || ''} onChange={e => setForm({...form, discount: Number(e.target.value)})} /></div>
               </div>
 

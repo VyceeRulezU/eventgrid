@@ -89,7 +89,7 @@ export function NotebookPage() {
 
   return (
     <div>
-      <PageHero icon={BookOpen} title="Notebook"
+      <PageHero icon={BookOpen} title="Notebook" subtitle="Capture notes, ideas, and important details"
         actions={
           <button className="btn btn-primary btn-sm" onClick={() => { setEditingNote(null); resetForm(); setShowForm(true) }}>
             <Plus size={16} /> New Note

@@ -160,7 +160,7 @@ export function QuestionnairesPage() {
 
   return (
     <div>
-      <PageHero icon={ClipboardList} title="Questionnaires"
+      <PageHero icon={ClipboardList} title="Questionnaires" subtitle="Collect client feedback with custom surveys"
         actions={
           <button className="btn btn-primary btn-sm" onClick={() => setShowForm(true)}>
             <Plus size={16} /> New Questionnaire

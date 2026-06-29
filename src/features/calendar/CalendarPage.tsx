@@ -93,7 +93,7 @@ export function CalendarPage() {
 
   return (
     <div>
-      <PageHero icon={CalendarIcon} title="Calendar" />
+      <PageHero icon={CalendarIcon} title="Calendar" subtitle="View events and tasks at a glance" />
 
       <div className={styles.layout}>
         <div className={styles.calCard}>
