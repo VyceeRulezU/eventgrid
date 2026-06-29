@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
-  Building, Calendar, Plus, Users, Wallet, ChevronRight,
-  Loader2, Star, Activity, ListChecks, Clock,
-  CheckCircle, FileText, UserPlus, AlertTriangle,
+  Calendar, Plus, Users, Wallet, ChevronRight,
+  Star, Activity, ListChecks,
+  CheckCircle, FileText, UserPlus,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'

@@ -13,7 +13,7 @@ export function LoginPage() {
   const prefilledEmail = searchParams.get('email') || ''
   const isVerified = searchParams.get('verified') === 'true'
   const [email, setEmail] = useState(prefilledEmail)
-  const [emailLocked, setEmailLocked] = useState(!!prefilledEmail)
+  const [emailLocked] = useState(!!prefilledEmail)
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const { token: captchaTokenValue, setToken: setCaptchaToken, getToken: getCaptchaToken } = useCaptchaToken()
