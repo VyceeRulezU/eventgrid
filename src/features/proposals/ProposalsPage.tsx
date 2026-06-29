@@ -308,7 +308,6 @@ export function ProposalsPage() {
     }
     setSendingEmail(true)
     const grouped = groupedSectionsFor(proposal)
-    const sections = activeSectionsFor(proposal)
     try {
       let base64Content = ''
       let filename = ''
