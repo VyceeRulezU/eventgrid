@@ -119,7 +119,7 @@ export function ProposalsPage() {
 
   return (
     <div>
-      <PageHero icon={FileSignature} title="Proposals & Quotes"
+      <PageHero icon={FileSignature} title={`Proposals & Quotes${isEventMode && eventName ? ` | ${eventName}` : ''}`}
         actions={
           <button className="btn btn-primary btn-sm" onClick={() => setShowForm(true)}>
             <Plus size={16} /> New Proposal
