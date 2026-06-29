@@ -23,7 +23,7 @@ function fmtMoney(kobo: number) {
 
 export function ProposalsPage() {
   const { id: paramId } = useParams<{ id: string }>()
-  const eventId = useResolvedEventId().eventId
+  const { eventId, isReadOnly } = useResolvedEventId()
   const user = useAuthStore((s) => s.user)
   const profile = useAuthStore((s) => s.profile)
   const showNotification = useUIStore((s) => s.showNotification)
@@ -121,9 +121,11 @@ export function ProposalsPage() {
     <div>
       <PageHero icon={FileSignature} title={`Proposals & Quotes${isEventMode && eventName ? ` | ${eventName}` : ''}`}
         actions={
-          <button className="btn btn-primary btn-sm" onClick={() => setShowForm(true)}>
-            <Plus size={16} /> New Proposal
-          </button>
+          !isReadOnly && (
+            <button className="btn btn-primary btn-sm" onClick={() => setShowForm(true)}>
+              <Plus size={16} /> New Proposal
+            </button>
+          )
         }
       />
 
@@ -218,17 +220,19 @@ export function ProposalsPage() {
                   <span>{new Date(p.created_at).toLocaleDateString()}</span>
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                {p.status === 'draft' && (
-                  <button className="btn btn-primary btn-sm" onClick={() => updateStatus(p, 'sent')}><Send size={14} /> Send</button>
-                )}
-                {(p.status === 'sent' || p.status === 'viewed') && (
-                  <>
-                    <button className="btn btn-success btn-sm" onClick={() => updateStatus(p, 'accepted')}><CheckCircle size={14} /> Accept</button>
-                    <button className="btn btn-danger btn-sm" onClick={() => updateStatus(p, 'rejected')}><XCircle size={14} /> Reject</button>
-                  </>
-                )}
-              </div>
+              {!isReadOnly && (
+                <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                  {p.status === 'draft' && (
+                    <button className="btn btn-primary btn-sm" onClick={() => updateStatus(p, 'sent')}><Send size={14} /> Send</button>
+                  )}
+                  {(p.status === 'sent' || p.status === 'viewed') && (
+                    <>
+                      <button className="btn btn-success btn-sm" onClick={() => updateStatus(p, 'accepted')}><CheckCircle size={14} /> Accept</button>
+                      <button className="btn btn-danger btn-sm" onClick={() => updateStatus(p, 'rejected')}><XCircle size={14} /> Reject</button>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         ))}

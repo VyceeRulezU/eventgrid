@@ -55,9 +55,10 @@ interface TaskDetailModalProps {
   onClose: () => void
   onUpdate: () => Promise<void> | void
   phases?: { id: string; phase_name: string }[]
+  readOnly?: boolean
 }
 
-export function TaskDetailModal({ task, onClose, onUpdate, phases: initialPhases }: TaskDetailModalProps) {
+export function TaskDetailModal({ task, onClose, onUpdate, phases: initialPhases, readOnly }: TaskDetailModalProps) {
   const user = useAuthStore((s) => s.user)
   const role = useAuthStore((s) => s.role)
   const showNotification = useUIStore((s) => s.showNotification)
@@ -241,7 +242,7 @@ export function TaskDetailModal({ task, onClose, onUpdate, phases: initialPhases
 
   const overdue = !!task.due_datetime && task.status !== 'done' && new Date(task.due_datetime) < new Date()
   const eventRole = members.find(m => m.user_id === user?.id)?.role
-  const isManager = role === 'planner' || role === 'coordinator' || role === 'super_admin' || eventRole === 'coordinator'
+  const isManager = (role === 'planner' || role === 'coordinator' || role === 'super_admin' || eventRole === 'coordinator') && !readOnly
 
   return (
     <div className="overlay" onClick={onClose}>
@@ -440,49 +441,51 @@ export function TaskDetailModal({ task, onClose, onUpdate, phases: initialPhases
               </div>
             )}
 
-            <div onClick={(e) => e.stopPropagation()}>
-              <div className={styles.commentForm}>
-                <div className={styles.commentInputWrapper}>
-                  <label className={styles.attachBtn}>
-                    <Paperclip size={16} />
-                    <input type="file" accept="image/*,.pdf" multiple className={styles.attachInput} onChange={handlePhotoSelect} />
-                  </label>
-                  <textarea
-                    className={`input ${styles.commentTextarea}`}
-                    placeholder="Add an update, photo, or change status..."
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendUpdate() }
-                    }}
-                  />
+            {!readOnly && (
+              <div onClick={(e) => e.stopPropagation()}>
+                <div className={styles.commentForm}>
+                  <div className={styles.commentInputWrapper}>
+                    <label className={styles.attachBtn}>
+                      <Paperclip size={16} />
+                      <input type="file" accept="image/*,.pdf" multiple className={styles.attachInput} onChange={handlePhotoSelect} />
+                    </label>
+                    <textarea
+                      className={`input ${styles.commentTextarea}`}
+                      placeholder="Add an update, photo, or change status..."
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendUpdate() }
+                      }}
+                    />
+                  </div>
+                  <button
+                    className={`btn btn-primary btn-sm ${styles.sendBtn}`}
+                    onClick={handleSendUpdate}
+                    disabled={sending || (!newMessage.trim() && photoFiles.length === 0)}
+                  >
+                    <Send size={14} />
+                  </button>
                 </div>
-                <button
-                  className={`btn btn-primary btn-sm ${styles.sendBtn}`}
-                  onClick={handleSendUpdate}
-                  disabled={sending || (!newMessage.trim() && photoFiles.length === 0)}
-                >
-                  <Send size={14} />
-                </button>
-              </div>
 
-              {photoFiles.length > 0 && (
-                <div className={styles.photoPreviews}>
-                  {photoFiles.map((p, i) => (
-                    <div key={i} className={styles.photoPreview}>
-                      <img src={p.preview} alt="" className={styles.photoPreviewImg} />
-                      <button
-                        type="button"
-                        onClick={() => removePhoto(i)}
-                        className={styles.removePhotoBtn}
-                      >
-                        <X size={10} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                {photoFiles.length > 0 && (
+                  <div className={styles.photoPreviews}>
+                    {photoFiles.map((p, i) => (
+                      <div key={i} className={styles.photoPreview}>
+                        <img src={p.preview} alt="" className={styles.photoPreviewImg} />
+                        <button
+                          type="button"
+                          onClick={() => removePhoto(i)}
+                          className={styles.removePhotoBtn}
+                        >
+                          <X size={10} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

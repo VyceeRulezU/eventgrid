@@ -13,7 +13,7 @@ import type { EventNote } from '@/types'
 const CATEGORIES = ['general', 'ideas', 'todo', 'notes', 'important'] as const
 
 export function NotebookPage() {
-  const { eventId } = useResolvedEventId()
+  const { eventId, isReadOnly } = useResolvedEventId()
   const user = useAuthStore((s) => s.user)
   const showNotification = useUIStore((s) => s.showNotification)
 
@@ -91,9 +91,11 @@ export function NotebookPage() {
     <div>
       <PageHero icon={BookOpen} title="Notebook" subtitle="Capture notes, ideas, and important details"
         actions={
-          <button className="btn btn-primary btn-sm" onClick={() => { setEditingNote(null); resetForm(); setShowForm(true) }}>
-            <Plus size={16} /> New Note
-          </button>
+          !isReadOnly && (
+            <button className="btn btn-primary btn-sm" onClick={() => { setEditingNote(null); resetForm(); setShowForm(true) }}>
+              <Plus size={16} /> New Note
+            </button>
+          )
         }
       />
 
@@ -144,13 +146,15 @@ export function NotebookPage() {
           <div key={note.id} className={`card ${styles.noteCard} ${note.is_pinned ? styles.pinned : ''}`}>
             <div className={styles.noteHeader}>
               <span className={styles.categoryBadge}>{note.category}</span>
-              <div style={{ display: 'flex', gap: 4 }}>
-                <button className="btn btn-ghost btn-icon btn-xs" onClick={() => togglePin(note)} title={note.is_pinned ? 'Unpin' : 'Pin'}>
-                  {note.is_pinned ? <PinOff size={14} /> : <Pin size={14} />}
-                </button>
-                <button className="btn btn-ghost btn-icon btn-xs" onClick={() => openEdit(note)} title="Edit"><Edit3 size={14} /></button>
-                <button className="btn btn-ghost btn-icon btn-xs" onClick={() => deleteNote(note.id)} title="Delete"><Trash2 size={14} /></button>
-              </div>
+              {!isReadOnly && (
+                <div style={{ display: 'flex', gap: 4 }}>
+                  <button className="btn btn-ghost btn-icon btn-xs" onClick={() => togglePin(note)} title={note.is_pinned ? 'Unpin' : 'Pin'}>
+                    {note.is_pinned ? <PinOff size={14} /> : <Pin size={14} />}
+                  </button>
+                  <button className="btn btn-ghost btn-icon btn-xs" onClick={() => openEdit(note)} title="Edit"><Edit3 size={14} /></button>
+                  <button className="btn btn-ghost btn-icon btn-xs" onClick={() => deleteNote(note.id)} title="Delete"><Trash2 size={14} /></button>
+                </div>
+              )}
             </div>
             <h4 className={styles.noteTitle}>{note.title}</h4>
             <div className={styles.noteContent}>{note.content}</div>

@@ -25,7 +25,7 @@ import styles from './GuestManagementPage.module.css'
 type RSVP = 'pending' | 'confirmed' | 'declined' | 'maybe'
 
 export function GuestManagementPage() {
-  const { eventId } = useResolvedEventId()
+  const { eventId, isReadOnly } = useResolvedEventId()
   const showToast = useUIStore((s) => s.showToast)
   const user = useAuthStore((s) => s.user)
   const profile = useAuthStore((s) => s.profile)
@@ -279,8 +279,12 @@ export function GuestManagementPage() {
             ]}
             onSelect={(item) => setRsvpFilter(item.value as RSVP | 'all')}
           />
-          <button className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => { setShowAdd(true); setAddConsent(false) }}><Plus size={14} /> Add</button>
-          <button className="btn btn-secondary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => { setShowCSV(true); setCsvConsent(false) }}><Upload size={14} /> CSV</button>
+          {!isReadOnly && (
+            <>
+              <button className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => { setShowAdd(true); setAddConsent(false) }}><Plus size={14} /> Add</button>
+              <button className="btn btn-secondary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => { setShowCSV(true); setCsvConsent(false) }}><Upload size={14} /> CSV</button>
+            </>
+          )}
         </div>
       </div>
 
@@ -421,28 +425,32 @@ export function GuestManagementPage() {
                     <span style={{ fontSize: 'var(--text-sm)' }}>Plus One</span>
                   </div>
                   <div className={styles.guestDetailCheckRow}>
-                    <button
-                      className={`btn btn-sm ${editGuest.checked_in ? 'btn-primary' : 'btn-secondary'}`}
-                      style={{ borderRadius: 'var(--radius-sm)' }}
-                      onClick={() => setEditGuest({ ...editGuest, checked_in: !editGuest.checked_in })}
-                    >
-                      {editGuest.checked_in ? <Check size={14} /> : <UserCheck size={14} />}
-                      {editGuest.checked_in ? ' Checked In' : ' Mark Checked In'}
-                    </button>
+                    {!isReadOnly && (
+                      <button
+                        className={`btn btn-sm ${editGuest.checked_in ? 'btn-primary' : 'btn-secondary'}`}
+                        style={{ borderRadius: 'var(--radius-sm)' }}
+                        onClick={() => setEditGuest({ ...editGuest, checked_in: !editGuest.checked_in })}
+                      >
+                        {editGuest.checked_in ? <Check size={14} /> : <UserCheck size={14} />}
+                        {editGuest.checked_in ? ' Checked In' : ' Mark Checked In'}
+                      </button>
+                    )}
                     {editGuest.checked_in && (
                       <span className={styles.guestDetailNote}>
                         Checked in at {new Date(selectedGuest.checked_in_at || '').toLocaleString()}
                       </span>
                     )}
                   </div>
-                  <div className={styles.guestDetailActions}>
-                    <button className="btn btn-primary" style={{ borderRadius: 'var(--radius-sm)' }} onClick={handleSaveGuest} disabled={saving}>
-                      <Save size={14} /> {saving ? 'Saving...' : 'Save'}
-                    </button>
-                    <button className="btn btn-ghost btn-icon" style={{ color: 'var(--color-error)' }} onClick={handleDeleteGuest}>
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
+                  {!isReadOnly && (
+                    <div className={styles.guestDetailActions}>
+                      <button className="btn btn-primary" style={{ borderRadius: 'var(--radius-sm)' }} onClick={handleSaveGuest} disabled={saving}>
+                        <Save size={14} /> {saving ? 'Saving...' : 'Save'}
+                      </button>
+                      <button className="btn btn-ghost btn-icon" style={{ color: 'var(--color-error)' }} onClick={handleDeleteGuest}>
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  )}
                 </div>
               </>
             ) : (
@@ -496,7 +504,7 @@ export function GuestManagementPage() {
               filteredGuests.map((g) => {
                 const initial = (g.first_name || '?').charAt(0).toUpperCase()
                 return (
-                  <div key={g.id} className={`${styles.checkinCard} ${g.checked_in ? styles.checkedIn : ''}`} onClick={() => handleCheckin(g.id)}>
+                  <div key={g.id} className={`${styles.checkinCard} ${g.checked_in ? styles.checkedIn : ''}`} onClick={() => !isReadOnly && handleCheckin(g.id)} style={{ cursor: isReadOnly ? 'default' : 'pointer' }}>
                     <div className={styles.checkinAvatar} style={{ background: g.checked_in ? 'var(--color-success)' : 'var(--color-surface-3)' }}>
                       {initial}
                     </div>

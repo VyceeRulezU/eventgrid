@@ -10,7 +10,7 @@ import styles from './ChecklistsPage.module.css'
 import type { Checklist, ChecklistItem } from '@/types'
 
 export function ChecklistsPage() {
-  const { eventId } = useResolvedEventId()
+  const { eventId, isReadOnly } = useResolvedEventId()
   const user = useAuthStore((s) => s.user)
   const showNotification = useUIStore((s) => s.showNotification)
 
@@ -94,9 +94,11 @@ export function ChecklistsPage() {
     <div>
       <PageHero icon={CheckSquare} title="Checklists" subtitle="Create and track event task checklists"
         actions={
-          <button className="btn btn-primary btn-sm" onClick={() => setShowForm(true)}>
-            <Plus size={16} /> New Checklist
-          </button>
+          !isReadOnly && (
+            <button className="btn btn-primary btn-sm" onClick={() => setShowForm(true)}>
+              <Plus size={16} /> New Checklist
+            </button>
+          )
         }
       />
 
@@ -151,7 +153,11 @@ export function ChecklistsPage() {
                   <div className={styles.progressBar}>
                     <div className={styles.progressFill} style={{ width: `${pct}%` }} />
                   </div>
-                  <button className="btn btn-ghost btn-icon btn-xs" onClick={(e) => { e.stopPropagation(); deleteChecklist(cl.id) }} title="Delete"><Trash2 size={14} /></button>
+                  {!isReadOnly && (
+                    <button className="btn btn-ghost btn-icon btn-xs" onClick={(e) => { e.stopPropagation(); deleteChecklist(cl.id) }} title="Delete">
+                      <Trash2 size={14} />
+                    </button>
+                  )}
                 </div>
                 {isExpanded && (
                   <div className={styles.clBody}>
@@ -167,25 +173,31 @@ export function ChecklistsPage() {
                     >
                       {cl.items.map(item => (
                         <tr key={item.id}>
-                          <td style={{ width: 40 }}>
-                            <button className="btn btn-ghost btn-icon btn-xs" onClick={() => toggleItem(item)}
-                              style={{ color: item.is_checked ? 'var(--color-success)' : 'var(--color-text-muted)' }}>
-                              {item.is_checked ? <CheckSquare size={16} /> : <Square size={16} />}
-                            </button>
-                          </td>
-                          <td><span className={`${styles.itemText} ${item.is_checked ? styles.done : ''}`}>{item.text}</span></td>
-                          <td style={{ width: 40 }}>
-                            <button className="btn btn-ghost btn-icon btn-xs" onClick={() => deleteItem(cl.id, item.id)}><X size={14} /></button>
-                          </td>
+                           <td style={{ width: 40 }}>
+                             <button className="btn btn-ghost btn-icon btn-xs" onClick={() => !isReadOnly && toggleItem(item)}
+                               style={{ color: item.is_checked ? 'var(--color-success)' : 'var(--color-text-muted)', cursor: isReadOnly ? 'default' : 'pointer' }}>
+                               {item.is_checked ? <CheckSquare size={16} /> : <Square size={16} />}
+                             </button>
+                           </td>
+                           <td><span className={`${styles.itemText} ${item.is_checked ? styles.done : ''}`}>{item.text}</span></td>
+                           <td style={{ width: 40 }}>
+                             {!isReadOnly && (
+                               <button className="btn btn-ghost btn-icon btn-xs" onClick={() => deleteItem(cl.id, item.id)}>
+                                 <X size={14} />
+                               </button>
+                             )}
+                           </td>
                         </tr>
                       ))}
                     </Table>
-                    <div className={styles.addItemRow}>
-                      <input className="input" placeholder="Add item..." value={newItemText[cl.id] || ''}
-                        onChange={e => setNewItemText({ ...newItemText, [cl.id]: e.target.value })}
-                        onKeyDown={e => { if (e.key === 'Enter') addItem(cl.id) }} />
-                      <button className="btn btn-secondary btn-xs" onClick={() => addItem(cl.id)}>Add</button>
-                    </div>
+                    {!isReadOnly && (
+                      <div className={styles.addItemRow}>
+                        <input className="input" placeholder="Add item..." value={newItemText[cl.id] || ''}
+                          onChange={e => setNewItemText({ ...newItemText, [cl.id]: e.target.value })}
+                          onKeyDown={e => { if (e.key === 'Enter') addItem(cl.id) }} />
+                        <button className="btn btn-secondary btn-xs" onClick={() => addItem(cl.id)}>Add</button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

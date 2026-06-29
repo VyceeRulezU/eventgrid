@@ -1,0 +1,20 @@
+- [x] Implement Top tabs & Search / filter elements in `CalendarPage.tsx`
+- [x] Implement Month/Week/Day toggle controls in `CalendarPage.tsx`
+- [x] Add parsing logic for event/task times and durations
+- [x] Build the Week Timeline renderer grid and Day View grid
+- [x] Build layout and timeline styles in `CalendarPage.module.css`
+- [x] Verify functionality (switching views, searching, tab filtering)
+- [x] Create centralized permission hook resolves isReadOnly
+- [x] Implement read-only updates on Dashboard page
+- [x] Implement reactivation flow for Super Admin
+- [x] Implement read-only blocks on Event Vendors page
+- [x] Implement read-only blocks on Checklists page
+- [x] Implement read-only blocks on Proposals & Quotes page
+- [x] Implement read-only blocks on Notebook page
+- [x] Implement read-only blocks on Questionnaires page
+- [x] Implement read-only blocks on Guest Management page
+- [x] Implement read-only blocks on Invoices page
+- [x] Implement read-only blocks on Team roster and Coordination reports
+- [x] Implement read-only blocks on Task Board and Task Details
+- [x] Implement read-only blocks on Event Assets / Documents page
+- [/] Verify everything using Playwright E2E tests

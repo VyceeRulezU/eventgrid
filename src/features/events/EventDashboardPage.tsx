@@ -139,10 +139,41 @@ export function EventDashboardPage() {
 
   const [eventRole, setEventRole] = useState<string | null>(null)
 
+  const isArchived = activeEvent?.status === 'archived'
+  const isSuperAdmin = role === 'super_admin'
+  const isReadOnly = isArchived && !isSuperAdmin
+  const [reactivating, setReactivating] = useState(false)
+
+  const handleReactivateEvent = async () => {
+    if (!activeEvent) return
+    const confirmReactivate = window.confirm("Are you sure you want to reactivate this archived event?")
+    if (!confirmReactivate) return
+
+    setReactivating(true)
+    const { data, error } = await supabase
+      .from('events')
+      .update({ status: 'active', archived_at: null })
+      .eq('id', activeEvent.id)
+      .select()
+      .single()
+
+    if (error) {
+      showNotification({ variant: 'error', title: 'Reactivation failed', message: error.message })
+      setReactivating(false)
+      return
+    }
+
+    setActiveEvent(data as unknown as Event)
+    showNotification({ variant: 'success', title: 'Event reactivated successfully!' })
+    setReactivating(false)
+  }
+
   const canManagePhases =
-    (role === 'planner' && profile?.org_id === activeEvent?.org_id) ||
-    role === 'super_admin' ||
-    eventRole === 'coordinator'
+    !isReadOnly && (
+      (role === 'planner' && profile?.org_id === activeEvent?.org_id) ||
+      role === 'super_admin' ||
+      eventRole === 'coordinator'
+    )
 
   const headerInputRef = useRef<HTMLInputElement>(null)
   const [uploadingHeader, setUploadingHeader] = useState(false)
@@ -849,7 +880,18 @@ export function EventDashboardPage() {
         backTo="/events"
         actions={
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
-            {(role === 'planner' || role === 'coordinator') && (
+            {isArchived && isSuperAdmin && (
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                onClick={handleReactivateEvent}
+                disabled={reactivating}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+              >
+                <Zap size={14} /> Reactivate Event
+              </button>
+            )}
+            {!isReadOnly && (role === 'planner' || role === 'coordinator') && (
               <>
                 <input
                   ref={headerInputRef}
@@ -870,9 +912,11 @@ export function EventDashboardPage() {
                 </button>
               </>
             )}
-            <button type="button" className={`${styles.headerEditBtn} ${styles.mobileHide}`} onClick={() => setShowEditModal(true)} aria-label="Edit event">
-              <Pencil size={14} />
-            </button>
+            {!isReadOnly && (
+              <button type="button" className={`${styles.headerEditBtn} ${styles.mobileHide}`} onClick={() => setShowEditModal(true)} aria-label="Edit event">
+                <Pencil size={14} />
+              </button>
+            )}
             <span className={`badge badge-${statusBadge} ${styles.mobileHide}`}>
               <span className="badge-dot" />
               {activeEvent.status.replace('_', ' ')}
@@ -904,8 +948,27 @@ export function EventDashboardPage() {
         }
       />
 
+      {isArchived && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'var(--space-2)',
+          padding: 'var(--space-3) var(--space-4)',
+          backgroundColor: 'rgba(212, 160, 23, 0.08)',
+          border: '1px solid rgba(212, 160, 23, 0.2)',
+          borderRadius: 'var(--radius-lg)',
+          color: 'var(--color-warning)',
+          fontSize: 'var(--text-sm)',
+          fontWeight: 600,
+          marginBottom: 'var(--space-4)'
+        }}>
+          <AlertTriangle size={16} />
+          This event is archived and is in read-only mode.
+        </div>
+      )}
+
       {/* ── 2. Next Step Context Alert Card ── */}
-      {renderNextStepCard()}
+      {!isReadOnly && renderNextStepCard()}
 
       {/* ── 3. Tab Navigation ── */}
       <Tabs
@@ -1188,7 +1251,7 @@ export function EventDashboardPage() {
               Phase Milestones & Deliverables
             </div>
             <div style={{ padding: '0 var(--space-5) var(--space-5)' }}>
-              <PhaseTimelineTracker phases={phases} event={activeEvent} />
+              <PhaseTimelineTracker phases={phases} event={activeEvent} readOnly={isReadOnly} />
             </div>
           </div>
         </div>

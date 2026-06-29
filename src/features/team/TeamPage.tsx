@@ -82,7 +82,7 @@ function reportStatusColor(status?: string) {
 }
 
 export function TeamPage() {
-  const { eventId } = useResolvedEventId()
+  const { eventId, isReadOnly } = useResolvedEventId()
   const user = useAuthStore((s) => s.user)
   const profile = useAuthStore((s) => s.profile)
   const role = useAuthStore((s) => s.role)
@@ -497,31 +497,33 @@ export function TeamPage() {
         title={`Team${eventName ? ` | ${eventName}` : ''}`}
         subtitle={`${allMembers.length} member${allMembers.length !== 1 ? 's' : ''} · ${reports.length} report${reports.length !== 1 ? 's' : ''}`}
         actions={
-          <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
-            {(role as string) !== 'planner' && (
-              <button className="btn btn-secondary btn-sm" onClick={() => { setReportStatus('update'); setReportMessage(''); setEditingReportId(null); setReportModalMode('create'); setActiveTab('reports') }}>
-                <Send size={14} />
-                Submit Report
-              </button>
-            )}
-            {canManage && (
-              <>
-                <button
-                  className="btn btn-ghost btn-sm"
-                  style={{ borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border-subtle)' }}
-                  onClick={() => { setInviteRole('partner'); setShowInvite(true) }}
-                  title="Invite a co-planner with full view access"
-                >
-                  <UserPlus size={14} />
-                  Invite Partner
+          !isReadOnly && (
+            <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+              {(role as string) !== 'planner' && (
+                <button className="btn btn-secondary btn-sm" onClick={() => { setReportStatus('update'); setReportMessage(''); setEditingReportId(null); setReportModalMode('create'); setActiveTab('reports') }}>
+                  <Send size={14} />
+                  Submit Report
                 </button>
-                <button className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => { setInviteRole('team_member'); setShowInvite(true) }}>
-                  <UserPlus size={14} />
-                  Add Member
-                </button>
-              </>
-            )}
-          </div>
+              )}
+              {canManage && (
+                <>
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    style={{ borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border-subtle)' }}
+                    onClick={() => { setInviteRole('partner'); setShowInvite(true) }}
+                    title="Invite a co-planner with full view access"
+                  >
+                    <UserPlus size={14} />
+                    Invite Partner
+                  </button>
+                  <button className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }} onClick={() => { setInviteRole('team_member'); setShowInvite(true) }}>
+                    <UserPlus size={14} />
+                    Add Member
+                  </button>
+                </>
+              )}
+            </div>
+          )
         }
       />
 
@@ -564,7 +566,7 @@ export function TeamPage() {
                   <th className={styles.th}>Role</th>
                   <th className={styles.th}>Status</th>
                   <th className={`${styles.th} ${styles.thTasks}`}>Tasks</th>
-                   {canManage && <th className={styles.th} style={{ width: 60 }} />}
+                   {canManage && !isReadOnly && <th className={styles.th} style={{ width: 60 }} />}
                 </tr>
               </thead>
               <tbody>
@@ -613,7 +615,7 @@ export function TeamPage() {
                           {item.kind === 'member' ? `${item.taskCount} tasks` : '\u2014'}
                         </span>
                       </td>
-                      {canManage && (
+                      {canManage && !isReadOnly && (
                         <td className={styles.td} style={{ textAlign: 'right' }}>
                           {item.canRemove && (
                             <button
@@ -674,8 +676,8 @@ export function TeamPage() {
                   </thead>
                   <tbody>
                     {reports.map((report) => {
-                      const canEdit = report.actor_id === user?.id
-                      const canDelete = report.actor_id === user?.id || role === 'planner'
+                      const canEdit = !isReadOnly && report.actor_id === user?.id
+                      const canDelete = !isReadOnly && (report.actor_id === user?.id || role === 'planner')
 
                       return (
                         <tr key={report.id} className={styles.tr} onClick={() => setSelectedReportForView(report)}>

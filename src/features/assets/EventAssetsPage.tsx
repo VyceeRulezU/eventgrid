@@ -147,7 +147,7 @@ function PdfPreviewer({ file, title }: { file: string; title: string }) {
 }
 
 export function EventAssetsPage() {
-  const { eventId, loading: resolving } = useResolvedEventId()
+  const { eventId, loading: resolving, isReadOnly } = useResolvedEventId()
   const id = eventId
   const user = useAuthStore((s) => s.user)
   const profile = useAuthStore((s) => s.profile)
@@ -397,9 +397,11 @@ export function EventAssetsPage() {
             onSelect={(item) => setTypeFilter(item.value)}
           />
         </div>
-        <button type="button" className="btn btn-primary btn-sm" onClick={() => setShowForm(true)}>
-          <Upload size={14} /> Upload
-        </button>
+        {!isReadOnly && (
+          <button type="button" className="btn btn-primary btn-sm" onClick={() => setShowForm(true)}>
+            <Upload size={14} /> Upload
+          </button>
+        )}
       </div>
 
       {filtered.length === 0 ? (
@@ -411,9 +413,11 @@ export function EventAssetsPage() {
           <div className={styles.emptyStateDesc}>
             Upload moodboards, images, or documents to share with your team and client.
           </div>
-          <button type="button" className="btn btn-primary" onClick={() => setShowForm(true)}>
-            <Upload size={14} /> Upload Your First Asset
-          </button>
+          {!isReadOnly && (
+            <button type="button" className="btn btn-primary" onClick={() => setShowForm(true)}>
+              <Upload size={14} /> Upload Your First Asset
+            </button>
+          )}
         </div>
       ) : (
         <div className={styles.grid}>
@@ -436,7 +440,7 @@ export function EventAssetsPage() {
                   <span>{timeAgo(asset.created_at)}</span>
                 </div>
               </div>
-              {canDelete && (
+              {canDelete && !isReadOnly && (
                 <div className={styles.cardActions}>
                   <button
                     type="button"

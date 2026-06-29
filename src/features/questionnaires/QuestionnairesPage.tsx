@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, X, ClipboardList, Trash2, ExternalLink } from 'lucide-react'
+import { Plus, X, Trash2, ExternalLink, FileText } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -11,7 +11,7 @@ import type { Questionnaire, QuestionnaireQuestion, QuestionnaireResponse } from
 const QUESTION_TYPES = ['text', 'textarea', 'select', 'radio', 'checkbox', 'rating'] as const
 
 export function QuestionnairesPage() {
-  const { eventId } = useResolvedEventId()
+  const { eventId, isReadOnly } = useResolvedEventId()
   const user = useAuthStore((s) => s.user)
   const profile = useAuthStore((s) => s.profile)
   const showNotification = useUIStore((s) => s.showNotification)
@@ -119,22 +119,30 @@ export function QuestionnairesPage() {
                     {q.options.length > 0 ? ` · Options: ${q.options.join(', ')}` : ''}
                   </div>
                 </div>
-                <button className="btn btn-ghost btn-icon btn-xs" onClick={() => deleteQuestion(q.id)}><Trash2 size={14} /></button>
+                {!isReadOnly && (
+                  <button className="btn btn-ghost btn-icon btn-xs" onClick={() => deleteQuestion(q.id)}>
+                    <Trash2 size={14} />
+                  </button>
+                )}
               </div>
             ))}
           </div>
-          <div className={styles.addQForm}>
-            <input className="input" placeholder="Question text" value={qForm.questionText} onChange={e => setQForm({...qForm, questionText: e.target.value})} style={{ flex: 1 }} />
-            <select className="input" value={qForm.questionType} onChange={e => setQForm({...qForm, questionType: e.target.value})} style={{ width: 120 }}>
-              {QUESTION_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
-            <button className="btn btn-secondary btn-sm" onClick={addQuestion}>Add</button>
-          </div>
-          {(qForm.questionType === 'select' || qForm.questionType === 'radio' || qForm.questionType === 'checkbox') && (
-            <div className="input-wrapper" style={{ marginTop: 8 }}>
-              <label className="input-label">Options (comma-separated)</label>
-              <input className="input" value={qForm.options} onChange={e => setQForm({...qForm, options: e.target.value})} placeholder="Option 1, Option 2, Option 3" />
-            </div>
+          {!isReadOnly && (
+            <>
+              <div className={styles.addQForm}>
+                <input className="input" placeholder="Question text" value={qForm.questionText} onChange={e => setQForm({...qForm, questionText: e.target.value})} style={{ flex: 1 }} />
+                <select className="input" value={qForm.questionType} onChange={e => setQForm({...qForm, questionType: e.target.value})} style={{ width: 120 }}>
+                  {QUESTION_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+                <button className="btn btn-secondary btn-sm" onClick={addQuestion}>Add</button>
+              </div>
+              {(qForm.questionType === 'select' || qForm.questionType === 'radio' || qForm.questionType === 'checkbox') && (
+                <div className="input-wrapper" style={{ marginTop: 8 }}>
+                  <label className="input-label">Options (comma-separated)</label>
+                  <input className="input" value={qForm.options} onChange={e => setQForm({...qForm, options: e.target.value})} placeholder="Option 1, Option 2, Option 3" />
+                </div>
+              )}
+            </>
           )}
         </div>
 
@@ -160,11 +168,13 @@ export function QuestionnairesPage() {
 
   return (
     <div>
-      <PageHero icon={ClipboardList} title="Questionnaires" subtitle="Collect client feedback with custom surveys"
+      <PageHero icon={FileText} title="Questionnaires" subtitle="Create and manage client questionnaires"
         actions={
-          <button className="btn btn-primary btn-sm" onClick={() => setShowForm(true)}>
-            <Plus size={16} /> New Questionnaire
-          </button>
+          !isReadOnly && (
+            <button className="btn btn-primary btn-sm" onClick={() => setShowForm(true)}>
+              <Plus size={16} /> New Questionnaire
+            </button>
+          )
         }
       />
 
@@ -198,7 +208,11 @@ export function QuestionnairesPage() {
                 {q.description && <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>{q.description}</div>}
               </div>
               <div style={{ display: 'flex', gap: 4 }}>
-                <button className="btn btn-ghost btn-icon btn-xs" onClick={(e) => { e.stopPropagation(); deleteQuestionnaire(q.id) }}><Trash2 size={14} /></button>
+              {!isReadOnly && (
+                <button className="btn btn-ghost btn-icon btn-xs" onClick={(e) => { e.stopPropagation(); deleteQuestionnaire(q.id) }}>
+                  <Trash2 size={14} />
+                </button>
+              )}
               </div>
             </div>
           </div>

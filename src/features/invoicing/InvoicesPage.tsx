@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+
+import { useResolvedEventId } from '@/hooks/useResolvedEventId'
 import { Plus, X, Receipt, Send, CheckCircle, Calendar } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
@@ -18,7 +19,7 @@ const statusColors: Record<string, string> = {
 }
 
 export function InvoicesPage() {
-  const { id: eventId } = useParams<{ id: string }>()
+  const { eventId, isReadOnly } = useResolvedEventId()
   const user = useAuthStore((s) => s.user)
   const showNotification = useUIStore((s) => s.showNotification)
 
@@ -105,7 +106,13 @@ export function InvoicesPage() {
   return (
     <div>
       <PageHero icon={Receipt} title={`Invoices${eventName ? ` | ${eventName}` : ''}`}
-        actions={<button className="btn btn-primary btn-sm" onClick={() => setShowForm(true)}><Plus size={16} /> New Invoice</button>}
+        actions={
+          !isReadOnly && (
+            <button className="btn btn-primary btn-sm" onClick={() => setShowForm(true)}>
+              <Plus size={16} /> New Invoice
+            </button>
+          )
+        }
       />
 
       <Tabs tabs={[{ key: 'all', label: `All (${invoices.length})` }, ...[{ k: 'draft' }, { k: 'sent' }, { k: 'paid' }, { k: 'overdue' }].map(({ k }) => ({ key: k, label: k }))]}
@@ -183,14 +190,16 @@ export function InvoicesPage() {
                   <span>{inv.items.length} items</span>
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: 4 }}>
-                {inv.status === 'draft' && (
-                  <button className="btn btn-primary btn-sm" onClick={() => updateStatus(inv, 'sent')}><Send size={14} /> Send</button>
-                )}
-                {(inv.status === 'sent' || inv.status === 'overdue') && (
-                  <button className="btn btn-success btn-sm" onClick={() => updateStatus(inv, 'paid')}><CheckCircle size={14} /> Mark Paid</button>
-                )}
-              </div>
+              {!isReadOnly && (
+                <div style={{ display: 'flex', gap: 4 }}>
+                  {inv.status === 'draft' && (
+                    <button className="btn btn-primary btn-sm" onClick={() => updateStatus(inv, 'sent')}><Send size={14} /> Send</button>
+                  )}
+                  {(inv.status === 'sent' || inv.status === 'overdue') && (
+                    <button className="btn btn-success btn-sm" onClick={() => updateStatus(inv, 'paid')}><CheckCircle size={14} /> Mark Paid</button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         ))}

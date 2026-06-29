@@ -32,7 +32,7 @@ const COLUMNS = [
 ] as const
 
 export function TaskBoard() {
-  const { eventId } = useResolvedEventId()
+  const { eventId, isReadOnly } = useResolvedEventId()
   const user = useAuthStore((s) => s.user)
   const profileRole = useAuthStore((s) => s.role)
   const showNotification = useUIStore((s) => s.showNotification)
@@ -139,7 +139,7 @@ export function TaskBoard() {
     e.preventDefault()
     setDragOverCol(null)
     const taskId = e.dataTransfer.getData('text/plain')
-    if (!taskId || !eventId) return
+    if (!taskId || !eventId || isReadOnly) return
 
     const task = tasks.find((t) => t.id === taskId)
     if (!task || task.status === colKey) return
@@ -165,7 +165,7 @@ export function TaskBoard() {
   }
 
   const eventRole = members.find(m => m.user_id === user?.id)?.role
-  const canCreate = profileRole === 'planner' || profileRole === 'coordinator' || profileRole === 'super_admin' || eventRole === 'coordinator'
+  const canCreate = (profileRole === 'planner' || profileRole === 'coordinator' || profileRole === 'super_admin' || eventRole === 'coordinator') && !isReadOnly
 
   const grouped = COLUMNS.reduce<Record<string, TaskWithAssignee[]>>((acc, col) => {
     acc[col.key] = tasks.filter((t) => t.status === col.key)
@@ -278,7 +278,7 @@ export function TaskBoard() {
                 onDrop={(e) => handleDrop(e, col.key)}
               >
                 {(grouped[col.key] || []).map((task) => (
-                  <TaskCard key={task.id} task={task} onUpdate={loadData} onOpenDetails={openDetails} />
+                  <TaskCard key={task.id} task={task} onUpdate={loadData} onOpenDetails={openDetails} readOnly={isReadOnly} />
                 ))}
               </div>
             </div>
@@ -296,7 +296,7 @@ export function TaskBoard() {
                 </div>
                 <div className={styles.listSection}>
                   {items.map((task) => (
-                    <TaskCard key={task.id} task={task} onUpdate={loadData} onOpenDetails={openDetails} />
+                    <TaskCard key={task.id} task={task} onUpdate={loadData} onOpenDetails={openDetails} readOnly={isReadOnly} />
                   ))}
                 </div>
               </div>
@@ -311,6 +311,7 @@ export function TaskBoard() {
           phases={phases}
           onClose={() => setDetailTask(null)}
           onUpdate={loadData}
+          readOnly={isReadOnly}
         />
       )}
     </div>

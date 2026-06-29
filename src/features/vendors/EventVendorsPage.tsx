@@ -55,7 +55,7 @@ function fmtNaira(kobo: number): string {
 }
 
 export function EventVendorsPage({ standalone = true }: { standalone?: boolean }) {
-  const { eventId } = useResolvedEventId()
+  const { eventId, isReadOnly } = useResolvedEventId()
   const showNotification = useUIStore((s) => s.showNotification)
   const currentUser = useAuthStore((s) => s.user)
   const userRole = useAuthStore((s) => s.role)
@@ -132,11 +132,13 @@ export function EventVendorsPage({ standalone = true }: { standalone?: boolean }
       {standalone && <PageHero icon={Users} title={`Event Vendors${eventName ? ` | ${eventName}` : ''}`} subtitle={`${vendors.length} vendor${vendors.length !== 1 ? 's' : ''} assigned`} />}
 
       <div className={styles.content}>
-        <div className={styles.toolbar}>
-          <button className="btn btn-primary btn-sm" onClick={() => setShowAddModal(true)} style={{ borderRadius: 'var(--radius-sm)' }}>
-            <Plus size={14} /> Add Vendor
-          </button>
-        </div>
+        {!isReadOnly && (
+          <div className={styles.toolbar}>
+            <button className="btn btn-primary btn-sm" onClick={() => setShowAddModal(true)} style={{ borderRadius: 'var(--radius-sm)' }}>
+              <Plus size={14} /> Add Vendor
+            </button>
+          </div>
+        )}
 
         {loading ? (
           <div className={styles.loading}>
@@ -147,7 +149,7 @@ export function EventVendorsPage({ standalone = true }: { standalone?: boolean }
             <div className="empty-state__icon"><Users size={24} /></div>
             <div className="empty-state__title">No vendors assigned</div>
             <div className="empty-state__description">Add vendors from your directory or create new ones</div>
-            <button className="btn btn-primary" onClick={() => setShowAddModal(true)}><Plus size={16} /> Add Vendor</button>
+            {!isReadOnly && <button className="btn btn-primary" onClick={() => setShowAddModal(true)}><Plus size={16} /> Add Vendor</button>}
           </div>
         ) : (
           <div className={styles.tableCard}>
@@ -184,7 +186,7 @@ export function EventVendorsPage({ standalone = true }: { standalone?: boolean }
                         </td>
                       )}
                       <td className={`${styles.td} ${styles.cellCenter}`}>
-                        {isOwner ? (
+                        {isOwner && !isReadOnly ? (
                           <DropdownMenu
                             trigger={
                               <span className={`badge badge-${v.booking_status === 'confirmed' || v.booking_status === 'paid' ? 'green' : v.booking_status === 'cancelled' ? 'red' : v.booking_status === 'negotiating' ? 'yellow' : 'grey'} ${styles.pointer}`}>
@@ -203,7 +205,7 @@ export function EventVendorsPage({ standalone = true }: { standalone?: boolean }
                         )}
                       </td>
                       <td className={`${styles.td} ${styles.cellCenter}`}>
-                        {isOwner ? (
+                        {isOwner && !isReadOnly ? (
                           <DropdownMenu
                             trigger={
                               <span className={`badge badge-${v.payment_status === 'paid' ? 'green' : v.payment_status === 'advance' ? 'yellow' : v.payment_status === 'cancelled' ? 'red' : 'grey'} ${styles.pointer}`}>
@@ -223,14 +225,16 @@ export function EventVendorsPage({ standalone = true }: { standalone?: boolean }
                       </td>
                       <td className={`${styles.td} ${styles.cellCenter}`}>
                         <div className={styles.rowActions}>
-                          {isOwner && (
+                          {isOwner && !isReadOnly && (
                             <button className={styles.iconBtn} onClick={() => setEditingVendor(v)} aria-label="Edit vendor">
                               <Pencil size={14} />
                             </button>
                           )}
-                          <button className={`${styles.iconBtn} ${styles.iconBtnDanger}`} onClick={() => handleRemove(v.id)} aria-label="Remove vendor">
-                            <X size={14} />
-                          </button>
+                          {!isReadOnly && (
+                            <button className={`${styles.iconBtn} ${styles.iconBtnDanger}`} onClick={() => handleRemove(v.id)} aria-label="Remove vendor">
+                              <X size={14} />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

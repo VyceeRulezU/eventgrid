@@ -17,6 +17,7 @@ interface TaskCardProps {
   task: TaskWithAssignee
   onUpdate: () => void
   onOpenDetails?: (task: TaskWithAssignee) => void
+  readOnly?: boolean
 }
 
 const STATUS_OPTIONS = [
@@ -55,7 +56,7 @@ function timeAgo(dateStr: string): string {
   return `${days}d ago`
 }
 
-export function TaskCard({ task, onUpdate, onOpenDetails }: TaskCardProps) {
+export function TaskCard({ task, onUpdate, onOpenDetails, readOnly }: TaskCardProps) {
   const user = useAuthStore((s) => s.user)
   const showNotification = useUIStore((s) => s.showModal)
   const [expanded, setExpanded] = useState(false)
@@ -173,7 +174,7 @@ export function TaskCard({ task, onUpdate, onOpenDetails }: TaskCardProps) {
   return (
     <div
       className={`card ${overdue ? styles.cardOverdue : ''} ${styles.card} ${expanded ? styles.cardExpanded : ''}`}
-      draggable
+      draggable={!readOnly}
       onDragStart={handleDragStart}
     >
       <div className={styles.header} onClick={() => onOpenDetails ? onOpenDetails(task) : setExpanded(!expanded)}>
@@ -224,7 +225,7 @@ export function TaskCard({ task, onUpdate, onOpenDetails }: TaskCardProps) {
                 trigger={<span>{STATUS_OPTIONS.find((s) => s.value === task.status)?.label || task.status}</span>}
                 items={STATUS_OPTIONS.map((s) => ({ label: s.label, value: s.value }))}
                 onSelect={(item) => handleStatusChange(item.value)}
-                disabled={updating}
+                disabled={updating || readOnly}
               />
             </div>
           </div>
@@ -256,48 +257,50 @@ export function TaskCard({ task, onUpdate, onOpenDetails }: TaskCardProps) {
               </div>
             )}
 
-            <div onClick={(e) => e.stopPropagation()}>
-              <div className={styles.newUpdateForm}>
-                <div className={styles.textareaWrapper}>
-                  <textarea
-                    className={`input ${styles.textarea}`}
-                    placeholder={isAssignee ? "Add an update, photo, or change status..." : "Add a comment..."}
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault()
-                        handleSendUpdate()
-                      }
-                    }}
-                  />
+            {!readOnly && (
+              <div onClick={(e) => e.stopPropagation()}>
+                <div className={styles.newUpdateForm}>
+                  <div className={styles.textareaWrapper}>
+                    <textarea
+                      className={`input ${styles.textarea}`}
+                      placeholder={isAssignee ? "Add an update, photo, or change status..." : "Add a comment..."}
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault()
+                          handleSendUpdate()
+                        }
+                      }}
+                    />
+                  </div>
+                  <label className={styles.photoBtn}>
+                    <ImageIcon size={14} />
+                    <input type="file" accept="image/*" multiple className={styles.photoBtnInput} onChange={handlePhotoSelect} />
+                  </label>
+                  <button
+                    className={`btn btn-primary btn-sm ${styles.sendBtn}`}
+                    onClick={handleSendUpdate}
+                    disabled={sending || (!newMessage.trim() && uploadingPhotos.length === 0)}
+                  >
+                    <Send size={14} />
+                  </button>
                 </div>
-                <label className={styles.photoBtn}>
-                  <ImageIcon size={14} />
-                  <input type="file" accept="image/*" multiple className={styles.photoBtnInput} onChange={handlePhotoSelect} />
-                </label>
-                <button
-                  className={`btn btn-primary btn-sm ${styles.sendBtn}`}
-                  onClick={handleSendUpdate}
-                  disabled={sending || (!newMessage.trim() && uploadingPhotos.length === 0)}
-                >
-                  <Send size={14} />
-                </button>
-              </div>
 
-              {uploadingPreview.length > 0 && (
-                <div className={styles.photoPreviews}>
-                  {uploadingPreview.map((p, i) => (
-                    <div key={i} className={styles.photoPreview}>
-                      <img src={p} alt="" className={styles.photoPreviewImg} />
-                      <button type="button" className={styles.removePhotoBtn} onClick={() => removePhoto(i)}>
-                        <X size={10} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                {uploadingPreview.length > 0 && (
+                  <div className={styles.photoPreviews}>
+                    {uploadingPreview.map((p, i) => (
+                      <div key={i} className={styles.photoPreview}>
+                        <img src={p} alt="" className={styles.photoPreviewImg} />
+                        <button type="button" className={styles.removePhotoBtn} onClick={() => removePhoto(i)}>
+                          <X size={10} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
