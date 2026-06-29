@@ -250,6 +250,55 @@ export function ProposalsPage() {
     showNotification({ variant: 'success', title: 'Proposal deleted' })
   }
 
+  async function convertToEvent(proposal: Proposal) {
+    showModal({
+      variant: 'confirm',
+      title: 'Convert Quote to Event?',
+      message: `Create a live event from "${proposal.title}" proposal?`,
+      actions: [
+        { label: 'Cancel', variant: 'secondary', onClick: () => {} },
+        { label: 'Convert & Approve', variant: 'primary', onClick: async () => {
+          setSaving(true)
+          const { data: evt, error } = await supabase.from('events').insert({
+            org_id: profile?.org_id,
+            created_by: user!.id,
+            name: proposal.title,
+            event_type: 'Other',
+            event_date: proposal.valid_until || null,
+            status: 'draft',
+            payment_status: 'unpaid',
+          }).select().single()
+          if (error) {
+            showNotification({ variant: 'error', title: 'Event conversion failed', message: error.message })
+            setSaving(false)
+            return
+          }
+          await supabase.from('proposals').update({
+            status: 'accepted',
+            event_id: evt.id,
+            responded_at: new Date().toISOString()
+          }).eq('id', proposal.id)
+          const budgetAllocations = proposal.sections.map(s => ({
+            event_id: evt.id,
+            category: s.category || 'Other',
+            allocated: s.amount || 0,
+          }))
+          if (budgetAllocations.length > 0) {
+            await supabase.from('budget_allocations').insert(budgetAllocations)
+          }
+          showNotification({ variant: 'success', title: 'Converted successfully!', message: `Created live event "${proposal.title}"` })
+          setProposals(proposals.map(p => p.id === proposal.id ? { ...p, status: 'accepted', event_id: evt.id } as Proposal : p))
+          setSaving(false)
+          navigate(`/events/${evt.id}`)
+        }}
+      ]
+    })
+  }
+
+  async function reopenProposal(proposal: Proposal) {
+    await updateStatus(proposal, 'draft')
+  }
+
   async function handleEmailClient(format: 'pdf' | 'excel') {
     const proposal = previewProposal
     if (!proposal) return
@@ -272,6 +321,27 @@ export function ProposalsPage() {
         filename = `${proposal.title.replace(/\s+/g, '_')}_Quote.xlsx`
       }
 
+      const grouped = groupedSectionsFor(proposal)
+      const sections = activeSectionsFor(proposal)
+
+      const budgetRowsHtml = grouped.map(r => `
+        <tr>
+          <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;font-size:13px;color:#374151;">${r.category}</td>
+          <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;font-size:13px;color:#6b7280;">${r.description || 'Proposed service'}</td>
+          <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;font-size:13px;color:#111827;text-align:right;font-weight:600;">${fmtMoney(r.amount)}</td>
+          <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;font-size:12px;color:#6b7280;text-align:right;">${proposal.total_amount > 0 ? Math.round((r.amount / proposal.total_amount) * 100) + '%' : '—'}</td>
+        </tr>
+      `).join('')
+
+      const specsHtml = sections.map(s => `
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f3f4f6;">
+          <div><span style="font-weight:600;font-size:13px;color:#111827;">${s.title}</span>${s.description ? '<br/><span style="font-size:12px;color:#6b7280;">' + s.description + '</span>' : ''}</div>
+          <span style="font-weight:600;font-size:13px;color:#D4A017;white-space:nowrap;">${fmtMoney(s.amount)}</span>
+        </div>
+      `).join('')
+
+      const now = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
 
@@ -279,22 +349,62 @@ export function ProposalsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
-          template_name: 'Congratulations - Event Created',
+          template_name: 'Proposal Delivery',
           to: { email: proposal.client_email, name: 'Valued Client' },
           variables: {
-            subject: `Proposal from NaliGrid: ${proposal.title}`,
+            subject: `You've received a proposal from ${profile?.name || 'an event planner'} on NaliGrid`,
             body_html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; color: #333; line-height: 1.6;">
-                <h2 style="color: #1a2432; border-bottom: 2px solid #D4A017; padding-bottom: 8px;">NaliGrid Proposal</h2>
-                <p>Hello,</p>
-                <p>We have compiled the proposed budget categories and service costs for <strong>${proposal.title}</strong>.</p>
-                <p>Please find the official proposal document attached to this email.</p>
-                <div style="background: #f3f4f6; padding: 12px; border-radius: 6px; margin: 16px 0;">
-                  <strong>Total Proposed Budget:</strong> ${fmtMoney(proposal.total_amount)}
+              <div style="font-family: Arial, sans-serif; max-width: 600px; color: #333; line-height: 1.6; margin: 0 auto;">
+                <div style="background:#111827;padding:24px 32px;border-radius:8px 8px 0 0;">
+                  <h1 style="color:#D4A017;margin:0;font-size:22px;font-weight:800;letter-spacing:-0.02em;">NaliGrid</h1>
+                  <p style="color:#9CA3AF;margin:4px 0 0;font-size:12px;">Professional Event Management</p>
                 </div>
-                <p>Reply to this email if you have any feedback or would like to approve this estimate.</p>
-                <br/>
-                <p>Sincerely,<br/><strong>NaliGrid Event Services</strong></p>
+                <div style="background:#fff;padding:32px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px;">
+                  <p style="font-size:15px;color:#111827;margin:0 0 20px;">Hello,</p>
+                  <p style="font-size:14px;color:#374151;margin:0 0 8px;">You have received a proposal from <strong>${profile?.name || 'an event planner'}</strong> for:</p>
+                  <h2 style="font-size:18px;color:#D4A017;margin:0 0 4px;">${proposal.title}</h2>
+                  <p style="font-size:12px;color:#6b7280;margin:0 0 20px;">Issued ${now}${proposal.valid_until ? ' · Valid until ' + new Date(proposal.valid_until).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}</p>
+
+                  ${proposal.description ? `<div style="background:#f9fafb;border-left:3px solid #D4A017;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#374151;border-radius:0 4px 4px 0;">${proposal.description}</div>` : ''}
+
+                  <h3 style="font-size:13px;color:#111827;margin:0 0 12px;text-transform:uppercase;letter-spacing:0.05em;">Proposed Budget</h3>
+                  <table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
+                    <thead>
+                      <tr style="background:#f3f4f6;">
+                        <th style="padding:8px 12px;font-size:11px;color:#6b7280;text-transform:uppercase;text-align:left;">Category</th>
+                        <th style="padding:8px 12px;font-size:11px;color:#6b7280;text-transform:uppercase;text-align:left;">Description</th>
+                        <th style="padding:8px 12px;font-size:11px;color:#6b7280;text-transform:uppercase;text-align:right;">Amount</th>
+                        <th style="padding:8px 12px;font-size:11px;color:#6b7280;text-transform:uppercase;text-align:right;">%</th>
+                      </tr>
+                    </thead>
+                    <tbody>${budgetRowsHtml}</tbody>
+                    <tfoot>
+                      <tr style="border-top:2px solid #D4A017;">
+                        <td style="padding:8px 12px;font-weight:700;font-size:13px;color:#111827;" colspan="2">Grand Total</td>
+                        <td style="padding:8px 12px;font-weight:800;font-size:15px;color:#D4A017;text-align:right;">${fmtMoney(proposal.total_amount)}</td>
+                        <td style="padding:8px 12px;text-align:right;font-size:12px;color:#6b7280;">100%</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+
+                  ${specsHtml ? `
+                    <h3 style="font-size:13px;color:#111827;margin:24px 0 12px;text-transform:uppercase;letter-spacing:0.05em;">Detailed Specifications</h3>
+                    ${specsHtml}
+                  ` : ''}
+
+                  <div style="background:#f9fafb;border-radius:6px;padding:16px;margin:24px 0;text-align:center;">
+                    <p style="font-size:13px;color:#374151;margin:0 0 8px;">The detailed proposal document is also attached to this email.</p>
+                    <a href="https://naligrid.com/register" style="color:#D4A017;font-size:13px;font-weight:600;text-decoration:none;">Register for free on NaliGrid →</a>
+                    <p style="font-size:11px;color:#9CA3AF;margin:8px 0 0;">NaliGrid helps event planners manage budgets, vendors, tasks, and client communication — all in one place.</p>
+                  </div>
+
+                  <p style="font-size:12px;color:#6b7280;margin:0;">If you have any questions or would like to discuss this proposal, reply to this email.</p>
+                  <p style="font-size:12px;color:#6b7280;margin:12px 0 0;">Best regards,<br/><strong style="color:#D4A017;">NaliGrid Team</strong></p>
+                </div>
+                <div style="text-align:center;padding:16px 32px;font-size:11px;color:#9CA3AF;">
+                  NaliTech Consults Limited · Lagos, Nigeria<br/>
+                  <a href="https://naligrid.com" style="color:#D4A017;text-decoration:none;">naligrid.com</a>
+                </div>
               </div>
             `
           },
@@ -309,6 +419,7 @@ export function ProposalsPage() {
 
       showNotification({ variant: 'success', title: 'Email Sent!', message: `Sent proposal to ${proposal.client_email}.` })
       if (proposal.status === 'draft') await updateStatus(proposal, 'sent')
+      setPreviewProposal(null)
     } catch (err) {
       showNotification({ variant: 'error', title: 'Failed to send email', message: err instanceof Error ? err.message : 'Network error' })
     } finally {
@@ -390,6 +501,16 @@ export function ProposalsPage() {
                       <Send size={12} /> Send
                     </button>
                   </>
+                )}
+                {!isReadOnly && p.status === 'accepted' && (
+                  <button className="btn btn-primary btn-sm" onClick={() => convertToEvent(p)} title="Convert to Event" style={{ padding: '0 8px', minHeight: 28, gap: 4, fontSize: 'var(--text-xs)' }}>
+                    <RefreshCw size={12} /> Convert
+                  </button>
+                )}
+                {!isReadOnly && p.status === 'rejected' && (
+                  <button className="btn btn-secondary btn-sm" onClick={() => reopenProposal(p)} title="Reopen" style={{ padding: '0 8px', minHeight: 28, gap: 4, fontSize: 'var(--text-xs)' }}>
+                    <RefreshCw size={12} /> Reopen
+                  </button>
                 )}
                 {!isReadOnly && p.status !== 'draft' && (
                   <button className="btn btn-ghost btn-sm" onClick={() => openEdit(p)} title="Edit" style={{ padding: '0 6px', minHeight: 28 }}>
