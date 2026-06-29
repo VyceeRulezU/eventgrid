@@ -105,7 +105,7 @@ export function VendorOnboarding() {
 
     if (vendorErr) {
       console.error('Failed to insert into vendors table:', vendorErr)
-      showToast({ type: 'warning', title: 'Directory listing pending', body: 'Your profile will appear in the vendor directory once an admin approves it.' })
+      showToast({ type: 'error', title: 'Directory sync issue', body: `Could not add your listing to the directory (${vendorErr.message}). Your profile is saved — please try again or contact support.` })
     }
 
     // Update profile in store
