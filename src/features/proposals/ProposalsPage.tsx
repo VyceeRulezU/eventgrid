@@ -308,6 +308,7 @@ export function ProposalsPage() {
     }
     setSendingEmail(true)
     const grouped = groupedSectionsFor(proposal)
+    const sections = activeSectionsFor(proposal)
     try {
       let base64Content = ''
       let filename = ''
@@ -320,9 +321,6 @@ export function ProposalsPage() {
         base64Content = generateExcelBase64(grouped, proposal.total_amount)
         filename = `${proposal.title.replace(/\s+/g, '_')}_Quote.xlsx`
       }
-
-      const grouped = groupedSectionsFor(proposal)
-      const sections = activeSectionsFor(proposal)
 
       const budgetRowsHtml = grouped.map(r => `
         <tr>
@@ -352,7 +350,7 @@ export function ProposalsPage() {
           template_name: 'Proposal Delivery',
           to: { email: proposal.client_email, name: 'Valued Client' },
           variables: {
-            subject: `You've received a proposal from ${profile?.name || 'an event planner'} on NaliGrid`,
+            subject: `You've received a proposal from ${profile?.display_name || 'an event planner'} on NaliGrid`,
             body_html: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; color: #333; line-height: 1.6; margin: 0 auto;">
                 <div style="background:#111827;padding:24px 32px;border-radius:8px 8px 0 0;">
@@ -361,7 +359,7 @@ export function ProposalsPage() {
                 </div>
                 <div style="background:#fff;padding:32px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px;">
                   <p style="font-size:15px;color:#111827;margin:0 0 20px;">Hello,</p>
-                  <p style="font-size:14px;color:#374151;margin:0 0 8px;">You have received a proposal from <strong>${profile?.name || 'an event planner'}</strong> for:</p>
+                  <p style="font-size:14px;color:#374151;margin:0 0 8px;">You have received a proposal from <strong>${profile?.display_name || 'an event planner'}</strong> for:</p>
                   <h2 style="font-size:18px;color:#D4A017;margin:0 0 4px;">${proposal.title}</h2>
                   <p style="font-size:12px;color:#6b7280;margin:0 0 20px;">Issued ${now}${proposal.valid_until ? ' · Valid until ' + new Date(proposal.valid_until).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}</p>
 
