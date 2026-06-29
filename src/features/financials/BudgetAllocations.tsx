@@ -348,15 +348,13 @@ export function BudgetAllocations({ eventId, eventName, pettyCashTotal = 0 }: Bu
                           >
                             <Pencil size={12} /> Rename
                           </button>
-                          {(row.id || row.allocated > 0) && (
-                            <button 
-                              className="btn btn-ghost btn-sm" 
-                              onClick={() => deleteAllocation(row.category)}
-                              style={{ gap: 4, padding: '0 8px', minHeight: 28, fontSize: 'var(--text-xs)', color: 'var(--color-error)' }}
-                            >
-                              <Trash2 size={12} /> Delete
-                            </button>
-                          )}
+                          <button 
+                            className="btn btn-ghost btn-sm" 
+                            onClick={() => deleteAllocation(row.category)}
+                            style={{ gap: 4, padding: '0 8px', minHeight: 28, fontSize: 'var(--text-xs)', color: 'var(--color-error)' }}
+                          >
+                            <Trash2 size={12} /> Delete
+                          </button>
                         </div>
                       )}
                     </td>
