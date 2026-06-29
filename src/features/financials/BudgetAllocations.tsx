@@ -124,10 +124,10 @@ export function BudgetAllocations({ eventId, eventName, pettyCashTotal = 0 }: Bu
   async function deleteAllocation(category: string) {
     const existing = allocations.find(a => a.category === category)
     if (existing?.id) {
-      const { error } = await supabase.from('budget_allocations').update({ allocated: 0 }).eq('id', existing.id)
+      const { error } = await supabase.from('budget_allocations').delete().eq('id', existing.id)
       if (error) { showNotification({ variant: 'error', title: 'Failed', message: error.message }); return }
     }
-    setAllocations(allocations.map(a => a.category === category ? { ...a, allocated: 0 } : a))
+    setAllocations(allocations.filter(a => a.category !== category))
     setEditingCat(null)
   }
 

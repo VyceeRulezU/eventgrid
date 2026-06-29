@@ -57,7 +57,7 @@ export function TopBar() {
 
   const meta = routeMeta[location.pathname] ?? getDynamicMeta(location.pathname)
   const isEventDetail = /^\/events\/[^/]+$/.test(location.pathname)
-  const isEventModule = /^\/events\/[^/]+\/(team|tasks|vendors|guests|live-board|aftermath|assets|financials|report|proposals|invoices|checklists|notebook|questionnaires)$/.test(location.pathname)
+  const isEventModule = /^\/events\/[^/]+\/(team|tasks|vendors|guests|live-board|aftermath|assets|financials|report|proposals|invoices|checklists|notebook)$/.test(location.pathname)
   const showBack = isEventDetail || isEventModule
 
   function getDynamicMeta(path: string): { title: string; subtitle: string } {
@@ -74,7 +74,6 @@ export function TopBar() {
     if (/^\/events\/[^/]+\/invoices$/.test(path)) return { title: 'Invoices', subtitle: 'Send invoices and track payments' }
     if (/^\/events\/[^/]+\/checklists$/.test(path)) return { title: 'Checklists', subtitle: 'Event task checklists' }
     if (/^\/events\/[^/]+\/notebook$/.test(path)) return { title: 'Notebook', subtitle: 'Event notes and ideas' }
-    if (/^\/events\/[^/]+\/questionnaires$/.test(path)) return { title: 'Questionnaires', subtitle: 'Client feedback surveys' }
     if (/^\/events\/[^/]+$/.test(path)) return { title: 'Event Dashboard', subtitle: '' }
     return { title: 'NaliGrid', subtitle: '' }
   }

@@ -4,7 +4,6 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { PageHero } from '@/components/shared/PageHero'
-import { Table } from '@/components/ui/Table'
 import { useResolvedEventId } from '@/hooks/useResolvedEventId'
 import styles from './ChecklistsPage.module.css'
 import type { Checklist, ChecklistItem } from '@/types'
@@ -130,28 +129,33 @@ export function ChecklistsPage() {
       ) : checklists.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state__title">No checklists yet</div>
-          <div className="empty-state__description">Create a checklist to track tasks for your event</div>
+          <div className="empty-state__description">
+            {isReadOnly ? 'This event is archived and has no checklists.' : 'Create a checklist to track tasks for your event.'}
+          </div>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
           {checklists.map(cl => {
             const pct = progress(cl.items)
             const done = cl.items.filter(i => i.is_checked).length
             const isExpanded = expandedIds.has(cl.id)
             return (
-              <div key={cl.id} className="card" style={{ padding: 0, overflow: 'hidden' }}>
+              <div key={cl.id} className={styles.checklistCard}>
                 <div className={styles.clHeader} onClick={() => {
                   const next = new Set(expandedIds)
                   if (next.has(cl.id)) next.delete(cl.id); else next.add(cl.id)
                   setExpandedIds(next)
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', flex: 1 }}>
-                    {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                    <span style={{ fontWeight: 600 }}>{cl.title}</span>
-                    <span className={styles.pct}>{done}/{cl.items.length}</span>
+                  <div className={styles.headerLeft}>
+                    {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                    <span className={styles.title}>{cl.title}</span>
+                    <span className={styles.pct}>{done}/{cl.items.length} tasks</span>
                   </div>
-                  <div className={styles.progressBar}>
-                    <div className={styles.progressFill} style={{ width: `${pct}%` }} />
+                  <div className={styles.progressContainer}>
+                    <div className={styles.progressBar}>
+                      <div className={styles.progressFill} style={{ width: `${pct}%` }} />
+                    </div>
+                    <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--color-accent)' }}>{pct}%</span>
                   </div>
                   {!isReadOnly && (
                     <button className="btn btn-ghost btn-icon btn-xs" onClick={(e) => { e.stopPropagation(); deleteChecklist(cl.id) }} title="Delete">
@@ -161,41 +165,36 @@ export function ChecklistsPage() {
                 </div>
                 {isExpanded && (
                   <div className={styles.clBody}>
-                    <Table
-                      columns={[
-                        { key: 'status', label: '' },
-                        { key: 'item', label: 'Item' },
-                        { key: 'actions', label: '' },
-                      ]}
-                      empty={cl.items.length === 0}
-                      emptyTitle="No items"
-                      emptyDescription="Add items to this checklist"
-                    >
-                      {cl.items.map(item => (
-                        <tr key={item.id}>
-                           <td style={{ width: 40 }}>
-                             <button className="btn btn-ghost btn-icon btn-xs" onClick={() => !isReadOnly && toggleItem(item)}
-                               style={{ color: item.is_checked ? 'var(--color-success)' : 'var(--color-text-muted)', cursor: isReadOnly ? 'default' : 'pointer' }}>
-                               {item.is_checked ? <CheckSquare size={16} /> : <Square size={16} />}
-                             </button>
-                           </td>
-                           <td><span className={`${styles.itemText} ${item.is_checked ? styles.done : ''}`}>{item.text}</span></td>
-                           <td style={{ width: 40 }}>
-                             {!isReadOnly && (
-                               <button className="btn btn-ghost btn-icon btn-xs" onClick={() => deleteItem(cl.id, item.id)}>
-                                 <X size={14} />
-                               </button>
-                             )}
-                           </td>
-                        </tr>
-                      ))}
-                    </Table>
+                    {cl.items.length === 0 ? (
+                      <div style={{ padding: 'var(--space-4) 0', textAlign: 'center', color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)' }}>
+                        No tasks in this checklist yet. Add one below!
+                      </div>
+                    ) : (
+                      <div className={styles.itemsList}>
+                        {cl.items.map(item => (
+                          <div key={item.id} className={styles.itemRow}>
+                            <button className={styles.checkboxBtn} onClick={() => !isReadOnly && toggleItem(item)}
+                              style={{ cursor: isReadOnly ? 'default' : 'pointer' }}>
+                              {item.is_checked ? <CheckSquare size={18} className={styles.checkedIcon} /> : <Square size={18} className={styles.uncheckedIcon} />}
+                            </button>
+                            <div className={styles.itemContent}>
+                              <span className={`${styles.itemText} ${item.is_checked ? styles.done : ''}`}>{item.text}</span>
+                            </div>
+                            {!isReadOnly && (
+                              <button className={styles.deleteItemBtn} onClick={() => deleteItem(cl.id, item.id)} title="Delete item">
+                                <X size={14} />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     {!isReadOnly && (
                       <div className={styles.addItemRow}>
-                        <input className="input" placeholder="Add item..." value={newItemText[cl.id] || ''}
+                        <input placeholder="Add task item..." value={newItemText[cl.id] || ''}
                           onChange={e => setNewItemText({ ...newItemText, [cl.id]: e.target.value })}
                           onKeyDown={e => { if (e.key === 'Enter') addItem(cl.id) }} />
-                        <button className="btn btn-secondary btn-xs" onClick={() => addItem(cl.id)}>Add</button>
+                        <button className="btn btn-primary" onClick={() => addItem(cl.id)}>Add Task</button>
                       </div>
                     )}
                   </div>

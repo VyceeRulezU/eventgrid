@@ -51,7 +51,6 @@ import { PrivacyPage } from '@/pages/info/PrivacyPage'
 import { TermsPage } from '@/pages/info/TermsPage'
 import { CookiesPage } from '@/pages/info/CookiesPage'
 import { SecurityPage } from '@/pages/info/SecurityPage'
-import { SurveyPage } from '@/pages/info/SurveyPage'
 import { DataDeletionPage } from '@/pages/info/DataDeletionPage'
 import { ScrollToTop } from '@/components/shared/ScrollToTop'
 import { CookieNotice } from '@/components/CookieNotice'
@@ -96,13 +95,9 @@ const CompletedEventReport = lazy(() => import('@/features/aftermath/CompletedEv
 const GuestRsvpPage = lazy(() => import('@/features/guests/GuestRsvpPage').then(m => ({ default: m.GuestRsvpPage })))
 const LeadsPage = lazy(() => import('@/features/leads/LeadsPage').then(m => ({ default: m.LeadsPage })))
 const ProposalsPage = lazy(() => import('@/features/proposals/ProposalsPage').then(m => ({ default: m.ProposalsPage })))
-const InvoicesPage = lazy(() => import('@/features/invoicing/InvoicesPage').then(m => ({ default: m.InvoicesPage })))
 const CalendarPage = lazy(() => import('@/features/calendar/CalendarPage').then(m => ({ default: m.CalendarPage })))
 
 const ChecklistsPage = lazy(() => import('@/features/checklists/ChecklistsPage').then(m => ({ default: m.ChecklistsPage })))
-const NotebookPage = lazy(() => import('@/features/notebook/NotebookPage').then(m => ({ default: m.NotebookPage })))
-const QuestionnairesPage = lazy(() => import('@/features/questionnaires/QuestionnairesPage').then(m => ({ default: m.QuestionnairesPage })))
-const QuestionnaireFormPage = lazy(() => import('@/pages/questionnaire/QuestionnaireFormPage').then(m => ({ default: m.QuestionnaireFormPage })))
 import { PremiumModalContainer } from '@/components/ui/PremiumModal'
 import { NotificationsDrawer } from '@/features/notifications/NotificationsDrawer'
 import { AlertTriangle, Terminal, ExternalLink, RefreshCw } from 'lucide-react'
@@ -569,7 +564,6 @@ export function App() {
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/cookies" element={<CookiesPage />} />
           <Route path="/security" element={<SecurityPage />} />
-          <Route path="/survey" element={<SurveyPage />} />
           <Route path="/data-deletion" element={<DataDeletionPage />} />
         <Route path="/portal/:token" element={
           <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
@@ -585,11 +579,6 @@ export function App() {
         <Route path="/rsvp" element={
           <Suspense fallback={<div className="empty-state"><div className="empty-state__title">Loading...</div></div>}>
             <GuestRsvpPage />
-          </Suspense>
-        } />
-        <Route path="/questionnaire/:id" element={
-          <Suspense fallback={<div className="empty-state"><div className="empty-state__title">Loading...</div></div>}>
-            <QuestionnaireFormPage />
           </Suspense>
         } />
         <Route path="/onboarding/planner" element={
@@ -701,24 +690,9 @@ export function App() {
               <ProposalsPage />
             </Suspense>
           } />
-          <Route path="/events/:id/invoices" element={
-            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
-              <InvoicesPage />
-            </Suspense>
-          } />
           <Route path="/events/:id/checklists" element={
             <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
               <ChecklistsPage />
-            </Suspense>
-          } />
-          <Route path="/events/:id/notebook" element={
-            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
-              <NotebookPage />
-            </Suspense>
-          } />
-          <Route path="/events/:id/questionnaires" element={
-            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
-              <QuestionnairesPage />
             </Suspense>
           } />
             <Route path="/vendors" element={

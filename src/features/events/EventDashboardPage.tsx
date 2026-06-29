@@ -10,7 +10,7 @@ import {
   ExternalLink, FileText, CheckCircle2, Circle,
   CreditCard, Radio, ListChecks, BarChart3,
   Clock, ArrowRight, Zap, X, Pencil, Gift, Image, Trash2, Plus,
-  CheckSquare, BookOpen, ClipboardList, ReceiptText, FileSignature,
+  CheckSquare, ClipboardList, FileSignature,
 } from 'lucide-react'
 import { PageHero } from '@/components/shared/PageHero'
 import { ModuleLock } from '@/components/shared/ModuleLock'
@@ -1462,7 +1462,7 @@ export function EventDashboardPage() {
             </div>
           </div>
 
-          {/* Finance Section */}
+           {/* Finance Section */}
           {isEventOwner && (
             <div className={styles.moduleCategorySection}>
               <h3 className={styles.moduleCategoryTitle}>Financial Oversight</h3>
@@ -1472,13 +1472,6 @@ export function EventDashboardPage() {
                   <div className={styles.moduleInfo}>
                     <span className={styles.moduleTitle}>Budget & Cashflow</span>
                     <span className={styles.moduleDesc}>Cost tracking, Naira-based P&L, and vendor payments</span>
-                  </div>
-                </Link>
-                <Link to={`/events/${id}/invoices`} className={styles.moduleCard}>
-                  <div className={styles.moduleIcon} style={{ background: 'rgba(34,197,94,0.12)', color: 'var(--color-success)' }}><ReceiptText size={18} /></div>
-                  <div className={styles.moduleInfo}>
-                    <span className={styles.moduleTitle}>Invoicing</span>
-                    <span className={styles.moduleDesc}>Send invoices and track payments</span>
                   </div>
                 </Link>
                 <Link to={`/events/${id}/proposals`} className={styles.moduleCard}>
@@ -1529,20 +1522,6 @@ export function EventDashboardPage() {
                 <div className={styles.moduleInfo}>
                   <span className={styles.moduleTitle}>Checklists</span>
                   <span className={styles.moduleDesc}>Task checklists and progress tracking</span>
-                </div>
-              </Link>
-              <Link to={`/events/${id}/notebook`} className={styles.moduleCard}>
-                <div className={styles.moduleIcon} style={{ background: 'rgba(139,92,246,0.12)', color: '#8B5CF6' }}><BookOpen size={18} /></div>
-                <div className={styles.moduleInfo}>
-                  <span className={styles.moduleTitle}>Notebook</span>
-                  <span className={styles.moduleDesc}>Event notes and ideas</span>
-                </div>
-              </Link>
-              <Link to={`/events/${id}/questionnaires`} className={styles.moduleCard}>
-                <div className={styles.moduleIcon} style={{ background: 'rgba(236,72,153,0.12)', color: '#EC4899' }}><ClipboardList size={18} /></div>
-                <div className={styles.moduleInfo}>
-                  <span className={styles.moduleTitle}>Surveys</span>
-                  <span className={styles.moduleDesc}>Create questionnaires and collect responses</span>
                 </div>
               </Link>
             </div>

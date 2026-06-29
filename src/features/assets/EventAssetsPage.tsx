@@ -174,7 +174,7 @@ export function EventAssetsPage() {
   }, [previewAsset, signedUrls])
 
   const fileRef = useRef<HTMLInputElement>(null)
-  const [formFile, setFormFile] = useState<File | null>(null)
+  const [formFiles, setFormFiles] = useState<File[]>([])
   const [formName, setFormName] = useState('')
   const [formCategory, setFormCategory] = useState('')
   const [formType, setFormType] = useState<EventAsset['asset_type']>('image')
@@ -237,12 +237,13 @@ export function EventAssetsPage() {
   }, [assets, categoryFilter, typeFilter])
 
   const handleFilePick = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setFormFile(file)
-    if (!formName) setFormName(file.name.replace(/\.[^.]+$/, ''))
-    const mime = file.type
-    if (isImageType(mime)) {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+    const picked = Array.from(files)
+    setFormFiles(picked)
+    if (!formName) setFormName(picked.length === 1 ? picked[0].name.replace(/\.[^.]+$/, '') : '')
+    const first = picked[0]
+    if (isImageType(first.type)) {
       setFormType('image')
     } else {
       setFormType('document')
@@ -250,65 +251,72 @@ export function EventAssetsPage() {
   }
 
   const handleUpload = async () => {
-    if (!id || !formFile || !formName.trim() || !user) return
+    if (!id || formFiles.length === 0 || !formName.trim() || !user) return
     setUploading(true)
+    let uploaded = 0
+    const total = formFiles.length
+    const nameToUse = formName.trim()
 
     try {
-      const ext = formFile.name.split('.').pop() || 'bin'
-      const path = `${id}/assets/${crypto.randomUUID()}.${ext}`
+      for (const file of formFiles) {
+        const ext = file.name.split('.').pop() || 'bin'
+        const path = `${id}/assets/${crypto.randomUUID()}.${ext}`
 
-      let fileToUpload: File | Blob = formFile
-      if (isImageType(formFile.type)) {
-        const compressed = await compressImage(formFile)
-        fileToUpload = compressed
-      }
+        let fileToUpload: File | Blob = file
+        if (isImageType(file.type)) {
+          const compressed = await compressImage(file)
+          fileToUpload = compressed
+        }
 
-      const { url } = await uploadFile('event-media', fileToUpload, path)
+        const { url } = await uploadFile('event-media', fileToUpload, path)
 
-      const { error: insertErr } = await supabase.from('event_assets').insert({
-        event_id: id,
-        uploaded_by: user.id,
-        name: formName.trim(),
-        asset_type: formType,
-        category: formCategory.trim() || 'Uncategorized',
-        file_size: formFile.size,
-        mime_type: formFile.type,
-        storage_path: path,
-        file_url: url,
-      })
+        const { error: insertErr } = await supabase.from('event_assets').insert({
+          event_id: id,
+          uploaded_by: user.id,
+          name: total === 1 ? nameToUse : `${nameToUse} (${uploaded + 1})`,
+          asset_type: formType,
+          category: formCategory.trim() || 'Uncategorized',
+          file_size: file.size,
+          mime_type: file.type,
+          storage_path: path,
+          file_url: url,
+        })
 
-      if (insertErr) throw insertErr
+        if (insertErr) throw insertErr
 
-      const { data: newAsset } = await supabase
-        .from('event_assets')
-        .select('*')
-        .eq('event_id', id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single()
+        const { data: newAsset } = await supabase
+          .from('event_assets')
+          .select('*')
+          .eq('event_id', id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single()
 
-      if (newAsset) {
-        setAssets((prev) => [newAsset as unknown as EventAsset, ...prev])
-        if (!isImageType(newAsset.mime_type) && newAsset.storage_path) {
-          const { data: sd } = await supabase.storage
-            .from('event-media')
-            .createSignedUrl(newAsset.storage_path, 3600)
-          if (sd?.signedUrl) {
-            setSignedUrls((prev) => ({ ...prev, [newAsset.id]: `${sd.signedUrl}&content-disposition=inline` }))
+        if (newAsset) {
+          setAssets((prev) => [newAsset as unknown as EventAsset, ...prev])
+          if (!isImageType(newAsset.mime_type) && newAsset.storage_path) {
+            const { data: sd } = await supabase.storage
+              .from('event-media')
+              .createSignedUrl(newAsset.storage_path, 3600)
+            if (sd?.signedUrl) {
+              setSignedUrls((prev) => ({ ...prev, [newAsset.id]: `${sd.signedUrl}&content-disposition=inline` }))
+            }
           }
         }
+
+        uploaded++
       }
 
-      showNotification({ variant: 'success', title: 'Asset uploaded' })
+      showNotification({ variant: 'success', title: `${uploaded} asset${uploaded > 1 ? 's' : ''} uploaded` })
       setShowForm(false)
-      setFormFile(null)
+      setFormFiles([])
       setFormName('')
       setFormCategory('')
       setFormType('image')
       if (fileRef.current) fileRef.current.value = ''
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Upload failed'
-      showNotification({ variant: 'error', title: 'Upload failed', message: msg })
+      showNotification({ variant: 'error', title: 'Upload failed', message: `${msg} (${uploaded}/${total} uploaded)` })
     } finally {
       setUploading(false)
     }
@@ -479,14 +487,24 @@ export function EventAssetsPage() {
                   className={styles.uploadArea}
                   onClick={() => fileRef.current?.click()}
                 >
-                  {formFile ? (
+                  {formFiles.length > 0 ? (
                     <div className={styles.uploadAreaPreview}>
-                      {isImageType(formFile.type) && formFile ? (
-                        <img src={URL.createObjectURL(formFile)} alt="" className={styles.uploadPreviewImg} />
+                      {formFiles.length === 1 ? (
+                        <>
+                          {isImageType(formFiles[0].type) ? (
+                            <img src={URL.createObjectURL(formFiles[0])} alt="" className={styles.uploadPreviewImg} />
+                          ) : (
+                            <FileText size={24} />
+                          )}
+                          <span>{formFiles[0].name}</span>
+                        </>
                       ) : (
-                        <FileText size={24} />
+                        <>
+                          <Upload size={20} />
+                          <span>{formFiles.length} files selected</span>
+                          <span className={styles.uploadAreaHint}>{formFiles.map(f => f.name).join(', ')}</span>
+                        </>
                       )}
-                      <span>{formFile.name}</span>
                     </div>
                   ) : (
                     <div className={styles.uploadAreaPlaceholder}>
@@ -495,9 +513,10 @@ export function EventAssetsPage() {
                       <span className={styles.uploadAreaHint}>Accepts images and PDFs</span>
                     </div>
                   )}
-                  <input
+                    <input
                     ref={fileRef}
                     type="file"
+                    multiple
                     accept="image/*,.pdf,.doc,.docx"
                     className={styles.fileInput}
                     onChange={handleFilePick}
@@ -557,7 +576,7 @@ export function EventAssetsPage() {
                 type="button"
                 className="btn btn-primary"
                 onClick={handleUpload}
-                disabled={!formFile || !formName.trim() || uploading}
+                  disabled={formFiles.length === 0 || !formName.trim() || uploading}
               >
                 {uploading ? (
                   <><span className="spinner-loader" style={{ width: 14, height: 14 }} /> Uploading...</>

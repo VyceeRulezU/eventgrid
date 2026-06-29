@@ -10,12 +10,6 @@ import { FeedbackEmail } from './FeedbackEmail.tsx'
 import type { FeedbackEmailProps } from './FeedbackEmail.tsx'
 import { PaymentEmail } from './PaymentEmail.tsx'
 import type { PaymentEmailProps } from './PaymentEmail.tsx'
-import { SurveyAcknowledgmentEmail } from './SurveyAcknowledgmentEmail.tsx'
-import type { SurveyAcknowledgmentEmailProps } from './SurveyAcknowledgmentEmail.tsx'
-
-// Re-export templates and props
-export { WelcomeEmail, QuickStartEmail, TrialReminderEmail, FeedbackEmail, PaymentEmail, SurveyAcknowledgmentEmail }
-export type { WelcomeEmailProps, QuickStartEmailProps, TrialReminderEmailProps, FeedbackEmailProps, PaymentEmailProps, SurveyAcknowledgmentEmailProps }
 
 /**
  * Strips HTML tags and formats spacing to generate a readable plain-text fallback.
@@ -49,17 +43,6 @@ export interface EmailRenderResult {
   html: string
   text: string
 }
-
-export function renderSurveyAcknowledgmentEmail(
-  props: SurveyAcknowledgmentEmailProps
-): EmailRenderResult {
-  const subject = 'Thank You — Your NaliGrid Early-Access Code'
-  const element = React.createElement(SurveyAcknowledgmentEmail, props)
-  const html = '<!DOCTYPE html>' + renderToStaticMarkup(element)
-  const text = convertHtmlToText(html)
-  return { subject, html, text }
-}
-
 /**
  * Helper function to render any onboarding email template by type and props.
  */

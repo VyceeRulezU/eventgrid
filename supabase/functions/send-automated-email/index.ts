@@ -22,8 +22,8 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
 
   try {
-    const body: SendRequest = await req.json()
-    const { template_name, to, variables = {} } = body
+    const body = await req.json()
+    const { template_name, to, variables = {}, attachment, attachments } = body
 
     if (!template_name || !to?.email) {
       return new Response(
@@ -38,15 +38,23 @@ Deno.serve(async (req) => {
       .eq('name', template_name)
       .single()
 
-    if (!template) {
-      return new Response(
-        JSON.stringify({ error: `Template "${template_name}" not found` }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      )
-    }
+    let subject = ''
+    let html = ''
 
-    let subject = template.subject
-    let html = template.body_html
+    if (!template) {
+      if (variables.subject && variables.body_html) {
+        subject = variables.subject
+        html = variables.body_html
+      } else {
+        return new Response(
+          JSON.stringify({ error: `Template "${template_name}" not found` }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        )
+      }
+    } else {
+      subject = template.subject
+      html = template.body_html
+    }
 
     const allVars: Record<string, string> = {
       '{{contact.NOM}}': to.name || to.email.split('@')[0],
@@ -72,6 +80,7 @@ Deno.serve(async (req) => {
         to: [{ email: to.email, name: to.name || to.email.split('@')[0] }],
         subject,
         htmlContent: html,
+        attachment: attachments || (attachment ? [attachment] : undefined),
         options: { trackLinks: 'none' },
       }),
     })

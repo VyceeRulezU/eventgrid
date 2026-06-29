@@ -406,8 +406,8 @@ export interface Lead {
   created_at: string
   updated_at: string
 }
-
 export interface ProposalSection {
+  category?: string
   title: string
   description?: string
   amount?: number
@@ -430,6 +430,7 @@ export interface Proposal {
   viewed_at: string | null
   responded_at: string | null
   notes: string | null
+  client_email: string | null
   created_at: string
   updated_at: string
 }

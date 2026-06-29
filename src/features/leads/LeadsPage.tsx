@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, X, Users, Mail, Phone, Calendar, Pencil } from 'lucide-react'
+import { Plus, X, Users, Mail, Phone, Calendar, Pencil, LayoutGrid, List } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -41,6 +41,7 @@ export function LeadsPage() {
   const [saving, setSaving] = useState(false)
   const [selectedStatus, setSelectedStatus] = useState<string>('all')
   const [editingLead, setEditingLead] = useState<Lead | null>(null)
+  const [viewType, setViewType] = useState<'kanban' | 'table'>('kanban')
   const { query, setQuery, filtered } = useSearch(leads, ['client_name', 'client_email', 'client_phone', 'notes', 'event_type'])
 
   const [form, setForm] = useState({
@@ -160,6 +161,27 @@ export function LeadsPage() {
     })
   }
 
+  async function handleStatusChange(lead: Lead, nextStatus: Lead['status']) {
+    await supabase.from('leads').update({ status: nextStatus }).eq('id', lead.id)
+    setLeads(leads.map(l => l.id === lead.id ? { ...l, status: nextStatus } : l))
+    showNotification({ variant: 'success', title: 'Status updated', message: `Lead moved to ${nextStatus}` })
+  }
+
+  function estimateBudget(range: string | null): number {
+    if (!range) return 0
+    const clean = range.replace(/[^0-9]/g, '')
+    if (!clean) return 0
+    const num = parseInt(clean, 10)
+    if (range.toLowerCase().includes('m')) return num * 1000000
+    if (range.toLowerCase().includes('k')) return num * 1000
+    return num
+  }
+
+  const activeLeadsCount = leads.filter(l => l.status !== 'converted' && l.status !== 'lost').length
+  const convertedLeadsCount = leads.filter(l => l.status === 'converted').length
+  const conversionRate = leads.length > 0 ? Math.round((convertedLeadsCount / leads.length) * 100) : 0
+  const pipelineValue = leads.reduce((acc, l) => acc + estimateBudget(l.budget_range), 0)
+
   if (loading) return <div><div className="skeleton skeleton-card" style={{ height: 80, marginBottom: 16 }} /><div className="skeleton skeleton-card" style={{ height: 300 }} /></div>
 
   return (
@@ -168,12 +190,40 @@ export function LeadsPage() {
         actions={
           <div className={styles.pageHeroActions}>
             <SearchBar value={query} onChange={setQuery} placeholder="Search leads..." />
+            <div className={styles.toggleGroup}>
+              <button className={`btn btn-sm ${viewType === 'kanban' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setViewType('kanban')} title="Kanban View">
+                <LayoutGrid size={16} />
+              </button>
+              <button className={`btn btn-sm ${viewType === 'table' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setViewType('table')} title="List View">
+                <List size={16} />
+              </button>
+            </div>
             <button className="btn btn-primary btn-sm" onClick={() => { setEditingLead(null); resetForm(); setShowForm(true) }}>
               <Plus size={16} /> Add Lead
             </button>
           </div>
         }
       />
+
+      {/* Analytical KPI Metrics Panel */}
+      <div className={styles.metricsGrid}>
+        <div className={styles.metricCard}>
+          <div className={styles.metricLabel}>Active Leads</div>
+          <div className={styles.metricValue}>{activeLeadsCount}</div>
+        </div>
+        <div className={styles.metricCard}>
+          <div className={styles.metricLabel}>Converted</div>
+          <div className={styles.metricValue}>{convertedLeadsCount}</div>
+        </div>
+        <div className={styles.metricCard}>
+          <div className={styles.metricLabel}>Conversion Rate</div>
+          <div className={styles.metricValue}>{conversionRate}%</div>
+        </div>
+        <div className={styles.metricCard}>
+          <div className={styles.metricLabel}>Est. Pipeline Value</div>
+          <div className={styles.metricValue}>₦{pipelineValue.toLocaleString('en-NG')}</div>
+        </div>
+      </div>
 
       <Tabs
         tabs={[
@@ -192,22 +242,22 @@ export function LeadsPage() {
               <button className="modal-card-close" onClick={() => { setShowForm(false); setEditingLead(null) }}><X size={18} /></button>
             </div>
             <div className="modal-card-body" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div className="input-wrapper"><label className="input-label">Client Name *</label><input className="input" value={form.clientName} onChange={e => setForm({...form, clientName: e.target.value})} /></div>
+              <div className="input-wrapper"><label className="input-label">Client Name *</label><input className="input" value={form.clientName} onChange={e => setForm({...form, clientName: e.target.value})} placeholder="Full name of prospect" /></div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div className="input-wrapper"><label className="input-label">Email</label><input className="input" type="email" value={form.clientEmail} onChange={e => setForm({...form, clientEmail: e.target.value})} /></div>
-                <div className="input-wrapper"><label className="input-label">Phone</label><input className="input" type="tel" value={form.clientPhone} onChange={e => setForm({...form, clientPhone: e.target.value})} /></div>
+                <div className="input-wrapper"><label className="input-label">Email</label><input className="input" type="email" value={form.clientEmail} onChange={e => setForm({...form, clientEmail: e.target.value})} placeholder="client@example.com" /></div>
+                <div className="input-wrapper"><label className="input-label">Phone</label><input className="input" type="tel" value={form.clientPhone} onChange={e => setForm({...form, clientPhone: e.target.value})} placeholder="Phone number" /></div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div className="input-wrapper"><label className="input-label">Source</label>
                   <DropdownMenu
-                    trigger={<span>{form.source.replace('_', ' ')}</span>}
+                    trigger={<span className={styles.dropdownTrigger}>{form.source.replace('_', ' ')}</span>}
                     items={SOURCES.map(s => ({ label: s.replace('_', ' '), value: s }))}
                     onSelect={(item) => setForm({...form, source: item.value})}
                   />
                 </div>
                 <div className="input-wrapper"><label className="input-label">Event Type</label>
                   <DropdownMenu
-                    trigger={<span>{form.eventType || 'Select...'}</span>}
+                    trigger={<span className={styles.dropdownTrigger}>{form.eventType || 'Select type...'}</span>}
                     items={EVENT_TYPES.map(t => ({ label: t, value: t }))}
                     onSelect={(item) => setForm({...form, eventType: item.value})}
                   />
@@ -216,14 +266,14 @@ export function LeadsPage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div className="input-wrapper"><label className="input-label">Budget Range</label><input className="input" value={form.budgetRange} onChange={e => setForm({...form, budgetRange: e.target.value})} placeholder="e.g. ₦500K-1M" /></div>
                 <div className="input-wrapper"><label className="input-label">Preferred Date</label>
-                  <button className="input" type="button" onClick={() => setShowPreferredDate(true)} style={{ textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <button className="input" type="button" onClick={() => setShowPreferredDate(true)} style={{ textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8, height: 40 }}>
                     <Calendar size={14} /> {form.preferredDate ? new Date(form.preferredDate + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Select date...'}
                   </button>
                   <CalendarModal open={showPreferredDate} value={form.preferredDate} onChange={d => { setForm({...form, preferredDate: d}); setShowPreferredDate(false) }} onClose={() => setShowPreferredDate(false)} />
                 </div>
               </div>
               <div className="input-wrapper"><label className="input-label">Guest Count</label><input className="input" type="number" value={form.guestCountEstimate} onChange={e => setForm({...form, guestCountEstimate: Number(e.target.value)})} /></div>
-              <div className="input-wrapper"><label className="input-label">Notes</label><textarea className="input" rows={3} value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} /></div>
+              <div className="input-wrapper"><label className="input-label">Notes</label><textarea className="input" rows={3} value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} placeholder="Client needs, event ideas or remarks..." /></div>
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
                 <button className="btn btn-ghost" onClick={() => { setShowForm(false); setEditingLead(null) }}>Cancel</button>
                 <button className="btn btn-primary" onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : editingLead ? 'Update' : 'Save Lead'}</button>
@@ -233,69 +283,130 @@ export function LeadsPage() {
         </div>
       )}
 
-      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-        {filteredLeads.length === 0 ? (
-          <div className="empty-state" style={{ padding: '48px 24px' }}>
-            <div className="empty-state__title">No leads found</div>
-            <div className="empty-state__description">Add your first lead to start tracking prospects</div>
-            <button className="btn btn-primary" onClick={() => { setEditingLead(null); resetForm(); setShowForm(true) }}><Plus size={16} /> Add Lead</button>
-          </div>
-        ) : (
-          <div className={styles.tableWrap}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>Client</th>
-                  <th>Contact</th>
-                  <th>Event</th>
-                  <th>Source</th>
-                  <th>Status</th>
-                  <th>Date</th>
-                  <th style={{ width: 80 }} />
-                </tr>
-              </thead>
-              <tbody>
-                {filteredLeads.map(lead => (
-                  <tr key={lead.id}>
-                    <td><span className={styles.clientName}>{lead.client_name}</span></td>
-                    <td>
-                      <div className={styles.contactInfo}>
-                        {lead.client_email && <span><Mail size={12} />{lead.client_email}</span>}
-                        {lead.client_phone && <span><Phone size={12} />{lead.client_phone}</span>}
+      {viewType === 'kanban' ? (
+        <div className={styles.kanbanBoard}>
+          {STATUSES.filter(col => selectedStatus === 'all' || col === selectedStatus).map(col => {
+            const colLeads = filtered.filter(l => l.status === col)
+            return (
+              <div key={col} className={styles.kanbanCol}>
+                <div className={styles.kanbanColHeader}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span className={styles.colDot} style={{ background: statusColors[col] }} />
+                    <span className={styles.colTitle}>{col.replace('_', ' ')}</span>
+                  </div>
+                  <span className={styles.colCount}>{colLeads.length}</span>
+                </div>
+                <div className={styles.kanbanCardList}>
+                  {colLeads.map(lead => (
+                    <div key={lead.id} className={styles.leadCard}>
+                      <div className={styles.leadCardHeader}>
+                        <h4 className={styles.leadName}>{lead.client_name}</h4>
+                        <div className={styles.leadActions}>
+                          {lead.status !== 'converted' && lead.status !== 'lost' && (
+                            <button className={styles.leadActionBtn} onClick={() => handleConvert(lead)} title="Convert to event">
+                              <Calendar size={13} />
+                            </button>
+                          )}
+                          <button className={styles.leadActionBtn} onClick={() => openEdit(lead)} title="Edit">
+                            <Pencil size={13} />
+                          </button>
+                          <button className={styles.leadActionBtn} style={{ color: 'var(--color-error)' }} onClick={() => handleDelete(lead)} title="Delete">
+                            <X size={13} />
+                          </button>
+                        </div>
                       </div>
-                    </td>
-                    <td>
-                      <div style={{ fontSize: 'var(--text-sm)' }}>
-                        {lead.event_type && <div>{lead.event_type}</div>}
-                        {lead.preferred_date && <div style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)' }}>
-                          <Calendar size={11} /> {new Date(lead.preferred_date).toLocaleDateString()}
-                        </div>}
+
+                      <div className={styles.leadDetails}>
+                        {lead.event_type && <span className={styles.detailBadge}>{lead.event_type}</span>}
+                        {lead.budget_range && <span className={styles.detailBadge} style={{ color: 'var(--color-accent)' }}>{lead.budget_range}</span>}
+                        {lead.source && <span className={styles.sourceLabel}>{lead.source}</span>}
                       </div>
-                    </td>
-                    <td><span className={styles.sourceBadge}>{lead.source.replace('_', ' ')}</span></td>
-                    <td>
-                      <span className={styles.statusDot} style={{ background: statusColors[lead.status] }} />
-                      <span style={{ fontSize: 'var(--text-sm)', textTransform: 'capitalize' }}>{lead.status.replace('_', ' ')}</span>
-                    </td>
-                    <td style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
-                      {new Date(lead.created_at).toLocaleDateString()}
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', gap: 4 }}>
-                        {lead.status !== 'converted' && lead.status !== 'lost' && (
-                          <button className="btn btn-ghost btn-icon btn-xs" onClick={() => handleConvert(lead)} title="Convert to event"><Calendar size={14} /></button>
-                        )}
-                        <button className="btn btn-ghost btn-icon btn-xs" onClick={() => openEdit(lead)} title="Edit"><Pencil size={14} /></button>
-                        <button className="btn btn-ghost btn-icon btn-xs" onClick={() => handleDelete(lead)} title="Delete"><X size={14} /></button>
+
+                      {lead.notes && <p className={styles.leadNotes}>{lead.notes}</p>}
+
+                      <div className={styles.leadCardFooter}>
+                        <DropdownMenu
+                          trigger={<span className={styles.cardStatusBadge} style={{ background: `${statusColors[lead.status]}15`, color: statusColors[lead.status] }}>{lead.status.replace('_', ' ')}</span>}
+                          items={STATUSES.map(s => ({ label: s.replace('_', ' '), value: s }))}
+                          onSelect={(item) => handleStatusChange(lead, item.value as Lead['status'])}
+                        />
+                        <span className={styles.leadDate}>{new Date(lead.created_at).toLocaleDateString()}</span>
                       </div>
-                    </td>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      ) : (
+        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          {filteredLeads.length === 0 ? (
+            <div className="empty-state" style={{ padding: '48px 24px' }}>
+              <div className="empty-state__title">No leads found</div>
+              <div className="empty-state__description">Add your first lead to start tracking prospects</div>
+              <button className="btn btn-primary" onClick={() => { setEditingLead(null); resetForm(); setShowForm(true) }}><Plus size={16} /> Add Lead</button>
+            </div>
+          ) : (
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>Client</th>
+                    <th>Contact</th>
+                    <th>Event</th>
+                    <th>Source</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th style={{ width: 80 }} />
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+                </thead>
+                <tbody>
+                  {filteredLeads.map(lead => (
+                    <tr key={lead.id}>
+                      <td><span className={styles.clientName}>{lead.client_name}</span></td>
+                      <td>
+                        <div className={styles.contactInfo}>
+                          {lead.client_email && <span><Mail size={12} />{lead.client_email}</span>}
+                          {lead.client_phone && <span><Phone size={12} />{lead.client_phone}</span>}
+                        </div>
+                      </td>
+                      <td>
+                        <div style={{ fontSize: 'var(--text-sm)' }}>
+                          {lead.event_type && <div>{lead.event_type}</div>}
+                          {lead.preferred_date && <div style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)' }}>
+                            <Calendar size={11} /> {new Date(lead.preferred_date).toLocaleDateString()}
+                          </div>}
+                        </div>
+                      </td>
+                      <td><span className={styles.sourceBadge}>{lead.source.replace('_', ' ')}</span></td>
+                      <td>
+                        <DropdownMenu
+                          trigger={<span className={styles.statusBadgeTrigger} style={{ borderColor: statusColors[lead.status], color: statusColors[lead.status] }}>{lead.status.replace('_', ' ')}</span>}
+                          items={STATUSES.map(s => ({ label: s.replace('_', ' '), value: s }))}
+                          onSelect={(item) => handleStatusChange(lead, item.value as Lead['status'])}
+                        />
+                      </td>
+                      <td style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                        {new Date(lead.created_at).toLocaleDateString()}
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', gap: 4 }}>
+                          {lead.status !== 'converted' && lead.status !== 'lost' && (
+                            <button className="btn btn-ghost btn-icon btn-xs" onClick={() => handleConvert(lead)} title="Convert to event"><Calendar size={14} /></button>
+                          )}
+                          <button className="btn btn-ghost btn-icon btn-xs" onClick={() => openEdit(lead)} title="Edit"><Pencil size={14} /></button>
+                          <button className="btn btn-ghost btn-icon btn-xs" onClick={() => handleDelete(lead)} title="Delete"><X size={14} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
