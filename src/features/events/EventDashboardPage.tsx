@@ -10,7 +10,7 @@ import {
   ExternalLink, FileText, CheckCircle2, Circle,
   CreditCard, Radio, ListChecks, BarChart3,
   Clock, ArrowRight, Zap, X, Pencil, Gift, Image, Trash2, Plus,
-  CheckSquare, ClipboardList, FileSignature,
+  CheckSquare, FileSignature,
 } from 'lucide-react'
 import { PageHero } from '@/components/shared/PageHero'
 import { ModuleLock } from '@/components/shared/ModuleLock'

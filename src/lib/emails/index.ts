@@ -1,15 +1,10 @@
 import * as React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { WelcomeEmail } from './WelcomeEmail.tsx'
-import type { WelcomeEmailProps } from './WelcomeEmail.tsx'
 import { QuickStartEmail } from './QuickStartEmail.tsx'
-import type { QuickStartEmailProps } from './QuickStartEmail.tsx'
 import { TrialReminderEmail } from './TrialReminderEmail.tsx'
-import type { TrialReminderEmailProps } from './TrialReminderEmail.tsx'
 import { FeedbackEmail } from './FeedbackEmail.tsx'
-import type { FeedbackEmailProps } from './FeedbackEmail.tsx'
 import { PaymentEmail } from './PaymentEmail.tsx'
-import type { PaymentEmailProps } from './PaymentEmail.tsx'
 
 /**
  * Strips HTML tags and formats spacing to generate a readable plain-text fallback.

@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Calendar, Wallet, Users, BookOpen,
   Settings, LogOut, X, ArrowLeft, ListChecks, Radio,
   FileText, TrendingUp, MessageSquare, Bell, Image,
-  PanelLeftClose, PanelLeft, Mail, UserPlus, ClipboardList,
+  PanelLeftClose, PanelLeft, Mail, UserPlus,
   FileSignature, CheckSquare,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'

@@ -1,104 +1,62 @@
-.workspace {
-  display: flex;
-  gap: 0;
-  background: rgba(var(--color-surface-2-rgb), 0.4);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  height: calc(100vh - 280px);
-  min-height: 550px;
-}
-
-@media (max-width: 768px) {
-  .workspace {
-    flex-direction: column;
-    height: auto;
-  }
-}
-
-.sidebar {
-  width: 280px;
-  border-right: 1px solid var(--color-border-subtle);
-  background: rgba(var(--color-surface-1-rgb), 0.5);
-  display: flex;
-  flex-direction: column;
-}
-
-@media (max-width: 768px) {
-  .sidebar {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid var(--color-border-subtle);
-    max-height: 200px;
-  }
-}
-
-.emptySidebar {
-  padding: var(--space-4);
-  text-align: center;
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-  margin: auto;
-}
-
-.proposalsList {
-  flex: 1;
-  overflow-y: auto;
-  padding: var(--space-3);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.proposalCard {
-  padding: var(--space-3);
-  background: rgba(var(--color-surface-2-rgb), 0.3);
-  border: 1px solid transparent;
-  border-radius: var(--radius-md);
+/* ---- Table ---- */
+.tableRow {
   cursor: pointer;
-  transition: all var(--transition-fast) ease;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  position: relative;
+  transition: background var(--transition-fast) ease;
 }
 
-.proposalCard:hover {
-  background: rgba(var(--color-surface-2-rgb), 0.6);
-  border-color: var(--color-border);
-  transform: translateY(-1px);
+.tableRow:hover {
+  background: rgba(var(--color-accent-rgb), 0.03);
 }
 
-.selectedCard {
-  background: rgba(var(--color-accent-rgb), 0.08) !important;
-  border-color: var(--color-accent) !important;
-  box-shadow: 0 0 0 1px rgba(var(--color-accent-rgb), 0.3);
-}
-
-.selectedCard::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 4px;
-  bottom: 4px;
-  width: 3px;
-  background: var(--color-accent);
-  border-radius: 0 2px 2px 0;
-}
-
-.proposalCardHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.proposalTitleText {
+.tableCell {
+  padding: var(--space-3) var(--space-4);
+  vertical-align: middle;
   font-size: var(--text-sm);
+}
+
+.cellTitle {
   font-weight: 600;
   color: var(--color-text-primary);
 }
 
+.cellSub {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.cellEmail {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+}
+
+.noEmail {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.cellAmount {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.cellDate {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.colRight {
+  text-align: right;
+}
+
+.actionButtons {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+/* ---- Status badge ---- */
 .statusBadge {
   display: inline-flex;
   align-items: center;
@@ -111,71 +69,52 @@
   letter-spacing: 0.03em;
 }
 
-.proposalClientEmail {
-  font-size: var(--text-sm);
-  font-weight: 500;
-  color: var(--color-text-secondary);
-}
-
-.proposalMeta {
-  display: flex;
-  justify-content: space-between;
-  font-size: var(--text-xs);
-  color: var(--color-text-muted);
-}
-
-.previewPane {
-  flex: 1;
-  background: transparent;
+/* ---- Preview modal ---- */
+.previewModal {
+  background: var(--color-surface-1);
+  border-radius: var(--radius-xl);
+  max-width: 860px;
+  width: calc(100% - var(--space-8));
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  box-shadow: var(--shadow-lg);
 }
 
-.emptyPreview {
-  margin: auto;
-  text-align: center;
-  padding: var(--space-6);
-  color: var(--color-text-muted);
-}
-
-.emptyPreview h3 {
-  color: var(--color-text-primary);
-  font-size: var(--text-base);
-  margin: 0 0 var(--space-1);
-}
-
-.emptyPreview p {
-  font-size: var(--text-sm);
-  margin: 0;
-}
-
-.previewContent {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.previewActionBar {
+.previewModalHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: var(--space-3) var(--space-4);
-  background: rgba(var(--color-surface-1-rgb), 0.6);
   border-bottom: 1px solid var(--color-border-subtle);
+  background: rgba(var(--color-surface-2-rgb), 0.4);
+  backdrop-filter: blur(8px);
   position: sticky;
   top: 0;
   z-index: 10;
-  backdrop-filter: blur(8px);
 }
 
-.proposalSheet {
+.previewModalActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.previewModalBody {
   flex: 1;
   overflow-y: auto;
+  padding: var(--space-4);
+}
+
+.exportDropdown {
+  font-size: var(--text-xs);
+}
+
+/* ---- Proposal document sheet ---- */
+.proposalSheet {
   padding: var(--space-8);
   background: linear-gradient(135deg, var(--color-surface-1) 0%, rgba(var(--color-surface-2-rgb), 0.3) 100%);
-  margin: var(--space-4);
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border-subtle);
   box-shadow: var(--shadow-md);
@@ -183,8 +122,7 @@
   flex-direction: column;
   gap: var(--space-6);
   max-width: 800px;
-  align-self: center;
-  width: calc(100% - var(--space-8));
+  margin: 0 auto;
 }
 
 .proposalDocHeader {
@@ -257,7 +195,7 @@
   line-height: 1.6;
 }
 
-/* Financials Budget allocations replica styles */
+/* ---- Budget table replica ---- */
 .replicaSection {
   display: flex;
   flex-direction: column;
@@ -385,7 +323,7 @@
   font-weight: 800;
 }
 
-/* Breakdown Specs styling */
+/* ---- Breakdown specs ---- */
 .breakdownSection {
   border-top: 1px dashed var(--color-border);
   padding-top: var(--space-5);
@@ -455,7 +393,7 @@
   white-space: nowrap;
 }
 
-/* Creator Form specific styling */
+/* ---- Form styles ---- */
 .formSectionsList {
   display: flex;
   flex-direction: column;
@@ -492,30 +430,17 @@
   flex-direction: column;
 }
 
-.exportDropdown {
-  font-size: var(--text-xs);
-}
-
-.categoryDropdownTrigger {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.catSelect {
+  width: 100%;
+  height: 36px;
   background: var(--color-surface-2);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
-  padding: 6px 12px;
+  padding: 0 10px;
   font-size: var(--text-xs);
   color: var(--color-text-primary);
   cursor: pointer;
-  height: 36px;
   box-sizing: border-box;
-}
-
-.categoryDropdownTrigger::after {
-  content: '▼';
-  font-size: 6px;
-  color: var(--color-text-muted);
-  margin-left: 6px;
 }
 
 .formTotalsRow {
