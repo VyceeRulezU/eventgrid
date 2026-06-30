@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import {
   Calendar, Plus, Users, Wallet, ChevronRight,
   Star, Activity, ListChecks,
-  CheckCircle, FileText, UserPlus, BadgeCheck, Building2,
+  CheckCircle, FileText, UserPlus,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
@@ -52,7 +52,6 @@ function timeAgo(dateStr: string): string {
 export function VendorPortal() {
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
-  const profile = useAuthStore((s) => s.profile)
   const [events, setEvents] = useState<VendorEvent[]>([])
   const [vendorListing, setVendorListing] = useState<{ id: string; name: string; category: string; is_verified: boolean } | null>(null)
   const [activities, setActivities] = useState<ActivityItem[]>([])
@@ -134,7 +133,6 @@ export function VendorPortal() {
   }, [user])
 
   const totalEvents = events.length
-  const upcomingEvents = events.filter((e) => e.event_status === 'active' || e.event_status === 'in_progress' || e.event_status === 'confirmed')
   const completedEvents = events.filter((e) => e.event_status === 'completed')
   const pendingReviews = events.filter((e) => e.event_status === 'completed' && !e.reviewed)
 
