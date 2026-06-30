@@ -11,6 +11,10 @@ export function CookiesPage() {
         title="Cookie Policy — NaliGrid"
         description="Learn how NaliGrid uses cookies and local storage to enhance your experience on the platform."
         url="/cookies"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Cookie Policy' },
+        ]}
       />
       <Navbar />
       

@@ -11,6 +11,10 @@ export function PrivacyPage() {
         title="Privacy Policy — NaliGrid"
         description="Learn how NaliGrid collects, protects, and handles your personal information in compliance with the Nigeria Data Protection Act."
         url="/privacy"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Privacy Policy' },
+        ]}
       />
       <Navbar />
       
@@ -90,7 +94,7 @@ export function PrivacyPage() {
                 <p>Where required under the NDPA, we process personal information on the basis of:</p>
                 <ul>
                   <li><strong>Performance of a contract</strong> — to provide the Platform services you have signed up for</li>
-                  <li><strong>Consent</strong> — for example, where you confirm you have a lawful basis to add a guest's information, or opt into beta features</li>
+                  <li><strong>Consent</strong> — for example, where you confirm you have a lawful basis to add a guest's information</li>
                   <li><strong>Legitimate interest</strong> — for security, fraud prevention, and service improvement, balanced against your rights</li>
                   <li><strong>Legal obligation</strong> — where processing is required by Nigerian law</li>
                 </ul>

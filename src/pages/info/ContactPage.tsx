@@ -57,6 +57,10 @@ export function ContactPage() {
         title="Contact NaliGrid — Get in Touch"
         description="Have questions about onboarding, vendor listing verifications, pricing, or API customizations? Contact the NaliGrid team."
         url="/contact"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Contact' },
+        ]}
       />
       <Navbar />
       

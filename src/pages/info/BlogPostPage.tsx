@@ -154,6 +154,11 @@ export function BlogPostPage() {
         image={getFeaturedImageUrl(post)}
         type="article"
         publishedTime={post.publishedAt}
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Blog', url: '/blog' },
+          { name: post.title },
+        ]}
       />
 
       <Navbar />

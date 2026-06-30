@@ -55,6 +55,7 @@ export function FAQPage() {
         title="FAQ — NaliGrid Help Center"
         description="Find answers about NaliGrid's event management platform — team invites, live board, payments, security, and vendor coordination."
         url="/faq"
+        faq={FAQS.flatMap(cat => cat.items)}
       />
       <Navbar />
       

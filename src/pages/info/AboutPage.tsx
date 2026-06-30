@@ -14,6 +14,10 @@ export function AboutPage() {
         title="About NaliGrid — Our Story"
         description="NaliGrid closes the gap in event management. Over 5,000 events coordinated across Nigeria with ₦5B+ in budgets tracked securely."
         url="/about"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'About' },
+        ]}
       />
       <Navbar />
       

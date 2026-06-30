@@ -20,6 +20,10 @@ export function BlogPage() {
         title="NaliGrid Blog — Event Management Insights"
         description="Tips on escrow payments, event day coordination, aftermath reports, and more for Nigerian event planners and coordinators."
         url="/blog"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Blog' },
+        ]}
       />
       <Navbar />
       

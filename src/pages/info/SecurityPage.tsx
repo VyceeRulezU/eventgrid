@@ -11,6 +11,10 @@ export function SecurityPage() {
         title="Security Infrastructure — NaliGrid"
         description="Enterprise-grade row-level database security, server-validated payment gateways, and strict authorization protocols."
         url="/security"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Security' },
+        ]}
       />
       <Navbar />
       

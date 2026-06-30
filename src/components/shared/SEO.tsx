@@ -6,6 +6,16 @@ const DEFAULT_TITLE = 'NaliGrid — Event Management Platform'
 const DEFAULT_DESC = 'The premium event management platform built for event planners, coordinators, vendors, and clients.'
 const DEFAULT_KEYWORDS = 'event planning, event management, nigeria events, wedding coordinator, corporate event planner, budget tracker, live board, paystack, korapay'
 
+interface Breadcrumb {
+  name: string
+  url?: string
+}
+
+interface FAQItem {
+  question: string
+  answer: string
+}
+
 interface SEOProps {
   title?: string
   description?: string
@@ -16,6 +26,8 @@ interface SEOProps {
   publishedTime?: string
   author?: string
   noindex?: boolean
+  breadcrumbs?: Breadcrumb[]
+  faq?: FAQItem[]
 }
 
 export function SEO({
@@ -28,6 +40,8 @@ export function SEO({
   publishedTime,
   author,
   noindex = false,
+  breadcrumbs,
+  faq,
 }: SEOProps) {
   const fullTitle = title.includes('NaliGrid') ? title : `${title} | NaliGrid`
   const canonicalUrl = url ? `${SITE_URL}${url}` : SITE_URL
@@ -82,6 +96,10 @@ export function SEO({
       {/* Canonical URL */}
       <link rel="canonical" href={canonicalUrl} />
 
+      {/* Preconnect hints for performance */}
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+
       {/* Favicon */}
       <link rel="icon" type="image/x-icon" href="/favicon.ico" />
       <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
@@ -116,6 +134,36 @@ export function SEO({
       {articleSchema && (
         <script type="application/ld+json">
           {JSON.stringify(articleSchema)}
+        </script>
+      )}
+      {breadcrumbs && breadcrumbs.length > 0 && (
+        <script type="application/ld+json">
+          {JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: breadcrumbs.map((crumb, i) => ({
+              '@type': 'ListItem',
+              position: i + 1,
+              name: crumb.name,
+              ...(crumb.url ? { item: `${SITE_URL}${crumb.url}` } : {}),
+            })),
+          })}
+        </script>
+      )}
+      {faq && faq.length > 0 && (
+        <script type="application/ld+json">
+          {JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: faq.map((item) => ({
+              '@type': 'Question',
+              name: item.question,
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: item.answer,
+              },
+            })),
+          })}
         </script>
       )}
     </Helmet>

@@ -63,7 +63,6 @@ export default function MobileAppFeature() {
                   </div>
                   <span className={styles.appTitle}>Live Feed</span>
                   <div className={styles.headerRight}>
-                    <span className={styles.betaBadge}>Beta</span>
                     <span className={styles.bellIcon}>
                       <Bell size={14} />
                       <span className={styles.bellBadge}>2</span>

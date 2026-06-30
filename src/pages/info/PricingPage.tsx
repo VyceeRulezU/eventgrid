@@ -14,6 +14,10 @@ export function PricingPage() {
         title="Pricing — NaliGrid Plans"
         description="Predictable event management pricing. Register today to lock in 50% early access when plans launch in Q3 2026."
         url="/pricing"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Pricing' },
+        ]}
       />
       <Navbar />
       

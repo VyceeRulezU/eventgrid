@@ -206,7 +206,7 @@ const POST_WHATSAPP_EXCEL: StaticPost = {
 
     {
       type: 'cta',
-      text: 'NaliGrid is currently in beta — available to a limited number of planners before public launch. You can create your first event for just ₦100 during the beta period. No monthly subscription, no dollar conversion, no setup fees.',
+      text: 'NaliGrid helps Nigerian event planners manage vendors, budgets, and event-day coordination from a single dashboard. No monthly subscription, no dollar conversion, no setup fees.',
       buttonText: 'Start for FREE →',
       buttonUrl: '/register',
     },
@@ -284,7 +284,7 @@ const POST_ESCROW: StaticPost = {
 
     {
       type: 'cta',
-      text: 'NaliGrid is building payment solutions designed for the Nigerian event industry, including escrow-based vendor payment protection. Join the beta and experience the future of event financial management.',
+      text: 'NaliGrid is building payment solutions designed for the Nigerian event industry, including escrow-based vendor payment protection. Experience the future of event financial management.',
       buttonText: 'Join Beta →',
       buttonUrl: '/register',
     },
@@ -384,7 +384,7 @@ const POST_CHECKLIST: StaticPost = {
 
     {
       type: 'cta',
-      text: 'NaliGrid\'s Live Board gives Nigerian coordinators real-time visibility over every vendor station and event cue. Start your first event for FREE during our beta period.',
+      text: 'NaliGrid\'s Live Board gives Nigerian coordinators real-time visibility over every vendor station and event cue. Start your first event today.',
       buttonText: 'Start for FREE →',
       buttonUrl: '/register',
     },
@@ -482,7 +482,7 @@ const POST_RECONCILE: StaticPost = {
 
     {
       type: 'cta',
-      text: 'NaliGrid\'s financial module automatically tracks every vendor payment, expense, and client deposit in Naira — with built-in budget versus actual analysis and post-event reconciliation. Start your first event for FREE during beta.',
+      text: 'NaliGrid\'s financial module automatically tracks every vendor payment, expense, and client deposit in Naira — with built-in budget versus actual analysis and post-event reconciliation. Start your first event today.',
       buttonText: 'Start for FREE →',
       buttonUrl: '/register',
     },
@@ -928,7 +928,7 @@ const POST_EVENT_COORDINATOR: StaticPost = {
     },
     {
       type: 'paragraph',
-      text: 'The beta is open. Your first event is ₦100.',
+      text: 'NaliGrid gives you everything you need to plan, coordinate, and reconcile your events — all in one place.',
     },
     {
       type: 'sectionImage',

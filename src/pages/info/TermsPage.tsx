@@ -11,6 +11,10 @@ export function TermsPage() {
         title="Terms of Service — NaliGrid"
         description="Read the terms governing your access to and use of the NaliGrid platform for event management."
         url="/terms"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Terms of Service' },
+        ]}
       />
       <Navbar />
       
@@ -25,51 +29,39 @@ export function TermsPage() {
           <div className={styles.legalLayout}>
             <nav className={styles.sideNav} aria-label="Document index">
               <ul>
-                <li><a href="#about">1. About These Terms</a></li>
-                <li><a href="#beta">2. Beta / Early Access Status</a></li>
-                <li><a href="#who">3. Who Can Use NaliGrid</a></li>
-                <li><a href="#roles">4. Account Roles</a></li>
-                <li><a href="#responsibilities">5. Your Responsibilities</a></li>
-                <li><a href="#data">6. Data You Add to the Platform</a></li>
-                <li><a href="#fees">7. Fees and Payments</a></li>
-                <li><a href="#vendor">8. Vendor Directory</a></li>
-                <li><a href="#ip">9. Intellectual Property</a></li>
-                <li><a href="#acceptable">10. Acceptable Use</a></li>
-                <li><a href="#availability">11. Service Availability</a></li>
-                <li><a href="#liability">12. Limitation of Liability</a></li>
-                <li><a href="#termination">13. Termination</a></li>
-                <li><a href="#changes">14. Changes to These Terms</a></li>
-                <li><a href="#governing">15. Governing Law</a></li>
-                <li><a href="#contact">16. Contact</a></li>
+                <li><a href="#about">About These Terms</a></li>
+                <li><a href="#who">1. Who Can Use NaliGrid</a></li>
+                <li><a href="#roles">2. Account Roles</a></li>
+                <li><a href="#responsibilities">3. Your Responsibilities</a></li>
+                <li><a href="#data">4. Data You Add to the Platform</a></li>
+                <li><a href="#fees">5. Fees and Payments</a></li>
+                <li><a href="#vendor">6. Vendor Directory</a></li>
+                <li><a href="#ip">7. Intellectual Property</a></li>
+                <li><a href="#acceptable">8. Acceptable Use</a></li>
+                <li><a href="#availability">9. Service Availability</a></li>
+                <li><a href="#liability">10. Limitation of Liability</a></li>
+                <li><a href="#termination">11. Termination</a></li>
+                <li><a href="#changes">12. Changes to These Terms</a></li>
+                <li><a href="#governing">13. Governing Law</a></li>
+                <li><a href="#contact">14. Contact</a></li>
               </ul>
             </nav>
 
             <div className={styles.textContent}>
               <section id="about" className={styles.textSection}>
-                <h2 className={styles.sectionTitle}>1. About These Terms</h2>
+                <h2 className={styles.sectionTitle}>About These Terms</h2>
                 <p>These Terms of Service ("Terms") govern your access to and use of the NaliGrid platform, including our website, web application, and any related services (collectively, the "Platform"). The Platform is owned and operated by NaliTech Consults Limited, a company registered in Nigeria.</p>
                 <p><strong>Brand name note:</strong> The Platform may currently or in future operate under the name "EventGrid" or another brand name. References to "EventGrid" in these Terms refer to the Platform as operated by NaliTech Consults Limited regardless of the brand name in use at any given time. A change of brand name does not affect the validity of these Terms or any agreement formed under them.</p>
                 <p>By creating an account or using the Platform, you agree to these Terms. If you do not agree, do not use the Platform.</p>
               </section>
 
-              <section id="beta" className={styles.textSection}>
-                <h2 className={styles.sectionTitle}>2. Beta / Early Access Status</h2>
-                <p>The Platform is currently in a beta or early access phase. By using it during this phase, you acknowledge that:</p>
-                <ul>
-                  <li>Features may change, be added, or be removed without notice</li>
-                  <li>Bugs, errors, or unexpected behaviour may occur</li>
-                  <li>We will make reasonable efforts to preserve your data, but cannot guarantee uninterrupted availability during this phase</li>
-                  <li>Beta access may be offered at reduced or waived cost, and standard pricing may apply after the beta period ends, with reasonable notice given beforehand</li>
-                </ul>
-              </section>
-
               <section id="who" className={styles.textSection}>
-                <h2 className={styles.sectionTitle}>3. Who Can Use NaliGrid</h2>
+                <h2 className={styles.sectionTitle}>1. Who Can Use NaliGrid</h2>
                 <p>You must be at least 18 years old (or the age of majority in your jurisdiction) and able to enter into a binding contract to create an account. By registering, you confirm that the information you provide is accurate and that you have the authority to act on behalf of any business or organisation you represent.</p>
               </section>
 
               <section id="roles" className={styles.textSection}>
-                <h2 className={styles.sectionTitle}>4. Account Roles</h2>
+                <h2 className={styles.sectionTitle}>2. Account Roles</h2>
                 <p>The Platform supports multiple account roles, each with different access levels:</p>
                 <ul>
                   <li><strong>Planner</strong> — full access to event planning, vendor management, financials, and client tools for events they create</li>
@@ -81,7 +73,7 @@ export function TermsPage() {
               </section>
 
               <section id="responsibilities" className={styles.textSection}>
-                <h2 className={styles.sectionTitle}>5. Your Responsibilities</h2>
+                <h2 className={styles.sectionTitle}>3. Your Responsibilities</h2>
                 <p>You agree to:</p>
                 <ul>
                   <li>Provide accurate information when creating an account or events</li>
@@ -93,10 +85,10 @@ export function TermsPage() {
               </section>
 
               <section id="data" className={styles.textSection}>
-                <h2 className={styles.sectionTitle}>6. Data You Add to the Platform</h2>
-                <h3 className={styles.subTitle}>6.1 Event and Guest Data</h3>
+                <h2 className={styles.sectionTitle}>4. Data You Add to the Platform</h2>
+                <h3 className={styles.subTitle}>4.1 Event and Guest Data</h3>
                 <p>As a Planner or Coordinator, you may input information about your clients, guests, vendors, and team members ("Event Data"). This may include names, contact details, dietary or accessibility information, RSVP status, and payment details related to your event.</p>
-                <h3 className={styles.subTitle}>6.2 Your Role as Data Controller</h3>
+                <h3 className={styles.subTitle}>4.2 Your Role as Data Controller</h3>
                 <p>Where you input personal information about other individuals (such as guests, clients, or vendor contacts), you act as the data controller for that information, and NaliTech acts as a data processor, processing that information solely on your instructions and for the purpose of providing the Platform to you.</p>
                 <p>This means:</p>
                 <ul>
@@ -107,35 +99,34 @@ export function TermsPage() {
               </section>
 
               <section id="fees" className={styles.textSection}>
-                <h2 className={styles.sectionTitle}>7. Fees and Payments</h2>
-                <p><strong>7.1 Pricing Model.</strong> NaliGrid currently uses a per-event activation model. Planners pay a one-time fee to activate full features for a specific event, based on the event's size tier. Coordinators using standalone projects pay per project. Pricing is displayed in Nigerian Naira (₦) at the time of activation.</p>
-                <p><strong>7.2 Payment Processing.</strong> Payments are processed through third-party payment processors (currently Paystack and/or Korapay). NaliTech does not store your card details. Your payment information is subject to the relevant processor's terms and privacy policy.</p>
-                <p><strong>7.3 Refund Policy.</strong> Event activation fees are non-refundable once the Platform features for that event have been accessed and meaningfully used. We define "meaningful use" as any of the following: adding a vendor, importing or adding guests, creating tasks, or inviting a team member or client.</p>
+                <h2 className={styles.sectionTitle}>5. Fees and Payments</h2>
+                <p><strong>5.1 Pricing Model.</strong> NaliGrid currently uses a per-event activation model. Planners pay a one-time fee to activate full features for a specific event, based on the event's size tier. Coordinators using standalone projects pay per project. Pricing is displayed in Nigerian Naira (₦) at the time of activation.</p>
+                <p><strong>5.2 Payment Processing.</strong> Payments are processed through third-party payment processors (currently Paystack and/or Korapay). NaliTech does not store your card details. Your payment information is subject to the relevant processor's terms and privacy policy.</p>
+                <p><strong>5.3 Refund Policy.</strong> Event activation fees are non-refundable once the Platform features for that event have been accessed and meaningfully used. We define "meaningful use" as any of the following: adding a vendor, importing or adding guests, creating tasks, or inviting a team member or client.</p>
                 <p>We will process a full refund in the following limited circumstances:</p>
                 <ul>
                   <li>(a) The activation failed due to a technical error on our part and Platform features were not unlocked despite payment being received; or</li>
                   <li>(b) The event is cancelled and you request a refund within 48 hours of activation, and no meaningful use (as defined above) has occurred.</li>
                 </ul>
                 <p>No refund will be issued in any other circumstance, including service unavailability, downtime, or dissatisfaction with the product after activation. You are responsible for ensuring the Platform meets your needs before activating an event.</p>
-                <p><strong>7.4 Compassionate Credit (Discretionary).</strong> In cases where a refund is not available, we may — at our sole discretion and without obligation — offer a credit toward a future event activation on the same account. This is not guaranteed and is assessed case-by-case.</p>
-                <p><strong>7.5 How to Request.</strong> To request a refund or credit, contact us at hello@naligrid.com with your event name, activation date, and payment reference. We aim to review and respond within 3 business days.</p>
-                <p><strong>7.6 Beta Pricing.</strong> During the beta period, certain users may be offered free or discounted activation via promotional codes. These promotions are offered at our discretion and may be withdrawn or changed at any time.</p>
+                <p><strong>5.4 Compassionate Credit (Discretionary).</strong> In cases where a refund is not available, we may — at our sole discretion and without obligation — offer a credit toward a future event activation on the same account. This is not guaranteed and is assessed case-by-case.</p>
+                <p><strong>5.5 How to Request.</strong> To request a refund or credit, contact us at hello@naligrid.com with your event name, activation date, and payment reference. We aim to review and respond within 3 business days.</p>
               </section>
 
               <section id="vendor" className={styles.textSection}>
-                <h2 className={styles.sectionTitle}>8. Vendor Directory</h2>
+                <h2 className={styles.sectionTitle}>6. Vendor Directory</h2>
                 <p>The Platform includes a vendor directory containing both vendor records added by individual Planners (private to their organisation) and a shared community directory of vendors across Nigeria.</p>
                 <p>Some entries in the shared directory may be unverified listings provided for discovery purposes and have not been confirmed by the vendor in question. NaliTech does not guarantee the accuracy of vendor directory information and is not a party to any agreement between a Planner and a Vendor. Any booking, payment, or service arrangement is solely between the Planner and the Vendor.</p>
               </section>
 
               <section id="ip" className={styles.textSection}>
-                <h2 className={styles.sectionTitle}>9. Intellectual Property</h2>
+                <h2 className={styles.sectionTitle}>7. Intellectual Property</h2>
                 <p>The Platform, including its design, software, branding, and underlying technology, is owned by NaliTech Consults Limited and protected by applicable intellectual property laws. These Terms do not grant you any ownership rights in the Platform.</p>
                 <p>You retain ownership of the Event Data, photos, documents, and other content you upload to the Platform ("Your Content"). You grant NaliTech a limited licence to host, store, and process Your Content solely for the purpose of providing the Platform to you.</p>
               </section>
 
               <section id="acceptable" className={styles.textSection}>
-                <h2 className={styles.sectionTitle}>10. Acceptable Use</h2>
+                <h2 className={styles.sectionTitle}>8. Acceptable Use</h2>
                 <p>You agree not to:</p>
                 <ul>
                   <li>Use the Platform for any event or purpose that is illegal under Nigerian law</li>
@@ -146,13 +137,13 @@ export function TermsPage() {
               </section>
 
               <section id="availability" className={styles.textSection}>
-                <h2 className={styles.sectionTitle}>11. Service Availability</h2>
-                <p>We aim to keep the Platform available and reliable, including for event-day features such as the Live Event Board. However, we do not guarantee uninterrupted availability, particularly during the beta period or due to factors outside our reasonable control (including outages of third-party infrastructure providers).</p>
+                <h2 className={styles.sectionTitle}>9. Service Availability</h2>
+                <p>We aim to keep the Platform available and reliable, including for event-day features such as the Live Event Board. However, we do not guarantee uninterrupted availability due to factors outside our reasonable control (including outages of third-party infrastructure providers).</p>
                 <p>For events where real-time coordination is critical, we recommend maintaining a basic offline backup plan (such as a printed run sheet) as a precaution.</p>
               </section>
 
               <section id="liability" className={styles.textSection}>
-                <h2 className={styles.sectionTitle}>12. Limitation of Liability</h2>
+                <h2 className={styles.sectionTitle}>10. Limitation of Liability</h2>
                 <p>To the maximum extent permitted by Nigerian law:</p>
                 <ul>
                   <li>NaliTech is not liable for any indirect, incidental, or consequential losses arising from your use of the Platform, including loss of event revenue, reputational harm, or costs arising from event disruptions</li>
@@ -162,23 +153,23 @@ export function TermsPage() {
               </section>
 
               <section id="termination" className={styles.textSection}>
-                <h2 className={styles.sectionTitle}>13. Termination</h2>
+                <h2 className={styles.sectionTitle}>11. Termination</h2>
                 <p>You may stop using the Platform and request account deletion at any time. We may suspend or terminate accounts that violate these Terms, with notice where reasonably possible.</p>
                 <p>On termination, we will provide a reasonable opportunity to export your Event Data before deletion, except where retention is required by law.</p>
               </section>
 
               <section id="changes" className={styles.textSection}>
-                <h2 className={styles.sectionTitle}>14. Changes to These Terms</h2>
+                <h2 className={styles.sectionTitle}>12. Changes to These Terms</h2>
                 <p>We may update these Terms from time to time. We will notify users of material changes via the Platform or email. Continued use of the Platform after changes take effect constitutes acceptance of the updated Terms.</p>
               </section>
 
               <section id="governing" className={styles.textSection}>
-                <h2 className={styles.sectionTitle}>15. Governing Law</h2>
+                <h2 className={styles.sectionTitle}>13. Governing Law</h2>
                 <p>These Terms are governed by the laws of the Federal Republic of Nigeria. Any disputes shall be subject to the exclusive jurisdiction of the courts of Nigeria.</p>
               </section>
 
               <section id="contact" className={styles.textSection}>
-                <h2 className={styles.sectionTitle}>16. Contact</h2>
+                <h2 className={styles.sectionTitle}>14. Contact</h2>
                 <p>For questions about these Terms, contact us at:</p>
                 <p><strong>services@naligrid.com</strong><br />NaliTech Consults Limited<br />Abuja, Nigeria</p>
               </section>

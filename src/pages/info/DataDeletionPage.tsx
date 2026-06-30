@@ -11,6 +11,10 @@ export function DataDeletionPage() {
         title="Data Deletion Request — NaliGrid"
         description="Learn how to request deletion of your personal data from NaliGrid in compliance with the Nigeria Data Protection Act."
         url="/data-deletion"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Data Deletion' },
+        ]}
       />
       <Navbar />
 

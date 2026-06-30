@@ -14,6 +14,10 @@ export function PressPage() {
         title="Press Kit — NaliGrid Media Assets"
         description="Download official NaliGrid logos, brand colors, and media assets for press coverage and media publications."
         url="/press"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Press' },
+        ]}
       />
       <Navbar />
       

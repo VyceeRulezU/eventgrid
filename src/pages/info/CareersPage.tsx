@@ -34,6 +34,10 @@ export function CareersPage() {
         title="Careers at NaliGrid — Join Our Team"
         description="Work with curious, driven team members to eliminate friction from event day operations. Remote roles across Nigeria in engineering, design, and operations."
         url="/careers"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Careers' },
+        ]}
       />
       <Navbar />
       

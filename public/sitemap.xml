@@ -71,11 +71,6 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://naligrid.com/blog/nigerian-event-planners-whatsapp-excel</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://naligrid.com/careers</loc>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
@@ -114,5 +109,40 @@
     <loc>https://naligrid.com/security</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://naligrid.com/data-deletion</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://naligrid.com/blog/nigerian-event-planners-whatsapp-excel</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://naligrid.com/blog/future-of-escrow-payments-event-sourcing</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://naligrid.com/blog/checklist-blueprint-coordinate-event-day</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://naligrid.com/blog/reconciling-aftermath-reports-financial-mistakes</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://naligrid.com/blog/vendor-management-nigerian-event-planners</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://naligrid.com/blog/how-nigerian-event-coordinators-manage-event-day</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
 </urlset>
