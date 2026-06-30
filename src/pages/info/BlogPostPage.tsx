@@ -91,9 +91,7 @@ function Sidebar({ currentPost, allPosts }: { currentPost: StaticPost; allPosts:
       )}
 
       <div className={styles.sidebarCta}>
-        <div className={styles.sidebarLogo}>
-          Nali<span className={styles.sidebarLogoAccent}>Grid</span>
-        </div>
+        <img src="/ng-logo-wg.svg" alt="NaliGrid Logo" className={styles.sidebarLogo} />
         <p className={styles.sidebarTagline}>
           Nigeria's event planning platform for professionals
         </p>
