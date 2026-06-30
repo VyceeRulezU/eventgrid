@@ -718,7 +718,235 @@ const POST_VENDOR_MGMT: StaticPost = {
   ],
 }
 
+const POST_EVENT_COORDINATOR: StaticPost = {
+  _id: 'static-006',
+  title: "How Nigerian Event Coordinators Actually Manage Event Day (And Why It's Exhausting)",
+  metaTitle: 'How Nigerian Event Coordinators Manage Event Day | NaliGrid',
+  slug: { current: 'how-nigerian-event-coordinators-manage-event-day' },
+  excerpt: "Behind every smooth Nigerian event is a coordinator running on adrenaline, instinct, and too many WhatsApp messages. Here's what event day actually looks like — and how it's changing.",
+  category: 'Event Coordination',
+  tags: ['Event Day Coordination', 'Nigerian Event Coordinator', 'Vendor Management', 'Live Board'],
+  publishedAt: '2026-06-30T00:00:00.000Z',
+  readTime: '6 min read',
+  featuredImage: {
+    placeholderUrl: 'https://i.ibb.co/V5HWVMy/4945.jpg',
+    alt: 'Professional event planner coordinating the setup of a grand banquet hall',
+  },
+  body: [
+    {
+      type: 'paragraph',
+      text: 'It is 7:42am. The event starts at 12.',
+    },
+    {
+      type: 'paragraph',
+      text: 'The coordinator arrives at the venue before anyone else. She is carrying a printed run sheet, a fully charged power bank, and the contact numbers of 18 vendors saved under names like "DJ ✅", "Catering Mama" and "Decor Guy (DO NOT CALL BEFORE 9)".',
+    },
+    {
+      type: 'paragraph',
+      text: 'Her WhatsApp has 47 unread messages. She hasn\'t eaten.',
+    },
+    {
+      type: 'paragraph',
+      text: 'This is event day in Nigeria. And for thousands of professional event coordinators across Lagos, Abuja, Port Harcourt, and beyond, this is a normal Tuesday.',
+    },
+    {
+      type: 'sectionImage',
+      placeholderUrl: 'https://i.ibb.co/1YGFth84/2149303831.jpg',
+      alt: 'Event planning crew and coordinator having an alignment briefing before the doors open',
+      caption: 'Coordination starts long before guest arrival, with vendor check-ins and team briefs.',
+    },
+    {
+      type: 'heading',
+      level: 2,
+      text: 'What a Coordinator Is Actually Managing',
+    },
+    {
+      type: 'paragraph',
+      text: 'The job title says coordinator. The actual job description, if anyone wrote it honestly, would say something closer to: real-time logistics commander operating under incomplete information, in an environment where every variable is unstable, with a team that was briefed once and may or may not remember what they were told.',
+    },
+    {
+      type: 'paragraph',
+      text: 'On a typical event day, a coordinator is simultaneously managing:',
+    },
+    {
+      type: 'paragraph',
+      bold: 'Vendor arrivals.',
+      text: 'The caterer said they\'d arrive at 9. It\'s 9:47 and they haven\'t called. Are they coming? Did they have the right address? Is the kitchen area accessible? Did someone from the venue leave the service entrance locked again? The coordinator doesn\'t know. She\'s calling.',
+    },
+    {
+      type: 'paragraph',
+      bold: 'Team deployment.',
+      text: 'Eight ushers, three registration staff, two helpers for the decor team, and a personal assistant for the couple or VIP guest. Everyone needs to know where to be, when to be there, what to wear, and what to do if something goes wrong. The briefing happened yesterday. Half of them have already texted asking for clarification.',
+    },
+    {
+      type: 'paragraph',
+      bold: 'The client.',
+      text: 'The client is arriving in two hours and has already sent four messages asking if the decor is done. It isn\'t. The coordinator is managing that conversation while simultaneously managing the decor team.',
+    },
+    {
+      type: 'paragraph',
+      bold: 'The program.',
+      text: 'The run sheet says the reception starts at 1pm. It\'s now clear that 1pm isn\'t happening. Someone needs to tell the MC. Someone needs to tell the band. Someone needs to make a judgment call about whether to push the program or absorb the delay quietly. That someone is the coordinator.',
+    },
+    {
+      type: 'paragraph',
+      bold: 'Issues.',
+      text: 'The cake was delivered without the topper. The DJ\'s equipment isn\'t compatible with the venue\'s sound system. The florist brought the wrong colour arrangement. Table 7 is missing chairs. Each of these is a fire. All of them are happening at the same time.',
+    },
+    {
+      type: 'heading',
+      level: 2,
+      text: 'The Communication Problem',
+    },
+    {
+      type: 'paragraph',
+      text: 'Here is where most event coordination in Nigeria breaks down.',
+    },
+    {
+      type: 'paragraph',
+      text: 'A coordinator managing all of the above is also the communication hub for everyone involved. Vendors call her. The client messages her. The planner (if there is one) wants updates. Team members are asking questions. The venue manager has a complaint. The MC needs the program order confirmed.',
+    },
+    {
+      type: 'paragraph',
+      text: 'Every one of these communications comes through a different channel — phone calls, WhatsApp messages, voice notes, and the occasional person walking up to her physically while she\'s mid-call.',
+    },
+    {
+      type: 'paragraph',
+      text: 'The result is that the coordinator\'s phone is essentially a second full-time job running simultaneously with the actual job of coordinating the event.',
+    },
+    {
+      type: 'paragraph',
+      text: 'Professional coordinators develop remarkable systems for managing this. They have shorthand signals with their team. They know which vendors need hand-holding and which can be trusted to just arrive and deliver. They have backup plans that have backup plans.',
+    },
+    {
+      type: 'paragraph',
+      text: 'But even the most experienced coordinator will tell you that event day feels like controlled chaos — and that the control part is never guaranteed.',
+    },
+    {
+      type: 'sectionImage',
+      placeholderUrl: 'https://images.unsplash.com/photo-1598257006458-087169a1f08d?q=80&w=800&auto=format&fit=crop',
+      alt: 'Event coordinator holding a smartphone flooded with notifications and messages',
+      caption: 'WhatsApp group chats and endless calls create high cognitive overload on event day.',
+    },
+    {
+      type: 'heading',
+      level: 2,
+      text: 'The Walkie-Talkie Question',
+    },
+    {
+      type: 'paragraph',
+      text: 'Some coordination teams use walkie-talkies. It\'s easy to understand why: instant communication, no typing, works when phone networks are congested (as they often are at large events with hundreds of guests and their phones all connecting to the same tower).',
+    },
+    {
+      type: 'paragraph',
+      text: 'The problem is cost. A decent set of professional walkie-talkies runs between ₦80,000 and ₦200,000 to purchase outright. Rental costs for an event range from ₦15,000 to ₦40,000 depending on the number of units and the rental company. For a coordinator running 20 events a year, that\'s a significant recurring operational cost — particularly when the walkie-talkies still don\'t tell you whether the caterer has arrived, whether the decor team has finished setup, or what the current guest check-in count is.',
+    },
+    {
+      type: 'paragraph',
+      text: 'They solve one problem (voice communication) while leaving the bigger problem (situational awareness across a large event) entirely unaddressed.',
+    },
+    {
+      type: 'sectionImage',
+      placeholderUrl: 'https://i.ibb.co/C37n4dz9/2149557295.jpg',
+      alt: 'Walkie-talkie device set up at an event venue',
+      caption: 'Walkie-talkies provide voice coordination but fail to track live event progress or status.',
+    },
+    {
+      type: 'heading',
+      level: 2,
+      text: 'What Real-Time Coordination Actually Needs',
+    },
+    {
+      type: 'paragraph',
+      text: 'The thing a coordinator actually needs on event day is not faster voice communication. It\'s a live picture of the status of every moving part of the event, updated in real time by the people responsible for each part, visible to everyone who needs to know.',
+    },
+    {
+      type: 'paragraph',
+      text: 'When the catering team finishes setting up, the coordinator should know without calling them. When the photographer arrives, that should be visible on a shared status board. When there\'s a problem with the AV setup, it should be flagged immediately to the coordinator with the ability to attach a photo and mark severity.',
+    },
+    {
+      type: 'paragraph',
+      text: 'And critically: when the coordinator is standing in the middle of a busy reception floor in a loud venue, any alert that reaches them needs to do so through vibration — not a ringtone that gets lost in the music, and not a WhatsApp message they won\'t see until three minutes too late.',
+    },
+    {
+      type: 'sectionImage',
+      placeholderUrl: 'https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?q=80&w=800&auto=format&fit=crop',
+      alt: 'Real-time task tracking and digital coordination board',
+      caption: 'Event day operations require a single source of truth that updates status instantly.',
+    },
+    {
+      type: 'heading',
+      level: 2,
+      text: 'How NaliGrid Changes Event Day',
+    },
+    {
+      type: 'paragraph',
+      text: 'NaliGrid\'s live event board was built specifically around this problem.',
+    },
+    {
+      type: 'paragraph',
+      text: 'Every vendor station on the event has a live status card — Catering, Registration, Decor, Photography, AV, Ushers, and however many others the coordinator sets up. Each card shows the current status: Ready, In Progress, Delayed, or Not Started. Any team member with access can update their station\'s status from their phone.',
+    },
+    {
+      type: 'paragraph',
+      text: 'When the photography team arrives and confirms setup, they update their card to Ready. The coordinator sees it immediately, on the same screen as every other station, without making a single call.',
+    },
+    {
+      type: 'paragraph',
+      text: 'When there\'s a problem — the cake topper is missing, the DJ\'s equipment isn\'t connecting, a guest is causing a scene at the entrance — any team member can flag an issue directly on the relevant station. The flag captures a description, a severity level, a photo if needed, and a timestamp. The coordinator gets an immediate notification with vibration.',
+    },
+    {
+      type: 'paragraph',
+      text: 'The guest check-in count updates in real time as registration staff check guests in. The run sheet countdown shows what\'s happening now and what\'s coming next.',
+    },
+    {
+      type: 'paragraph',
+      text: 'The coordinator\'s phone becomes a command centre rather than a communication chaos machine.',
+    },
+    {
+      type: 'sectionImage',
+      placeholderUrl: 'https://i.ibb.co/tp96mNhh/30-06-2026-11-39-23-REC.png',
+      alt: 'Checking live updates on a smartphone',
+      caption: 'A dynamic coordination dashboard keeps the entire planning crew synchronized on task statuses.',
+    },
+    {
+      type: 'heading',
+      level: 2,
+      text: 'The Shift That\'s Happening',
+    },
+    {
+      type: 'paragraph',
+      text: 'The most capable Nigerian event coordinators have always been extraordinary operators working with inadequate tools. The gap between the quality of their professional skill and the quality of the tools available to them has been significant for a long time.',
+    },
+    {
+      type: 'paragraph',
+      text: 'That gap is closing.',
+    },
+    {
+      type: 'paragraph',
+      text: 'NaliGrid is built for event professionals in Nigeria. Not adapted from a Western product. Built here, for how events actually work here — the vendor categories, the pricing in Naira, the understanding that on event day, the coordinator is on their feet in a loud venue and needs information fast.',
+    },
+    {
+      type: 'paragraph',
+      text: 'The beta is open. Your first event is ₦100.',
+    },
+    {
+      type: 'sectionImage',
+      placeholderUrl: 'https://i.ibb.co/1YGv9ghP/2150577053.jpg',
+      alt: 'Vibrant and elegant wedding reception venue setup',
+      caption: 'The professionalization of the Nigerian events industry is driving a shift toward modern management systems.',
+    },
+    {
+      type: 'cta',
+      text: 'NaliGrid is built specifically for coordinators who run events, not spreadsheets. Join NaliGrid and create your first event for FREE.',
+      buttonText: 'Try NaliGrid →',
+      buttonUrl: '/register',
+    },
+  ],
+}
+
 export const STATIC_POSTS: StaticPost[] = [
+  POST_EVENT_COORDINATOR,
   POST_VENDOR_MGMT,
   POST_ESCROW,
   POST_WHATSAPP_EXCEL,
