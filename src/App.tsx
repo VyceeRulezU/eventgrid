@@ -386,7 +386,7 @@ export function App() {
       email: user?.email || '',
       display_name: (user?.user_metadata?.display_name as string) || null,
       phone: (user?.user_metadata?.phone as string) || null,
-      avatar_url: null,
+      avatar_url: (user?.user_metadata?.avatar_url as string) || null,
       role: (user?.user_metadata?.role as UserRole) || 'planner',
       org_id: null,
       is_active: true,
