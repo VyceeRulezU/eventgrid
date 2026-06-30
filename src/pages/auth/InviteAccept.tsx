@@ -2,6 +2,17 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Loader2, AlertCircle } from 'lucide-react'
 
+const ALLOWED_ORIGINS = [window.location.origin, 'https://naligrid.com', 'https://www.naligrid.com']
+
+function isSafeRedirect(url: string): boolean {
+  try {
+    const parsed = new URL(url, window.location.origin)
+    return ALLOWED_ORIGINS.includes(parsed.origin)
+  } catch {
+    return false
+  }
+}
+
 export function InviteAccept() {
   const [params] = useSearchParams()
   const [error, setError] = useState('')
@@ -14,6 +25,10 @@ export function InviteAccept() {
     }
     try {
       const decoded = decodeURIComponent(link)
+      if (!isSafeRedirect(decoded)) {
+        setError('Invalid invite link.')
+        return
+      }
       window.location.replace(decoded)
     } catch {
       setError('Invalid invite link.')

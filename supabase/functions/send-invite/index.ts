@@ -342,6 +342,21 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Verify caller is authenticated
+    const authHeader = req.headers.get('Authorization')
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
+    let callerId: string | null = null
+    let isSuperAdmin = false
+
+    if (token) {
+      const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
+      if (!authError && user) {
+        callerId = user.id
+        const { data: admin } = await supabaseAdmin.rpc('is_super_admin')
+        isSuperAdmin = !!admin
+      }
+    }
+
     const {
       type,           // 'team_member' | 'vendor' | 'client_portal' | 'coordinator_invite' | 'admin_monitor' | 'guest_invite'
       email,
@@ -362,6 +377,36 @@ Deno.serve(async (req) => {
       // guest invite specific
       guest_name,
     } = await req.json()
+
+    // Authorization checks per invite type
+    const adminOnlyTypes = ['coordinator_invite', 'admin_monitor', 'vendor_welcome']
+    if (adminOnlyTypes.includes(type)) {
+      if (!isSuperAdmin) {
+        return new Response(
+          JSON.stringify({ error: 'Forbidden' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+    } else if (event_id) {
+      // For event-scoped invites, verify caller has access to the event
+      const { data: access } = await supabaseAdmin
+        .from('event_access')
+        .select('id')
+        .eq('event_id', event_id)
+        .eq('user_id', callerId)
+        .maybeSingle()
+      if (!isSuperAdmin && !access) {
+        return new Response(
+          JSON.stringify({ error: 'Forbidden' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+    } else if (!callerId) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
     if (!type || !email) {
       return new Response(
