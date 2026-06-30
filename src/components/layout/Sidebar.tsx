@@ -6,7 +6,7 @@ import {
   Settings, LogOut, X, ArrowLeft, ListChecks, Radio,
   FileText, TrendingUp, MessageSquare, Bell, Image,
   PanelLeftClose, PanelLeft, Mail, UserPlus,
-  FileSignature, CheckSquare,
+  FileSignature, CheckSquare, Shield,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { useNotificationStore } from '@/store/notification.store'
@@ -226,6 +226,16 @@ export function Sidebar() {
               >
                 <BookOpen size={20} />
                 <span>Vendor Directory</span>
+              </NavLink>
+              <NavLink
+                to="/admin/vendors/approvals"
+                className={({ isActive }) =>
+                  `${styles.navItem} ${isActive ? styles.active : ''}`
+                }
+                onClick={() => setSidebarOpen(false)}
+              >
+                <Shield size={20} />
+                <span>Approvals</span>
               </NavLink>
               <NavLink
                 to="/admin/analytics"

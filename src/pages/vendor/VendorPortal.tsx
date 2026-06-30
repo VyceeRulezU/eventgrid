@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import {
   Calendar, Plus, Users, Wallet, ChevronRight,
   Star, Activity, ListChecks,
-  CheckCircle, FileText, UserPlus,
+  CheckCircle, FileText, UserPlus, BadgeCheck, Building2,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
@@ -52,7 +52,9 @@ function timeAgo(dateStr: string): string {
 export function VendorPortal() {
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
+  const profile = useAuthStore((s) => s.profile)
   const [events, setEvents] = useState<VendorEvent[]>([])
+  const [vendorListing, setVendorListing] = useState<{ id: string; name: string; category: string; is_verified: boolean } | null>(null)
   const [activities, setActivities] = useState<ActivityItem[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -66,7 +68,8 @@ export function VendorPortal() {
       supabase.from('reviews').select('event_id').eq('reviewer_id', user.id),
       supabase.from('events').select('id, name, status, event_date, created_by, updated_at').eq('created_by', user.id).is('deleted_at', null),
       supabase.from('event_activity').select('*, event:events!inner(name)').order('created_at', { ascending: false }).limit(10),
-    ]).then(([evRes, eventsRes, profilesRes, reviewsRes, myEventsRes, activityRes]) => {
+      supabase.from('vendors').select('id, name, category, is_verified').eq('claimed_by_vendor_id', user.id).is('deleted_at', null).limit(1).maybeSingle(),
+    ]).then(([evRes, eventsRes, profilesRes, reviewsRes, myEventsRes, activityRes, listingRes]) => {
       const reviewedEventIds = new Set((reviewsRes.data || []).map((r: any) => r.event_id))
       const eventsMap = new Map((eventsRes.data || []).map((e: any) => [e.id, e]))
       const profilesMap = new Map((profilesRes.data || []).map((p: any) => [p.id, p.display_name]))
@@ -125,6 +128,7 @@ export function VendorPortal() {
         })
       setActivities(mapped)
       setEvents(vendorEvents)
+      setVendorListing(listingRes.data)
       setLoading(false)
     })
   }, [user])
@@ -187,18 +191,18 @@ export function VendorPortal() {
           </div>
         </div>
 
-        <div className={`${styles.statCard} ${styles.statCardClickable}`} onClick={() => navigate('/events')} onKeyDown={(e) => e.key === 'Enter' && navigate('/events')} role="button" tabIndex={0}>
+        <div className={styles.statCard}>
           <div className={styles.statCardHeader}>
-            <span className={styles.statLabel}>Upcoming</span>
-            <span className={`${styles.statBadge} ${upcomingEvents.length > 0 ? styles.statBadgePositive : styles.statBadgeNeutral}`}>
-              {upcomingEvents.length > 0 ? `${upcomingEvents.length} active` : 'none'}
+            <span className={styles.statLabel}>My Listing</span>
+            <span className={`${styles.statBadge} ${vendorListing ? styles.statBadgePositive : styles.statBadgeNeutral}`}>
+              {vendorListing ? (vendorListing.is_verified ? 'verified' : 'unverified') : 'not listed'}
             </span>
           </div>
-          <div className={styles.statValue}>{upcomingEvents.length}</div>
-          <div className={styles.barSparkline}>
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className={styles.barSparklineBar} style={{ height: `${Math.min(100, (i / 5) * 100)}%`, opacity: i <= Math.min(upcomingEvents.length, 5) / 5 ? 0.85 : 0.2 }} />
-            ))}
+          <div className={styles.statValue}>{vendorListing?.name || '—'}</div>
+          <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginTop: 4 }}>
+            {vendorListing ? vendorListing.category : (
+              <Link to="/vendors/directory" style={{ color: 'var(--color-accent)' }}>Claim your profile →</Link>
+            )}
           </div>
         </div>
 

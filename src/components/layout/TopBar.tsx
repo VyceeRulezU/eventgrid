@@ -29,6 +29,12 @@ const routeMeta: Record<string, { title: string; subtitle: string }> = {
   '/admin/team':           { title: 'Admin Team', subtitle: 'Manage super admins' },
   '/admin/referrals':      { title: 'Referrals', subtitle: 'Referral partner commissions' },
   '/admin/engagement':     { title: 'Engagement', subtitle: 'Survey responses, referrals, and email marketing' },
+  '/admin/events':         { title: 'Events', subtitle: 'Manage all events' },
+  '/admin/vendors':        { title: 'Vendors', subtitle: 'Manage vendor directory' },
+  '/admin/vendors/directory': { title: 'Vendor Directory', subtitle: 'Browse global vendor directory' },
+  '/admin/vendors/approvals': { title: 'Approvals', subtitle: 'Review vendor claims' },
+  '/admin/testimonials':   { title: 'Testimonials', subtitle: 'Manage testimonials' },
+  '/admin/my-tasks':       { title: 'My Tasks', subtitle: 'Admin tasks across all events' },
 }
 
 export function TopBar() {

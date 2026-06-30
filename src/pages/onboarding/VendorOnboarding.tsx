@@ -98,7 +98,7 @@ export function VendorOnboarding() {
       phone: phone.trim() || null,
       email: user.email || null,
       instagram: instagram.trim() || null,
-      is_verified: false,
+      is_verified: true,
       claimed_by_vendor_id: user.id,
       claimed_at: new Date().toISOString(),
     })

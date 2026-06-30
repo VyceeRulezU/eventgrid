@@ -72,6 +72,7 @@ const AdminMyTasksPage = lazy(() => import('@/pages/admin/AdminMyTasksPage').the
 const AdminEventsListPage = lazy(() => import('@/pages/admin/AdminEventsListPage').then(m => ({ default: m.AdminEventsListPage })))
 const AdminVendorsPage = lazy(() => import('@/pages/admin/AdminVendorsPage').then(m => ({ default: m.AdminVendorsPage })))
 const AdminVendorDirectoryPage = lazy(() => import('@/pages/admin/AdminVendorDirectoryPage').then(m => ({ default: m.AdminVendorDirectoryPage })))
+const AdminVendorApprovalsPage = lazy(() => import('@/pages/admin/AdminVendorApprovalsPage').then(m => ({ default: m.AdminVendorApprovalsPage })))
 const AdminTestimonialsPage = lazy(() => import('@/pages/admin/AdminTestimonialsPage').then(m => ({ default: m.AdminTestimonialsPage })))
 const AdminManagePage = lazy(() => import('@/pages/admin/AdminManagePage').then(m => ({ default: m.AdminManagePage })))
 const EventsListPage = lazy(() => import('@/features/events/EventsListPage').then(m => ({ default: m.EventsListPage })))
@@ -779,6 +780,11 @@ export function App() {
           <Route path="/admin/vendors/directory" element={
             <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
               <AdminGuard><AdminVendorDirectoryPage /></AdminGuard>
+            </Suspense>
+          } />
+          <Route path="/admin/vendors/approvals" element={
+            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
+              <AdminGuard><AdminVendorApprovalsPage /></AdminGuard>
             </Suspense>
           } />
           <Route path="/admin/testimonials" element={
