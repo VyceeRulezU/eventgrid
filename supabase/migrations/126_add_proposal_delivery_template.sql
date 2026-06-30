@@ -1,5 +1,6 @@
 -- Migration 126: Add Proposal Delivery email template
 
+ALTER TABLE public.email_templates DROP CONSTRAINT IF EXISTS email_templates_name_key;
 ALTER TABLE public.email_templates ADD CONSTRAINT email_templates_name_key UNIQUE (name);
 
 INSERT INTO public.email_templates (name, subject, body_html)

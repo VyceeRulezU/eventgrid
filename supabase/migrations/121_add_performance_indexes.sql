@@ -22,8 +22,11 @@ CREATE INDEX IF NOT EXISTS idx_task_comments_task_created
   ON task_comments(task_id, created_at ASC);
 
 -- #6: Financial entries — budget/financial pages
-CREATE INDEX IF NOT EXISTS idx_financial_entries_event_due
-  ON financial_entries(event_id, due_date);
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'financial_entries' AND column_name = 'due_date') THEN
+    CREATE INDEX IF NOT EXISTS idx_financial_entries_event_due ON financial_entries(event_id, due_date);
+  END IF;
+END $$;
 
 -- #7: Media/gallery — event asset pages
 CREATE INDEX IF NOT EXISTS idx_media_event_created

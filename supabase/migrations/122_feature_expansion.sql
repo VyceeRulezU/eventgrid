@@ -24,11 +24,13 @@ CREATE TABLE IF NOT EXISTS public.leads (
 
 ALTER TABLE public.leads ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "leads_org_access" ON public.leads;
 CREATE POLICY "leads_org_access"
   ON public.leads FOR ALL
   USING (org_id IN (SELECT id FROM organizations WHERE owner_id = auth.uid()))
   WITH CHECK (org_id IN (SELECT id FROM organizations WHERE owner_id = auth.uid()));
 
+DROP POLICY IF EXISTS "leads_super_admin" ON public.leads;
 CREATE POLICY "leads_super_admin"
   ON public.leads FOR ALL
   USING (auth.uid() IN (SELECT id FROM profiles WHERE role = 'super_admin'))
@@ -59,11 +61,13 @@ CREATE TABLE IF NOT EXISTS public.proposals (
 
 ALTER TABLE public.proposals ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "proposals_org_access" ON public.proposals;
 CREATE POLICY "proposals_org_access"
   ON public.proposals FOR ALL
   USING (org_id IN (SELECT id FROM organizations WHERE owner_id = auth.uid()))
   WITH CHECK (org_id IN (SELECT id FROM organizations WHERE owner_id = auth.uid()));
 
+DROP POLICY IF EXISTS "proposals_event_access" ON public.proposals;
 CREATE POLICY "proposals_event_access"
   ON public.proposals FOR SELECT
   USING (
@@ -71,6 +75,7 @@ CREATE POLICY "proposals_event_access"
     OR event_id IN (SELECT id FROM events WHERE coordinator_id = auth.uid())
   );
 
+DROP POLICY IF EXISTS "proposals_super_admin" ON public.proposals;
 CREATE POLICY "proposals_super_admin"
   ON public.proposals FOR ALL
   USING (auth.uid() IN (SELECT id FROM profiles WHERE role = 'super_admin'))
@@ -103,6 +108,7 @@ CREATE TABLE IF NOT EXISTS public.invoices (
 
 ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "invoices_owner_access" ON public.invoices;
 CREATE POLICY "invoices_owner_access"
   ON public.invoices FOR ALL
   USING (
@@ -120,12 +126,14 @@ CREATE POLICY "invoices_owner_access"
     )
   );
 
+DROP POLICY IF EXISTS "invoices_client_view" ON public.invoices;
 CREATE POLICY "invoices_client_view"
   ON public.invoices FOR SELECT
   USING (
     event_id IN (SELECT event_id FROM client_portals WHERE client_email = auth.email() AND is_active = true)
   );
 
+DROP POLICY IF EXISTS "invoices_super_admin" ON public.invoices;
 CREATE POLICY "invoices_super_admin"
   ON public.invoices FOR ALL
   USING (auth.uid() IN (SELECT id FROM profiles WHERE role = 'super_admin'))
@@ -145,6 +153,7 @@ CREATE TABLE IF NOT EXISTS public.event_chat_messages (
 
 ALTER TABLE public.event_chat_messages ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "chat_event_access_select" ON public.event_chat_messages;
 CREATE POLICY "chat_event_access_select"
   ON public.event_chat_messages FOR SELECT
   USING (
@@ -153,6 +162,7 @@ CREATE POLICY "chat_event_access_select"
     OR event_id IN (SELECT id FROM events WHERE org_id IN (SELECT id FROM organizations WHERE owner_id = auth.uid()))
   );
 
+DROP POLICY IF EXISTS "chat_event_access_insert" ON public.event_chat_messages;
 CREATE POLICY "chat_event_access_insert"
   ON public.event_chat_messages FOR INSERT
   WITH CHECK (
@@ -161,6 +171,7 @@ CREATE POLICY "chat_event_access_insert"
     OR event_id IN (SELECT id FROM events WHERE org_id IN (SELECT id FROM organizations WHERE owner_id = auth.uid()))
   );
 
+DROP POLICY IF EXISTS "chat_super_admin" ON public.event_chat_messages;
 CREATE POLICY "chat_super_admin"
   ON public.event_chat_messages FOR ALL
   USING (auth.uid() IN (SELECT id FROM profiles WHERE role = 'super_admin'))
@@ -195,6 +206,7 @@ CREATE TABLE IF NOT EXISTS public.checklist_items (
 ALTER TABLE public.checklists ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.checklist_items ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "checklists_event_access" ON public.checklists;
 CREATE POLICY "checklists_event_access"
   ON public.checklists FOR ALL
   USING (
@@ -208,6 +220,7 @@ CREATE POLICY "checklists_event_access"
     OR event_id IN (SELECT id FROM events WHERE org_id IN (SELECT id FROM organizations WHERE owner_id = auth.uid()))
   );
 
+DROP POLICY IF EXISTS "checklist_items_event_access" ON public.checklist_items;
 CREATE POLICY "checklist_items_event_access"
   ON public.checklist_items FOR ALL
   USING (
@@ -225,11 +238,13 @@ CREATE POLICY "checklist_items_event_access"
     )
   );
 
+DROP POLICY IF EXISTS "checklists_super_admin" ON public.checklists;
 CREATE POLICY "checklists_super_admin"
   ON public.checklists FOR ALL
   USING (auth.uid() IN (SELECT id FROM profiles WHERE role = 'super_admin'))
   WITH CHECK (auth.uid() IN (SELECT id FROM profiles WHERE role = 'super_admin'));
 
+DROP POLICY IF EXISTS "checklist_items_super_admin" ON public.checklist_items;
 CREATE POLICY "checklist_items_super_admin"
   ON public.checklist_items FOR ALL
   USING (auth.uid() IN (SELECT id FROM profiles WHERE role = 'super_admin'))
@@ -253,6 +268,7 @@ CREATE TABLE IF NOT EXISTS public.event_notes (
 
 ALTER TABLE public.event_notes ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "notes_event_access" ON public.event_notes;
 CREATE POLICY "notes_event_access"
   ON public.event_notes FOR ALL
   USING (
@@ -266,6 +282,7 @@ CREATE POLICY "notes_event_access"
     OR event_id IN (SELECT id FROM events WHERE org_id IN (SELECT id FROM organizations WHERE owner_id = auth.uid()))
   );
 
+DROP POLICY IF EXISTS "notes_super_admin" ON public.event_notes;
 CREATE POLICY "notes_super_admin"
   ON public.event_notes FOR ALL
   USING (auth.uid() IN (SELECT id FROM profiles WHERE role = 'super_admin'))
@@ -311,15 +328,18 @@ ALTER TABLE public.questionnaires ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.questionnaire_questions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.questionnaire_responses ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "questionnaires_org_access" ON public.questionnaires;
 CREATE POLICY "questionnaires_org_access"
   ON public.questionnaires FOR ALL
   USING (org_id IN (SELECT id FROM organizations WHERE owner_id = auth.uid()))
   WITH CHECK (org_id IN (SELECT id FROM organizations WHERE owner_id = auth.uid()));
 
+DROP POLICY IF EXISTS "questionnaires_event_select" ON public.questionnaires;
 CREATE POLICY "questionnaires_event_select"
   ON public.questionnaires FOR SELECT
   USING (event_id IN (SELECT event_id FROM event_access WHERE user_id = auth.uid() AND accepted_at IS NOT NULL));
 
+DROP POLICY IF EXISTS "questionnaire_questions_access" ON public.questionnaire_questions;
 CREATE POLICY "questionnaire_questions_access"
   ON public.questionnaire_questions FOR ALL
   USING (
@@ -334,10 +354,12 @@ CREATE POLICY "questionnaire_questions_access"
     )
   );
 
+DROP POLICY IF EXISTS "questionnaire_responses_insert" ON public.questionnaire_responses;
 CREATE POLICY "questionnaire_responses_insert"
   ON public.questionnaire_responses FOR INSERT
   WITH CHECK (true);
 
+DROP POLICY IF EXISTS "questionnaire_responses_select" ON public.questionnaire_responses;
 CREATE POLICY "questionnaire_responses_select"
   ON public.questionnaire_responses FOR SELECT
   USING (
@@ -347,16 +369,19 @@ CREATE POLICY "questionnaire_responses_select"
     )
   );
 
+DROP POLICY IF EXISTS "questionnaires_super_admin" ON public.questionnaires;
 CREATE POLICY "questionnaires_super_admin"
   ON public.questionnaires FOR ALL
   USING (auth.uid() IN (SELECT id FROM profiles WHERE role = 'super_admin'))
   WITH CHECK (auth.uid() IN (SELECT id FROM profiles WHERE role = 'super_admin'));
 
+DROP POLICY IF EXISTS "questionnaire_questions_super_admin" ON public.questionnaire_questions;
 CREATE POLICY "questionnaire_questions_super_admin"
   ON public.questionnaire_questions FOR ALL
   USING (auth.uid() IN (SELECT id FROM profiles WHERE role = 'super_admin'))
   WITH CHECK (auth.uid() IN (SELECT id FROM profiles WHERE role = 'super_admin'));
 
+DROP POLICY IF EXISTS "questionnaire_responses_super_admin" ON public.questionnaire_responses;
 CREATE POLICY "questionnaire_responses_super_admin"
   ON public.questionnaire_responses FOR ALL
   USING (auth.uid() IN (SELECT id FROM profiles WHERE role = 'super_admin'))
@@ -382,6 +407,7 @@ CREATE TABLE IF NOT EXISTS public.guest_messages (
 
 ALTER TABLE public.guest_messages ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "guest_messages_event_access" ON public.guest_messages;
 CREATE POLICY "guest_messages_event_access"
   ON public.guest_messages FOR ALL
   USING (
@@ -395,6 +421,7 @@ CREATE POLICY "guest_messages_event_access"
     OR event_id IN (SELECT id FROM events WHERE org_id IN (SELECT id FROM organizations WHERE owner_id = auth.uid()))
   );
 
+DROP POLICY IF EXISTS "guest_messages_super_admin" ON public.guest_messages;
 CREATE POLICY "guest_messages_super_admin"
   ON public.guest_messages FOR ALL
   USING (auth.uid() IN (SELECT id FROM profiles WHERE role = 'super_admin'))

@@ -166,11 +166,17 @@ export function ProposalsPage() {
       setSaving(false)
       return
     }
-    setProposals([data as unknown as Proposal, ...proposals])
+    const newProposal = data as unknown as Proposal
+    setProposals([newProposal, ...proposals])
     setShowForm(false)
     setSaving(false)
-    showNotification({ variant: 'success', title: status === 'sent' ? 'Proposal sent!' : 'Proposal saved' })
-    setForm({ title: '', description: '', validUntil: '', clientEmail: '', sections: [], totalAmount: 0 })
+    if (status === 'sent') {
+      setForm({ title: '', description: '', validUntil: '', clientEmail: '', sections: [], totalAmount: 0 })
+      await sendProposalEmail(newProposal, 'pdf')
+    } else {
+      showNotification({ variant: 'success', title: 'Proposal saved' })
+      setForm({ title: '', description: '', validUntil: '', clientEmail: '', sections: [], totalAmount: 0 })
+    }
   }
 
   async function handleEditSave() {
@@ -237,71 +243,11 @@ export function ProposalsPage() {
       showNotification({ variant: 'warning', title: 'Missing Client Email', message: 'Please set a client email first by editing the proposal.' })
       return
     }
-    await updateStatus(proposal, 'sent')
+    setPreviewProposal(proposal)
+    await sendProposalEmail(proposal, 'pdf')
   }
 
-  async function deleteProposal(id: string) {
-    const confirmDelete = window.confirm("Are you sure you want to delete this proposal?")
-    if (!confirmDelete) return
-    const { error } = await supabase.from('proposals').delete().eq('id', id)
-    if (error) { showNotification({ variant: 'error', title: 'Failed to delete', message: error.message }); return }
-    setProposals(proposals.filter(p => p.id !== id))
-    setPreviewProposal(null)
-    showNotification({ variant: 'success', title: 'Proposal deleted' })
-  }
-
-  async function convertToEvent(proposal: Proposal) {
-    showModal({
-      variant: 'confirm',
-      title: 'Convert Quote to Event?',
-      message: `Create a live event from "${proposal.title}" proposal?`,
-      actions: [
-        { label: 'Cancel', variant: 'secondary', onClick: () => {} },
-        { label: 'Convert & Approve', variant: 'primary', onClick: async () => {
-          setSaving(true)
-          const { data: evt, error } = await supabase.from('events').insert({
-            org_id: profile?.org_id,
-            created_by: user!.id,
-            name: proposal.title,
-            event_type: 'Other',
-            event_date: proposal.valid_until || null,
-            status: 'draft',
-            payment_status: 'unpaid',
-          }).select().single()
-          if (error) {
-            showNotification({ variant: 'error', title: 'Event conversion failed', message: error.message })
-            setSaving(false)
-            return
-          }
-          await supabase.from('proposals').update({
-            status: 'accepted',
-            event_id: evt.id,
-            responded_at: new Date().toISOString()
-          }).eq('id', proposal.id)
-          const budgetAllocations = proposal.sections.map(s => ({
-            event_id: evt.id,
-            category: s.category || 'Other',
-            allocated: s.amount || 0,
-          }))
-          if (budgetAllocations.length > 0) {
-            await supabase.from('budget_allocations').insert(budgetAllocations)
-          }
-          showNotification({ variant: 'success', title: 'Converted successfully!', message: `Created live event "${proposal.title}"` })
-          setProposals(proposals.map(p => p.id === proposal.id ? { ...p, status: 'accepted', event_id: evt.id } as Proposal : p))
-          setSaving(false)
-          navigate(`/events/${evt.id}`)
-        }}
-      ]
-    })
-  }
-
-  async function reopenProposal(proposal: Proposal) {
-    await updateStatus(proposal, 'draft')
-  }
-
-  async function handleEmailClient(format: 'pdf' | 'excel') {
-    const proposal = previewProposal
-    if (!proposal) return
+  async function sendProposalEmail(proposal: Proposal, format: 'pdf' | 'excel') {
     if (!proposal.client_email) {
       showNotification({ variant: 'warning', title: 'Missing Client Email', message: 'Please specify a client email in the proposal before sending.' })
       return
@@ -401,12 +347,77 @@ export function ProposalsPage() {
 
       showNotification({ variant: 'success', title: 'Email Sent!', message: `Sent proposal to ${proposal.client_email}.` })
       if (proposal.status === 'draft') await updateStatus(proposal, 'sent')
-      setPreviewProposal(null)
     } catch (err) {
       showNotification({ variant: 'error', title: 'Failed to send email', message: err instanceof Error ? err.message : 'Network error' })
     } finally {
       setSendingEmail(false)
+      setPreviewProposal(null)
     }
+  }
+
+  async function deleteProposal(id: string) {
+    const confirmDelete = window.confirm("Are you sure you want to delete this proposal?")
+    if (!confirmDelete) return
+    const { error } = await supabase.from('proposals').delete().eq('id', id)
+    if (error) { showNotification({ variant: 'error', title: 'Failed to delete', message: error.message }); return }
+    setProposals(proposals.filter(p => p.id !== id))
+    setPreviewProposal(null)
+    showNotification({ variant: 'success', title: 'Proposal deleted' })
+  }
+
+  async function convertToEvent(proposal: Proposal) {
+    showModal({
+      variant: 'confirm',
+      title: 'Convert Quote to Event?',
+      message: `Create a live event from "${proposal.title}" proposal?`,
+      actions: [
+        { label: 'Cancel', variant: 'secondary', onClick: () => {} },
+        { label: 'Convert & Approve', variant: 'primary', onClick: async () => {
+          setSaving(true)
+          const { data: evt, error } = await supabase.from('events').insert({
+            org_id: profile?.org_id,
+            created_by: user!.id,
+            name: proposal.title,
+            event_type: 'Other',
+            event_date: proposal.valid_until || null,
+            status: 'draft',
+            payment_status: 'unpaid',
+          }).select().single()
+          if (error) {
+            showNotification({ variant: 'error', title: 'Event conversion failed', message: error.message })
+            setSaving(false)
+            return
+          }
+          await supabase.from('proposals').update({
+            status: 'accepted',
+            event_id: evt.id,
+            responded_at: new Date().toISOString()
+          }).eq('id', proposal.id)
+          const budgetAllocations = proposal.sections.map(s => ({
+            event_id: evt.id,
+            category: s.category || 'Other',
+            allocated: s.amount || 0,
+          }))
+          if (budgetAllocations.length > 0) {
+            await supabase.from('budget_allocations').insert(budgetAllocations)
+          }
+          showNotification({ variant: 'success', title: 'Converted successfully!', message: `Created live event "${proposal.title}"` })
+          setProposals(proposals.map(p => p.id === proposal.id ? { ...p, status: 'accepted', event_id: evt.id } as Proposal : p))
+          setSaving(false)
+          navigate(`/events/${evt.id}`)
+        }}
+      ]
+    })
+  }
+
+  async function reopenProposal(proposal: Proposal) {
+    await updateStatus(proposal, 'draft')
+  }
+
+  async function handleEmailClient(format: 'pdf' | 'excel') {
+    const proposal = previewProposal
+    if (!proposal) return
+    await sendProposalEmail(proposal, format)
   }
 
   const columns: TableColumn[] = [
@@ -521,7 +532,7 @@ export function ProposalsPage() {
             <div className="modal-card-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div className="input-wrapper"><label className="input-label">Proposal Title *</label><input className="input" value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="e.g. 500-Guest Corporate Gala Quote" /></div>
               <div className="input-wrapper"><label className="input-label">Description / Scope of Work</label><textarea className="input" rows={2} value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder="General details about services to be offered..." /></div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div className={styles.modalInputGrid}>
                 <div className="input-wrapper"><label className="input-label">Valid Until</label>
                   <button className="input" type="button" onClick={() => setShowValidUntil(true)} style={{ textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8, height: 40 }}>
                     <Calendar size={14} /> {form.validUntil ? new Date(form.validUntil + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Select date...'}
@@ -552,7 +563,7 @@ export function ProposalsPage() {
                 </div>
 
                 <div className={styles.addSectionWrapper}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, width: '100%', marginBottom: 8 }}>
+                  <div className={styles.formAddGrid}>
                     <div className="input-wrapper">
                       <label className="input-label" style={{ fontSize: 10 }}>Budget Category</label>
                       <select
@@ -568,16 +579,16 @@ export function ProposalsPage() {
                       <input className="input" placeholder="e.g. Standard Sound System" value={sectionForm.title} onChange={e => setSectionForm({...sectionForm, title: e.target.value})} style={{ height: 36 }} />
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: 8, width: '100%' }}>
-                    <input className="input" placeholder="Deliverables description..." value={sectionForm.description} onChange={e => setSectionForm({...sectionForm, description: e.target.value})} style={{ flex: 1, height: 36 }} />
-                    <input className="input" type="number" placeholder="Price (₦)" value={sectionForm.amount || ''} onChange={e => setSectionForm({...sectionForm, amount: Number(e.target.value)})} style={{ width: 110, height: 36 }} />
-                    <button className="btn btn-secondary btn-sm" onClick={addSection} disabled={!sectionForm.title || sectionForm.amount <= 0} style={{ height: 36 }}>Add Item</button>
+                  <div className={styles.addSectionRow}>
+                    <input className={`input ${styles.descInput}`} placeholder="Deliverables description..." value={sectionForm.description} onChange={e => setSectionForm({...sectionForm, description: e.target.value})} />
+                    <input className={`input ${styles.priceInput}`} type="number" placeholder="Price (₦)" value={sectionForm.amount || ''} onChange={e => setSectionForm({...sectionForm, amount: Number(e.target.value)})} />
+                    <button className={`btn btn-secondary btn-sm ${styles.addButton}`} onClick={addSection} disabled={!sectionForm.title || sectionForm.amount <= 0}>Add Item</button>
                   </div>
                 </div>
                 {form.totalAmount > 0 && <div className={styles.formTotalsRow}><strong>Grand Total Proposed: {fmtMoney(form.totalAmount)}</strong></div>}
               </div>
 
-              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--color-border-subtle)' }}>
+              <div className={styles.modalFooter}>
                 <button className="btn btn-ghost" onClick={() => setShowForm(false)}>Cancel</button>
                 <button className="btn btn-secondary" onClick={() => handleSave('draft')} disabled={saving}>{saving ? 'Saving...' : 'Save as Draft'}</button>
                 <button className="btn btn-primary" onClick={() => handleSave('sent')} disabled={saving || !form.clientEmail}><Send size={14} /> {saving ? 'Sending...' : 'Send Quote'}</button>
@@ -598,7 +609,7 @@ export function ProposalsPage() {
             <div className="modal-card-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div className="input-wrapper"><label className="input-label">Proposal Title *</label><input className="input" value={form.title} onChange={e => setForm({...form, title: e.target.value})} /></div>
               <div className="input-wrapper"><label className="input-label">Description / Scope of Work</label><textarea className="input" rows={2} value={form.description} onChange={e => setForm({...form, description: e.target.value})} /></div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div className={styles.modalInputGrid}>
                 <div className="input-wrapper"><label className="input-label">Valid Until</label>
                   <button className="input" type="button" onClick={() => setShowEditValidUntil(true)} style={{ textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8, height: 40 }}>
                     <Calendar size={14} /> {form.validUntil ? new Date(form.validUntil + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Select date...'}
@@ -628,7 +639,7 @@ export function ProposalsPage() {
                 </div>
 
                 <div className={styles.addSectionWrapper}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, width: '100%', marginBottom: 8 }}>
+                  <div className={styles.formAddGrid}>
                     <div className="input-wrapper">
                       <label className="input-label" style={{ fontSize: 10 }}>Budget Category</label>
                       <select
@@ -644,16 +655,16 @@ export function ProposalsPage() {
                       <input className="input" placeholder="e.g. Standard Sound System" value={sectionForm.title} onChange={e => setSectionForm({...sectionForm, title: e.target.value})} style={{ height: 36 }} />
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: 8, width: '100%' }}>
-                    <input className="input" placeholder="Deliverables description..." value={sectionForm.description} onChange={e => setSectionForm({...sectionForm, description: e.target.value})} style={{ flex: 1, height: 36 }} />
-                    <input className="input" type="number" placeholder="Price (₦)" value={sectionForm.amount || ''} onChange={e => setSectionForm({...sectionForm, amount: Number(e.target.value)})} style={{ width: 110, height: 36 }} />
-                    <button className="btn btn-secondary btn-sm" onClick={addSection} disabled={!sectionForm.title || sectionForm.amount <= 0} style={{ height: 36 }}>Add Item</button>
+                  <div className={styles.addSectionRow}>
+                    <input className={`input ${styles.descInput}`} placeholder="Deliverables description..." value={sectionForm.description} onChange={e => setSectionForm({...sectionForm, description: e.target.value})} />
+                    <input className={`input ${styles.priceInput}`} type="number" placeholder="Price (₦)" value={sectionForm.amount || ''} onChange={e => setSectionForm({...sectionForm, amount: Number(e.target.value)})} />
+                    <button className={`btn btn-secondary btn-sm ${styles.addButton}`} onClick={addSection} disabled={!sectionForm.title || sectionForm.amount <= 0}>Add Item</button>
                   </div>
                 </div>
                 {form.totalAmount > 0 && <div className={styles.formTotalsRow}><strong>Grand Total Proposed: {fmtMoney(form.totalAmount)}</strong></div>}
               </div>
 
-              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--color-border-subtle)' }}>
+              <div className={styles.modalFooter}>
                 <button className="btn btn-ghost" onClick={closeEdit}>Cancel</button>
                 <button className="btn btn-primary" onClick={handleEditSave} disabled={saving}>{saving ? 'Saving...' : 'Save Changes'}</button>
               </div>
@@ -667,7 +678,10 @@ export function ProposalsPage() {
         <div className="overlay" onClick={() => setPreviewProposal(null)}>
           <div className={styles.previewModal} onClick={e => e.stopPropagation()}>
             <div className={styles.previewModalHeader}>
-              <h3 style={{ margin: 0, fontWeight: 600, fontSize: 'var(--text-base)' }}>{previewProposal.title}</h3>
+              <div className={styles.headerTitleRow}>
+                <h3 style={{ margin: 0, fontWeight: 600, fontSize: 'var(--text-base)' }}>{previewProposal.title}</h3>
+                <button className="btn btn-ghost btn-sm" onClick={() => setPreviewProposal(null)}><X size={16} /></button>
+              </div>
               <div className={styles.previewModalActions}>
                 <button className="btn btn-secondary btn-sm" onClick={() => { const g = groupedSectionsFor(previewProposal); exportProposalToExcel(g, previewProposal.title, previewProposal.total_amount) }} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Download size={13} /> Excel
@@ -681,7 +695,6 @@ export function ProposalsPage() {
                 <button className="btn btn-secondary btn-sm" disabled={sendingEmail} onClick={() => handleEmailClient('excel')} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   {sendingEmail ? <RefreshCw size={13} className="animate-spin" /> : <Mail size={13} />} Email Excel
                 </button>
-                <button className="btn btn-ghost btn-sm" onClick={() => setPreviewProposal(null)}><X size={16} /></button>
               </div>
             </div>
 

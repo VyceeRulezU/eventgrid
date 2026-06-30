@@ -34,7 +34,6 @@ export function SettingsPage() {
   const logoInputRef = useRef<HTMLInputElement>(null)
 
   const [activeTab, setActiveTab] = useState<'profile' | 'org' | 'preferences' | 'upgrades' | 'support'>('profile')
-  const [isOrgOwner, setIsOrgOwner] = useState(false)
 
   const [displayName, setDisplayName] = useState(profile?.display_name || user?.user_metadata?.display_name || '')
   const [phone, setPhone] = useState(profile?.phone || user?.user_metadata?.phone || '')
@@ -187,7 +186,6 @@ export function SettingsPage() {
         setOrgWebsite(data.website || '')
         setOrgInstagram(data.instagram || '')
         setLogoPreview(data.logo_url || org.logo_url)
-        setIsOrgOwner(data.owner_id === user?.id)
       })
   }, [org?.id, org?.name, org?.logo_url, user?.id])
 
@@ -334,7 +332,7 @@ export function SettingsPage() {
 
   const tabs = [
     { key: 'profile' as const, label: 'Profile', icon: <User size={16} /> },
-    ...(org && (isOrgOwner || role === 'super_admin') ? [{ key: 'org' as const, label: 'Organisation', icon: <Building2 size={16} /> }] : []),
+    ...(org ? [{ key: 'org' as const, label: 'Organisation', icon: <Building2 size={16} /> }] : []),
     { key: 'preferences' as const, label: 'Preferences', icon: <Settings size={16} /> },
     ...(!isAdminRole ? [{ key: 'upgrades' as const, label: 'Transitions', icon: <Sparkles size={16} /> }] : []),
     { key: 'support' as const, label: 'Support & Security', icon: <LifeBuoy size={16} /> },
@@ -457,7 +455,7 @@ export function SettingsPage() {
         )}
 
         {/* ==================== ORGANISATION TAB ==================== */}
-        {activeTab === 'org' && org && (isOrgOwner || role === 'super_admin') && (
+        {activeTab === 'org' && org && (
           <div className={`card ${styles.spanFull}`}>
             <h3 className={`${styles.cardTitle} ${styles.cardTitleRow}`}>
               <Building2 size={18} style={{ color: 'var(--color-accent)' }} />
