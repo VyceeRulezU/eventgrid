@@ -13,7 +13,7 @@
 
 @media (max-width: 576px) {
   .metricsGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 }
 
@@ -46,6 +46,29 @@
   gap: var(--space-2);
   align-items: center;
   flex-wrap: wrap;
+}
+
+@media (max-width: 576px) {
+  .pageHeroActions {
+    flex-wrap: wrap;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  .pageHeroActions > :first-child {
+    width: 100%;
+    flex: 0 0 100%;
+    box-sizing: border-box;
+  }
+  .pageHeroActions > :nth-child(2) {
+    flex: 0 0 auto;
+    box-sizing: border-box;
+  }
+  .pageHeroActions > :nth-child(3) {
+    flex: 1;
+    min-width: 0;
+    box-sizing: border-box;
+  }
 }
 
 .toggleGroup {
