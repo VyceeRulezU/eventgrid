@@ -54,12 +54,14 @@ export function navigateFromNotification(n: Notification, navigate: NavigateFunc
     case 'feedback_reply':
       navigate('/notifications')
       return
-    case 'quote_submitted':
     case 'quote_request_received':
-      n.event_id && navigate(`/events/${n.event_id}/vendors`)
+      navigate('/vendor/quotes')
+      return
+    case 'quote_submitted':
+      navigate('/planner/vendor-quotes')
       return
     case 'quote_response_received':
-      navigate('/notifications')
+      navigate('/client/my-quotes')
       return
   }
 }

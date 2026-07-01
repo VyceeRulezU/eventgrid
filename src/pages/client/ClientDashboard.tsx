@@ -15,14 +15,6 @@ interface ClientEvent {
   managing_planner_id: string | null
 }
 
-interface ClientQuoteRequest {
-  id: string
-  title: string
-  status: string
-  response_count: number
-  created_at: string
-}
-
 function formatDate(d: string | null): string {
   if (!d) return '—'
   return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -33,7 +25,6 @@ export function ClientDashboard() {
   const user = useAuthStore((s) => s.user)
   const profile = useAuthStore((s) => s.profile)
   const [events, setEvents] = useState<ClientEvent[]>([])
-  const [quoteRequests, setQuoteRequests] = useState<ClientQuoteRequest[]>([])
   const [loading, setLoading] = useState(true)
 
   const displayName = profile?.display_name || user?.user_metadata?.display_name || 'Client'
@@ -49,33 +40,14 @@ export function ClientDashboard() {
     const uid = user.id
 
     async function load() {
-      const [eventsRes, quotesRes] = await Promise.all([
-        supabase
-          .from('events')
-          .select('id, name, event_type, event_date, status, managing_planner_id')
-          .eq('client_id', uid)
-          .is('deleted_at', null)
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('client_quote_requests')
-          .select('id, title, status, created_at')
-          .eq('client_id', uid)
-          .order('created_at', { ascending: false }),
-      ])
+      const { data: eventsData } = await supabase
+        .from('events')
+        .select('id, name, event_type, event_date, status, managing_planner_id')
+        .eq('client_id', uid)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false })
 
-      if (eventsRes.data) setEvents(eventsRes.data as ClientEvent[])
-      if (quotesRes.data) {
-        const withCounts = await Promise.all(
-          (quotesRes.data as any[]).map(async (q) => {
-            const { count } = await supabase
-              .from('client_quote_responses')
-              .select('id', { count: 'exact' })
-              .eq('quote_request_id', q.id)
-            return { ...q, response_count: count || 0 } as ClientQuoteRequest
-          })
-        )
-        setQuoteRequests(withCounts)
-      }
+      if (eventsData) setEvents(eventsData as ClientEvent[])
 
       setLoading(false)
     }
@@ -117,10 +89,6 @@ export function ClientDashboard() {
         <div className={styles.statCard}>
           <div className={styles.statValue}>{events.length}</div>
           <div className={styles.statLabel}>My Events</div>
-        </div>
-        <div className={styles.statCard}>
-          <div className={styles.statValue}>{quoteRequests.length}</div>
-          <div className={styles.statLabel}>Quote Requests</div>
         </div>
         <div className={styles.statCard}>
           <div className={styles.statValue}>{events.filter((e) => e.status === 'in_progress' || e.status === 'active').length}</div>
@@ -166,39 +134,6 @@ export function ClientDashboard() {
                     ) : null}
                     <ChevronRight size={16} className={styles.chevron} />
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className={styles.sectionCard}>
-          <div className={styles.sectionHeader}>
-            <h3 className={styles.sectionTitle}>
-              <FileText size={16} style={{ color: 'var(--color-info)' }} />
-              Quote Requests
-            </h3>
-            <Link to="/client/request-quote" className={styles.sectionLink}>New request →</Link>
-          </div>
-          {quoteRequests.length === 0 ? (
-            <div className="empty-state" style={{ padding: 'var(--space-8)' }}>
-              <div className="empty-state__icon"><FileText size={24} /></div>
-              <div className="empty-state__title">No quote requests</div>
-              <div className="empty-state__description">Request quotes from planners, vendors, or coordinators.</div>
-              <Link to="/client/request-quote" className="btn btn-primary"><FileText size={16} /> Request a Quote</Link>
-            </div>
-          ) : (
-            <div>
-              {quoteRequests.slice(0, 5).map((qr) => (
-                <div key={qr.id} className={styles.quoteRow}>
-                  <div>
-                    <div className={styles.quoteTitle}>{qr.title}</div>
-                    <div className={styles.quoteMeta}>{qr.response_count} response(s) · {formatDate(qr.created_at)}</div>
-                  </div>
-                  <span className={`badge badge-${qr.status === 'open' ? 'yellow' : qr.status === 'negotiating' ? 'green' : 'grey'}`}>
-                    <span className="badge-dot" />
-                    {qr.status}
-                  </span>
                 </div>
               ))}
             </div>

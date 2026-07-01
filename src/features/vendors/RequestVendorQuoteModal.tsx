@@ -123,20 +123,20 @@ export function RequestVendorQuoteModal({ eventId, orgId, onClose, onSent }: Pro
       .select('id, claimed_by_vendor_id')
       .in('id', [...selectedVendorIds])
     if (vendorUsers) {
-      for (const v of vendorUsers) {
-        if (v.claimed_by_vendor_id) {
-          notify({
-            type: 'quote_request_received',
-            recipientId: v.claimed_by_vendor_id,
-            eventId,
-            payload: {
-              title: 'New Quote Request',
-              body: title.trim(),
-              url: '/dashboard/vendor',
-            },
-          })
-        }
-      }
+      await Promise.all(vendorUsers.map((v) =>
+        v.claimed_by_vendor_id
+          ? notify({
+              type: 'quote_request_received',
+              recipientId: v.claimed_by_vendor_id,
+              eventId,
+              payload: {
+                title: 'New Quote Request',
+                body: title.trim(),
+                url: '/vendor/quotes',
+              },
+            })
+          : Promise.resolve()
+      ))
     }
 
     showToast({ type: 'success', title: 'Quote request sent', body: `Sent to ${selectedVendorIds.size} vendor(s)` })

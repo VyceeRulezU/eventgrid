@@ -78,13 +78,19 @@ export function Sidebar() {
     managementItems.push({ to: '/leads', label: 'Leads', icon: UserPlus })
   }
 
-  if (role === 'planner' || role === 'coordinator' || role === 'vendor') {
-    managementItems.push({ to: '/client/browse-quotes', label: 'Quote Requests', icon: FileText })
+  if (role === 'vendor') {
+    managementItems.push({ to: '/vendor/quotes', label: 'Quote Requests', icon: FileText })
+  }
+
+  if (role === 'planner' || role === 'coordinator') {
+    managementItems.push({ to: '/planner/vendor-quotes', label: 'Vendor Quotes', icon: FileText })
+    managementItems.push({ to: '/client/browse-quotes', label: 'Client Requests', icon: FileText })
   }
 
   if (role === 'client') {
     managementItems.push({ to: '/client/create-event', label: 'Create Event', icon: Calendar })
     managementItems.push({ to: '/client/request-quote', label: 'Request Quote', icon: FileText })
+    managementItems.push({ to: '/client/my-quotes', label: 'My Quotes', icon: FileText })
   }
 
   if (!isAdmin && (!isAdminRole || hasOriginalRole)) {

@@ -87,6 +87,9 @@ const LiveFeedPage = lazy(() => import('@/features/live-board/LiveFeedPage').the
 const PlannerDashboard = lazy(() => import('@/pages/planner/PlannerDashboard').then(m => ({ default: m.PlannerDashboard })))
 const CoordinatorDashboard = lazy(() => import('@/pages/coordinator/CoordinatorDashboard').then(m => ({ default: m.CoordinatorDashboard })))
 const VendorPortal = lazy(() => import('@/pages/vendor/VendorPortal').then(m => ({ default: m.VendorPortal })))
+const VendorQuotesPage = lazy(() => import('@/pages/vendor/VendorQuotesPage').then(m => ({ default: m.VendorQuotesPage })))
+const PlannerVendorQuotesPage = lazy(() => import('@/pages/planner/PlannerVendorQuotesPage').then(m => ({ default: m.PlannerVendorQuotesPage })))
+const ClientMyQuotesPage = lazy(() => import('@/pages/client/ClientMyQuotesPage').then(m => ({ default: m.ClientMyQuotesPage })))
 const NotificationsPage = lazy(() => import('@/pages/notifications/NotificationsPage').then(m => ({ default: m.NotificationsPage })))
 const TeamPage = lazy(() => import('@/features/team/TeamPage').then(m => ({ default: m.TeamPage })))
 const TaskBoard = lazy(() => import('@/features/team/TaskBoard').then(m => ({ default: m.TaskBoard })))
@@ -626,6 +629,21 @@ export function App() {
             <Route path="/dashboard/vendor" element={
               <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
                 <RoleGuard allowedRole="vendor"><VendorPortal /></RoleGuard>
+              </Suspense>
+            } />
+            <Route path="/vendor/quotes" element={
+              <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
+                <RoleGuard allowedRole="vendor"><VendorQuotesPage /></RoleGuard>
+              </Suspense>
+            } />
+            <Route path="/planner/vendor-quotes" element={
+              <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
+                <RoleGuard allowedRole={['planner', 'coordinator']}><PlannerVendorQuotesPage /></RoleGuard>
+              </Suspense>
+            } />
+            <Route path="/client/my-quotes" element={
+              <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
+                <RoleGuard allowedRole="client"><ClientMyQuotesPage /></RoleGuard>
               </Suspense>
             } />
             <Route path="/dashboard/client" element={

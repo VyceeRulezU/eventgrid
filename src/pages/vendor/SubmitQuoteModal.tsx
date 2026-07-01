@@ -102,7 +102,6 @@ export function SubmitQuoteModal({ quoteRequest, vendorId, onClose, onSubmit }: 
       })
     }
 
-    showToast({ type: 'success', title: 'Quote submitted!' })
     setSending(false)
     onSubmit()
   }
@@ -118,7 +117,7 @@ export function SubmitQuoteModal({ quoteRequest, vendorId, onClose, onSubmit }: 
           <button className="modal-card-close" onClick={onClose}><X size={18} /></button>
         </div>
 
-        <div className="modal-card-body">
+        <div className={styles.modalBody}>
           <div className={styles.field}>
             <label className={styles.label}>Event</label>
             <p className={styles.value}>{quoteRequest.event_name}</p>

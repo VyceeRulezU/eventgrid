@@ -282,7 +282,7 @@ export function EventVendorsPage({ standalone = true }: { standalone?: boolean }
           eventId={eventId!}
           orgId={eventOrgId}
           onClose={() => setShowQuoteModal(false)}
-          onSent={() => { setShowQuoteModal(false); showNotification({ variant: 'success', title: 'Quote request sent' }) }}
+          onSent={() => setShowQuoteModal(false)}
         />
       )}
     </div>
