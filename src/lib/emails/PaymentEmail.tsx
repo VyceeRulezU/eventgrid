@@ -17,7 +17,7 @@ export function PaymentEmail({
 }: PaymentEmailProps) {
   return (
     <EmailWrapper previewText={`Payment of ${amount} confirmed for ${event_name} — NaliGrid`}>
-      <h1 style={{ margin: '0 0 16px', fontSize: '24px', fontWeight: 800, color: '#F9FAFB', lineHeight: 1.3, letterSpacing: '-0.02em' }}>
+      <h1 style={{ margin: '0 0 16px', fontSize: '24px', fontWeight: 300, color: '#F9FAFB', lineHeight: 1.3, letterSpacing: '-0.02em' }}>
         Payment Confirmed! 💳
       </h1>
 

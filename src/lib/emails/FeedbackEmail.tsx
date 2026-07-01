@@ -8,7 +8,7 @@ export interface FeedbackEmailProps {
 export function FeedbackEmail({ first_name, feedback_url }: FeedbackEmailProps) {
   return (
     <EmailWrapper previewText={`How is your experience with NaliGrid, ${first_name}? Let us know!`}>
-      <h1 style={{ margin: '0 0 16px', fontSize: '24px', fontWeight: 800, color: '#F9FAFB', lineHeight: 1.3, letterSpacing: '-0.02em' }}>
+      <h1 style={{ margin: '0 0 16px', fontSize: '24px', fontWeight: 300, color: '#F9FAFB', lineHeight: 1.3, letterSpacing: '-0.02em' }}>
         How are we doing? 💬
       </h1>
 

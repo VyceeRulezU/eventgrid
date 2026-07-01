@@ -54,7 +54,7 @@ export function WelcomeEmail({ first_name, dashboard_url, create_event_url, role
 
   return (
     <EmailWrapper previewText={`Welcome to NaliGrid, ${first_name}! Let's get your first event set up.`}>
-      <h1 style={{ margin: '0 0 16px', fontSize: '24px', fontWeight: 800, color: '#F9FAFB', lineHeight: 1.3, letterSpacing: '-0.02em' }}>
+      <h1 style={{ margin: '0 0 16px', fontSize: '24px', fontWeight: 300, color: '#F9FAFB', lineHeight: 1.3, letterSpacing: '-0.02em' }}>
         Welcome to the grid, {first_name}! 🥂
       </h1>
 

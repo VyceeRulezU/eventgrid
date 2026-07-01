@@ -8,7 +8,7 @@ export interface TrialReminderEmailProps {
 export function TrialReminderEmail({ first_name, financials_url }: TrialReminderEmailProps) {
   return (
     <EmailWrapper previewText={`Friendly reminder, ${first_name}: Track Naira payments and vendor budgets with zero stress.`}>
-      <h1 style={{ margin: '0 0 16px', fontSize: '24px', fontWeight: 800, color: '#F9FAFB', lineHeight: 1.3, letterSpacing: '-0.02em' }}>
+      <h1 style={{ margin: '0 0 16px', fontSize: '24px', fontWeight: 300, color: '#F9FAFB', lineHeight: 1.3, letterSpacing: '-0.02em' }}>
         Tired of messy Excel budgets? 💸
       </h1>
 

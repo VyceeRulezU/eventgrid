@@ -8,7 +8,7 @@ export interface QuickStartEmailProps {
 export function QuickStartEmail({ first_name, create_event_url }: QuickStartEmailProps) {
   return (
     <EmailWrapper previewText={`Hi ${first_name}, here is your 3-step guide to launch your first event on NaliGrid.`}>
-      <h1 style={{ margin: '0 0 16px', fontSize: '24px', fontWeight: 800, color: '#F9FAFB', lineHeight: 1.3, letterSpacing: '-0.02em' }}>
+      <h1 style={{ margin: '0 0 16px', fontSize: '24px', fontWeight: 300, color: '#F9FAFB', lineHeight: 1.3, letterSpacing: '-0.02em' }}>
         Let's launch your first event! 🚀
       </h1>
 
