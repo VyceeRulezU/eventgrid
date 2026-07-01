@@ -15,6 +15,9 @@ export type NotificationEventType =
   | 'feedback_reply'
   | 'client_action_required'
   | 'mention'
+  | 'quote_submitted'
+  | 'quote_response_received'
+  | 'quote_request_received'
 
 export interface NotificationEvent {
   type: NotificationEventType
@@ -49,6 +52,13 @@ export function navigateFromNotification(n: Notification, navigate: NavigateFunc
   }
   switch (n.type) {
     case 'feedback_reply':
+      navigate('/notifications')
+      return
+    case 'quote_submitted':
+    case 'quote_request_received':
+      n.event_id && navigate(`/events/${n.event_id}/vendors`)
+      return
+    case 'quote_response_received':
       navigate('/notifications')
       return
   }
@@ -99,6 +109,9 @@ async function sendWebPush(event: NotificationEvent) {
       feedback_reply: 'push_client_actions',
       client_action_required: 'push_client_actions',
       mention: 'push_client_actions',
+      quote_submitted: 'push_vendors',
+      quote_response_received: 'push_client_actions',
+      quote_request_received: 'push_client_actions',
     }
 
     const prefKey = pushPrefMap[event.type]

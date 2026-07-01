@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { PageHero } from '@/components/shared/PageHero'
+import { CalendarModal } from '@/components/ui/CalendarModal'
 import styles from './ClientCreateEventPage.module.css'
 
 interface PlannerProfile {
@@ -32,6 +33,7 @@ export function ClientCreateEventPage() {
   const [venueName, setVenueName] = useState('')
   const [guestCount, setGuestCount] = useState(0)
   const [description, setDescription] = useState('')
+  const [showCalendar, setShowCalendar] = useState(false)
 
   const [plannerSearch, setPlannerSearch] = useState('')
   const [planners, setPlanners] = useState<PlannerProfile[]>([])
@@ -165,7 +167,15 @@ export function ClientCreateEventPage() {
             <div className={styles.row}>
               <div className={styles.field}>
                 <label className={styles.label}>Event date</label>
-                <input className={styles.input} type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} />
+                <button type="button" className="input" onClick={() => setShowCalendar(true)} style={{ textAlign: 'left' }}>
+                  {eventDate ? new Date(eventDate + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Select date'}
+                </button>
+                <CalendarModal
+                  open={showCalendar}
+                  value={eventDate}
+                  onChange={(d) => { setEventDate(d); setShowCalendar(false) }}
+                  onClose={() => setShowCalendar(false)}
+                />
               </div>
               <div className={styles.field}>
                 <label className={styles.label}>Guest count</label>

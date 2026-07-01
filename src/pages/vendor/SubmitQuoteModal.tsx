@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { X, Plus, Trash2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
+import { notify } from '@/lib/notifications'
 import styles from './SubmitQuoteModal.module.css'
 
 interface LineItem {
@@ -83,6 +84,23 @@ export function SubmitQuoteModal({ quoteRequest, vendorId, onClose, onSubmit }: 
       .update({ status: 'quoted' })
       .eq('quote_request_id', quoteRequest.id)
       .eq('vendor_id', vendorId)
+
+    // Notify the request creator
+    const { data: request } = await supabase
+      .from('vendor_quote_requests')
+      .select('created_by')
+      .eq('id', quoteRequest.id)
+      .single()
+    if (request) {
+      notify({
+        type: 'quote_submitted',
+        recipientId: request.created_by,
+        payload: {
+          title: 'Quote received',
+          body: `A vendor submitted a quote for "${quoteRequest.title}"`,
+        },
+      })
+    }
 
     showToast({ type: 'success', title: 'Quote submitted!' })
     setSending(false)

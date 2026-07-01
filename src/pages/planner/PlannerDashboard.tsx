@@ -856,7 +856,7 @@ export function PlannerDashboard() {
                           role: 'coordinator',
                           accepted_at: new Date().toISOString(),
                         }, { onConflict: 'event_id,user_id' })
-                        showNotification({ variant: 'success', title: 'Event accepted!', body: 'You are now managing this event.' })
+                        showNotification({ variant: 'success', title: 'Event accepted!', message: 'You are now managing this event.' })
                         setClientEvents((prev) => prev.filter((e) => e.id !== ev.id))
                       }
                       setAcceptingEvent(null)

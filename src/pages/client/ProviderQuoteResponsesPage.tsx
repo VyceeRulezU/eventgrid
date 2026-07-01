@@ -3,6 +3,7 @@ import { FileText, MessageSquare, Search } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
+import { notify } from '@/lib/notifications'
 import { PageHero } from '@/components/shared/PageHero'
 import type { ClientQuoteRequest } from '@/types'
 import styles from './ProviderQuoteResponsesPage.module.css'
@@ -92,6 +93,23 @@ export function ProviderQuoteResponsesPage() {
       showToast({ type: 'error', title: 'Failed to respond', body: error.message })
       setSending(false)
       return
+    }
+
+    // Notify the client
+    const { data: clientReq } = await supabase
+      .from('client_quote_requests')
+      .select('client_id, title')
+      .eq('id', requestId)
+      .single()
+    if (clientReq) {
+      notify({
+        type: 'quote_response_received',
+        recipientId: clientReq.client_id,
+        payload: {
+          title: 'New quote response',
+          body: `Someone responded to your request "${clientReq.title}"`,
+        },
+      })
     }
 
     showToast({ type: 'success', title: 'Response sent!' })

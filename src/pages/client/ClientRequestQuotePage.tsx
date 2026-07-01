@@ -5,6 +5,8 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { PageHero } from '@/components/shared/PageHero'
+import { CalendarModal } from '@/components/ui/CalendarModal'
+import { Checkbox } from '@/components/ui/Checkbox'
 import styles from './ClientRequestQuotePage.module.css'
 
 const ROLES = [
@@ -25,6 +27,7 @@ export function ClientRequestQuotePage() {
   const [budgetRange, setBudgetRange] = useState('')
   const [selectedRoles, setSelectedRoles] = useState<Set<string>>(new Set())
   const [saving, setSaving] = useState(false)
+  const [showCalendar, setShowCalendar] = useState(false)
 
   const toggleRole = (role: string) => {
     const next = new Set(selectedRoles)
@@ -93,8 +96,16 @@ export function ClientRequestQuotePage() {
               <input className={styles.input} value={eventType} onChange={(e) => setEventType(e.target.value)} placeholder="e.g. Wedding, Birthday" />
             </div>
             <div className={styles.field}>
-              <label className={styles.label}>Event date</label>
-              <input className={styles.input} type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} />
+                <label className={styles.label}>Event date</label>
+                <button type="button" className="input" onClick={() => setShowCalendar(true)} style={{ textAlign: 'left' }}>
+                  {eventDate ? new Date(eventDate + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Select date'}
+                </button>
+                <CalendarModal
+                  open={showCalendar}
+                  value={eventDate}
+                  onChange={(d) => { setEventDate(d); setShowCalendar(false) }}
+                  onClose={() => setShowCalendar(false)}
+                />
             </div>
           </div>
 
@@ -114,11 +125,9 @@ export function ClientRequestQuotePage() {
             <div className={styles.roleGrid}>
               {ROLES.map((r) => (
                 <label key={r.value} className={`${styles.roleCard} ${selectedRoles.has(r.value) ? styles.roleCardActive : ''}`}>
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={selectedRoles.has(r.value)}
                     onChange={() => toggleRole(r.value)}
-                    className={styles.roleCheckbox}
                   />
                   <div className={styles.roleInfo}>
                     <div className={styles.roleLabel}>{r.label}</div>
