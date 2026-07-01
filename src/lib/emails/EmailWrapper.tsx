@@ -45,7 +45,7 @@ export function EmailWrapper({
                           <td style={{ width: '44px', height: '3px', backgroundColor: '#D4A017', borderRadius: '2px' }} />
                         </tr>
                       </table>
-                       <img src={appUrl + '/ng-logo-wg.svg'} alt="NaliGrid" style={{ maxWidth: '180px', height: 'auto', display: 'block', margin: '0 auto' }} />
+                       <img src={appUrl + '/ng-logo-wg.png'} alt="NaliGrid" style={{ maxWidth: '180px', height: 'auto', display: 'block', margin: '0 auto' }} />
                     </div>
                   </td>
                 </tr>
@@ -60,7 +60,7 @@ export function EmailWrapper({
                 {/* Footer */}
                 <tr>
                   <td style={{ padding: '24px 32px', borderTop: '1px solid #2a3a4e', backgroundColor: '#141e2a', textAlign: 'center' }}>
-                    <img src={appUrl + '/ng-logo-wg.svg'} alt="NaliGrid" style={{ maxWidth: '120px', height: 'auto', display: 'block', margin: '0 auto 16px' }} />
+                    <img src={appUrl + '/ng-logo-wg.png'} alt="NaliGrid" style={{ maxWidth: '120px', height: 'auto', display: 'block', margin: '0 auto 16px' }} />
                     <p style={{ margin: '0 0 4px', fontSize: '12px', color: '#6B7280', lineHeight: 1.6 }}>
                       NaliGrid &mdash; Software for Event Pros
                     </p>
