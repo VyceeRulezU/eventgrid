@@ -25,7 +25,8 @@ function toNaira(amount: number): string {
   return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0 }).format(amount / 100)
 }
 
-function formatDate(dateStr: string): string {
+function formatDate(dateStr: string | null): string {
+  if (!dateStr) return '—'
   return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
@@ -192,24 +193,24 @@ export function SuperAdminDashboard() {
         { count: orgCount },
         { count: vendorCount },
         { count: guestCount },
-        { data: storageObjects },
+        { data: storageBytesRpc },
       ] = await Promise.all([
         supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'planner'),
         supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'coordinator'),
         supabase.from('events').select('id', { count: 'exact', head: true }).is('deleted_at', null),
         supabase.from('events').select('id', { count: 'exact', head: true }).is('deleted_at', null).not('status', 'eq', 'completed').not('status', 'eq', 'cancelled'),
-        supabase.from('profiles').select('id', { count: 'exact', head: true }),
+        supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('is_active', true),
         supabase.from('profiles').select('id, email, display_name').eq('role', 'planner'),
         supabase.from('events').select('id, name, event_type, status, created_at, created_by, current_phase, coordinator_id').is('deleted_at', null),
         supabase.from('events').select('id, amount_paid, payment_provider, paid_at, name, created_by').eq('payment_status', 'paid'),
         supabase.from('events').select('id, name, event_type, status, current_phase, coordinator_id').is('deleted_at', null).not('status', 'eq', 'completed').not('status', 'eq', 'cancelled'),
-        supabase.from('events').select('id, amount_paid, payment_provider, paid_at, name, created_by').eq('payment_status', 'paid').order('paid_at', { ascending: false }).limit(10),
+        supabase.from('events').select('id, amount_paid, payment_provider, paid_at, created_at, name, created_by').eq('payment_status', 'paid').order('paid_at', { ascending: false }).limit(10),
         supabase.from('events').select('id, name, event_type, status, created_at, created_by').is('deleted_at', null).order('created_at', { ascending: false }).limit(10),
         supabase.from('profiles').select('created_at').gte('created_at', startOfYear).order('created_at'),
         supabase.from('organizations').select('id', { count: 'exact', head: true }),
         supabase.from('vendors').select('id', { count: 'exact', head: true }).is('deleted_at', null),
         supabase.from('guests').select('id', { count: 'exact', head: true }),
-        supabase.from('storage.objects').select('size'),
+        supabase.rpc('get_total_storage_bytes'),
       ])
 
       setTotalPlanners(plannerCount || 0)
@@ -342,7 +343,7 @@ export function SuperAdminDashboard() {
       setRecentPayments(
         (recentPaymentsRaw || []).map(p => ({
           id: p.id,
-          date: formatDate(p.paid_at),
+          date: formatDate(p.paid_at || p.created_at),
           event: p.name || 'Unknown',
           amount: p.amount_paid || 0,
           method: p.payment_provider || 'N/A',
@@ -382,7 +383,7 @@ export function SuperAdminDashboard() {
         guestCount || 0,
       ].reduce((s, c) => s + c, 0)
 
-      const storageBytes = (storageObjects || []).reduce((s, o) => s + (o.size || 0), 0)
+      const storageBytes = storageBytesRpc ?? 0
 
       setInfra({
         totalDbRows: totalRows,

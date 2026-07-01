@@ -5,7 +5,8 @@ import { useUIStore } from '@/store/ui.store'
 import { useNavigate } from 'react-router-dom'
 import { Tabs } from '@/components/ui/Tabs'
 import { Checkbox } from '@/components/ui/Checkbox'
-import { Calendar, Users, Building, CreditCard, Eye, ExternalLink, Pencil, Trash2, X, Search } from 'lucide-react'
+import { DropdownMenu } from '@/components/ui/DropdownMenu'
+import { Calendar, Users, Building, CreditCard, Eye, ExternalLink, Pencil, Trash2, X, Search, Filter } from 'lucide-react'
 import { EVENT_FEE_KOBO } from '@/lib/pricing'
 import { AdminPageHero } from '@/components/shared/AdminPageHero'
 import styles from './AdminManagePage.module.css'
@@ -17,6 +18,7 @@ interface PersonRow {
   phone: string | null
   avatar_url: string | null
   is_active: boolean
+  role: string
   org_name: string | null
   event_count: number
 }
@@ -49,6 +51,7 @@ interface PaymentRow {
 const STATUS_LABELS: Record<string, string> = {
   draft: 'Draft', active: 'Active', in_progress: 'In Progress',
   completed: 'Completed', cancelled: 'Cancelled',
+  inactive: 'Inactive',
 }
 
 function formatDate(d: string) {
@@ -282,22 +285,22 @@ function formatCurrency(kobo: number): string {
 export function AdminManagePage() {
   const role = useAuthStore((s) => s.role)
   const navigate = useNavigate()
-  const [activeTab, setActiveTab] = useState<'planners' | 'coordinators' | 'events' | 'payments' | 'users'>(() => {
+  const [activeTab, setActiveTab] = useState<'users' | 'events' | 'payments'>(() => {
     const tab = new URLSearchParams(window.location.search).get('tab')
-    if (tab === 'coordinators' || tab === 'events' || tab === 'payments' || tab === 'users') return tab
-    return 'planners'
+    if (tab === 'events' || tab === 'payments') return tab
+    return 'users'
   })
   const [loading, setLoading] = useState(true)
-  const [planners, setPlanners] = useState<PersonRow[]>([])
-  const [coordinators, setCoordinators] = useState<PersonRow[]>([])
+  const [allUsers, setAllUsers] = useState<PersonRow[]>([])
   const [events, setEvents] = useState<EventRow[]>([])
   const [payments, setPayments] = useState<PaymentRow[]>([])
-  const [authUsers, setAuthUsers] = useState<{ id: string; email: string; created_at: string; last_sign_in_at: string | null; confirmed_at: string | null }[]>([])
   const [page, setPage] = useState(0)
   const [selectedPerson, setSelectedPerson] = useState<PersonRow | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [selectedPayment, setSelectedPayment] = useState<PaymentRow | null>(null)
-  const [eventFilter, setEventFilter] = useState<string>('all')
+  const [roleFilter, setRoleFilter] = useState('all')
+  const [typeFilter, setTypeFilter] = useState('all')
+  const [channelFilter, setChannelFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
 
   const loadData = useCallback(async () => {
@@ -321,31 +324,30 @@ export function AdminManagePage() {
       }
     })
 
-    const plannerRows: PersonRow[] = []
-    const coordinatorRows: PersonRow[] = []
+    const userRows: PersonRow[] = []
 
     ;(profiles || []).forEach(p => {
-      const row: PersonRow = {
+      if (p.role === 'super_admin') return
+      let eventCount = 0
+      if (p.role === 'planner') {
+        eventCount = eventCountByCreator.get(p.id) || 0
+      } else if (p.role === 'coordinator') {
+        eventCount = eventCountByCoordinator.get(p.id) || 0
+      }
+      userRows.push({
         id: p.id,
         display_name: p.display_name,
         email: p.email,
         phone: p.phone,
         avatar_url: p.avatar_url,
         is_active: p.is_active,
+        role: p.role,
         org_name: p.org_id ? orgMap.get(p.org_id) || null : null,
-        event_count: 0,
-      }
-      if (p.role === 'planner') {
-        row.event_count = eventCountByCreator.get(p.id) || 0
-        plannerRows.push(row)
-      } else if (p.role === 'coordinator') {
-        row.event_count = eventCountByCoordinator.get(p.id) || 0
-        coordinatorRows.push(row)
-      }
+        event_count: eventCount,
+      })
     })
 
-    setPlanners(plannerRows)
-    setCoordinators(coordinatorRows)
+    setAllUsers(userRows)
 
     const eventRows: EventRow[] = (allEvents || []).map(e => {
       const orgName = orgMap.get(e.org_id) || 'Unknown'
@@ -368,35 +370,10 @@ export function AdminManagePage() {
     setLoading(false)
   }, [])
 
-  const loadAuthUsers = useCallback(async () => {
-    try {
-      const { data, error } = await supabase.functions.invoke('list-users')
-      if (error) {
-        console.error('list-users error:', error)
-        return
-      }
-      if (data?.users && Array.isArray(data.users)) {
-        setAuthUsers(data.users.map((u: any) => ({
-          id: u.id,
-          email: u.email,
-          created_at: u.created_at,
-          last_sign_in_at: u.last_sign_in_at,
-          confirmed_at: u.email_confirmed_at || u.confirmed_at,
-        })))
-      }
-    } catch (err) {
-      console.error('loadAuthUsers exception:', err)
-    }
-  }, [])
-
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData()
   }, [loadData, role])
-
-  useEffect(() => {
-    loadAuthUsers()
-  }, [loadAuthUsers])
 
   const loadPayments = useCallback(async () => {
     const { data: paidEvents } = await supabase
@@ -476,7 +453,6 @@ export function AdminManagePage() {
               showNotification({ variant: 'error', title: 'Delete failed', message: data.error })
             } else {
               showNotification({ variant: 'success', title: 'Deleted', message: `${person.display_name || person.email} has been permanently deleted.` })
-              loadAuthUsers()
               loadData()
             }
           },
@@ -509,11 +485,11 @@ export function AdminManagePage() {
     })
   }
 
+  const [editingPerson, setEditingPerson] = useState<PersonRow | null>(null)
+
   const handleEditPerson = (person: PersonRow) => {
     setEditingPerson({ ...person })
   }
-
-  const [editingPerson, setEditingPerson] = useState<PersonRow | null>(null)
 
   const handleEditSave = async () => {
     if (!editingPerson) return
@@ -533,23 +509,28 @@ export function AdminManagePage() {
     }
   }
 
-  const filteredEvents = activeTab === 'events' && eventFilter !== 'all'
-    ? events.filter(e => e.creator_role === eventFilter)
-    : events
-
   const matchesSearch = (item: Record<string, any>, fields: string[]) => {
     if (!searchQuery) return true
     const q = searchQuery.toLowerCase()
     return fields.some(f => String(item[f] ?? '').toLowerCase().includes(q))
   }
 
-  const filteredPlanners = planners.filter(p => matchesSearch(p, ['display_name', 'email', 'phone', 'org_name']))
-  const filteredCoordinators = coordinators.filter(p => matchesSearch(p, ['display_name', 'email', 'phone', 'org_name']))
-  const filteredEventsForTab = filteredEvents.filter(e => matchesSearch(e, ['name', 'creator_name', 'org_name']))
-  const filteredPayments = payments.filter(p => matchesSearch(p, ['event_name', 'organization', 'creator_name']))
-  const filteredAuthUsers = authUsers.filter(u => matchesSearch(u, ['email']))
+  const filteredUsers = allUsers.filter(u => {
+    if (roleFilter !== 'all' && u.role !== roleFilter) return false
+    return matchesSearch(u, ['display_name', 'email', 'phone', 'org_name'])
+  })
 
-  const currentData = activeTab === 'planners' ? filteredPlanners : activeTab === 'coordinators' ? filteredCoordinators : activeTab === 'payments' ? filteredPayments : filteredEventsForTab
+  const filteredEventsForTab = events.filter(e => {
+    if (typeFilter !== 'all' && e.event_type !== typeFilter) return false
+    return matchesSearch(e, ['name', 'creator_name', 'org_name'])
+  })
+
+  const filteredPayments = payments.filter(p => {
+    if (channelFilter !== 'all' && (p.payment_provider || '') !== channelFilter) return false
+    return matchesSearch(p, ['event_name', 'organization', 'creator_name'])
+  })
+
+  const currentData = activeTab === 'users' ? filteredUsers : activeTab === 'payments' ? filteredPayments : filteredEventsForTab
   const totalItems = currentData.length
   const totalPages = Math.ceil(totalItems / PAGE_SIZE)
   const pageData = currentData.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
@@ -606,7 +587,6 @@ export function AdminManagePage() {
                 }
               }
               setSelectedIds(new Set())
-              loadAuthUsers()
               loadData()
             },
           },
@@ -635,6 +615,7 @@ export function AdminManagePage() {
                   <Checkbox checked={allSelected} onChange={toggleSelectAll} aria-label={`Select all ${label}`} />
                 </th>
                 <th className={styles.th}>Name</th>
+                <th className={styles.th}>Role</th>
                 <th className={styles.th}>Email</th>
                 <th className={styles.th}>Phone</th>
                 <th className={styles.th}>Organization</th>
@@ -657,18 +638,21 @@ export function AdminManagePage() {
                       aria-label={`Select ${p.display_name || p.email}`}
                     />
                   </td>
-                  <td className={`${styles.td} ${styles.memberCell}`}>
-                    <div className={styles.memberInfo}>
-                      <TableAvatar name={p.display_name} url={p.avatar_url} />
-                      <div>
-                        <div className={styles.memberName}>{p.display_name || 'Unnamed'}</div>
-                        <div className={styles.memberEmail}>{p.email}</div>
+                    <td className={`${styles.td} ${styles.memberCell}`}>
+                      <div className={styles.memberInfo}>
+                        <TableAvatar name={p.display_name} url={p.avatar_url} />
+                        <div>
+                          <div className={styles.memberName}>{p.display_name || 'Unnamed'}</div>
+                          <div className={styles.memberEmail}>{p.email}</div>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className={styles.td}>
-                    <span className={styles.cellTruncate}>{p.email}</span>
-                  </td>
+                    </td>
+                    <td className={styles.td}>
+                      <span className={styles.cellMuted} style={{ textTransform: 'capitalize' }}>{p.role}</span>
+                    </td>
+                    <td className={styles.td}>
+                      <span className={styles.cellTruncate}>{p.email}</span>
+                    </td>
                   <td className={styles.td}>
                     <span className={styles.cellMuted}>{p.phone || '—'}</span>
                   </td>
@@ -678,7 +662,7 @@ export function AdminManagePage() {
                     </span>
                   </td>
                   <td className={styles.td}>
-                    <StatusBadge status={p.is_active ? 'activePlanner' : 'inactivePlanner'} />
+                    <StatusBadge status={p.is_active ? 'active' : 'inactive'} />
                   </td>
                   <td className={styles.td}>
                     <span style={{ fontWeight: 600 }}>{p.event_count}</span>
@@ -934,43 +918,76 @@ export function AdminManagePage() {
     <div className={styles.page}>
       <AdminPageHero
         icon={Users}
-        title="Manage"
-        subtitle="Users and events across the platform"
+        title="All Users"
+        subtitle="Users, events and payments across the platform"
         backTo="/admin"
       />
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 'var(--space-3)', flexWrap: 'wrap', marginBottom: 'var(--space-4)' }}>
         <Tabs
           tabs={[
-            { key: 'planners', label: 'Planners', icon: <Users size={16} />, badge: planners.length },
-            { key: 'coordinators', label: 'Coordinators', icon: <Users size={16} />, badge: coordinators.length },
+            { key: 'users', label: 'All Users', icon: <Users size={16} />, badge: allUsers.length },
             { key: 'events', label: 'Events', icon: <Calendar size={16} />, badge: events.length },
             { key: 'payments', label: 'Payments', icon: <CreditCard size={16} />, badge: payments.length },
-            { key: 'users', label: 'All Users', icon: <Users size={16} />, badge: authUsers.length },
           ]}
           activeTab={activeTab}
           onChange={(k) => { setActiveTab(k); setPage(0); setSelectedPerson(null); setSelectedPayment(null); setSelectedIds(new Set()); navigate(`/admin/manage?tab=${k}`, { replace: true }) }}
         />
 
-        <div style={{ position: 'relative', flexShrink: 0, width: 250, maxWidth: '100%' }}>
-          <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)', pointerEvents: 'none' }} />
-          <input
-            type="text"
-            placeholder={`Search ${activeTab.replace('_', ' ')}...`}
-            value={searchQuery}
-            onChange={(e) => { setSearchQuery(e.target.value); setPage(0); setSelectedIds(new Set()) }}
-            className="input"
-            style={{ paddingLeft: 36, paddingRight: searchQuery ? 32 : 12 }}
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', padding: 4, lineHeight: 0 }}
-              onClick={() => { setSearchQuery(''); setPage(0); setSelectedIds(new Set()) }}
-            >
-              <X size={14} />
-            </button>
+        <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', flexWrap: 'wrap' }}>
+          {activeTab === 'users' && (
+            <DropdownMenu
+              trigger={<span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 'var(--text-sm)' }}><Filter size={14} />{roleFilter === 'all' ? 'All Roles' : roleFilter.charAt(0).toUpperCase() + roleFilter.slice(1) + 's'}</span>}
+              items={[
+                { label: 'All Roles', value: 'all' },
+                { label: 'Planners', value: 'planner' },
+                { label: 'Coordinators', value: 'coordinator' },
+                { label: 'Vendors', value: 'vendor' },
+              ]}
+              onSelect={(item) => { setRoleFilter(item.value); setPage(0); setSelectedIds(new Set()) }}
+            />
           )}
+          {activeTab === 'events' && (
+            <DropdownMenu
+              trigger={<span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 'var(--text-sm)' }}><Filter size={14} />{typeFilter === 'all' ? 'All Types' : typeFilter}</span>}
+              items={[
+                { label: 'All Types', value: 'all' },
+                ...Array.from(new Set(events.map(e => e.event_type))).map(t => ({ label: t, value: t })),
+              ]}
+              onSelect={(item) => { setTypeFilter(item.value); setPage(0); setSelectedIds(new Set()) }}
+            />
+          )}
+          {activeTab === 'payments' && (
+            <DropdownMenu
+              trigger={<span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 'var(--text-sm)' }}><Filter size={14} />{channelFilter === 'all' ? 'All Channels' : channelFilter.charAt(0).toUpperCase() + channelFilter.slice(1)}</span>}
+              items={[
+                { label: 'All Channels', value: 'all' },
+                { label: 'Paystack', value: 'paystack' },
+                { label: 'Kora', value: 'kora' },
+              ]}
+              onSelect={(item) => { setChannelFilter(item.value); setPage(0); setSelectedIds(new Set()) }}
+            />
+          )}
+          <div style={{ position: 'relative', width: 200, maxWidth: '100%' }}>
+            <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)', pointerEvents: 'none' }} />
+            <input
+              type="text"
+              placeholder={`Search ${activeTab === 'users' ? 'users' : activeTab}...`}
+              value={searchQuery}
+              onChange={(e) => { setSearchQuery(e.target.value); setPage(0); setSelectedIds(new Set()) }}
+              className="input"
+              style={{ paddingLeft: 36, paddingRight: searchQuery ? 32 : 12 }}
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', padding: 4, lineHeight: 0 }}
+                onClick={() => { setSearchQuery(''); setPage(0); setSelectedIds(new Set()) }}
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -978,166 +995,18 @@ export function AdminManagePage() {
         <div className={styles.loadingGrid}>
           {[1,2,3,4,5].map(i => <div key={i} className="skeleton skeleton-card" style={{ height: 56 }} />)}
         </div>
-      ) : activeTab === 'planners' ? (
-        renderPersonTable(filteredPlanners, 'planners')
-      ) : activeTab === 'coordinators' ? (
-        renderPersonTable(filteredCoordinators, 'coordinators')
+      ) : activeTab === 'users' ? (
+        renderPersonTable(filteredUsers, 'users')
       ) : activeTab === 'payments' ? (
         renderPaymentsTable()
-      ) : activeTab === 'users' ? (
-        <div className={styles.tableCard}>
-          {selectedIds.size > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', padding: 'var(--space-3) var(--space-4)', background: 'var(--color-surface-2)', borderBottom: '1px solid var(--color-border)', fontSize: 'var(--text-sm)' }}>
-              <span>{selectedIds.size} selected</span>
-              <button className="btn btn-ghost btn-sm" onClick={() => setSelectedIds(new Set())}>
-                Clear
-              </button>
-              <button
-                className="btn btn-destructive btn-sm"
-                onClick={() => {
-                          const ids = Array.from(selectedIds)
-                          const count = ids.length
-                          showModal({
-                            variant: 'confirm',
-                            title: `Delete ${count} user${count !== 1 ? 's' : ''}?`,
-                            message: `This action is permanent and cannot be undone. All data associated with ${count > 1 ? 'these accounts' : 'this account'} will be removed from the platform.`,
-                            actions: [
-                              { label: 'Cancel', variant: 'secondary', onClick: () => {} },
-                              {
-                                label: 'Delete',
-                                variant: 'danger',
-                                onClick: async () => {
-                                  let failed = 0
-                                  for (const id of ids) {
-                                    let errMsg
-                                    try {
-                                      const { error: e, data: d } = await supabase.functions.invoke('delete-user', { body: { user_id: id } })
-                                      if (e) {
-                                        console.error('[bulk-delete-users] invokeError:', e.name, e.message, e.context)
-                                        errMsg = e.message
-                                        try { if (e.context?.json) { const b = await e.context.json(); errMsg = b?.error || errMsg } } catch {}
-                                        failed++
-                                      } else if (d?.error) {
-                                        console.error('[bulk-delete-users] data error:', d.error)
-                                        errMsg = d.error
-                                        failed++
-                                      }
-                                    } catch (err) {
-                                      console.error('[bulk-delete-users] unexpected error:', err)
-                                      errMsg = err instanceof Error ? err.message : 'Unexpected error'
-                                      failed++
-                                    }
-                                  }
-                                  if (failed === 0) {
-                                    showNotification({ variant: 'success', title: 'Deleted', message: `${count} user${count !== 1 ? 's' : ''} deleted.` })
-                                  } else {
-                                    showNotification({ variant: 'error', title: 'Delete failed', message: `${failed} of ${count} could not be deleted.` })
-                                  }
-                                  setSelectedIds(new Set())
-                                  loadAuthUsers()
-                                  loadData()
-                                },
-                              },
-                            ],
-                          })
-                }}
-              >
-                Delete Selected
-              </button>
-            </div>
-          )}
-          <div className={styles.tableScroll}>
-            <table className={styles.table}>
-              <thead className={styles.thead}>
-                <tr>
-                  <th className={`${styles.th} ${styles.thCheck}`}>
-                    <Checkbox
-                      checked={filteredAuthUsers.length > 0 && filteredAuthUsers.every(u => selectedIds.has(u.id))}
-                      onChange={() => {
-                        if (filteredAuthUsers.every(u => selectedIds.has(u.id))) {
-                          setSelectedIds(new Set())
-                        } else {
-                          setSelectedIds(new Set(filteredAuthUsers.map(u => u.id)))
-                        }
-                      }}
-                      aria-label="Select all users"
-                    />
-                  </th>
-                  <th className={styles.th}>Email</th>
-                  <th className={styles.th}>Created</th>
-                  <th className={styles.th}>Confirmed</th>
-                  <th className={styles.th}>Last Sign In</th>
-                  <th className={`${styles.th} ${styles.thActions}`}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredAuthUsers.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE).map(u => (
-                  <tr key={u.id} className={`${styles.tr} ${selectedIds.has(u.id) ? styles.trSelected : ''}`}>
-                    <td className={`${styles.td} ${styles.tdCheck}`} onClick={e => e.stopPropagation()}>
-                      <Checkbox
-                        checked={selectedIds.has(u.id)}
-                        onChange={() => {
-                          const next = new Set(selectedIds)
-                          if (next.has(u.id)) next.delete(u.id); else next.add(u.id)
-                          setSelectedIds(next)
-                        }}
-                        aria-label={`Select ${u.email}`}
-                      />
-                    </td>
-                    <td className={styles.td}>{u.email}</td>
-                    <td className={styles.td}>{u.created_at ? formatDate(u.created_at) : '—'}</td>
-                    <td className={styles.td}>{u.confirmed_at ? 'Yes' : 'No'}</td>
-                    <td className={styles.td}>{u.last_sign_in_at ? formatDate(u.last_sign_in_at) : 'Never'}</td>
-                    <td className={`${styles.td} ${styles.actionsCell}`}>
-                      <button
-                        className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          const p: PersonRow = { id: u.id, display_name: null, email: u.email, phone: null, avatar_url: null, is_active: !!u.confirmed_at, org_name: null, event_count: 0 }
-                          handleDeletePerson(p, 'user')
-                        }}
-                        data-tooltip="Delete"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className={styles.tableFooter}>
-            <span>{filteredAuthUsers.length} users</span>
-            {Math.ceil(filteredAuthUsers.length / PAGE_SIZE) > 1 && (
-              <span>
-                Page {page + 1} of {Math.ceil(filteredAuthUsers.length / PAGE_SIZE)}
-                <button className="btn btn-ghost btn-xs" style={{ marginLeft: 'var(--space-2)' }} disabled={page === 0} onClick={() => setPage(p => p - 1)}>Prev</button>
-                <button className="btn btn-ghost btn-xs" disabled={page >= Math.ceil(filteredAuthUsers.length / PAGE_SIZE) - 1} onClick={() => setPage(p => p + 1)}>Next</button>
-              </span>
-            )}
-          </div>
-        </div>
       ) : (
-        <>
-          <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-3)', flexWrap: 'wrap' }}>
-            {['all', 'planner', 'coordinator'].map(filter => (
-              <button
-                key={filter}
-                className={`btn ${eventFilter === filter ? 'btn-primary' : 'btn-ghost'} btn-sm`}
-                onClick={() => { setEventFilter(filter); setPage(0) }}
-              >
-                {filter === 'all' ? 'All' : filter === 'planner' ? 'Planners' : 'Coordinators'}
-              </button>
-            ))}
-          </div>
-          {renderEventsTable()}
-        </>
+        renderEventsTable()
       )}
 
       {selectedPerson && (
         <PersonModal
           person={selectedPerson}
-          roleLabel={activeTab === 'planners' ? 'Planner' : 'Coordinator'}
+          roleLabel={selectedPerson.role.charAt(0).toUpperCase() + selectedPerson.role.slice(1)}
           onClose={() => setSelectedPerson(null)}
         />
       )}
@@ -1156,7 +1025,7 @@ export function AdminManagePage() {
               <div className={styles.modalHeaderLeft}>
                 <ModalAvatar name={editingPerson.display_name} url={editingPerson.avatar_url} />
                 <div>
-                  <div className={styles.modalName}>Edit {activeTab === 'planners' ? 'Planner' : 'Coordinator'}</div>
+                  <div className={styles.modalName}>Edit {editingPerson.role.charAt(0).toUpperCase() + editingPerson.role.slice(1)}</div>
                 </div>
               </div>
               <button className={styles.closeBtn} onClick={() => setEditingPerson(null)} data-tooltip="Close"><X size={18} /></button>
