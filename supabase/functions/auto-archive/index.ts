@@ -20,12 +20,8 @@ Deno.serve(async (req) => {
 
     const { data, error } = await supabase
       .from('events')
-      .update({ status: 'archived', archived_at: now, updated_at: now })
-      .eq('payment_status', 'paid')
-      .lt('event_date', today)
-      .neq('status', 'archived')
-      .neq('status', 'cancelled')
-      .neq('status', 'draft')
+      .update({ status: 'archived', archived_at: now, archived_until: null, updated_at: now })
+      .or(`and(payment_status.eq.paid,event_date.lt.${today},status.neq.archived,status.neq.cancelled,status.neq.draft),and(archived_until.lt.${now},status.neq.archived,status.neq.cancelled)`)
       .is('archived_at', null)
       .select('id, name')
 

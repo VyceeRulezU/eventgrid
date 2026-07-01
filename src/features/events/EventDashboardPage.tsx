@@ -145,33 +145,70 @@ export function EventDashboardPage() {
   const isReadOnly = isArchived && !isSuperAdmin
   const [reactivating, setReactivating] = useState(false)
 
+  const [showReactivateModal, setShowReactivateModal] = useState(false)
+  const [reactivationDate, setReactivationDate] = useState('')
+
   const handleReactivateEvent = async () => {
+    if (!activeEvent) return
+    if (!reactivationDate) {
+      showNotification({ variant: 'warning', title: 'Set a re-archive date', message: 'Choose when the event should auto-archive again.' })
+      return
+    }
+    const archivedUntil = new Date(reactivationDate).toISOString()
+    if (new Date(archivedUntil) <= new Date()) {
+      showNotification({ variant: 'warning', title: 'Future date required', message: 'The re-archive date must be in the future.' })
+      return
+    }
+
+    setReactivating(true)
+    setShowReactivateModal(false)
+    const { data, error } = await supabase
+      .from('events')
+      .update({ status: 'active', archived_at: null, archived_until: archivedUntil })
+      .eq('id', activeEvent.id)
+      .select()
+      .single()
+
+    if (error) {
+      showNotification({ variant: 'error', title: 'Reactivation failed', message: error.message })
+      setReactivating(false)
+      return
+    }
+
+    setActiveEvent(data as unknown as Event)
+    showNotification({ variant: 'success', title: 'Event reactivated', message: `Will auto-archive ${new Date(archivedUntil).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}` })
+    setReactivating(false)
+  }
+
+  const [archiving, setArchiving] = useState(false)
+
+  const handleArchiveEvent = async () => {
     if (!activeEvent) return
 
     showModal({
       variant: 'confirm',
-      title: 'Reactivate Event?',
-      message: `Are you sure you want to reactivate "${activeEvent.name}"? This will make it editable again.`,
+      title: 'Archive Event?',
+      message: `Are you sure you want to archive "${activeEvent.name}"? It will become read-only and can be reactivated later.`,
       actions: [
         { label: 'Cancel', variant: 'secondary', onClick: () => {} },
-        { label: 'Reactivate', variant: 'primary', onClick: async () => {
-          setReactivating(true)
+        { label: 'Archive', variant: 'danger', onClick: async () => {
+          setArchiving(true)
           const { data, error } = await supabase
             .from('events')
-            .update({ status: 'active', archived_at: null })
+            .update({ status: 'archived', archived_at: new Date().toISOString() })
             .eq('id', activeEvent.id)
             .select()
             .single()
 
           if (error) {
-            showNotification({ variant: 'error', title: 'Reactivation failed', message: error.message })
-            setReactivating(false)
+            showNotification({ variant: 'error', title: 'Archive failed', message: error.message })
+            setArchiving(false)
             return
           }
 
           setActiveEvent(data as unknown as Event)
-          showNotification({ variant: 'success', title: 'Event reactivated successfully!' })
-          setReactivating(false)
+          showNotification({ variant: 'success', title: 'Event archived' })
+          setArchiving(false)
         }},
       ],
     })
@@ -405,6 +442,47 @@ export function EventDashboardPage() {
     loadEvent()
     return () => { cancelled = true }
   }, [id, user, setActiveEvent, setPhases])
+
+  // Auto-archive check: if active but archived_until has passed, re-archive
+  useEffect(() => {
+    if (!activeEvent || activeEvent.status === 'archived' || !activeEvent.archived_until) return
+    const until = new Date(activeEvent.archived_until)
+    if (until > new Date()) return
+
+    supabase
+      .from('events')
+      .update({ status: 'archived', archived_until: null, archived_at: new Date().toISOString() })
+      .eq('id', activeEvent.id)
+      .select()
+      .single()
+      .then(({ data, error }) => {
+        if (error) return
+        setActiveEvent(data as unknown as Event)
+        showNotification({ variant: 'info', title: 'Event re-archived', message: 'The reactivation period expired.' })
+      })
+  }, [activeEvent?.archived_until])
+
+  // Periodic auto-archive check every 30s
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      if (!activeEvent || activeEvent.status === 'archived' || !activeEvent.archived_until) return
+      const until = new Date(activeEvent.archived_until)
+      if (until > new Date()) return
+
+      const { data } = await supabase
+        .from('events')
+        .update({ status: 'archived', archived_until: null, archived_at: new Date().toISOString() })
+        .eq('id', activeEvent.id)
+        .select()
+        .single()
+      if (data) {
+        setActiveEvent(data as unknown as Event)
+        showNotification({ variant: 'info', title: 'Event re-archived', message: 'The reactivation period expired.' })
+      }
+    }, 30000)
+
+    return () => clearInterval(interval)
+  }, [activeEvent?.id, activeEvent?.status, activeEvent?.archived_until])
 
   const togglePhaseStatus = async (phase: EventPhase) => {
     if (!canManagePhases) return
@@ -893,11 +971,22 @@ export function EventDashboardPage() {
               <button
                 type="button"
                 className="btn btn-primary btn-sm"
-                onClick={handleReactivateEvent}
+                onClick={() => { setReactivationDate(''); setShowReactivateModal(true) }}
                 disabled={reactivating}
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
               >
                 <Zap size={14} /> Reactivate Event
+              </button>
+            )}
+            {!isArchived && isSuperAdmin && (
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={handleArchiveEvent}
+                disabled={archiving}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+              >
+                Archive Event
               </button>
             )}
             {!isReadOnly && (role === 'planner' || role === 'coordinator') && (
@@ -1645,6 +1734,38 @@ export function EventDashboardPage() {
                   disabled={addingPhase || (!newPhaseName.trim() && selectedDefaultPhases.length === 0)}
                 >
                   {addingPhase ? 'Adding...' : 'Add Phase(s)'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showReactivateModal && (
+        <div className="overlay" onClick={() => setShowReactivateModal(false)}>
+          <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: 420 }}>
+            <div className="modal-card-header">
+              <h3 className="modal-card-title">Reactivate Event</h3>
+              <button className="modal-card-close" onClick={() => setShowReactivateModal(false)}><X size={18} /></button>
+            </div>
+            <div className="modal-card-body" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
+                Reactivate <strong>{activeEvent?.name}</strong> until a specific date, after which it will auto-archive again.
+              </p>
+              <div className="input-wrapper">
+                <label className="input-label">Auto-re-archive on</label>
+                <input
+                  className="input"
+                  type="datetime-local"
+                  value={reactivationDate}
+                  onChange={e => setReactivationDate(e.target.value)}
+                  min={new Date().toISOString().slice(0, 16)}
+                />
+              </div>
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
+                <button className="btn btn-ghost" onClick={() => setShowReactivateModal(false)}>Cancel</button>
+                <button className="btn btn-primary" onClick={handleReactivateEvent} disabled={reactivating}>
+                  {reactivating ? 'Reactivating...' : 'Reactivate'}
                 </button>
               </div>
             </div>

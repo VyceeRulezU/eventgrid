@@ -97,6 +97,8 @@ export interface Event {
   notes: string | null
   slug: string | null
   header_image_url: string | null
+  archived_at: string | null
+  archived_until: string | null
   deleted_at: string | null
   created_at: string
   updated_at: string
