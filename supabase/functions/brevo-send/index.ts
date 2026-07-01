@@ -71,6 +71,10 @@ Deno.serve(async (req) => {
     let failed = 0
 
     for (const r of recipients) {
+      const personalHtml = campaign.body_html
+        .replaceAll('{{NAME}}', r.name)
+        .replaceAll('{{EMAIL}}', r.email)
+
       const res = await fetch('https://api.brevo.com/v3/smtp/email', {
         method: 'POST',
         headers: {
@@ -81,7 +85,7 @@ Deno.serve(async (req) => {
           sender: { email: FROM_EMAIL.match(/<(.+)>/)?.[1] || FROM_EMAIL, name: FROM_EMAIL.match(/^(.+)</)?.[1]?.trim() || 'NaliGrid' },
           to: [{ email: r.email, name: r.name }],
           subject: campaign.subject,
-          htmlContent: campaign.body_html,
+          htmlContent: personalHtml,
           textContent: campaign.body_text || undefined,
         }),
       })
