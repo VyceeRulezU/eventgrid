@@ -68,11 +68,43 @@ setup('authenticate', async ({ page, baseURL }) => {
     }
 
     if (existingUser) {
-      const { data: profile } = await adminClient
+      let { data: profile } = await adminClient
         .from('profiles')
         .select('*')
         .eq('id', existingUser.id)
         .single()
+
+      let targetOrgId = profile?.org_id
+
+      if (!targetOrgId) {
+        console.log(`Checking if E2E test organization exists for user: ${existingUser.id}`)
+        const { data: existingOrg } = await adminClient
+          .from('organizations')
+          .select('id')
+          .eq('owner_id', existingUser.id)
+          .limit(1)
+
+        if (existingOrg && existingOrg.length > 0) {
+          targetOrgId = existingOrg[0].id
+        } else {
+          console.log(`Creating E2E test organization for user: ${existingUser.id}`)
+          const { data: newOrg, error: orgError } = await adminClient
+            .from('organizations')
+            .insert({
+              name: 'E2E Test Organization',
+              owner_id: existingUser.id,
+              city: 'Lagos',
+            })
+            .select('id')
+            .single()
+
+          if (orgError) {
+            console.error('Failed to create organization:', orgError)
+          } else if (newOrg) {
+            targetOrgId = newOrg.id
+          }
+        }
+      }
 
       if (!profile) {
         console.log(`Creating E2E test user profile: ${email}`)
@@ -84,8 +116,16 @@ setup('authenticate', async ({ page, baseURL }) => {
             display_name: existingUser.user_metadata?.display_name || 'E2E Test User',
             role: 'planner',
             is_active: true,
+            org_id: targetOrgId,
           })
         if (insertError) console.error('Failed to upsert profile:', insertError)
+      } else if (!profile.org_id && targetOrgId) {
+        console.log(`Updating E2E test user profile with org_id: ${targetOrgId}`)
+        const { error: updateProfileError } = await adminClient
+          .from('profiles')
+          .update({ org_id: targetOrgId })
+          .eq('id', existingUser.id)
+        if (updateProfileError) console.error('Failed to update profile org_id:', updateProfileError)
       }
     }
   } catch (provisionError) {
@@ -127,6 +167,19 @@ setup('authenticate', async ({ page, baseURL }) => {
 
   // Navigate directly to the local dev URL with the authentication parameters
   await page.goto(localLoginUrl, { waitUntil: 'load' })
+
+  // Disable the onboarding tour modal for E2E tests by setting the local storage keys
+  try {
+    await page.evaluate(() => {
+      localStorage.setItem('eg_tour_done_planner', '1')
+      localStorage.setItem('eg_tour_done_coordinator', '1')
+      localStorage.setItem('eg_tour_done_client', '1')
+      localStorage.setItem('eg_tour_done_vendor', '1')
+      localStorage.setItem('eg_tour_done_super_admin', '1')
+    })
+  } catch (err) {
+    console.error('Failed to set E2E tour localStorage keys:', err)
+  }
 
   // Ensure the authentication state is fully loaded and processed locally
   await page.waitForSelector('header', { state: 'visible', timeout: 15000 })
