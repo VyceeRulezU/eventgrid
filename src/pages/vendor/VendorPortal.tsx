@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import {
   Calendar, Plus, Users, Wallet, ChevronRight,
   Star, Activity, ListChecks,
-  CheckCircle, FileText, UserPlus, DollarSign,
+  CheckCircle, FileText, UserPlus, DollarSign, Store,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
@@ -225,6 +225,31 @@ export function VendorPortal() {
 
       {/* Stats */}
       <div className={styles.statsGrid}>
+        <div className={`${styles.statCard} ${styles.myListingCard}`}>
+          <div className={styles.statCardHeader}>
+            <span className={styles.statLabel}>My Listing</span>
+            <span className={`${styles.statBadge} ${vendorListing ? styles.statBadgePositive : styles.statBadgeNeutral}`}>
+              {vendorListing ? (vendorListing.is_verified ? 'verified' : 'unverified') : 'not listed'}
+            </span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, borderRadius: 'var(--radius-xl)', background: 'var(--color-surface-3)', flexShrink: 0 }}>
+              <Store size={20} style={{ color: 'var(--color-accent)' }} />
+            </div>
+            <div>
+              <div className={styles.myListingValue}>{vendorListing?.name || '—'}</div>
+            </div>
+          </div>
+          <hr style={{ border: 'none', height: 1, background: 'rgba(255,255,255,0.06)', margin: 0 }} />
+          <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            {vendorListing ? (
+              <><span style={{ color: 'var(--color-text-secondary)', fontWeight: 600 }}>Category:</span> {vendorListing.category}</>
+            ) : (
+              <Link to="/vendors/directory" style={{ color: 'var(--color-accent)' }}>Claim your profile →</Link>
+            )}
+          </div>
+        </div>
+
         <div className={`${styles.statCard} ${styles.statCardClickable}`} onClick={() => navigate('/events')} onKeyDown={(e) => e.key === 'Enter' && navigate('/events')} role="button" tabIndex={0}>
           <div className={styles.statCardHeader}>
             <span className={styles.statLabel}>Assigned Events</span>
@@ -235,21 +260,6 @@ export function VendorPortal() {
             {[1, 2, 3, 4, 5].map((i) => (
               <div key={i} className={styles.barSparklineBar} style={{ height: `${Math.min(100, (i / 5) * 100)}%`, opacity: i <= Math.min(totalEvents, 5) / 5 ? 0.85 : 0.2 }} />
             ))}
-          </div>
-        </div>
-
-        <div className={styles.statCard}>
-          <div className={styles.statCardHeader}>
-            <span className={styles.statLabel}>My Listing</span>
-            <span className={`${styles.statBadge} ${vendorListing ? styles.statBadgePositive : styles.statBadgeNeutral}`}>
-              {vendorListing ? (vendorListing.is_verified ? 'verified' : 'unverified') : 'not listed'}
-            </span>
-          </div>
-          <div className={styles.statValue}>{vendorListing?.name || '—'}</div>
-          <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginTop: 4 }}>
-            {vendorListing ? vendorListing.category : (
-              <Link to="/vendors/directory" style={{ color: 'var(--color-accent)' }}>Claim your profile →</Link>
-            )}
           </div>
         </div>
 

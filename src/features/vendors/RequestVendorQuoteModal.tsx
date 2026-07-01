@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { X, Search } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
+import { notify } from '@/lib/notifications'
 import { CalendarModal } from '@/components/ui/CalendarModal'
 import { Checkbox } from '@/components/ui/Checkbox'
 import styles from './RequestVendorQuoteModal.module.css'
@@ -114,6 +115,28 @@ export function RequestVendorQuoteModal({ eventId, orgId, onClose, onSent }: Pro
       showToast({ type: 'error', title: 'Failed to invite vendors', body: invErr.message })
       setSending(false)
       return
+    }
+
+    // Notify each invited vendor
+    const { data: vendorUsers } = await supabase
+      .from('vendors')
+      .select('id, claimed_by_vendor_id')
+      .in('id', [...selectedVendorIds])
+    if (vendorUsers) {
+      for (const v of vendorUsers) {
+        if (v.claimed_by_vendor_id) {
+          notify({
+            type: 'quote_request_received',
+            recipientId: v.claimed_by_vendor_id,
+            eventId,
+            payload: {
+              title: 'New Quote Request',
+              body: title.trim(),
+              url: '/dashboard/vendor',
+            },
+          })
+        }
+      }
     }
 
     showToast({ type: 'success', title: 'Quote request sent', body: `Sent to ${selectedVendorIds.size} vendor(s)` })

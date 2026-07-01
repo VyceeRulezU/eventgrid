@@ -35,6 +35,13 @@ const routeMeta: Record<string, { title: string; subtitle: string }> = {
   '/admin/vendors/approvals': { title: 'Approvals', subtitle: 'Review vendor claims' },
   '/admin/testimonials':   { title: 'Testimonials', subtitle: 'Manage testimonials' },
   '/admin/my-tasks':       { title: 'My Tasks', subtitle: 'Admin tasks across all events' },
+  '/dashboard/vendor':     { title: 'Vendor Dashboard', subtitle: 'Your events, listings and quotes' },
+  '/vendors':              { title: 'Vendors', subtitle: 'Manage your vendor directory' },
+  '/vendors/directory':    { title: 'Vendor Directory', subtitle: 'Browse and contact vendors' },
+  '/dashboard/client':     { title: 'Dashboard', subtitle: 'Your events and quotes' },
+  '/client/create-event':  { title: 'Create Event', subtitle: 'Tell us about your event' },
+  '/client/request-quote': { title: 'Request Quote', subtitle: 'Get quotes from service providers' },
+  '/client/browse-quotes': { title: 'Provider Quotes', subtitle: 'Browse and respond to open requests' },
 }
 
 export function TopBar() {
