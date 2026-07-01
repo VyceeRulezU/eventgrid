@@ -129,6 +129,7 @@ export function EventDashboardPage() {
   const role = useAuthStore((s) => s.role)
   const { activeEvent, setActiveEvent, phases, setPhases } = useEventStore()
   const showNotification = useUIStore((s) => s.showNotification)
+  const showModal = useUIStore((s) => s.showModal)
 
   const isEventOwner = useMemo(() => {
     return (
@@ -146,26 +147,34 @@ export function EventDashboardPage() {
 
   const handleReactivateEvent = async () => {
     if (!activeEvent) return
-    const confirmReactivate = window.confirm("Are you sure you want to reactivate this archived event?")
-    if (!confirmReactivate) return
 
-    setReactivating(true)
-    const { data, error } = await supabase
-      .from('events')
-      .update({ status: 'active', archived_at: null })
-      .eq('id', activeEvent.id)
-      .select()
-      .single()
+    showModal({
+      variant: 'confirm',
+      title: 'Reactivate Event?',
+      message: `Are you sure you want to reactivate "${activeEvent.name}"? This will make it editable again.`,
+      actions: [
+        { label: 'Cancel', variant: 'secondary', onClick: () => {} },
+        { label: 'Reactivate', variant: 'primary', onClick: async () => {
+          setReactivating(true)
+          const { data, error } = await supabase
+            .from('events')
+            .update({ status: 'active', archived_at: null })
+            .eq('id', activeEvent.id)
+            .select()
+            .single()
 
-    if (error) {
-      showNotification({ variant: 'error', title: 'Reactivation failed', message: error.message })
-      setReactivating(false)
-      return
-    }
+          if (error) {
+            showNotification({ variant: 'error', title: 'Reactivation failed', message: error.message })
+            setReactivating(false)
+            return
+          }
 
-    setActiveEvent(data as unknown as Event)
-    showNotification({ variant: 'success', title: 'Event reactivated successfully!' })
-    setReactivating(false)
+          setActiveEvent(data as unknown as Event)
+          showNotification({ variant: 'success', title: 'Event reactivated successfully!' })
+          setReactivating(false)
+        }},
+      ],
+    })
   }
 
   const canManagePhases =
