@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import {
   Calendar, CheckSquare, Radio, AlertTriangle,
   Clock, ChevronRight, Activity, ListChecks,
-  CheckCircle2, Flag, Users, Zap,
+  CheckCircle2, Flag, Users, Zap, Plus,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
@@ -402,6 +402,9 @@ export function CoordinatorDashboard() {
           >
             <Radio size={16} /> Live Board
           </button>
+          <Link to="/events/new" className="btn btn-primary" style={{ marginRight: 8 }}>
+            <Plus size={16} /> Create Event
+          </Link>
           {events[0] && (
             <Link to={`/events/${events[0].id}`} className="btn btn-primary">
               <Zap size={16} /> Open Project
@@ -532,6 +535,7 @@ export function CoordinatorDashboard() {
           </div>
           <div className={styles.shortcutList}>
             {[
+              { icon: Plus, label: 'Create Event', desc: 'Start a new event', onClick: () => navigate('/events/new'), color: 'var(--color-accent)', alwaysOn: true },
               { icon: CheckSquare, label: 'My Tasks', desc: 'View tasks assigned to you', onClick: () => events[0] && navigate(`/events/${events[0].id}/tasks`), color: 'var(--color-info)' },
               { icon: Radio, label: 'Live Feed', desc: 'Real-time team updates', onClick: () => events[0] && navigate(`/events/${events[0].id}/live-board`), color: 'var(--color-success)' },
               { icon: AlertTriangle, label: 'Issues', desc: 'Open issues & blockers', onClick: () => events[0] && navigate(`/events/${events[0].id}/live-board`), color: 'var(--color-warning)' },
@@ -544,7 +548,7 @@ export function CoordinatorDashboard() {
                 type="button"
                 className={styles.shortcutItem}
                 onClick={action.onClick}
-                disabled={events.length === 0}
+                disabled={!action.alwaysOn && events.length === 0}
               >
                 <div className={styles.shortcutIcon} style={{ background: `${action.color}18`, color: action.color }}>
                   <action.icon size={18} />

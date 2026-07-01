@@ -116,6 +116,8 @@ function withTimeout<T>(promise: PromiseLike<T>, timeoutMs: number, message: str
   }) as Promise<T>
 }
 
+const ROLES_REQUIRING_ORG = ['planner', 'coordinator']
+
 function AuthGate() {
   const user = useAuthStore((s) => s.user)
   const profile = useAuthStore((s) => s.profile)
@@ -133,6 +135,12 @@ function AuthGate() {
 
   if (!user) return <Navigate to="/home" replace />
   const r = role || (user?.user_metadata?.role as string) || 'planner'
+
+  // Ensure org setup is completed for roles that need it
+  if (ROLES_REQUIRING_ORG.includes(r) && !profile?.org_id) {
+    return <Navigate to={`/onboarding/${r}`} replace />
+  }
+
   return <Navigate to={r === 'super_admin' ? '/admin' : `/dashboard/${r}`} replace />
 }
 

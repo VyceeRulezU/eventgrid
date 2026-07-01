@@ -33,6 +33,8 @@ function formatType(type: string | null): string {
   return type
 }
 
+const CAN_CREATE_EVENT = ['planner', 'coordinator', 'vendor', 'super_admin']
+
 export function EventsListPage() {
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
@@ -40,6 +42,7 @@ export function EventsListPage() {
   const role = useAuthStore((s) => s.role)
   const showNotification = useUIStore((s) => s.showNotification)
   const showModal = useUIStore((s) => s.showModal)
+  const canCreate = CAN_CREATE_EVENT.includes(role || '') && (!!org || role === 'super_admin' || role === 'vendor')
   const [events, setEvents] = useState<(Event & { phases?: EventPhase[] })[]>([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -163,19 +166,19 @@ export function EventsListPage() {
           icon={Calendar}
           title="Events"
           subtitle="Manage all your events in one place"
-          actions={org || role === 'super_admin' || role === 'vendor' ? <Link to="/events/new" className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }}><Plus size={16} /> Create Event</Link> : undefined}
+          actions={canCreate ? <Link to="/events/new" className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }}><Plus size={16} /> Create Event</Link> : undefined}
         />
         <div className="empty-state">
           <div className="empty-state__icon"><Calendar size={24} /></div>
           <div className="empty-state__title">No events yet</div>
           {org ? (
             <div className="empty-state__description">Create your first event to get started</div>
-          ) : role === 'planner' ? (
+          ) : role === 'planner' || role === 'coordinator' ? (
             <div className="empty-state__description">Complete your organization setup to start creating events</div>
           ) : (
             <div className="empty-state__description">You haven't been added to any events yet</div>
           )}
-          {(org || role === 'super_admin' || role === 'vendor') && <Link to="/events/new" className="btn btn-primary"><Plus size={16} /> Create Event</Link>}
+          {canCreate && <Link to="/events/new" className="btn btn-primary"><Plus size={16} /> Create Event</Link>}
         </div>
       </div>
     )
@@ -187,7 +190,7 @@ export function EventsListPage() {
         icon={Calendar}
         title="Events"
         subtitle={`${events.length} event${events.length !== 1 ? 's' : ''}${org ? ' in your organisation' : ''}`}
-        actions={org || role === 'super_admin' || role === 'vendor' ? <Link to="/events/new" className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }}><Plus size={16} /> Create Event</Link> : undefined}
+        actions={canCreate ? <Link to="/events/new" className="btn btn-primary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }}><Plus size={16} /> Create Event</Link> : undefined}
       />
 
       <div className={styles.tableCard}>
