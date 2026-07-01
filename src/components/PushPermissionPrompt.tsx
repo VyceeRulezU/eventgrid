@@ -13,10 +13,7 @@ export function PushPermissionPrompt() {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
-    if (!user) {
-      setVisible(false)
-      return
-    }
+    if (!user) return
 
     const timer = setTimeout(async () => {
       const state = await getPushPermissionState()

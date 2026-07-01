@@ -1,16 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import styles from './CookieNotice.module.css'
 
 const STORAGE_KEY = 'eg-cookie-notice-ack'
 
 export function CookieNotice() {
-  const [visible, setVisible] = useState(false)
-
-  useEffect(() => {
-    const ack = localStorage.getItem(STORAGE_KEY)
-    if (!ack) setVisible(true)
-  }, [])
+  const [visible, setVisible] = useState(() => !localStorage.getItem(STORAGE_KEY))
 
   function handleDismiss() {
     localStorage.setItem(STORAGE_KEY, 'true')

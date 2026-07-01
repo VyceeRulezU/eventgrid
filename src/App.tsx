@@ -333,7 +333,7 @@ export function App() {
   }, [])
   async function loadProfile(userId: string, user?: User) {
     let profile: Profile | null = null
-    let error: unknown = null
+    let profileError: unknown
 
     try {
       const result = await withTimeout(
@@ -346,9 +346,9 @@ export function App() {
         'Profile request timed out.'
       )
       profile = result.data
-      error = result.error
+      profileError = result.error
     } catch (err) {
-      error = err
+      profileError = err
     }
 
     if (profile) {
@@ -390,8 +390,8 @@ export function App() {
       return
     }
 
-    if (error) {
-      console.warn('Unable to load profile:', error instanceof Error ? error.message : error)
+    if (profileError) {
+      console.warn('Unable to load profile:', profileError instanceof Error ? profileError.message : profileError)
     }
 
     const fallbackProfile: Profile = {
@@ -472,7 +472,7 @@ export function App() {
           getUnreadCount(user.id).then((count) => {
             useNotificationStore.getState().setUnreadCount(count)
             if (typeof navigator !== 'undefined' && 'setAppBadge' in navigator) {
-              (navigator as any).setAppBadge(count).catch(() => {})
+              (navigator as Navigator & { setAppBadge: (count: number) => Promise<void> }).setAppBadge(count).catch(() => {})
             }
           })
         }
@@ -490,6 +490,7 @@ export function App() {
       isMounted = false
       subscription.unsubscribe()
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setUser, setProfile, setOrg, setLoading])
 
   const user = useAuthStore((s) => s.user)
@@ -501,7 +502,7 @@ export function App() {
         useNotificationStore.getState().setUnreadCount(count)
         // PWA Badge API — app icon badge on installed PWA (Android/Chrome)
         if (typeof navigator !== 'undefined' && 'setAppBadge' in navigator) {
-          (navigator as any).setAppBadge(count).catch(() => {})
+          (navigator as Navigator & { setAppBadge: (count: number) => Promise<void> }).setAppBadge(count).catch(() => {})
         }
       })
       

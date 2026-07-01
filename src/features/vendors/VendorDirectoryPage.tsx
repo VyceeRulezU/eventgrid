@@ -156,6 +156,7 @@ export function VendorDirectoryPage() {
             claim_verified_at: null,
             verified_by_admin_id: null,
             website: null,
+            referred_by_code: null,
             deleted_at: null,
             created_at: '',
             updated_at: '',

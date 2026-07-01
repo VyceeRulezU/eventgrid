@@ -45,8 +45,6 @@ export function AdminVendorsPage() {
   const availableTypes = [...new Set([...DEFAULT_TYPES, ...vendors.map((v) => v.category)])]
 
   useEffect(() => {
-    if (!user) { setLoading(false); return }
-
     async function load() {
       const orgsQuery = supabase
         .from('organizations')
@@ -97,7 +95,7 @@ export function AdminVendorsPage() {
     }
 
     load()
-  }, [user, orgId])
+  }, [user, orgId, role])
 
   const handleEdit = (vendor: Vendor) => {
     setEditingVendor(vendor)
@@ -314,6 +312,7 @@ export function AdminVendorsPage() {
                   {!orgId && role === 'super_admin' && <th className={styles.th}>Organisation</th>}
                   <th className={styles.th}>Contact</th>
                   <th className={styles.th}>Phone</th>
+                  <th className={styles.th}>Promo Code</th>
                   <th className={styles.th}>Rating</th>
                   <th className={`${styles.th} ${styles.thActions}`}>Actions</th>
                 </tr>
@@ -356,6 +355,11 @@ export function AdminVendorsPage() {
                       <td className={styles.td}>
                         <span className={styles.cellMuted}>
                           {vendor.phone || '—'}
+                        </span>
+                      </td>
+                      <td className={styles.td}>
+                        <span className="badge badge-medium" style={{ fontFamily: 'var(--font-mono)', fontSize: 11 }}>
+                          {(vendor as Vendor & { referred_by_code?: string }).referred_by_code || '—'}
                         </span>
                       </td>
                       <td className={styles.td}>

@@ -159,6 +159,7 @@ export interface Vendor {
   claim_verified_at: string | null
   verified_by_admin_id: string | null
   website: string | null
+  referred_by_code: string | null
   deleted_at: string | null
   created_at: string
   updated_at: string

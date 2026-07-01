@@ -101,11 +101,14 @@ export function VendorOnboarding() {
       is_verified: true,
       claimed_by_vendor_id: user.id,
       claimed_at: new Date().toISOString(),
+      referred_by_code: profile?.referred_by_code || null,
     })
 
     if (vendorErr) {
       console.error('Failed to insert into vendors table:', vendorErr)
-      showToast({ type: 'error', title: 'Directory sync issue', body: `Could not add your listing to the directory (${vendorErr.message}). Your profile is saved — please try again or contact support.` })
+      showToast({ type: 'error', title: 'Directory sync failed', body: `Could not add your listing (${vendorErr.message}). Please try again or contact support.` })
+      setLoading(false)
+      return
     }
 
     // Update profile in store

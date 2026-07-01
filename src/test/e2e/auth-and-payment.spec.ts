@@ -1,6 +1,7 @@
 import { test, expect, type Page } from '@playwright/test'
 
 const ADMIN_LOGIN_PATH = process.env.VITE_ADMIN_LOGIN_PATH || '/admin/login'
+const TEST_PASSWORD = process.env.E2E_TEST_PASSWORD || 'placeholder-set-E2E_TEST_PASSWORD'
 
 async function hasTurnstile(page: Page) {
   try {
@@ -279,7 +280,7 @@ test.describe('captcha', () => {
   test('login submit button is disabled until captcha resolved', async ({ page }) => {
     await page.goto('/login')
     await page.fill('#email', 'test@example.com')
-    await page.fill('#password', 'password123')
+    await page.fill('#password', TEST_PASSWORD)
 
     if (!(await hasTurnstile(page))) {
       test.skip(true, 'VITE_TURNSTILE_SITE_KEY not set — captcha disabled')
@@ -307,7 +308,7 @@ test.describe('captcha', () => {
     await page.fill('#name', 'Test User')
     await page.fill('#email', 'test@example.com')
     await page.fill('#phone', '08012345678')
-    await page.fill('#password', 'StrongP@ss1')
+    await page.fill('#password', TEST_PASSWORD)
 
     if (!(await hasTurnstile(page))) {
       test.skip(true, 'VITE_TURNSTILE_SITE_KEY not set — captcha disabled')
