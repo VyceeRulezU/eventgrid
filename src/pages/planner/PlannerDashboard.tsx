@@ -528,6 +528,7 @@ export function PlannerDashboard() {
     issues: [] as { value: number }[],
     vendors: [] as { value: number }[],
   })
+  const showNotification = useUIStore((s) => s.showNotification)
   const [showInviteClient, setShowInviteClient] = useState(false)
   const [showAddCoordinator, setShowAddCoordinator] = useState(false)
   const [clientEvents, setClientEvents] = useState<Event[]>([])

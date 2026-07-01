@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Calendar, Plus, ChevronRight, Activity, Star, FileText, Users, MessageSquare } from 'lucide-react'
+import { Calendar, Plus, ChevronRight, FileText } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { SEO } from '@/components/shared/SEO'
@@ -46,25 +46,25 @@ export function ClientDashboard() {
 
   useEffect(() => {
     if (!user) { setLoading(false); return }
+    const uid = user.id
 
     async function load() {
       const [eventsRes, quotesRes] = await Promise.all([
         supabase
           .from('events')
           .select('id, name, event_type, event_date, status, managing_planner_id')
-          .eq('client_id', user.id)
+          .eq('client_id', uid)
           .is('deleted_at', null)
           .order('created_at', { ascending: false }),
         supabase
           .from('client_quote_requests')
           .select('id, title, status, created_at')
-          .eq('client_id', user.id)
+          .eq('client_id', uid)
           .order('created_at', { ascending: false }),
       ])
 
       if (eventsRes.data) setEvents(eventsRes.data as ClientEvent[])
       if (quotesRes.data) {
-        // Get response counts
         const withCounts = await Promise.all(
           (quotesRes.data as any[]).map(async (q) => {
             const { count } = await supabase

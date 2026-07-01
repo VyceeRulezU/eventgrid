@@ -1,15 +1,13 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { FileText, MessageSquare, Search } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { PageHero } from '@/components/shared/PageHero'
-import type { ClientQuoteRequest, ClientQuoteResponse } from '@/types'
+import type { ClientQuoteRequest } from '@/types'
 import styles from './ProviderQuoteResponsesPage.module.css'
 
 export function ProviderQuoteResponsesPage() {
-  const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const role = useAuthStore((s) => s.role)
   const showToast = useUIStore((s) => s.showToast)
@@ -29,6 +27,7 @@ export function ProviderQuoteResponsesPage() {
     if (!user || !providerRole) { setLoading(false); return }
 
     async function load() {
+      const uid = user!.id
       const [reqRes, respRes] = await Promise.all([
         supabase
           .from('client_quote_requests')
@@ -38,7 +37,7 @@ export function ProviderQuoteResponsesPage() {
         supabase
           .from('client_quote_responses')
           .select('quote_request_id')
-          .eq('respondent_id', user.id),
+          .eq('respondent_id', uid),
       ])
 
       if (reqRes.data) setRequests(reqRes.data as ClientQuoteRequest[])

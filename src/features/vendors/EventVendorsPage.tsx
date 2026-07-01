@@ -61,7 +61,6 @@ export function EventVendorsPage({ standalone = true }: { standalone?: boolean }
   const currentUser = useAuthStore((s) => s.user)
   const userRole = useAuthStore((s) => s.role)
 
-  const org = useAuthStore((s) => s.org)
   const [eventName, setEventName] = useState('')
   const [eventOrgId, setEventOrgId] = useState<string | null>(null)
   const [eventOwnerId, setEventOwnerId] = useState<string | null>(null)

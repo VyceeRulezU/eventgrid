@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { X, Search } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
+import { CalendarModal } from '@/components/ui/CalendarModal'
+import { Checkbox } from '@/components/ui/Checkbox'
 import styles from './RequestVendorQuoteModal.module.css'
 
 interface DirectoryVendor {
@@ -32,6 +34,7 @@ export function RequestVendorQuoteModal({ eventId, orgId, onClose, onSent }: Pro
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
+  const [showCalendar, setShowCalendar] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -119,14 +122,14 @@ export function RequestVendorQuoteModal({ eventId, orgId, onClose, onSent }: Pro
   }
 
   return (
-    <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.header}>
-          <h3 className={styles.title}>Request Vendor Quote</h3>
-          <button className={styles.closeBtn} onClick={onClose}><X size={18} /></button>
+    <div className="overlay" onClick={onClose}>
+      <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 600 }}>
+        <div className="modal-card-header">
+          <h3 className="modal-card-title">Request Vendor Quote</h3>
+          <button className="modal-card-close" onClick={onClose}><X size={18} /></button>
         </div>
 
-        <div className={styles.body}>
+        <div className="modal-card-body">
           <div className={styles.field}>
             <label className={styles.label}>Title *</label>
             <input className={styles.input} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Catering for 200 guests" />
@@ -144,7 +147,15 @@ export function RequestVendorQuoteModal({ eventId, orgId, onClose, onSent }: Pro
             </div>
             <div className={styles.field}>
               <label className={styles.label}>Response deadline</label>
-              <input className={styles.input} type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
+              <button type="button" className="input" onClick={() => setShowCalendar(true)} style={{ textAlign: 'left' }}>
+                {deadline ? new Date(deadline + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Select date'}
+              </button>
+              <CalendarModal
+                open={showCalendar}
+                value={deadline}
+                onChange={(d) => { setDeadline(d); setShowCalendar(false) }}
+                onClose={() => setShowCalendar(false)}
+              />
             </div>
           </div>
 
@@ -173,8 +184,7 @@ export function RequestVendorQuoteModal({ eventId, orgId, onClose, onSent }: Pro
               ) : (
                 filtered.map((v) => (
                   <label key={v.id} className={styles.vendorItem}>
-                    <input
-                      type="checkbox"
+                    <Checkbox
                       checked={selectedVendorIds.has(v.id)}
                       onChange={() => toggleVendor(v.id)}
                     />
@@ -189,7 +199,7 @@ export function RequestVendorQuoteModal({ eventId, orgId, onClose, onSent }: Pro
           </div>
         </div>
 
-        <div className={styles.footer}>
+        <div className="modal-card__footer" style={{ padding: 'var(--space-4) var(--space-5)', borderTop: '1px solid var(--color-border-subtle)', display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-3)' }}>
           <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
           <button className="btn btn-primary" onClick={handleSubmit} disabled={sending}>
             {sending ? 'Sending...' : `Send Quote Request (${selectedVendorIds.size})`}

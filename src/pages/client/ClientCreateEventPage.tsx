@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Calendar, Plus, Users, Search } from 'lucide-react'
+import { Calendar, Plus, Search } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -30,15 +30,12 @@ export function ClientCreateEventPage() {
   const [eventType, setEventType] = useState('')
   const [eventDate, setEventDate] = useState('')
   const [venueName, setVenueName] = useState('')
-  const [venueAddress, setVenueAddress] = useState('')
   const [guestCount, setGuestCount] = useState(0)
   const [description, setDescription] = useState('')
-  const [budgetRange, setBudgetRange] = useState('')
 
   const [plannerSearch, setPlannerSearch] = useState('')
   const [planners, setPlanners] = useState<PlannerProfile[]>([])
   const [selectedPlanner, setSelectedPlanner] = useState<PlannerProfile | null>(null)
-  const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
 
   const searchPlanners = async (query: string) => {
@@ -89,7 +86,6 @@ export function ClientCreateEventPage() {
         event_type: eventType,
         event_date: eventDate || null,
         venue_name: venueName || null,
-        venue_address: venueAddress || null,
         guest_count: guestCount || null,
         size_tier: !guestCount || guestCount <= 0 ? null : guestCount <= 100 ? 'intimate' : guestCount <= 300 ? 'standard' : 'large',
         status: 'draft',
@@ -185,11 +181,6 @@ export function ClientCreateEventPage() {
             <div className={styles.field}>
               <label className={styles.label}>Description / Notes</label>
               <textarea className={styles.textarea} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe what you need..." rows={3} />
-            </div>
-
-            <div className={styles.field}>
-              <label className={styles.label}>Budget range</label>
-              <input className={styles.input} value={budgetRange} onChange={(e) => setBudgetRange(e.target.value)} placeholder="e.g. 500,000 - 1,000,000" />
             </div>
 
             <div className={styles.navBtns}>

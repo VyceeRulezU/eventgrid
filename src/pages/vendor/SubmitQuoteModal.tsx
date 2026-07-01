@@ -90,17 +90,17 @@ export function SubmitQuoteModal({ quoteRequest, vendorId, onClose, onSubmit }: 
   }
 
   return (
-    <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.header}>
+    <div className="overlay" onClick={onClose}>
+      <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 640 }}>
+        <div className="modal-card-header">
           <div>
-            <h3 className={styles.title}>Submit Quote</h3>
+            <h3 className="modal-card-title">Submit Quote</h3>
             <p className={styles.subtitle}>{quoteRequest.title}</p>
           </div>
-          <button className={styles.closeBtn} onClick={onClose}><X size={18} /></button>
+          <button className="modal-card-close" onClick={onClose}><X size={18} /></button>
         </div>
 
-        <div className={styles.body}>
+        <div className="modal-card-body">
           <div className={styles.field}>
             <label className={styles.label}>Event</label>
             <p className={styles.value}>{quoteRequest.event_name}</p>
@@ -160,7 +160,7 @@ export function SubmitQuoteModal({ quoteRequest, vendorId, onClose, onSubmit }: 
           </div>
         </div>
 
-        <div className={styles.footer}>
+        <div className="modal-card__footer" style={{ padding: 'var(--space-4) var(--space-5)', borderTop: '1px solid var(--color-border-subtle)', display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-3)' }}>
           <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
           <button className="btn btn-primary" onClick={handleSubmit} disabled={sending}>
             {sending ? 'Submitting...' : 'Submit Quote'}
