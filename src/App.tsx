@@ -31,6 +31,11 @@ import { PlannerOnboarding } from '@/pages/onboarding/PlannerOnboarding'
 import { CoordinatorOnboarding } from '@/pages/onboarding/CoordinatorOnboarding'
 import { TeamMemberOnboarding } from '@/pages/onboarding/TeamMemberOnboarding'
 import { VendorOnboarding } from '@/pages/onboarding/VendorOnboarding'
+import { ClientOnboarding } from '@/pages/onboarding/ClientOnboarding'
+import { ClientDashboard } from '@/pages/client/ClientDashboard'
+import { ClientCreateEventPage } from '@/pages/client/ClientCreateEventPage'
+import { ClientRequestQuotePage } from '@/pages/client/ClientRequestQuotePage'
+import { ProviderQuoteResponsesPage } from '@/pages/client/ProviderQuoteResponsesPage'
 import { CoordinatorsLandingPage } from '@/pages/roles/CoordinatorsLandingPage'
 import { VendorsLandingPage } from '@/pages/roles/VendorsLandingPage'
 import { PlannersLandingPage } from '@/pages/roles/PlannersLandingPage'
@@ -602,6 +607,9 @@ export function App() {
           <Route path="/onboarding/vendor" element={
             <AuthGuard><VendorOnboarding /></AuthGuard>
           } />
+          <Route path="/onboarding/client" element={
+            <AuthGuard><ClientOnboarding /></AuthGuard>
+          } />
 
           <Route element={<AuthGuard><AppShell /></AuthGuard>}>
             <Route path="/dashboard/planner" element={
@@ -617,6 +625,11 @@ export function App() {
             <Route path="/dashboard/vendor" element={
               <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
                 <RoleGuard allowedRole="vendor"><VendorPortal /></RoleGuard>
+              </Suspense>
+            } />
+            <Route path="/dashboard/client" element={
+              <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
+                <RoleGuard allowedRole="client"><ClientDashboard /></RoleGuard>
               </Suspense>
             } />
             <Route path="/dashboard/client" element={<Navigate to="/vendors/directory" replace />} />
@@ -727,6 +740,21 @@ export function App() {
           <Route path="/proposals" element={
             <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
               <ProposalsPage />
+            </Suspense>
+          } />
+          <Route path="/client/create-event" element={
+            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
+              <ClientCreateEventPage />
+            </Suspense>
+          } />
+          <Route path="/client/request-quote" element={
+            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
+              <ClientRequestQuotePage />
+            </Suspense>
+          } />
+          <Route path="/client/browse-quotes" element={
+            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
+              <ProviderQuoteResponsesPage />
             </Suspense>
           } />
           <Route path="/notifications" element={

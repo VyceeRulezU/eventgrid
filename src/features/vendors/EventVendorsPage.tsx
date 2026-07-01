@@ -1,11 +1,12 @@
 import { useEffect, useState, useMemo } from 'react'
-import { Users, Plus, X, Pencil, ExternalLink } from 'lucide-react'
+import { Users, Plus, X, Pencil, ExternalLink, FileText } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
 import { useResolvedEventId } from '@/hooks/useResolvedEventId'
 import { notify } from '@/lib/notifications'
 import { PageHero } from '@/components/shared/PageHero'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
+import { RequestVendorQuoteModal } from './RequestVendorQuoteModal'
 import styles from './EventVendorsPage.module.css'
 import { useAuthStore } from '@/store/auth.store'
 
@@ -60,11 +61,14 @@ export function EventVendorsPage({ standalone = true }: { standalone?: boolean }
   const currentUser = useAuthStore((s) => s.user)
   const userRole = useAuthStore((s) => s.role)
 
+  const org = useAuthStore((s) => s.org)
   const [eventName, setEventName] = useState('')
+  const [eventOrgId, setEventOrgId] = useState<string | null>(null)
   const [eventOwnerId, setEventOwnerId] = useState<string | null>(null)
   const [vendors, setVendors] = useState<EventVendor[]>([])
   const [loading, setLoading] = useState(true)
   const [showAddModal, setShowAddModal] = useState(false)
+  const [showQuoteModal, setShowQuoteModal] = useState(false)
   const [editingVendor, setEditingVendor] = useState<EventVendor | null>(null)
 
   const isOwner = useMemo(() => {
@@ -80,13 +84,14 @@ export function EventVendorsPage({ standalone = true }: { standalone?: boolean }
     
     const { data: eventData } = await supabase
       .from('events')
-      .select('name, created_by')
+      .select('name, created_by, org_id')
       .eq('id', eventId)
       .single()
 
     if (eventData) {
       setEventName(eventData.name)
       setEventOwnerId(eventData.created_by)
+      setEventOrgId(eventData.org_id)
     }
 
     const { data } = await supabase
@@ -136,6 +141,9 @@ export function EventVendorsPage({ standalone = true }: { standalone?: boolean }
           <div className={styles.toolbar}>
             <button className="btn btn-primary btn-sm" onClick={() => setShowAddModal(true)} style={{ borderRadius: 'var(--radius-sm)' }}>
               <Plus size={14} /> Add Vendor
+            </button>
+            <button className="btn btn-secondary btn-sm" onClick={() => setShowQuoteModal(true)} style={{ borderRadius: 'var(--radius-sm)' }}>
+              <FileText size={14} /> Request Quote
             </button>
           </div>
         )}
@@ -267,6 +275,15 @@ export function EventVendorsPage({ standalone = true }: { standalone?: boolean }
             setVendors((prev) => prev.map((v) => v.id === updated.id ? updated : v))
             setEditingVendor(null)
           }}
+        />
+      )}
+
+      {showQuoteModal && eventOrgId && (
+        <RequestVendorQuoteModal
+          eventId={eventId!}
+          orgId={eventOrgId}
+          onClose={() => setShowQuoteModal(false)}
+          onSent={() => { setShowQuoteModal(false); showNotification({ variant: 'success', title: 'Quote request sent' }) }}
         />
       )}
     </div>

@@ -530,6 +530,8 @@ export function PlannerDashboard() {
   })
   const [showInviteClient, setShowInviteClient] = useState(false)
   const [showAddCoordinator, setShowAddCoordinator] = useState(false)
+  const [clientEvents, setClientEvents] = useState<Event[]>([])
+  const [acceptingEvent, setAcceptingEvent] = useState<string | null>(null)
 
   useEffect(() => {
     if (!user) { setLoading(false); return }
@@ -657,11 +659,23 @@ export function PlannerDashboard() {
 
       setTimeline({
         events: binToMonths(evDates?.data || []),
-        sub_events: binToMonths(evDates?.data || []), // Keep compatibility if used elsewhere
+        sub_events: binToMonths(evDates?.data || []),
         tasks: binToMonths(tDates?.data || []),
         issues: binToMonths(iDates?.data || []),
         vendors: binToMonths(vDates?.data || []),
       } as any)
+
+      // Load client events where planner is assigned but hasn't accepted
+      if (user) {
+        const { data: clientEvts } = await supabase
+          .from('events')
+          .select('*')
+          .eq('managing_planner_id', user.id)
+          .is('deleted_at', null)
+          .not('org_id', 'in', `(${org?.id || '00000000-0000-0000-0000-000000000000'})`)
+          .limit(10)
+        if (clientEvts) setClientEvents(clientEvts as Event[])
+      }
 
       setLoading(false)
     }
@@ -801,6 +815,65 @@ export function PlannerDashboard() {
           )
         })}
       </div>
+
+      {/* Pending client event assignments */}
+      {clientEvents.length > 0 && (
+        <div className={styles.sectionCard}>
+          <div className={styles.sectionHeader}>
+            <h3 className={styles.sectionTitle}>
+              <UserPlus size={16} style={{ color: 'var(--color-accent)' }} />
+              Client Event Requests ({clientEvents.length})
+            </h3>
+          </div>
+          <div>
+            {clientEvents.map((ev) => (
+              <div key={ev.id} className={styles.clientEventRow}>
+                <div>
+                  <div className={styles.clientEventName}>{ev.name}</div>
+                  <div className={styles.clientEventMeta}>
+                    {ev.event_type} · {ev.event_date ? new Date(ev.event_date).toLocaleDateString() : 'Date TBD'}
+                    {ev.client_id ? ' · Client awaits assignment' : ''}
+                  </div>
+                </div>
+                <div className={styles.clientEventActions}>
+                  <button
+                    className="btn btn-primary btn-sm"
+                    onClick={async () => {
+                      if (!org) return
+                      setAcceptingEvent(ev.id)
+                      const { error } = await supabase
+                        .from('events')
+                        .update({ org_id: org.id })
+                        .eq('id', ev.id)
+                      if (error) {
+                        showNotification({ variant: 'error', title: 'Failed to accept', message: error.message })
+                      } else {
+                        // Add planner to event_access
+                        await supabase.from('event_access').upsert({
+                          event_id: ev.id,
+                          user_id: user!.id,
+                          role: 'coordinator',
+                          accepted_at: new Date().toISOString(),
+                        }, { onConflict: 'event_id,user_id' })
+                        showNotification({ variant: 'success', title: 'Event accepted!', body: 'You are now managing this event.' })
+                        setClientEvents((prev) => prev.filter((e) => e.id !== ev.id))
+                      }
+                      setAcceptingEvent(null)
+                    }}
+                    disabled={acceptingEvent === ev.id || !org}
+                    style={{ borderRadius: 'var(--radius-sm)' }}
+                  >
+                    {acceptingEvent === ev.id ? 'Accepting...' : 'Accept & Manage'}
+                  </button>
+                  <Link to={`/events/${ev.id}`} className="btn btn-secondary btn-sm" style={{ borderRadius: 'var(--radius-sm)' }}>
+                    View
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Events + shortcuts */}
       <div className={styles.twoCol}>

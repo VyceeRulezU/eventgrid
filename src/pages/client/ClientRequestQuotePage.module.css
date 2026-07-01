@@ -1,0 +1,100 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding-bottom: var(--space-12);
+}
+
+.formCard {
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-lg);
+  max-width: 720px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.formContent {
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.input, .textarea {
+  padding: 10px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+  font-family: inherit;
+}
+.input:focus, .textarea:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px var(--color-accent-dim);
+}
+
+.textarea { resize: vertical; }
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.roleGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.roleCard {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 12px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.roleCard:hover { border-color: var(--color-accent); }
+.roleCardActive {
+  border-color: var(--color-accent);
+  background: var(--color-accent-dim);
+}
+
+.roleCheckbox { accent-color: var(--color-accent); }
+
+.roleInfo { display: flex; flex-direction: column; gap: 2px; }
+
+.roleLabel {
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.roleDesc {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.navBtns {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}

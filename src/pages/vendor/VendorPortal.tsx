@@ -3,12 +3,14 @@ import { Link, useNavigate } from 'react-router-dom'
 import {
   Calendar, Plus, Users, Wallet, ChevronRight,
   Star, Activity, ListChecks,
-  CheckCircle, FileText, UserPlus,
+  CheckCircle, FileText, UserPlus, DollarSign,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
+import { useUIStore } from '@/store/ui.store'
 import { ReviewForm } from '@/features/reviews/ReviewForm'
 import { MyFeedback } from '@/components/shared/MyFeedback'
+import { SubmitQuoteModal } from './SubmitQuoteModal'
 import styles from './VendorPortal.module.css'
 
 interface VendorEvent {
@@ -49,12 +51,28 @@ function timeAgo(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
 }
 
+interface PendingQuoteRequest {
+  id: string
+  quote_request_id: string
+  title: string
+  description: string | null
+  category: string | null
+  budget_range_min: number | null
+  budget_range_max: number | null
+  response_deadline: string | null
+  event_name: string
+  created_at: string
+}
+
 export function VendorPortal() {
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
+  const showNotification = useUIStore((s) => s.showNotification)
   const [events, setEvents] = useState<VendorEvent[]>([])
   const [vendorListing, setVendorListing] = useState<{ id: string; name: string; category: string; is_verified: boolean } | null>(null)
   const [activities, setActivities] = useState<ActivityItem[]>([])
+  const [quoteRequests, setQuoteRequests] = useState<PendingQuoteRequest[]>([])
+  const [submittingQuote, setSubmittingQuote] = useState<PendingQuoteRequest | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -68,7 +86,7 @@ export function VendorPortal() {
       supabase.from('events').select('id, name, status, event_date, created_by, updated_at').eq('created_by', user.id).is('deleted_at', null),
       supabase.from('event_activity').select('*, event:events!inner(name)').order('created_at', { ascending: false }).limit(10),
       supabase.from('vendors').select('id, name, category, is_verified').eq('claimed_by_vendor_id', user.id).is('deleted_at', null).limit(1).maybeSingle(),
-    ]).then(([evRes, eventsRes, profilesRes, reviewsRes, myEventsRes, activityRes, listingRes]) => {
+    ]).then(async ([evRes, eventsRes, profilesRes, reviewsRes, myEventsRes, activityRes, listingRes]) => {
       const reviewedEventIds = new Set((reviewsRes.data || []).map((r: any) => r.event_id))
       const eventsMap = new Map((eventsRes.data || []).map((e: any) => [e.id, e]))
       const profilesMap = new Map((profilesRes.data || []).map((p: any) => [p.id, p.display_name]))
@@ -128,6 +146,37 @@ export function VendorPortal() {
       setActivities(mapped)
       setEvents(vendorEvents)
       setVendorListing(listingRes.data)
+
+      // Load quote requests for this vendor
+      if (listingRes.data?.id) {
+        const { data: invitations } = await supabase
+          .from('vendor_quote_invitations')
+          .select('id, quote_request_id, status, created_at')
+          .eq('vendor_id', listingRes.data.id)
+          .eq('status', 'pending')
+        if (invitations && invitations.length > 0) {
+          const qrIds = invitations.map((i: any) => i.quote_request_id)
+          const { data: qrs } = await supabase
+            .from('vendor_quote_requests')
+            .select('id, title, description, category, budget_range_min, budget_range_max, response_deadline, created_at, event_id')
+            .in('id', qrIds)
+            .eq('status', 'open')
+          if (qrs) {
+            const eventIdSet = [...new Set(qrs.map((q: any) => q.event_id))]
+            const { data: evts } = await supabase
+              .from('events')
+              .select('id, name')
+              .in('id', eventIdSet)
+            const eventNameMap = new Map((evts || []).map((e: any) => [e.id, e.name]))
+            setQuoteRequests(qrs.map((q: any) => ({
+              ...q,
+              quote_request_id: q.id,
+              event_name: eventNameMap.get(q.event_id) || 'Unknown Event',
+            })))
+          }
+        }
+      }
+
       setLoading(false)
     })
   }, [user])
@@ -303,6 +352,34 @@ export function VendorPortal() {
           )}
         </div>
 
+        {/* Quote Requests */}
+        {quoteRequests.length > 0 && (
+          <div className={styles.sectionCard}>
+            <div className={styles.sectionHeader}>
+              <h3 className={styles.sectionTitle}>
+                <DollarSign size={16} style={{ color: 'var(--color-accent)' }} />
+                Quote Requests ({quoteRequests.length})
+              </h3>
+            </div>
+            <div className={styles.shortcutList}>
+              {quoteRequests.map((qr) => (
+                <div key={qr.id} className={styles.quoteRequestItem}>
+                  <div className={styles.quoteRequestInfo}>
+                    <div className={styles.cellPrimary}>{qr.title}</div>
+                    <div className={styles.cellSecondary}>
+                      {qr.event_name}{qr.category ? ` · ${qr.category}` : ''}
+                      {qr.response_deadline ? ` · Due ${new Date(qr.response_deadline).toLocaleDateString()}` : ''}
+                    </div>
+                  </div>
+                  <button className="btn btn-primary btn-sm" onClick={() => setSubmittingQuote(qr)} style={{ borderRadius: 'var(--radius-sm)' }}>
+                    Submit Quote
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Shortcuts */}
         <div className={styles.sectionCard}>
           <div className={styles.sectionHeader}>
@@ -388,6 +465,19 @@ export function VendorPortal() {
       <div>
         <MyFeedback />
       </div>
+
+      {submittingQuote && vendorListing && (
+        <SubmitQuoteModal
+          quoteRequest={submittingQuote}
+          vendorId={vendorListing.id}
+          onClose={() => setSubmittingQuote(null)}
+          onSubmit={() => {
+            setSubmittingQuote(null)
+            setQuoteRequests((prev) => prev.filter((q) => q.id !== submittingQuote.id))
+            showNotification({ variant: 'success', title: 'Quote submitted!' })
+          }}
+        />
+      )}
     </div>
   )
 }

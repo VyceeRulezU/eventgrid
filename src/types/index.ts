@@ -93,6 +93,7 @@ export interface Event {
   paystack_ref: string | null
   current_phase: number
   client_id: string | null
+  managing_planner_id: string | null
   coordinator_id: string | null
   notes: string | null
   slug: string | null
@@ -551,6 +552,81 @@ export interface GuestMessage {
   sent_count: number
   opened_count: number
   created_at: string
+}
+
+// ── Vendor Quote Requests ─────────────────────────────────
+export type VendorQuoteRequestStatus = 'open' | 'closed' | 'cancelled'
+export type VendorQuoteInvitationStatus = 'pending' | 'declined' | 'quoted'
+export type VendorQuoteStatus = 'submitted' | 'accepted' | 'rejected' | 'revised'
+
+export interface VendorQuoteRequest {
+  id: string
+  event_id: string
+  org_id: string | null
+  created_by: string
+  title: string
+  description: string | null
+  category: string | null
+  budget_range_min: number | null
+  budget_range_max: number | null
+  response_deadline: string | null
+  status: VendorQuoteRequestStatus
+  created_at: string
+  updated_at: string
+}
+
+export interface VendorQuoteInvitation {
+  id: string
+  quote_request_id: string
+  vendor_id: string
+  status: VendorQuoteInvitationStatus
+  created_at: string
+}
+
+export interface VendorQuote {
+  id: string
+  quote_request_id: string
+  vendor_id: string
+  amount: number | null
+  description: string | null
+  line_items: { title: string; description: string; amount: number }[]
+  notes: string | null
+  status: VendorQuoteStatus
+  created_at: string
+  updated_at: string
+}
+
+// ── Client Quote Requests ─────────────────────────────────
+export type ClientQuoteRequestStatus = 'open' | 'negotiating' | 'closed' | 'cancelled'
+export type ClientQuoteResponseStatus = 'pending' | 'accepted' | 'declined'
+
+export interface ClientQuoteRequest {
+  id: string
+  client_id: string
+  event_id: string | null
+  title: string
+  description: string | null
+  event_type: string | null
+  event_date: string | null
+  guest_count: number | null
+  budget_range: string | null
+  preferred_roles: string[]
+  status: ClientQuoteRequestStatus
+  created_at: string
+  updated_at: string
+}
+
+export interface ClientQuoteResponse {
+  id: string
+  quote_request_id: string
+  respondent_id: string
+  respondent_role: 'planner' | 'coordinator' | 'vendor'
+  message: string | null
+  estimated_amount: number | null
+  portfolio_links: string[]
+  status: ClientQuoteResponseStatus
+  created_at: string
+  updated_at: string
 }
 
 export interface CalendarEvent {

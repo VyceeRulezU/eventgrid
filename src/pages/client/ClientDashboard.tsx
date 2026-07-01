@@ -1,133 +1,209 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { Calendar, Plus, ChevronRight, Activity, Star, FileText, Users, MessageSquare } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
-import { Calendar, MapPin, Clock, Users, ExternalLink } from 'lucide-react'
+import { SEO } from '@/components/shared/SEO'
+import styles from './ClientDashboard.module.css'
+
+interface ClientEvent {
+  id: string
+  name: string
+  event_type: string
+  event_date: string | null
+  status: string
+  managing_planner_id: string | null
+}
+
+interface ClientQuoteRequest {
+  id: string
+  title: string
+  status: string
+  response_count: number
+  created_at: string
+}
+
+function formatDate(d: string | null): string {
+  if (!d) return '—'
+  return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+}
 
 export function ClientDashboard() {
+  const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
-
-  const [event, setEvent] = useState<{
-    id: string
-    name: string
-    event_date: string | null
-    venue_name: string | null
-    venue_address: string | null
-    status: string
-  } | null>(null)
+  const profile = useAuthStore((s) => s.profile)
+  const [events, setEvents] = useState<ClientEvent[]>([])
+  const [quoteRequests, setQuoteRequests] = useState<ClientQuoteRequest[]>([])
   const [loading, setLoading] = useState(true)
 
+  const displayName = profile?.display_name || user?.user_metadata?.display_name || 'Client'
+  const greeting = (() => {
+    const h = new Date().getHours()
+    if (h < 12) return 'Good morning'
+    if (h < 17) return 'Good afternoon'
+    return 'Good evening'
+  })()
+
   useEffect(() => {
-    if (!user?.email) { setLoading(false); return }
+    if (!user) { setLoading(false); return }
 
-    supabase
-      .from('guests')
-      .select('status, events!inner(id, name, event_date, venue_name, venue_address)')
-      .eq('email', user.email)
-      .is('deleted_at', null)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (data) {
-          const ev = (data as Record<string, unknown>).events as Record<string, unknown>
-          setEvent({
-            id: ev.id as string,
-            name: ev.name as string,
-            event_date: ev.event_date as string | null,
-            venue_name: ev.venue_name as string | null,
-            venue_address: ev.venue_address as string | null,
-            status: data.status as string,
+    async function load() {
+      const [eventsRes, quotesRes] = await Promise.all([
+        supabase
+          .from('events')
+          .select('id, name, event_type, event_date, status, managing_planner_id')
+          .eq('client_id', user.id)
+          .is('deleted_at', null)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('client_quote_requests')
+          .select('id, title, status, created_at')
+          .eq('client_id', user.id)
+          .order('created_at', { ascending: false }),
+      ])
+
+      if (eventsRes.data) setEvents(eventsRes.data as ClientEvent[])
+      if (quotesRes.data) {
+        // Get response counts
+        const withCounts = await Promise.all(
+          (quotesRes.data as any[]).map(async (q) => {
+            const { count } = await supabase
+              .from('client_quote_responses')
+              .select('id', { count: 'exact' })
+              .eq('quote_request_id', q.id)
+            return { ...q, response_count: count || 0 } as ClientQuoteRequest
           })
-        }
-        setLoading(false)
-      })
-  }, [user])
+        )
+        setQuoteRequests(withCounts)
+      }
 
-  const eventDate = event?.event_date ? new Date(event.event_date) : null
-  const daysAway = eventDate
-    ? Math.max(0, Math.ceil((eventDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
-    : null
+      setLoading(false)
+    }
+
+    load()
+  }, [user])
 
   if (loading) {
     return (
-      <div style={{ padding: 'var(--space-4)', maxWidth: 600, margin: '0 auto' }}>
-        <div className="skeleton skeleton-card" style={{ height: 130 }} />
+      <div className={styles.dashboard}>
+        <div className={styles.loadingWrap}>
+          <img src="/ng-new-logo.png" alt="Loading" style={{ width: 56, height: 56, opacity: 0.4 }} />
+          <div className={styles.loadingText}>Loading dashboard...</div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div style={{ padding: 'var(--space-4)', maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
-      {/* Event Card */}
-      {event ? (
-        <div
-          style={{
-            background: 'var(--color-surface-2)',
-            border: '1px solid var(--color-border-subtle)',
-            borderRadius: 'var(--radius-xl)',
-            padding: 'var(--space-5)',
-          }}
-        >
-          <div style={{ fontWeight: 700, fontSize: 'var(--text-lg)', marginBottom: 'var(--space-3)' }}>
-            {event.name}
-          </div>
-          {eventDate && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-1)' }}>
-              <Calendar size={14} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
-              {eventDate.toLocaleDateString('en-NG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-              {daysAway !== null && (
-                <span style={{ marginLeft: 'auto', fontSize: 'var(--text-xs)', color: daysAway <= 7 ? 'var(--color-error)' : 'var(--color-text-muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>
-                  <Clock size={11} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-                  {daysAway === 0 ? 'Today!' : `${daysAway} day${daysAway === 1 ? '' : 's'} away`}
-                </span>
-              )}
-            </div>
-          )}
-          {(event.venue_name || event.venue_address) && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-2)' }}>
-              <MapPin size={14} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
-              {[event.venue_name, event.venue_address].filter(Boolean).join(', ')}
-            </div>
-          )}
-          <div>
-            <span
-              className={`badge ${event.status === 'confirmed' ? 'badge-success' : event.status === 'declined' ? 'badge-error' : 'badge-medium'}`}
-              style={{ fontSize: 'var(--text-xs)' }}
-            >
-              {event.status || 'pending'}
-            </span>
-          </div>
-        </div>
-      ) : (
-        <div className="empty-state" style={{ padding: 'var(--space-6)' }}>
-          <div className="empty-state__icon"><Calendar size={24} /></div>
-          <div className="empty-state__title">No events yet</div>
-          <div className="empty-state__description">
-            When a planner invites you, your event will appear here.
-          </div>
-        </div>
-      )}
+    <div className={styles.dashboard}>
+      <SEO title="Client Dashboard" description="Your event planning dashboard." />
 
-      {/* Vendor Directory CTA */}
-      <div
-        style={{
-          background: 'var(--color-surface-2)',
-          border: '1px solid var(--color-border-subtle)',
-          borderRadius: 'var(--radius-xl)',
-          padding: 'var(--space-5)',
-          textAlign: 'center',
-        }}
-      >
-        <Users size={28} style={{ color: 'var(--color-accent)', marginBottom: 'var(--space-3)' }} />
-        <h3 style={{ margin: '0 0 var(--space-1)', fontSize: 'var(--text-base)', fontWeight: 700 }}>
-          Vendor Directory
-        </h3>
-        <p style={{ margin: '0 0 var(--space-4)', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
-          Browse trusted vendors across Nigeria
-        </p>
-        <Link to="/vendors/directory" className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-          <ExternalLink size={16} />
-          Browse All Vendors
-        </Link>
+      <div className={styles.header}>
+        <div>
+          <h2 className={styles.greeting}>{greeting}, {displayName.split(' ')[0]}!</h2>
+          <p className={styles.date}>{new Date().toLocaleDateString('en-NG', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+        </div>
+        <div className={styles.headerActions}>
+          <Link to="/client/create-event" className="btn btn-primary">
+            <Plus size={16} /> New Event
+          </Link>
+          <Link to="/client/request-quote" className="btn btn-secondary">
+            <FileText size={16} /> Request Quote
+          </Link>
+        </div>
+      </div>
+
+      <div className={styles.statsGrid}>
+        <div className={styles.statCard}>
+          <div className={styles.statValue}>{events.length}</div>
+          <div className={styles.statLabel}>My Events</div>
+        </div>
+        <div className={styles.statCard}>
+          <div className={styles.statValue}>{quoteRequests.length}</div>
+          <div className={styles.statLabel}>Quote Requests</div>
+        </div>
+        <div className={styles.statCard}>
+          <div className={styles.statValue}>{events.filter((e) => e.status === 'in_progress' || e.status === 'active').length}</div>
+          <div className={styles.statLabel}>Active Projects</div>
+        </div>
+        <div className={styles.statCard}>
+          <div className={styles.statValue}>{events.filter((e) => e.status === 'completed').length}</div>
+          <div className={styles.statLabel}>Completed</div>
+        </div>
+      </div>
+
+      <div className={styles.twoCol}>
+        <div className={styles.sectionCard}>
+          <div className={styles.sectionHeader}>
+            <h3 className={styles.sectionTitle}>
+              <Calendar size={16} style={{ color: 'var(--color-accent)' }} />
+              My Events
+            </h3>
+            {events.length > 0 && <Link to="/events" className={styles.sectionLink}>View all →</Link>}
+          </div>
+          {events.length === 0 ? (
+            <div className="empty-state" style={{ padding: 'var(--space-8)' }}>
+              <div className="empty-state__icon"><Calendar size={24} /></div>
+              <div className="empty-state__title">No events yet</div>
+              <div className="empty-state__description">Create your first event and invite a planner to manage it.</div>
+              <Link to="/client/create-event" className="btn btn-primary"><Plus size={16} /> Create Event</Link>
+            </div>
+          ) : (
+            <div>
+              {events.slice(0, 5).map((ev) => (
+                <div key={ev.id} className={styles.eventRow} onClick={() => navigate(`/events/${ev.id}`)} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && navigate(`/events/${ev.id}`)}>
+                  <div>
+                    <div className={styles.eventName}>{ev.name}</div>
+                    <div className={styles.eventMeta}>{ev.event_type} · {formatDate(ev.event_date)}</div>
+                  </div>
+                  <div className={styles.eventRight}>
+                    <span className={`badge badge-${ev.status === 'active' || ev.status === 'in_progress' ? 'green' : ev.status === 'completed' ? 'green' : ev.status === 'draft' ? 'grey' : 'red'}`}>
+                      <span className="badge-dot" />
+                      {ev.status}
+                    </span>
+                    {ev.managing_planner_id ? (
+                      <span className={styles.plannerBadge}>Planner assigned</span>
+                    ) : null}
+                    <ChevronRight size={16} className={styles.chevron} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className={styles.sectionCard}>
+          <div className={styles.sectionHeader}>
+            <h3 className={styles.sectionTitle}>
+              <FileText size={16} style={{ color: 'var(--color-info)' }} />
+              Quote Requests
+            </h3>
+            <Link to="/client/request-quote" className={styles.sectionLink}>New request →</Link>
+          </div>
+          {quoteRequests.length === 0 ? (
+            <div className="empty-state" style={{ padding: 'var(--space-8)' }}>
+              <div className="empty-state__icon"><FileText size={24} /></div>
+              <div className="empty-state__title">No quote requests</div>
+              <div className="empty-state__description">Request quotes from planners, vendors, or coordinators.</div>
+              <Link to="/client/request-quote" className="btn btn-primary"><FileText size={16} /> Request a Quote</Link>
+            </div>
+          ) : (
+            <div>
+              {quoteRequests.slice(0, 5).map((qr) => (
+                <div key={qr.id} className={styles.quoteRow}>
+                  <div>
+                    <div className={styles.quoteTitle}>{qr.title}</div>
+                    <div className={styles.quoteMeta}>{qr.response_count} response(s) · {formatDate(qr.created_at)}</div>
+                  </div>
+                  <span className={`badge badge-${qr.status === 'open' ? 'yellow' : qr.status === 'negotiating' ? 'green' : 'grey'}`}>
+                    <span className="badge-dot" />
+                    {qr.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

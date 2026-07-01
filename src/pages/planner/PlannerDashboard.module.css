@@ -714,6 +714,35 @@
   margin-bottom: var(--space-5);
 }
 
+.clientEventRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+  transition: background 0.15s;
+}
+.clientEventRow:last-child { border-bottom: none; }
+.clientEventRow:hover { background: var(--color-bg-tertiary); }
+
+.clientEventName {
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.clientEventMeta {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.clientEventActions {
+  display: flex;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
 /* Keyframes */
 @keyframes fadeIn {
   from { opacity: 0; }
