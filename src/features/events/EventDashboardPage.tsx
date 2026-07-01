@@ -19,6 +19,8 @@ import { EventAssetsPage } from '@/features/assets/EventAssetsPage'
 import { GeneratePortalModal } from '@/features/client-portal/GeneratePortalModal'
 import { EditEventModal } from '@/features/events/EditEventModal'
 import { Tabs } from '@/components/ui/Tabs'
+import { CalendarModal } from '@/components/ui/CalendarModal'
+import { TimeModal } from '@/components/ui/TimeModal'
 import { EVENT_FEE_FORMATTED } from '@/lib/pricing'
 import { processPayment, getEventPrice } from '@/lib/payment'
 import { UUID_RE } from '@/lib/slug'
@@ -147,6 +149,9 @@ export function EventDashboardPage() {
 
   const [showReactivateModal, setShowReactivateModal] = useState(false)
   const [reactivationDate, setReactivationDate] = useState('')
+  const [reactivationTime, setReactivationTime] = useState('23:59')
+  const [showReactivateCalendar, setShowReactivateCalendar] = useState(false)
+  const [showReactivateTime, setShowReactivateTime] = useState(false)
 
   const handleReactivateEvent = async () => {
     if (!activeEvent) return
@@ -154,7 +159,7 @@ export function EventDashboardPage() {
       showNotification({ variant: 'warning', title: 'Set a re-archive date', message: 'Choose when the event should auto-archive again.' })
       return
     }
-    const archivedUntil = new Date(reactivationDate).toISOString()
+    const archivedUntil = new Date(`${reactivationDate}T${reactivationTime || '23:59'}:00`).toISOString()
     if (new Date(archivedUntil) <= new Date()) {
       showNotification({ variant: 'warning', title: 'Future date required', message: 'The re-archive date must be in the future.' })
       return
@@ -1754,14 +1759,36 @@ export function EventDashboardPage() {
               </p>
               <div className="input-wrapper">
                 <label className="input-label">Auto-re-archive on</label>
-                <input
+                <button
                   className="input"
-                  type="datetime-local"
-                  value={reactivationDate}
-                  onChange={e => setReactivationDate(e.target.value)}
-                  min={new Date().toISOString().slice(0, 16)}
-                />
+                  type="button"
+                  onClick={() => setShowReactivateCalendar(true)}
+                  style={{ textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8, height: 40 }}
+                >
+                  <Calendar size={14} />
+                  {reactivationDate
+                    ? new Date(reactivationDate + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                    : 'Select date...'}
+                </button>
+                <CalendarModal open={showReactivateCalendar} value={reactivationDate} onChange={d => setReactivationDate(d)} onClose={() => setShowReactivateCalendar(false)} />
               </div>
+              {reactivationDate && (
+                <div className="input-wrapper">
+                  <label className="input-label">Time</label>
+                  <button
+                    className="input"
+                    type="button"
+                    onClick={() => setShowReactivateTime(true)}
+                    style={{ textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8, height: 40 }}
+                  >
+                    <Clock size={14} />
+                    {reactivationTime
+                      ? new Date(`2000-01-01T${reactivationTime}:00`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+                      : 'Select time...'}
+                  </button>
+                  <TimeModal open={showReactivateTime} value={reactivationTime} onChange={t => setReactivationTime(t)} onClose={() => setShowReactivateTime(false)} />
+                </div>
+              )}
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
                 <button className="btn btn-ghost" onClick={() => setShowReactivateModal(false)}>Cancel</button>
                 <button className="btn btn-primary" onClick={handleReactivateEvent} disabled={reactivating}>
