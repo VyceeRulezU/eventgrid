@@ -7,7 +7,7 @@ import { SearchBar } from '@/components/shared/SearchBar'
 import { Button } from '@/components/ui/Button'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { SEO } from '@/components/shared/SEO'
-import { Gift, Users, TrendingUp, DollarSign, X, Plus, Trash2, ListChecks, Hash, Link2 } from 'lucide-react'
+import { Gift, Users, TrendingUp, DollarSign, X, Plus, Trash2, ListChecks, Hash, Link2, Copy, Check } from 'lucide-react'
 import { GenerateReferralPortalModal } from '@/features/referrals/GenerateReferralPortalModal'
 import { Tabs, type TabItem } from '@/components/ui/Tabs'
 import type { ReferralPartner, ReferralRedemption, Profile } from '@/types'
@@ -37,7 +37,7 @@ export function AdminReferralsPage({ embedded }: { embedded?: boolean }) {
   const [partners, setPartners] = useState<ReferralPartner[]>([])
   const [redemptions, setRedemptions] = useState<RedemptionWithUser[]>([])
   const [, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'commissions' | 'codes'>('commissions')
+  const [activeTab, setActiveTab] = useState<'commissions' | 'codes'>('codes')
   const [searchQuery, setSearchQuery] = useState('')
   const [commSearch, setCommSearch] = useState('')
   const [commStatusFilter, setCommStatusFilter] = useState<string>('all')
@@ -45,8 +45,10 @@ export function AdminReferralsPage({ embedded }: { embedded?: boolean }) {
   const [showPortalModal, setShowPortalModal] = useState(false)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({ name: '', email: '', phone: '', code: '' })
+  const [copiedCode, setCopiedCode] = useState<string | null>(null)
   const showModal = useUIStore((s) => s.showModal)
   const showNotification = useUIStore((s) => s.showNotification)
+  const shareUrl = (code: string) => `${window.location.origin}/register?ref=${code}`
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -191,21 +193,7 @@ export function AdminReferralsPage({ embedded }: { embedded?: boolean }) {
             icon={Gift}
             title="Referrals"
             subtitle="Manage referral partners and commissions"
-            actions={
-              isAdmin ? (
-                <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
-                  <Button variant="secondary" size="sm" onClick={() => setShowPortalModal(true)}>
-                    <Link2 size={16} />
-                    Portal Link
-                  </Button>
-              <Button variant="primary" size="sm" onClick={() => { resetForm(); setShowForm(true) }}>
-                <Plus size={16} />
-                Add Referral Code
-              </Button>
-            </div>
-          ) : undefined
-        }
-      />
+          />
       </>)
       }
 
@@ -228,17 +216,34 @@ export function AdminReferralsPage({ embedded }: { embedded?: boolean }) {
           ))}
         </div>
 
-        <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
+        <div className={styles.tabsWrapper}>
+          <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
+
+          {activeTab === 'codes' && (
+            <div className={styles.toolbar}>
+              {isAdmin && (
+                <Button variant="primary" size="sm" onClick={() => { resetForm(); setShowForm(true) }}>
+                  <Plus size={16} />
+                  Add Referral Code
+                </Button>
+              )}
+              <Button variant="secondary" size="sm" onClick={() => setShowPortalModal(true)}>
+                <Link2 size={16} />
+                Portal Link
+              </Button>
+            </div>
+          )}
+        </div>
 
         {activeTab === 'codes' ? (
-          /* Codes table — planner-style */
-          searchedPartners.length === 0 ? (
+          <>
+            {searchedPartners.length === 0 ? (
             <div className={styles.sectionCard}>
               <div className="empty-state" style={{ padding: 'var(--space-8)' }}>
                 <div className="empty-state__icon"><Gift size={24} /></div>
                 <div className="empty-state__title">{searchQuery ? 'No codes found' : 'No referral codes yet'}</div>
                 <div className="empty-state__description">
-                  {searchQuery ? `No codes match "${searchQuery}"` : 'Create your first referral code using the button above.'}
+                  {searchQuery ? `No codes match "${searchQuery}"` : 'Create your first referral code to get started.'}
                 </div>
               </div>
             </div>
@@ -262,6 +267,7 @@ export function AdminReferralsPage({ embedded }: { embedded?: boolean }) {
                   <div className={`${styles.tableHead} ${styles.codesHead}`}>
                     <span>Name</span>
                     <span>Code</span>
+                    <span>Share Link</span>
                     <span>Email</span>
                     <span>Phone</span>
                     <span>Signups</span>
@@ -278,6 +284,22 @@ export function AdminReferralsPage({ embedded }: { embedded?: boolean }) {
                         <div key={p.id} className={`${styles.tableRow} ${styles.codesRow}`}>
                           <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>{p.name}</div>
                           <div style={{ fontFamily: 'monospace', fontSize: 'var(--text-xs)' }}>{p.code}</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {shareUrl(p.code)}
+                            </span>
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(shareUrl(p.code))
+                                setCopiedCode(p.id)
+                                setTimeout(() => setCopiedCode(null), 2000)
+                              }}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-accent)', padding: 2 }}
+                              title="Copy share link"
+                            >
+                              {copiedCode === p.id ? <Check size={12} /> : <Copy size={12} />}
+                            </button>
+                          </div>
                           <div style={{ fontSize: 'var(--text-xs)' }}>{p.email || '—'}</div>
                           <div style={{ fontSize: 'var(--text-xs)' }}>{p.phone || '—'}</div>
                           <div>{s?.signups || 0}</div>
@@ -308,10 +330,11 @@ export function AdminReferralsPage({ embedded }: { embedded?: boolean }) {
                       )
                     })}
                   </div>
-                </div>
               </div>
             </div>
-          )
+          </div>
+          )}
+          </>
         ) : (
           /* Commissions table — planner-style */
           <div className={styles.sectionCard}>
