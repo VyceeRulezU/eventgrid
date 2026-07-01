@@ -572,7 +572,7 @@ export function SuperAdminDashboard() {
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-3) var(--space-5)', borderBottom: '1px solid var(--color-border-subtle)' }}>
             <h3 style={{ margin: 0, fontSize: 'var(--text-sm)', fontWeight: 700 }}>Top 10 Planners</h3>
-            <Link to="/admin/manage?tab=planners" style={{ fontSize: 'var(--text-xs)', color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>View More →</Link>
+            <Link to="/admin/manage?tab=users" style={{ fontSize: 'var(--text-xs)', color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>View More →</Link>
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--text-sm)' }}>

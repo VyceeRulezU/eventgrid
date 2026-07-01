@@ -24,7 +24,7 @@ const routeMeta: Record<string, { title: string; subtitle: string }> = {
   '/settings':             { title: 'Settings', subtitle: 'Profile and preferences' },
   '/admin':                { title: 'Dashboard', subtitle: 'Platform overview' },
   '/admin/analytics':      { title: 'Analytics', subtitle: 'Platform metrics' },
-  '/admin/manage':         { title: 'Manage', subtitle: 'User and account management' },
+  '/admin/manage':         { title: 'All Users', subtitle: 'Users, events and payments across the platform' },
   '/admin/feedback':       { title: 'Feedback', subtitle: 'User feedback and support' },
   '/admin/team':           { title: 'Admin Team', subtitle: 'Manage super admins' },
   '/admin/referrals':      { title: 'Referrals', subtitle: 'Referral partner commissions' },
