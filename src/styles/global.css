@@ -39,6 +39,15 @@ body.shell-active {
   overflow: hidden;
 }
 
+/* Hide scrollbars in all dashboard containers — keep scroll function */
+body.shell-active * {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+body.shell-active *::-webkit-scrollbar {
+  display: none;
+}
+
 h1 { font-size: var(--text-display);  font-weight: var(--weight-bold);     line-height: var(--leading-tight); }
 h2 { font-size: var(--text-title-lg); font-weight: var(--weight-bold);     line-height: var(--leading-tight); }
 h3 { font-size: var(--text-title);    font-weight: var(--weight-semibold); line-height: var(--leading-tight); }
