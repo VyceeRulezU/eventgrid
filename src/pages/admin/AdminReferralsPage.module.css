@@ -82,12 +82,12 @@
 
 .table {
   width: 100%;
-  min-width: 800px;
+  min-width: 900px;
 }
 
 @media (max-width: 640px) {
   .table {
-    min-width: 750px;
+    min-width: 1024px;
   }
 }
 
@@ -175,15 +175,15 @@
 }
 
 .codesHead > :nth-child(1),
-.codesRow > :nth-child(1) { flex: 2; }
+.codesRow > :nth-child(1) { flex: 2.5; }
 .codesHead > :nth-child(2),
 .codesRow > :nth-child(2) { flex: 1.2; }
 .codesHead > :nth-child(3),
 .codesRow > :nth-child(3) { flex: 1.8; }
 .codesHead > :nth-child(4),
-.codesRow > :nth-child(4) { flex: 1; }
+.codesRow > :nth-child(4) { flex: 1.2; }
 .codesHead > :nth-child(5),
-.codesRow > :nth-child(5) { flex: 0.6; text-align: center; }
+.codesRow > :nth-child(5) { flex: 1; text-align: center; }
 .codesHead > :nth-child(6),
 .codesRow > :nth-child(6) { flex: 0.6; text-align: center; }
 .codesHead > :nth-child(7),
@@ -193,7 +193,7 @@
 .codesHead > :nth-child(9),
 .codesRow > :nth-child(9) { flex: 0.6; text-align: center; }
 .codesHead > :nth-child(10),
-.codesRow > :nth-child(10) { flex: 0.4; text-align: center; }
+.codesRow > :nth-child(10) { flex: 0.8; text-align: center; }
 
 /* ── Tabs Wrapper & Codes toolbar ── */
 .tabsWrapper {

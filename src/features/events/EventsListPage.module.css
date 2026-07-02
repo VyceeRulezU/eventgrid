@@ -59,8 +59,14 @@
 
 .table {
   width: 100%;
-  min-width: 700px;
+  min-width: 900px;
   border-collapse: collapse;
+}
+
+@media (max-width: 640px) {
+  .table {
+    min-width: 1000px;
+  }
 }
 
 .thead {
@@ -122,6 +128,7 @@
   padding: var(--space-4);
   vertical-align: middle;
   font-size: var(--text-sm);
+  white-space: nowrap;
 }
 
 .tdCheck {
