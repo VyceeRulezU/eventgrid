@@ -129,11 +129,6 @@ export function PlannerVendorQuotesPage() {
     return `₦${(val / 100).toLocaleString()}`
   }
 
-  const formatDate = (d: string | null) => {
-    if (!d) return '—'
-    return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-  }
-
   const columns: TableColumn[] = [
     { key: 'title', label: 'Request' },
     { key: 'vendor', label: 'Vendor' },

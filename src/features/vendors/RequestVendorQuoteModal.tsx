@@ -19,10 +19,9 @@ interface Props {
   eventId: string
   orgId: string
   onClose: () => void
-  onSent: () => void
 }
 
-export function RequestVendorQuoteModal({ eventId, orgId, onClose, onSent }: Props) {
+export function RequestVendorQuoteModal({ eventId, orgId, onClose }: Props) {
   const showToast = useUIStore((s) => s.showToast)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
