@@ -30,14 +30,14 @@ const badgeStyles: Record<string, { bg: string; color: string }> = {
   cancelled: { bg: 'rgba(239, 68, 68, 0.15)', color: '#EF4444' },
 }
 
-export function AdminReferralsPage({ embedded }: { embedded?: boolean }) {
+export function AdminReferralsPage({ embedded, activeSubTab }: { embedded?: boolean; activeSubTab?: 'commissions' | 'codes' }) {
   const role = useAuthStore((s) => s.role)
   const isAdmin = role === 'super_admin'
 
   const [partners, setPartners] = useState<ReferralPartner[]>([])
   const [redemptions, setRedemptions] = useState<RedemptionWithUser[]>([])
   const [, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'commissions' | 'codes'>('codes')
+  const [activeTab, setActiveTab] = useState<'commissions' | 'codes'>(activeSubTab || 'codes')
   const [searchQuery, setSearchQuery] = useState('')
   const [commSearch, setCommSearch] = useState('')
   const [commStatusFilter, setCommStatusFilter] = useState<string>('all')
@@ -217,7 +217,7 @@ export function AdminReferralsPage({ embedded }: { embedded?: boolean }) {
         </div>
 
         <div className={styles.tabsWrapper}>
-          <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
+          {!activeSubTab && <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />}
 
           {activeTab === 'codes' && (
             <div className={styles.toolbar}>

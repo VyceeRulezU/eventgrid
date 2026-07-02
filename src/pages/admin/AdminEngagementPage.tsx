@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ClipboardList, Gift, Mail } from 'lucide-react'
+import { ClipboardList, Gift, Mail, ListChecks } from 'lucide-react'
 import { AdminPageHero } from '@/components/shared/AdminPageHero'
 import { Tabs, type TabItem } from '@/components/ui/Tabs'
 import { AdminSurveyResponsesPage } from './AdminSurveyResponsesPage'
@@ -9,6 +9,7 @@ import { AdminEmailMarketingPage } from './AdminEmailMarketingPage'
 const tabs: TabItem<string>[] = [
   { key: 'email', label: 'Email Marketing', icon: <Mail size={16} /> },
   { key: 'referrals', label: 'Referrals', icon: <Gift size={16} /> },
+  { key: 'commissions', label: 'Commissions', icon: <ListChecks size={16} /> },
   { key: 'surveys', label: 'Survey Responses', icon: <ClipboardList size={16} /> },
 ]
 
@@ -20,7 +21,7 @@ export function AdminEngagementPage() {
       <AdminPageHero
         icon={Mail}
         title="Engagement"
-        subtitle="Survey responses, referrals, and email marketing"
+        subtitle="Survey responses, referrals, commission payouts, and email marketing"
         backTo="/admin"
       />
 
@@ -30,7 +31,8 @@ export function AdminEngagementPage() {
 
       <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
         {activeTab === 'surveys' && <AdminSurveyResponsesPage embedded />}
-        {activeTab === 'referrals' && <AdminReferralsPage embedded />}
+        {activeTab === 'commissions' && <AdminReferralsPage embedded activeSubTab="commissions" />}
+        {activeTab === 'referrals' && <AdminReferralsPage embedded activeSubTab="codes" />}
         {activeTab === 'email' && <AdminEmailMarketingPage />}
       </div>
     </div>
