@@ -83,12 +83,13 @@ export function PlannerVendorQuotesPage() {
   }, [user, org])
 
   const handleAccept = async (quote: VendorQuote) => {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('vendor_quotes')
       .update({ status: 'accepted' })
       .eq('id', quote.id)
-    if (error) {
-      showNotification({ variant: 'error', title: 'Failed to accept', message: error.message })
+      .select()
+    if (error || !data?.length) {
+      showNotification({ variant: 'error', title: 'Failed to accept', message: error?.message || 'No rows updated' })
       return
     }
 
@@ -104,12 +105,13 @@ export function PlannerVendorQuotesPage() {
   }
 
   const handleReject = async (quote: VendorQuote) => {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('vendor_quotes')
       .update({ status: 'rejected' })
       .eq('id', quote.id)
-    if (error) {
-      showNotification({ variant: 'error', title: 'Failed to reject', message: error.message })
+      .select()
+    if (error || !data?.length) {
+      showNotification({ variant: 'error', title: 'Failed to reject', message: error?.message || 'No rows updated' })
       return
     }
 
