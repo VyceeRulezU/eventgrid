@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Sparkles, ChevronRight, LogOut, ArrowLeft, Check } from 'lucide-react'
+import { Sparkles, ChevronRight, LogOut, ArrowLeft } from 'lucide-react'
 import { OnboardingTestimonials } from '@/components/onboarding/OnboardingTestimonials'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
