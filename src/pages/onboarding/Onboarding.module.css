@@ -63,7 +63,7 @@
 }
 
 .brandLogoImage {
-  height: 32px;
+  height: 64px;
   width: auto;
   display: block;
 }
@@ -129,7 +129,7 @@
 
 .welcomeTitle {
   font-size: var(--text-title-lg);
-  font-weight: var(--weight-extrabold);
+  font-weight: var(--weight-light);
   line-height: var(--leading-tight);
   color: #ffffff;
   margin-bottom: var(--space-3);
@@ -379,7 +379,7 @@ img.testimonialAvatar {
 
 .question {
   font-size: var(--text-title);
-  font-weight: var(--weight-extrabold);
+  font-weight: var(--weight-light);
   letter-spacing: -0.5px;
   margin-bottom: var(--space-5);
   color: var(--color-text-primary);
