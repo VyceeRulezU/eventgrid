@@ -22,9 +22,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
     )
   }
 
-  const isPreview = new URLSearchParams(location.search).has('preview')
-
-  if (!user && !isPreview) {
+  if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />
   }
 
