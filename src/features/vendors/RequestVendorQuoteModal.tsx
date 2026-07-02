@@ -35,6 +35,7 @@ export function RequestVendorQuoteModal({ eventId, orgId, onClose, onSent }: Pro
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
+  const [sent, setSent] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
 
   useEffect(() => {
@@ -141,7 +142,7 @@ export function RequestVendorQuoteModal({ eventId, orgId, onClose, onSent }: Pro
 
     showToast({ type: 'success', title: 'Quote request sent', body: `Sent to ${selectedVendorIds.size} vendor(s)` })
     setSending(false)
-    onSent()
+    setSent(true)
   }
 
   return (
@@ -225,7 +226,7 @@ export function RequestVendorQuoteModal({ eventId, orgId, onClose, onSent }: Pro
         <div className="modal-card__footer" style={{ padding: 'var(--space-4) var(--space-5)', borderTop: '1px solid var(--color-border-subtle)', display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-3)' }}>
           <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
           <button className="btn btn-primary" onClick={handleSubmit} disabled={sending}>
-            {sending ? 'Sending...' : `Send Quote Request (${selectedVendorIds.size})`}
+            {sending ? 'Sending...' : sent ? `Resend (${selectedVendorIds.size})` : `Send Quote Request (${selectedVendorIds.size})`}
           </button>
         </div>
       </div>

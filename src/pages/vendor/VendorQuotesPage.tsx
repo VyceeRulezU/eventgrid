@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Filter, X } from 'lucide-react'
+import { forwardRef } from 'react'
+import { Filter, X, type LucideProps } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
@@ -9,13 +10,12 @@ import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { SubmitQuoteModal } from './SubmitQuoteModal'
 import styles from './VendorQuotesPage.module.css'
 
-function NairaIcon({ size = 24 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <text x="12" y="17" textAnchor="middle" fontSize="16" fontWeight="bold" fill="currentColor" stroke="none">₦</text>
-    </svg>
-  )
-}
+const NairaIcon = forwardRef<SVGSVGElement, LucideProps>(({ size = 24, ...props }, ref) => (
+  <svg ref={ref} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <text x="12" y="17" textAnchor="middle" fontSize="16" fontWeight="bold" fill="currentColor" stroke="none">₦</text>
+  </svg>
+))
+NairaIcon.displayName = 'NairaIcon'
 
 interface QuoteRequest {
   id: string
@@ -78,11 +78,14 @@ export function VendorQuotesPage() {
           const profileIds = [...new Set(qrs.map((q: any) => q.created_by))]
           const eventIds = [...new Set(qrs.map((q: any) => q.event_id).filter(Boolean))]
 
-          const [{ data: profiles }, { data: events }] = await Promise.all([
-            supabase.from('profiles').select('id, display_name').in('id', profileIds),
+          const [{ data: events }, names] = await Promise.all([
             supabase.from('events').select('id, name').in('id', eventIds),
+            Promise.all(profileIds.map(async (uid: string) => {
+              const { data } = await supabase.rpc('get_user_display_name', { uid })
+              return { uid, name: data || 'Unknown' }
+            })),
           ])
-          const profileMap = new Map((profiles || []).map((p: any) => [p.id, p.display_name]))
+          const profileMap = new Map(names.map((n: any) => [n.uid, n.name]))
           const eventMap = new Map((events || []).map((e: any) => [e.id, e.name]))
 
           const invByQr = new Map(invitations.map((i: any) => [i.quote_request_id, i]))
@@ -121,7 +124,7 @@ export function VendorQuotesPage() {
 
   const filtered = requests.filter((r) => {
     if (filter === 'pending') return r.invitation_status === 'pending'
-    if (filter === 'answered') return r.invitation_status === 'quoted' || r.invitation_status === 'declined'
+    if (filter === 'answered') return r.invitation_status === 'quoted' || r.invitation_status === 'accepted' || r.invitation_status === 'declined'
     return true
   })
 
@@ -209,7 +212,7 @@ export function VendorQuotesPage() {
               </td>
               <td style={{ fontSize: 'var(--text-sm)', whiteSpace: 'nowrap' }}>{formatDate(r.deadline)}</td>
               <td>
-                <span className={`badge badge-${r.invitation_status === 'pending' ? 'yellow' : r.invitation_status === 'quoted' ? 'green' : 'grey'}`}>
+                <span className={`badge badge-${r.invitation_status === 'pending' ? 'yellow' : r.invitation_status === 'quoted' || r.invitation_status === 'accepted' ? 'green' : 'grey'}`}>
                   {r.invitation_status}
                 </span>
               </td>
@@ -267,7 +270,7 @@ export function VendorQuotesPage() {
                 </div>
                 <div>
                   <div style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>Status</div>
-                  <span className={`badge badge-${viewingDetails.invitation_status === 'pending' ? 'yellow' : viewingDetails.invitation_status === 'quoted' ? 'green' : 'grey'}`}>
+                  <span className={`badge badge-${viewingDetails.invitation_status === 'pending' ? 'yellow' : viewingDetails.invitation_status === 'quoted' || viewingDetails.invitation_status === 'accepted' ? 'green' : 'grey'}`}>
                     {viewingDetails.invitation_status}
                   </span>
                 </div>
