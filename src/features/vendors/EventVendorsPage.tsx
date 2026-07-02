@@ -52,7 +52,7 @@ const PAYMENT_STATUSES = [
 ]
 
 function fmtNaira(kobo: number): string {
-  return '\u20A6' + (kobo / 100).toLocaleString('en-NG')
+  return '₦' + (kobo / 100).toLocaleString('en-NG')
 }
 
 export function EventVendorsPage({ standalone = true }: { standalone?: boolean }) {
@@ -462,7 +462,7 @@ function AddEventVendorModal({ eventId, onClose, onSaved, isOwner }: {
             </div>
             {isOwner && (
               <div style={{ gridColumn: '1 / -1' }}>
-                <label className="label">Total Amount ({'\u20A6'})</label>
+                <label className="label">Total Amount ({'₦'})</label>
                 <input className="input" type="number" min={0} value={form.total_amount} onChange={(e) => setForm({ ...form, total_amount: e.target.value })} placeholder="Amount in Naira (e.g. 500000)" />
               </div>
             )}
@@ -540,7 +540,7 @@ function EditEventVendorModal({ vendor, onClose, onSaved }: {
               <input className="input" value={form.service_desc} onChange={(e) => setForm({ ...form, service_desc: e.target.value })} />
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
-              <label className="label">Total Amount ({'\u20A6'})</label>
+              <label className="label">Total Amount ({'₦'})</label>
               <input className="input" type="number" min={0} value={form.total_amount} onChange={(e) => setForm({ ...form, total_amount: e.target.value })} />
             </div>
           </div>
