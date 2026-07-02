@@ -2,12 +2,14 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { HelmetProvider } from 'react-helmet-async'
 import { initSentry } from '@/lib/sentry'
+import { initTracking } from '@/lib/tracking'
 import { App } from './App'
 import './styles/tokens.css'
 import './styles/global.css'
 import './styles/components.css'
 
 initSentry()
+initTracking()
 
 // Register service worker for push notifications
 if ('serviceWorker' in navigator) {
