@@ -12,7 +12,7 @@ import styles from './VendorQuotesPage.module.css'
 
 const NairaIcon = forwardRef<SVGSVGElement, LucideProps>(({ size = 24, ...props }, ref) => (
   <svg ref={ref} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <text x="12" y="17" textAnchor="middle" fontSize="16" fontWeight="bold" fill="currentColor" stroke="none">₦</text>
+    <text x="12" y="16" textAnchor="middle" dominantBaseline="central" fontSize="15" fontWeight="bold" fill="currentColor" stroke="none">₦</text>
   </svg>
 ))
 NairaIcon.displayName = 'NairaIcon'

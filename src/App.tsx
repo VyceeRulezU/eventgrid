@@ -636,7 +636,7 @@ export function App() {
                 <RoleGuard allowedRole="vendor"><VendorQuotesPage /></RoleGuard>
               </Suspense>
             } />
-            <Route path="/planner/vendor-quotes" element={
+            <Route path="/planner/quote-center" element={
               <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 400 }} />}>
                 <RoleGuard allowedRole={['planner', 'coordinator']}><PlannerVendorQuotesPage /></RoleGuard>
               </Suspense>

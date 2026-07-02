@@ -83,8 +83,7 @@ export function Sidebar() {
   }
 
   if (role === 'planner' || role === 'coordinator') {
-    managementItems.push({ to: '/planner/vendor-quotes', label: 'Vendor Quotes', icon: FileText })
-    managementItems.push({ to: '/client/browse-quotes', label: 'Client Requests', icon: FileText })
+    managementItems.push({ to: '/planner/quote-center', label: 'Quote Center', icon: FileText })
   }
 
   if (role === 'client') {

@@ -37,7 +37,7 @@ const routeMeta: Record<string, { title: string; subtitle: string }> = {
   '/admin/my-tasks':       { title: 'My Tasks', subtitle: 'Admin tasks across all events' },
   '/dashboard/vendor':     { title: 'Vendor Dashboard', subtitle: 'Your events, listings and quotes' },
   '/vendor/quotes':         { title: 'Quote Requests', subtitle: 'Respond to incoming quote requests' },
-  '/planner/vendor-quotes': { title: 'Vendor Quotes', subtitle: 'Review quotes from vendors' },
+  '/planner/quote-center':  { title: 'Quote Center', subtitle: 'Client requests and vendor quotes' },
   '/client/my-quotes':      { title: 'My Quotes', subtitle: 'Your quote requests and responses' },
   '/dashboard/client':      { title: 'Dashboard', subtitle: 'Your events and quotes' },
   '/client/create-event':  { title: 'Create Event', subtitle: 'Tell us about your event' },
