@@ -245,19 +245,12 @@ export function SuperAdminTeamPage() {
           label: 'Remove',
           variant: 'danger' as const,
           onClick: async () => {
-            // Restore original_role and clear admin flags
-            const { data: profile } = await supabase.from('profiles').select('original_role').eq('id', memberId).single()
-            const restoreRole = profile?.original_role || 'planner'
-            const { error } = await supabase.from('profiles').update({
-              is_super_admin: false,
-              role: restoreRole,
-              original_role: null,
-            }).eq('id', memberId)
+            const { error } = await supabase.rpc('revoke_admin_privileges', { p_user_id: memberId })
             if (error) {
               showNotification({ variant: 'error', title: 'Failed to remove', message: error.message })
               return
             }
-            showNotification({ variant: 'success', title: 'Admin removed', message: `Role restored to ${restoreRole}` })
+            showNotification({ variant: 'success', title: 'Admin removed', message: 'Role restored to original' })
             loadData()
           },
         },
