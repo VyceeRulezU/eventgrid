@@ -19,15 +19,24 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
+          if [ -z "$SUPABASE_URL" ]; then
+            echo "::error::SUPABASE_URL secret is not set in the repository. Please go to Settings > Secrets and variables > Actions to configure it."
+            exit 1
+          fi
+          if [ -z "$SERVICE_ROLE_KEY" ]; then
+            echo "::error::SUPABASE_SERVICE_ROLE_KEY secret is not set in the repository. Please go to Settings > Secrets and variables > Actions to configure it."
+            exit 1
+          fi
+
           TABLES="events guests profiles vendors event_vendors seating_tables client_payments tasks feedbacks notifications phases"
           mkdir -p backup
           for table in $TABLES; do
             echo "Exporting $table..."
-            curl -s "$SUPABASE_URL/rest/v1/$table" \
+            curl -s --fail "$SUPABASE_URL/rest/v1/$table" \
               -H "apikey: $SERVICE_ROLE_KEY" \
               -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
               -H "Accept: application/json" \
-              -o "backup/${table}.json"
+              -o "backup/${table}.json" || { echo "::error::Failed to export $table (HTTP/Connection error)"; exit 1; }
           done
 
       - name: Create archive
