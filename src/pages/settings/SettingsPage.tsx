@@ -343,7 +343,7 @@ export function SettingsPage() {
 
   const tabs = [
     { key: 'profile' as const, label: 'Profile', icon: <User size={16} /> },
-    ...(org ? [{ key: 'org' as const, label: 'Organisation', icon: <Building2 size={16} /> }] : []),
+    { key: 'org' as const, label: 'Organisation', icon: <Building2 size={16} /> },
     { key: 'preferences' as const, label: 'Preferences', icon: <Settings size={16} /> },
     ...(!isAdminRole ? [{ key: 'upgrades' as const, label: 'Transitions', icon: <Sparkles size={16} /> }] : []),
     { key: 'support' as const, label: 'Support & Security', icon: <LifeBuoy size={16} /> },
@@ -466,87 +466,104 @@ export function SettingsPage() {
         )}
 
         {/* ==================== ORGANISATION TAB ==================== */}
-        {activeTab === 'org' && org && (
+        {activeTab === 'org' && (
           <div className={`card ${styles.spanFull}`}>
             <h3 className={`${styles.cardTitle} ${styles.cardTitleRow}`}>
               <Building2 size={18} style={{ color: 'var(--color-accent)' }} />
               Organisation Profile
             </h3>
-            <p className={styles.orgDesc}>
-              Your business name and logo appear in the top bar and across NaliGrid.
-            </p>
 
-            <div className={styles.orgRow}>
-              <div className={styles.avatarWrap}>
-                <div
-                  className={styles.orgLogo}
-                  style={logoPreview ? { backgroundImage: `url(${logoPreview})` } : undefined}
-                >
-                  {!logoPreview && (orgName || org.name).charAt(0).toUpperCase()}
-                </div>
+            {!org ? (
+              <div style={{ padding: 'var(--space-6) 0', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+                <Building2 size={32} style={{ opacity: 0.3, margin: '0 auto 8px', display: 'block' }} />
+                <p style={{ marginBottom: 'var(--space-4)' }}>You are not part of any organisation yet.</p>
                 <button
                   type="button"
-                  onClick={() => logoInputRef.current?.click()}
-                  className={styles.avatarBtn}
-                  aria-label="Upload organisation logo"
+                  className="btn btn-primary"
+                  onClick={() => navigate('/onboarding/planner')}
                 >
-                  <Camera size={12} />
+                  Create Organisation
                 </button>
-                <input ref={logoInputRef} type="file" accept="image/*" hidden onChange={handleLogoChange} />
               </div>
+            ) : (
+              <>
+                <p className={styles.orgDesc}>
+                  Your business name and logo appear in the top bar and across NaliGrid.
+                </p>
 
-              <div className={styles.orgFields}>
-                <div className="input-wrapper">
-                  <label className="input-label" htmlFor="org-name">Organisation Name</label>
-                  <input
-                    id="org-name"
-                    type="text"
-                    className="input"
-                    value={orgName}
-                    onChange={(e) => setOrgName(e.target.value)}
-                    placeholder="e.g. NaliTech Events"
-                  />
-                </div>
-                <div className="input-wrapper">
-                  <label className="input-label" htmlFor="org-city">City</label>
-                  <input
-                    id="org-city"
-                    type="text"
-                    className="input"
-                    value={orgCity}
-                    onChange={(e) => setOrgCity(e.target.value)}
-                    placeholder="e.g. Abuja"
-                  />
-                </div>
-                <div className="input-wrapper">
-                  <label className="input-label" htmlFor="org-website">Website</label>
-                  <input
-                    id="org-website"
-                    type="url"
-                    className="input"
-                    value={orgWebsite}
-                    onChange={(e) => setOrgWebsite(e.target.value)}
-                    placeholder="https://yourevents.ng"
-                  />
-                </div>
-                <div className="input-wrapper">
-                  <label className="input-label" htmlFor="org-instagram">Instagram</label>
-                  <input
-                    id="org-instagram"
-                    type="text"
-                    className="input"
-                    value={orgInstagram}
-                    onChange={(e) => setOrgInstagram(e.target.value)}
-                    placeholder="@yourbrand"
-                  />
-                </div>
-              </div>
-            </div>
+                <div className={styles.orgRow}>
+                  <div className={styles.avatarWrap}>
+                    <div
+                      className={styles.orgLogo}
+                      style={logoPreview ? { backgroundImage: `url(${logoPreview})` } : undefined}
+                    >
+                      {!logoPreview && (orgName || org.name).charAt(0).toUpperCase()}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => logoInputRef.current?.click()}
+                      className={styles.avatarBtn}
+                      aria-label="Upload organisation logo"
+                    >
+                      <Camera size={12} />
+                    </button>
+                    <input ref={logoInputRef} type="file" accept="image/*" hidden onChange={handleLogoChange} />
+                  </div>
 
-            <button type="button" className="btn btn-primary" onClick={handleSaveOrg} disabled={savingOrg || !orgName.trim()}>
-              <Upload size={16} />
-              {savingOrg ? 'Saving...' : 'Save Organisation'}
-            </button>
+                  <div className={styles.orgFields}>
+                    <div className="input-wrapper">
+                      <label className="input-label" htmlFor="org-name">Organisation Name</label>
+                      <input
+                        id="org-name"
+                        type="text"
+                        className="input"
+                        value={orgName}
+                        onChange={(e) => setOrgName(e.target.value)}
+                        placeholder="e.g. NaliTech Events"
+                      />
+                    </div>
+                    <div className="input-wrapper">
+                      <label className="input-label" htmlFor="org-city">City</label>
+                      <input
+                        id="org-city"
+                        type="text"
+                        className="input"
+                        value={orgCity}
+                        onChange={(e) => setOrgCity(e.target.value)}
+                        placeholder="e.g. Abuja"
+                      />
+                    </div>
+                    <div className="input-wrapper">
+                      <label className="input-label" htmlFor="org-website">Website</label>
+                      <input
+                        id="org-website"
+                        type="url"
+                        className="input"
+                        value={orgWebsite}
+                        onChange={(e) => setOrgWebsite(e.target.value)}
+                        placeholder="https://yourevents.ng"
+                      />
+                    </div>
+                    <div className="input-wrapper">
+                      <label className="input-label" htmlFor="org-instagram">Instagram</label>
+                      <input
+                        id="org-instagram"
+                        type="text"
+                        className="input"
+                        value={orgInstagram}
+                        onChange={(e) => setOrgInstagram(e.target.value)}
+                        placeholder="@yourbrand"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <button type="button" className="btn btn-primary" onClick={handleSaveOrg} disabled={savingOrg || !orgName.trim()}>
+                  <Upload size={16} />
+                  {savingOrg ? 'Saving...' : 'Save Organisation'}
+                </button>
+              </>
+            )}
           </div>
         )}
 

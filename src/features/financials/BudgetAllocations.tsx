@@ -364,51 +364,16 @@ export function BudgetAllocations({ eventId, eventName }: BudgetAllocationsProps
           </table>
         </div>
 
-        {/* Add custom category row */}
-        {showAddRow && (
-          <div className={styles.addRowWrap}>
-            <input
-              className={`input ${styles.addRowInput}`}
-              placeholder="Category name (e.g. Florals, MC, Branding)"
-              value={newCatName}
-              onChange={e => setNewCatName(e.target.value)}
-              autoFocus
-              onKeyDown={e => { if (e.key === 'Enter') handleAddCategory(); if (e.key === 'Escape') { setShowAddRow(false); setNewCatName('') } }}
-            />
-            <button
-              className={`btn btn-primary btn-sm ${styles.addRowBtn}`}
-              onClick={handleAddCategory}
-              disabled={addingSaving || !newCatName.trim()}
-            >
-              <Check size={14} /> {addingSaving ? 'Adding...' : 'Add'}
-            </button>
-            <button
-              className={`btn btn-ghost btn-sm btn-icon ${styles.addRowBtn}`}
-              onClick={() => { setShowAddRow(false); setNewCatName('') }}
-            >
-              <X size={14} />
-            </button>
-          </div>
-        )}
-
-        <div 
-          className={styles.totalRow} 
-          style={{ 
-            marginTop: showAddRow ? 0 : '0', 
-            borderTop: showAddRow ? 'none' : '1px solid var(--color-border-subtle)' 
-          }}
-        >
+        <div className={styles.totalRow}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
             <span>Total</span>
-            {!showAddRow && (
-              <button
-                className={`btn btn-ghost btn-sm ${styles.addCatBtn}`}
-                onClick={() => setShowAddRow(true)}
-                id="add-budget-category-btn"
-              >
-                <Plus size={12} /> Add Category
-              </button>
-            )}
+            <button
+              className={`btn btn-ghost btn-sm ${styles.addCatBtn}`}
+              onClick={() => setShowAddRow(true)}
+              id="add-budget-category-btn"
+            >
+              <Plus size={12} /> Add Category
+            </button>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
             <span>{formatNaira(totalActual)} / {formatNaira(totalAllocated)}</span>
@@ -416,6 +381,43 @@ export function BudgetAllocations({ eventId, eventName }: BudgetAllocationsProps
           </div>
         </div>
       </div>
+
+      {showAddRow && (
+        <div className="modal-overlay" onClick={() => { setShowAddRow(false); setNewCatName('') }}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 460 }}>
+            <div className="modal-card__header">
+              <h3 className="modal-card__title"><Plus size={16} /> Add Category</h3>
+              <button className="modal-card__close" onClick={() => { setShowAddRow(false); setNewCatName('') }}>
+                <X size={18} />
+              </button>
+            </div>
+            <div className="modal-card__body">
+              <label className="input-label">Category name</label>
+              <input
+                className="input"
+                placeholder="e.g. Florals, MC, Branding"
+                value={newCatName}
+                onChange={e => setNewCatName(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') handleAddCategory(); if (e.key === 'Escape') { setShowAddRow(false); setNewCatName('') } }}
+                autoFocus
+                style={{ width: '100%' }}
+              />
+            </div>
+            <div className="modal-card__footer" style={{ display: 'flex', gap: 'var(--space-3)', justifyContent: 'flex-end' }}>
+              <button className="btn btn-secondary" onClick={() => { setShowAddRow(false); setNewCatName('') }}>
+                Cancel
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={handleAddCategory}
+                disabled={addingSaving || !newCatName.trim()}
+              >
+                <Check size={14} /> {addingSaving ? 'Adding...' : 'Add'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
