@@ -51,6 +51,8 @@ export function SubmitQuoteModal({ quoteRequest, vendorId, onClose, onSubmit }: 
   const totalAmount = lineItems.reduce((sum, item) => sum + (item.amount || 0), 0)
 
   const handleSubmit = async () => {
+    if (sending) return
+
     if (!amount && lineItems.length === 0) {
       showToast({ type: 'warning', title: 'Enter an amount or add line items' })
       return

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { SEO } from '@/components/shared/SEO'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
+import { checkRateLimit } from '@/lib/rateLimit'
 import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import Footer from '@/pages/landing/Footer'
@@ -14,6 +15,11 @@ export function ContactPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    if (sending) return
+    if (!checkRateLimit('contact-form', 3, 60000)) {
+      showToast({ type: 'error', title: 'Too many requests', body: 'Please wait a moment before trying again.' })
+      return
+    }
     setSending(true)
 
     const form = e.currentTarget

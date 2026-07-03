@@ -295,6 +295,7 @@ export function EventDashboardPage() {
   }
 
   const paySucceededRef = useRef(false)
+  const payingRef = useRef(false)
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -626,12 +627,15 @@ export function EventDashboardPage() {
 
   const handlePayNow = useCallback(async (provider: 'paystack' | 'korapay') => {
     if (!user || !id || !activeEvent) return
+    if (payingRef.current) return
+    payingRef.current = true
     const currentEvent = activeEvent
     paySucceededRef.current = false
     setPayStatus('processing')
 
     const timeoutId = setTimeout(() => {
       if (!paySucceededRef.current) {
+        payingRef.current = false
         paySucceededRef.current = true
         setPayStatus('failed')
         showNotification({ variant: 'error', title: 'Payment timed out', message: 'The payment window did not respond. Check your internet connection and try again.' })
@@ -686,10 +690,12 @@ export function EventDashboardPage() {
 
         onClose: () => {
           clearTimeout(timeoutId)
+          payingRef.current = false
           if (!paySucceededRef.current) setPayStatus('cancelled')
         },
         onFailed: (message) => {
           clearTimeout(timeoutId)
+          payingRef.current = false
           paySucceededRef.current = true
           setPayStatus('failed')
           showNotification({ variant: 'error', title: 'Payment failed', message })
@@ -697,6 +703,7 @@ export function EventDashboardPage() {
       })
     } catch (err) {
       clearTimeout(timeoutId)
+      payingRef.current = false
       if (!paySucceededRef.current) {
         setPayStatus('failed')
         const msg = err instanceof Error ? err.message : 'Could not load payment provider'

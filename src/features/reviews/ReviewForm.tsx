@@ -21,6 +21,7 @@ export function ReviewForm({ reviewedId, eventId, reviewerRole, onSubmitted, ano
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (sending) return
     if (rating === 0) return
     if (anonymous && !reviewerName.trim()) return
     setSending(true)

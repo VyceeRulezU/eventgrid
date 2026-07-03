@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Check, X, HelpCircle } from 'lucide-react'
+import { checkRateLimit } from '@/lib/rateLimit'
 
 interface GuestInfo {
   id: string
@@ -84,7 +85,11 @@ export function GuestRsvpPage() {
   }, [params])
 
   const handleRsvp = async (rsvpStatus: string) => {
-    if (!guest) return
+    if (!guest || submitting) return
+    if (!checkRateLimit('guest-rsvp', 5, 60000)) {
+      setError('Too many attempts. Please wait a moment.')
+      return
+    }
     setSubmitting(true)
     try {
       const res = await fetch(
@@ -117,7 +122,7 @@ export function GuestRsvpPage() {
   }
 
   const handleSaveNote = async () => {
-    if (!guest) return
+    if (!guest || submitting) return
     setSubmitting(true)
     try {
       const res = await fetch(
