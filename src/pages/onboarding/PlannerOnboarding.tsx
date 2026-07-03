@@ -103,8 +103,10 @@ export function PlannerOnboarding() {
   const existingOrg = useAuthStore((s) => s.profile?.org_id)
   const [isOwner, setIsOwner] = useState(false)
   const [checkingOrg, setCheckingOrg] = useState(true)
+  const [existingOrgName, setExistingOrgName] = useState('')
+  const [createNewOrg, setCreateNewOrg] = useState(false)
 
-  const isUpgrade = !!existingOrg && isOwner
+  const isUpgrade = !!existingOrg
 
   useEffect(() => {
     async function checkOwnership() {
@@ -115,13 +117,12 @@ export function PlannerOnboarding() {
       try {
         const { data } = await supabase
           .from('organizations')
-          .select('owner_id')
+          .select('owner_id, name')
           .eq('id', existingOrg)
           .single()
-        if (data && data.owner_id === user.id) {
-          setIsOwner(true)
-          setStep(TOTAL_STEPS)
-          showToast({ type: 'info', title: 'Upgrading to Planner', body: 'Review and confirm to unlock financial features.' })
+        if (data) {
+          if (data.owner_id === user.id) setIsOwner(true)
+          setExistingOrgName(data.name)
         }
       } catch (err) {
         console.error('Error checking org ownership:', err)
@@ -131,6 +132,14 @@ export function PlannerOnboarding() {
     }
     checkOwnership()
   }, [user, existingOrg])
+
+  // Users with an existing org (owner or invited member) skip to confirmation step
+  useEffect(() => {
+    if (isUpgrade && !checkingOrg) {
+      setStep(TOTAL_STEPS)
+      showToast({ type: 'info', title: 'Upgrading to Planner', body: 'Review and confirm to unlock financial features.' })
+    }
+  }, [isUpgrade, checkingOrg])
 
   const TOTAL_STEPS = 5
 
@@ -164,7 +173,7 @@ export function PlannerOnboarding() {
     let orgData: { id: string; name: string; logo_url: string | null; show_beta_label: boolean; owner_id: string | null } | null = null
 
     // Step 1: Find or create the org (without logo — upload happens after we have the orgId)
-    if (isUpgrade && existingOrg) {
+    if (isUpgrade && existingOrg && !createNewOrg) {
       orgId = existingOrg
     } else {
       const { data: org, error: orgErr } = await supabase
@@ -583,7 +592,7 @@ export function PlannerOnboarding() {
             </div>
           )}
 
-          {step === 5 && !isUpgrade && (
+          {step === 5 && (!isUpgrade || createNewOrg) && (
             <div>
               <div className={styles.infoBox}>
                 <Sparkles size={16} className={styles.infoIcon} />
@@ -718,7 +727,7 @@ export function PlannerOnboarding() {
             </div>
           )}
 
-          {step === 5 && isUpgrade && (
+          {step === 5 && isUpgrade && !createNewOrg && (
             <div>
               <div className={styles.infoBox}>
                 <ArrowUpCircle size={16} className={styles.infoIcon} />
@@ -769,6 +778,33 @@ export function PlannerOnboarding() {
                   </div>
                 </div>
               </div>
+
+              {!isOwner && existingOrgName && (
+                <div style={{ marginTop: 'var(--space-5)', padding: 'var(--space-4)', background: 'var(--color-surface-2)', borderRadius: 12 }}>
+                  <label style={{ fontWeight: 600, fontSize: 'var(--text-sm)', display: 'block', marginBottom: 'var(--space-3)' }}>
+                    Organisation
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer', padding: 'var(--space-2) 0' }}>
+                    <input
+                      type="radio"
+                      name="orgChoice"
+                      checked={!createNewOrg}
+                      onChange={() => setCreateNewOrg(false)}
+                    />
+                    <span style={{ fontSize: 'var(--text-sm)' }}>Stay with <strong>{existingOrgName}</strong></span>
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer', padding: 'var(--space-2) 0' }}>
+                    <input
+                      type="radio"
+                      name="orgChoice"
+                      checked={createNewOrg}
+                      onChange={() => { setCreateNewOrg(true); setStep(1) }}
+                    />
+                    <span style={{ fontSize: 'var(--text-sm)' }}>Create my own organisation</span>
+                  </label>
+                </div>
+              )}
+
               <div className={styles.launchDisclaimer}>
                 <Sparkles size={14} className={styles.disclaimerIcon} />
                 <p style={{ margin: 0 }}>
@@ -791,7 +827,7 @@ export function PlannerOnboarding() {
             className={styles.continueBtn}
             disabled={loading || (step === 1 && !orgName.trim())}
           >
-            {loading ? 'Upgrading…' : step === TOTAL_STEPS ? (isUpgrade ? 'Confirm Upgrade' : 'Launch Workspace') : (
+            {loading ? 'Upgrading…' : step === TOTAL_STEPS ? (isUpgrade && !createNewOrg ? 'Confirm Upgrade' : 'Launch Workspace') : (
               <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 Continue <ChevronRight size={16} />
               </span>

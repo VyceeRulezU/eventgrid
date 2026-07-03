@@ -124,8 +124,9 @@ export function VendorDirectoryPage() {
           const orgEntry = (v.organizations as { name: string } | null)
           return { ...v, org_name: orgEntry?.name || '' } as Vendor & { org_name?: string }
         }).filter((v: any) => {
-          if (v.category === 'Coordinator' && v.email) {
-            const key = `${v.org_id}-${v.email.toLowerCase()}`
+          // Dedup all entries by email to hide duplicate orgs from upgrade flow
+          if (v.email) {
+            const key = v.email.toLowerCase()
             if (seen.has(key)) return false
             seen.add(key)
           }
