@@ -231,15 +231,16 @@ export function AdminVendorDirectoryPage() {
       setOrgForm({ name: '', city: '', website: '', instagram: '' })
       if (role === 'super_admin' && vendor.org_id) {
         setOrgLoading(true)
-        supabase
-          .from('organizations')
-          .select('name, city, website, instagram')
-          .eq('id', vendor.org_id)
-          .single()
-          .then(({ data }) => {
-            if (data) setOrgForm({ name: data.name || '', city: data.city || '', website: data.website || '', instagram: data.instagram || '' })
-          })
-          .finally(() => setOrgLoading(false))
+        Promise.resolve(
+          supabase
+            .from('organizations')
+            .select('name, city, website, instagram')
+            .eq('id', vendor.org_id)
+            .single()
+            .then(({ data }) => {
+              if (data) setOrgForm({ name: data.name || '', city: data.city || '', website: data.website || '', instagram: data.instagram || '' })
+            })
+        ).finally(() => setOrgLoading(false))
       }
       setShowForm(true)
     } else {

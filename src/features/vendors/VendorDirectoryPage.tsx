@@ -66,7 +66,6 @@ export function VendorDirectoryPage() {
 
   const [showCSVImport, setShowCSVImport] = useState(false)
   // Org editing (super admin only)
-  const isSuperAdmin = role === 'super_admin'
   const [orgForm, setOrgForm] = useState({ name: '', city: '', website: '', instagram: '' })
   const [orgLoading, setOrgLoading] = useState(false)
 
@@ -229,15 +228,16 @@ export function VendorDirectoryPage() {
       setOrgForm({ name: '', city: '', website: '', instagram: '' })
       if (role === 'super_admin' && vendor.org_id) {
         setOrgLoading(true)
-        supabase
-          .from('organizations')
-          .select('name, city, website, instagram')
-          .eq('id', vendor.org_id)
-          .single()
-          .then(({ data }) => {
-            if (data) setOrgForm({ name: data.name || '', city: data.city || '', website: data.website || '', instagram: data.instagram || '' })
-          })
-          .finally(() => setOrgLoading(false))
+        Promise.resolve(
+          supabase
+            .from('organizations')
+            .select('name, city, website, instagram')
+            .eq('id', vendor.org_id)
+            .single()
+            .then(({ data }) => {
+              if (data) setOrgForm({ name: data.name || '', city: data.city || '', website: data.website || '', instagram: data.instagram || '' })
+            })
+        ).finally(() => setOrgLoading(false))
       }
       setShowForm(true)
     } else {
