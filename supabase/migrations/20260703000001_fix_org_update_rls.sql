@@ -1,26 +1,49 @@
--- Migration: Allow org members to update organization and change org affiliation
+-- Migration: Allow org members to update organization
 -- ================================================================================
--- Problem: orgs_update_own policy has no WITH CHECK, and users can't
--- change which org they belong to.
--- Fix: 
---   1. Recreate orgs_update_own with WITH CHECK
---   2. Create RPC for users to change their org
---   3. Add RLS policy for profiles.org_id updates
+-- Uses SECURITY DEFINER RPC to bypass RLS, so no dependency on get_user_org_id
+-- overload from migration 138.
 
--- ── 1. Fix organizations UPDATE policy ──────────────────────────────────────────
+-- ── 1. RPC: update org details (bypasses RLS) ──────────────────────────────────
 
-DROP POLICY IF EXISTS "orgs_update_own" ON public.organizations;
+CREATE OR REPLACE FUNCTION public.update_org(
+  p_id            uuid,
+  p_name          text DEFAULT NULL,
+  p_city          text DEFAULT NULL,
+  p_website       text DEFAULT NULL,
+  p_instagram     text DEFAULT NULL,
+  p_logo_url      text DEFAULT NULL
+)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+SET row_security = off
+AS $$
+DECLARE
+  v_my_org_id uuid;
+BEGIN
+  -- Get the user's org_id directly from profiles (bypasses RLS)
+  SELECT org_id INTO v_my_org_id FROM public.profiles WHERE id = auth.uid();
 
-CREATE POLICY "orgs_update_own"
-  ON public.organizations FOR UPDATE
-  USING (
-    owner_id = auth.uid()
-    OR id = public.get_user_org_id(ARRAY['coordinator', 'planner'])
-  )
-  WITH CHECK (
-    owner_id = auth.uid()
-    OR id = public.get_user_org_id(ARRAY['coordinator', 'planner'])
-  );
+  -- Only allow if the user belongs to this org
+  IF v_my_org_id IS NULL OR v_my_org_id != p_id THEN
+    RETURN false;
+  END IF;
+
+  UPDATE public.organizations
+  SET
+    name      = COALESCE(p_name, name),
+    city      = COALESCE(p_city, city),
+    website   = COALESCE(p_website, website),
+    instagram = COALESCE(p_instagram, instagram),
+    logo_url  = COALESCE(p_logo_url, logo_url)
+  WHERE id = p_id;
+
+  RETURN FOUND;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.update_org(uuid, text, text, text, text, text) TO authenticated;
 
 -- ── 2. RPC: change user's org affiliation ──────────────────────────────────────
 

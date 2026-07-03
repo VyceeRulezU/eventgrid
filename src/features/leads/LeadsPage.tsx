@@ -27,6 +27,13 @@ const statusColors: Record<string, string> = {
   lost: 'var(--color-text-muted)',
 }
 
+function capitalizeWords(str: string): string {
+  return str
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
+
 export function LeadsPage() {
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
@@ -228,7 +235,7 @@ export function LeadsPage() {
       <Tabs
         tabs={[
           { key: 'all', label: `All (${leads.length})` },
-          ...STATUSES.map(s => ({ key: s, label: `${s.replace('_', ' ')} (${statusCounts[s] || 0})` })),
+          ...STATUSES.map(s => ({ key: s, label: `${capitalizeWords(s)} (${statusCounts[s] || 0})` })),
         ]}
         activeTab={selectedStatus}
         onChange={setSelectedStatus}
@@ -250,8 +257,8 @@ export function LeadsPage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div className="input-wrapper"><label className="input-label">Source</label>
                   <DropdownMenu
-                    trigger={<span className={styles.dropdownTrigger}>{form.source.replace('_', ' ')}</span>}
-                    items={SOURCES.map(s => ({ label: s.replace('_', ' '), value: s }))}
+                    trigger={<span className={styles.dropdownTrigger}>{capitalizeWords(form.source)}</span>}
+                    items={SOURCES.map(s => ({ label: capitalizeWords(s), value: s }))}
                     onSelect={(item) => setForm({...form, source: item.value})}
                   />
                 </div>
@@ -292,7 +299,7 @@ export function LeadsPage() {
                 <div className={styles.kanbanColHeader}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span className={styles.colDot} style={{ background: statusColors[col] }} />
-                    <span className={styles.colTitle}>{col.replace('_', ' ')}</span>
+                    <span className={styles.colTitle}>{capitalizeWords(col)}</span>
                   </div>
                   <span className={styles.colCount}>{colLeads.length}</span>
                 </div>
@@ -319,15 +326,15 @@ export function LeadsPage() {
                       <div className={styles.leadDetails}>
                         {lead.event_type && <span className={styles.detailBadge}>{lead.event_type}</span>}
                         {lead.budget_range && <span className={styles.detailBadge} style={{ color: 'var(--color-accent)' }}>{lead.budget_range}</span>}
-                        {lead.source && <span className={styles.sourceLabel}>{lead.source}</span>}
+                        {lead.source && <span className={styles.sourceLabel}>{capitalizeWords(lead.source)}</span>}
                       </div>
 
                       {lead.notes && <p className={styles.leadNotes}>{lead.notes}</p>}
 
                       <div className={styles.leadCardFooter}>
                         <DropdownMenu
-                          trigger={<span className={styles.cardStatusBadge} style={{ background: `${statusColors[lead.status]}15`, color: statusColors[lead.status] }}>{lead.status.replace('_', ' ')}</span>}
-                          items={STATUSES.map(s => ({ label: s.replace('_', ' '), value: s }))}
+                          trigger={<span className={styles.cardStatusBadge} style={{ background: `${statusColors[lead.status]}15`, color: statusColors[lead.status] }}>{capitalizeWords(lead.status)}</span>}
+                          items={STATUSES.map(s => ({ label: capitalizeWords(s), value: s }))}
                           onSelect={(item) => handleStatusChange(lead, item.value as Lead['status'])}
                         />
                         <span className={styles.leadDate}>{new Date(lead.created_at).toLocaleDateString()}</span>
@@ -379,11 +386,11 @@ export function LeadsPage() {
                           </div>}
                         </div>
                       </td>
-                      <td><span className={styles.sourceBadge}>{lead.source.replace('_', ' ')}</span></td>
+                      <td><span className={styles.sourceBadge}>{capitalizeWords(lead.source)}</span></td>
                       <td>
                         <DropdownMenu
-                          trigger={<span className={styles.statusBadgeTrigger} style={{ borderColor: statusColors[lead.status], color: statusColors[lead.status] }}>{lead.status.replace('_', ' ')}</span>}
-                          items={STATUSES.map(s => ({ label: s.replace('_', ' '), value: s }))}
+                          trigger={<span className={styles.statusBadgeTrigger} style={{ borderColor: statusColors[lead.status], color: statusColors[lead.status] }}>{capitalizeWords(lead.status)}</span>}
+                          items={STATUSES.map(s => ({ label: capitalizeWords(s), value: s }))}
                           onSelect={(item) => handleStatusChange(lead, item.value as Lead['status'])}
                         />
                       </td>

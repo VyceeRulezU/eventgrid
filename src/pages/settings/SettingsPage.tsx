@@ -241,10 +241,10 @@ export function SettingsPage() {
       const { url: publicUrl } = await uploadFile('org-assets', file, path)
       setLogoPreview(publicUrl)
 
-      const { error } = await supabase
-        .from('organizations')
-        .update({ logo_url: publicUrl })
-        .eq('id', org.id)
+      const { error } = await supabase.rpc('update_org', {
+        p_id: org.id,
+        p_logo_url: publicUrl,
+      })
 
       if (error) {
         showToast({ type: 'error', title: 'Save failed', body: error.message })
@@ -286,15 +286,13 @@ export function SettingsPage() {
     if (!org || !supabase) return
     setSavingOrg(true)
 
-    const { error } = await supabase
-      .from('organizations')
-      .update({
-        name: orgName.trim(),
-        city: orgCity.trim(),
-        website: orgWebsite.trim() || null,
-        instagram: orgInstagram.trim() || null,
-      })
-      .eq('id', org.id)
+    const { error } = await supabase.rpc('update_org', {
+      p_id: org.id,
+      p_name: orgName.trim(),
+      p_city: orgCity.trim() || null,
+      p_website: orgWebsite.trim() || null,
+      p_instagram: orgInstagram.trim() || null,
+    })
 
     if (error) {
       showToast({ type: 'error', title: 'Save failed', body: error.message })
