@@ -28,7 +28,7 @@ jobs:
             exit 1
           fi
 
-          TABLES="events guests profiles vendors event_vendors seating_tables client_payments tasks feedbacks notifications phases"
+          TABLES="events guests profiles vendors event_vendors seating_tables client_payments tasks feedback notifications event_phases"
           mkdir -p backup
           for table in $TABLES; do
             echo "Exporting $table..."
