@@ -49,7 +49,7 @@ export function LiveBoardLandingPage() {
         <div className={spotlightStyles.layout}>
           <div className={spotlightStyles.imagePane}>
             <img
-              src="https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1200&q=85&auto=format&fit=crop"
+              src="https://i.ibb.co/Y7c4HCNF"
               alt="Live event coordination dashboard"
               className={spotlightStyles.eventImage}
               loading="lazy"

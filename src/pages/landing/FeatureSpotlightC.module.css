@@ -78,7 +78,7 @@
 }
 
 .subtext {
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
   color: var(--color-text-secondary);
   line-height: var(--leading-relaxed);
   margin: 0 0 var(--space-8) 0;
@@ -130,7 +130,7 @@
 }
 
 .cardText {
-  font-size: var(--text-xs);
+  font-size: var(--text-base);
   color: var(--color-text-muted);
   line-height: var(--leading-relaxed);
   margin: 0;

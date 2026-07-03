@@ -5,7 +5,7 @@ import BlogSection from '@/pages/landing/BlogSection'
 import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
 import Footer from '@/pages/landing/Footer'
-import { Target, Shield, Zap } from 'lucide-react'
+import { Target, Shield, Zap, Award } from 'lucide-react'
 import styles from './InfoPages.module.css'
 import spotlightStyles from '@/pages/landing/FeatureSpotlightB.module.css'
 
@@ -106,6 +106,7 @@ export function AboutPage() {
               { icon: Target, title: 'Clarity Over Complexity', desc: 'Event coordination is hard enough. We strip away unnecessary friction so every user — planner, coordinator, or vendor — can focus on what matters most: delivering exceptional experiences.' },
               { icon: Shield, title: 'Trust Through Transparency', desc: 'Every payment, every task update, every timeline change is visible to the right people at the right time. No hidden delays, no surprise costs.' },
               { icon: Zap, title: 'Speed Without Sacrifice', desc: 'Real-time sync, instant notifications, and sub-second page loads mean event teams never wait for the tool. We optimise every interaction for velocity.' },
+              { icon: Award, title: 'Reliability Under Pressure', desc: 'Events don’t get a second chance. We build NaliGrid to be bulletproof and highly reliable, ensuring your workspace stays online and perfectly synced when the pressure is on.' },
             ].map((v) => (
               <div key={v.title} className={styles.valueCard}>
                 <div className={styles.valueIconWrap}>

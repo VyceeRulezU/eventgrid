@@ -101,7 +101,7 @@
 /* ── Values Section ── */
 .valuesGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 32px;
   max-width: 1060px;
   margin: 0 auto;
@@ -544,6 +544,11 @@
   }
   
   .cardsGrid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .valuesGrid {
     grid-template-columns: 1fr;
     gap: 20px;
   }
