@@ -61,7 +61,7 @@ test.describe('register page', () => {
 
   test('shows registration form after role selection', async ({ page }) => {
     await page.goto('/register')
-    await page.getByText(/planner/i).first().click()
+    await page.getByRole('button', { name: /Event Planner/i }).click()
     await expect(page.locator('#name')).toBeVisible()
     await expect(page.locator('#email')).toBeVisible()
     await expect(page.locator('#phone')).toBeVisible()
@@ -70,7 +70,7 @@ test.describe('register page', () => {
 
   test('requires password of at least 6 characters', async ({ page }) => {
     await page.goto('/register')
-    await page.getByText(/Event Planner/i).first().click()
+    await page.getByRole('button', { name: /Event Planner/i }).click()
     await page.locator('#password').fill('abc')
     // submit button says 'Register Now' and is disabled when password score < 15
     await expect(page.getByRole('button', { name: /register now/i })).toBeDisabled()
@@ -293,7 +293,7 @@ test.describe('captcha', () => {
 
   test('register page renders Turnstile captcha widget after role selection', async ({ page }) => {
     await page.goto('/register')
-    await page.getByText(/planner/i).first().click()
+    await page.getByRole('button', { name: /Event Planner/i }).click()
 
     if (!(await hasTurnstile(page))) {
       test.skip(true, 'VITE_TURNSTILE_SITE_KEY not set — captcha disabled')
@@ -304,7 +304,7 @@ test.describe('captcha', () => {
 
   test('register submit button is disabled until captcha and password strength pass', async ({ page }) => {
     await page.goto('/register')
-    await page.getByText(/planner/i).first().click()
+    await page.getByRole('button', { name: /Event Planner/i }).click()
     await page.fill('#name', 'Test User')
     await page.fill('#email', 'test@example.com')
     await page.fill('#phone', '08012345678')
