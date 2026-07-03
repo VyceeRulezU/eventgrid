@@ -49,7 +49,7 @@ export function PipelineLandingPage() {
         <div className={spotlightStyles.layout}>
           <div className={spotlightStyles.imagePane}>
             <img
-              src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&q=85&auto=format&fit=crop"
+              src="https://i.ibb.co/pjtpBjb3/Gemini-Generated-Image-b6uql5b6uql5b6uq.png"
               alt="Event pipeline workflow on dashboard"
               className={spotlightStyles.eventImage}
               loading="lazy"
@@ -63,16 +63,16 @@ export function PipelineLandingPage() {
             <div className={spotlightStyles.contentInner}>
               <span className={spotlightStyles.eyebrow}>Pipeline Workflow</span>
               <h2 className={spotlightStyles.headline}>
-                Map every milestone.<br />Track every phase.
+                Event pipelines that<br />keep everyone aligned.
               </h2>
               <p className={spotlightStyles.subtext}>
-                Break your event down into clear, manageable phases. Assign tasks, set deadlines, and monitor progress — all from a single timeline view.
+                No more wondering who is doing what. NaliGrid gives you a clear pipeline workspace so coordinators and vendors can deliver events on schedule.
               </p>
               <div className={spotlightStyles.cardStack}>
                 {[
-                  { icon: '◈', title: '9 Pre-Built Phases', body: 'Lead capture, booking, vendor sourcing, venue walkthrough, event week, rehearsal, event day, wrap, and aftermath — each with default tasks ready to go.' },
-                  { icon: '◆', title: 'Visual Phase Progress', body: 'See at a glance which phases are complete, in progress, or overdue. Each phase shows checklists, assigned team members, and due dates.' },
-                  { icon: '◇', title: 'Full Audit Trail', body: 'Every task check-off, status change, and comment is logged with timestamps and user attribution. Never lose track of who did what.' },
+                  { icon: '◆', title: 'Interactive Milestones', body: 'Break down event coordination into manageable, sequential phases.' },
+                  { icon: '◇', title: 'Task Dependencies', body: 'Ensure tasks are completed in the correct order, avoiding planning bottlenecks.' },
+                  { icon: '◈', title: 'Automatic Phase Sync', body: 'Updates to phases reflect instantly for event coordinators and clients.' },
                 ].map((card) => (
                   <div key={card.title} className={spotlightStyles.featureCard}>
                     <span className={spotlightStyles.cardIcon}>{card.icon}</span>
@@ -123,6 +123,23 @@ export function PipelineLandingPage() {
               <p className={styles.cardDesc}>
                 Planners get a bird's-eye view of every event's status. Spot bottlenecks before they become problems and keep clients informed with confidence.
               </p>
+            </div>
+            <div className={styles.testimonialCard}>
+              <p className={styles.testimonialQuote}>
+                "NaliGrid has completely changed how we coordinate weddings in Lagos. Our clients love the live timeline tracker!"
+              </p>
+              <div className={styles.testimonialAuthor}>
+                <img
+                  className={styles.testimonialAvatar}
+                  src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&h=100&fit=crop&crop=face"
+                  alt="Tolu & Chioma"
+                  loading="lazy"
+                />
+                <div className={styles.testimonialMeta}>
+                  <span className={styles.testimonialName}>Tolu & Chioma</span>
+                  <span className={styles.testimonialRole}>Founders, Premium Nuptials</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

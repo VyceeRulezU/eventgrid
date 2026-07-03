@@ -49,7 +49,7 @@ export function VendorTrackerLandingPage() {
         <div className={spotlightStyles.layout}>
           <div className={spotlightStyles.imagePane}>
             <img
-              src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&q=85&auto=format&fit=crop"
+              src="https://i.ibb.co/WWw8k8vQ/Gemini-Generated-Image-z0kw8tz0kw8tz0kw.png"
               alt="Vendor coordination dashboard"
               className={spotlightStyles.eventImage}
               loading="lazy"
@@ -63,16 +63,16 @@ export function VendorTrackerLandingPage() {
             <div className={spotlightStyles.contentInner}>
               <span className={spotlightStyles.eyebrow}>Vendor Tracker</span>
               <h2 className={spotlightStyles.headline}>
-                Every vendor, every payment,<br />in one place.
+                Manage vendors and<br />payouts with ease.
               </h2>
               <p className={spotlightStyles.subtext}>
-                Track vendor relationships from initial booking to final payout. Store contracts, monitor deposits, and coordinate delivery schedules without losing sight of any detail.
+                No more WhatsApp back-and-forth or lost invoices. NaliGrid gives you a centralized vendor hub to log quotes, verify milestones, and disburse secure escrow payouts.
               </p>
               <div className={spotlightStyles.cardStack}>
                 {[
-                  { icon: '◈', title: 'Centralized Vendor Directory', body: 'Keep every vendor — caterers, DJs, decorators, security — organized by category. Access contact info, contracts, and payment history instantly.' },
-                  { icon: '◆', title: 'Milestone Payment Tracking', body: 'Track deposits paid, balances due, and final payouts for each vendor. Escrow integration ensures funds are secure until services are delivered.' },
-                  { icon: '◇', title: 'Delivery & Logistics Timeline', body: 'Log arrival times, setup windows, and departure schedules. Co-ordinate multiple vendor arrivals without overlap or delays.' },
+                  { icon: '◆', title: 'Naira Escrow Payouts', body: 'Milestones release directly to vendors upon planner confirmation.' },
+                  { icon: '◇', title: 'Consolidated Directory', body: 'Search rated vendors across Lagos, Abuja, and Port Harcourt.' },
+                  { icon: '◈', title: 'Conflict-Free Schedules', body: 'Automatically align vendor load-in times on event day.' },
                 ].map((card) => (
                   <div key={card.title} className={spotlightStyles.featureCard}>
                     <span className={spotlightStyles.cardIcon}>{card.icon}</span>
@@ -91,10 +91,10 @@ export function VendorTrackerLandingPage() {
       {/* Benefits Section */}
       <section className={styles.featuresSection} aria-label="Vendor tracker benefits">
         <div className={styles.container}>
-          <span className={styles.eyebrow} style={{ textAlign: 'center' }}>Why It Matters</span>
-          <h2 className={styles.sectionTitle}>No More Vendor Chaos</h2>
+          <span className={styles.eyebrow} style={{ textAlign: 'center' }}>Vendor Management</span>
+          <h2 className={styles.sectionTitle}>Streamlined Sourcing & Logistics</h2>
           <p className={styles.sectionSubtitle}>
-            When multiple vendors are involved in a single event, coordination is everything. NaliGrid keeps every relationship on track.
+            Eliminate double bookings and keep all contract terms and invoices in one secure place.
           </p>
           <div className={styles.cardsGrid}>
             <div className={styles.card}>
@@ -123,6 +123,23 @@ export function VendorTrackerLandingPage() {
               <p className={styles.cardDesc}>
                 Get notified when deposits are due, balances are pending, or final payouts need processing. Never miss a vendor payment deadline again.
               </p>
+            </div>
+            <div className={styles.testimonialCard}>
+              <p className={styles.testimonialQuote}>
+                "The vendor directory and chat interface saved us days of calls for our Abuja conference."
+              </p>
+              <div className={styles.testimonialAuthor}>
+                <img
+                  className={styles.testimonialAvatar}
+                  src="https://images.unsplash.com/photo-1594744803329-e58b31de8bf5?w=100&h=100&fit=crop&crop=face"
+                  alt="Halima"
+                  loading="lazy"
+                />
+                <div className={styles.testimonialMeta}>
+                  <span className={styles.testimonialName}>Halima</span>
+                  <span className={styles.testimonialRole}>Lead Coordinator, Oasis Event Architects</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -26,7 +26,7 @@ export default function FeatureSpotlightD() {
         {/* Image — 60% (left) */}
         <div className={styles.imagePane}>
           <img
-            src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&q=85&auto=format&fit=crop"
+            src="https://i.ibb.co/hRQKvDfp/Gemini-Generated-Image-cts18zcts18zcts1.png"
             alt="Guests celebrating at a beautifully executed event"
             className={styles.eventImage}
             loading="lazy"
@@ -57,7 +57,7 @@ export default function FeatureSpotlightD() {
                 </div>
               ))}
             </div>
-            <a href="#how-it-works" className={styles.ctaLink}>
+            <a href="/features/pipeline" className={styles.ctaLink}>
               See how it works <span aria-hidden>→</span>
             </a>
           </div>

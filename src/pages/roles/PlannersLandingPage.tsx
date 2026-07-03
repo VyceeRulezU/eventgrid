@@ -49,7 +49,7 @@ export function PlannersLandingPage() {
         <div className={spotlightStyles.layout}>
           <div className={spotlightStyles.imagePane}>
             <img
-              src="https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=1200&q=85&auto=format&fit=crop"
+              src="https://i.ibb.co/LzD8s7J4/Gemini-Generated-Image-vki3aovki3aovki3.png"
               alt="Event planner reviewing timelines"
               className={spotlightStyles.eventImage}
               loading="lazy"
@@ -122,6 +122,15 @@ export function PlannersLandingPage() {
               <h3 className={styles.cardTitle}>Proactive Timeline Alerts</h3>
               <p className={styles.cardDesc}>
                 Get notified when phases fall behind, vendor payments are due, or coordinators complete milestones. Stay ahead of every deadline.
+              </p>
+            </div>
+            <div className={styles.card}>
+              <div className={`${styles.iconWrap} ${styles.goldGlow}`}>
+                <Shield size={22} className={styles.icon} />
+              </div>
+              <h3 className={styles.cardTitle}>Secure Escrow Controls</h3>
+              <p className={styles.cardDesc}>
+                Protect your reputation and budget. Secure payments in escrow and release payouts dynamically as project phases are marked complete.
               </p>
             </div>
           </div>

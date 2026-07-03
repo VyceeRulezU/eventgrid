@@ -49,7 +49,7 @@ export function ClientPortalLandingPage() {
         <div className={spotlightStyles.layout}>
           <div className={spotlightStyles.imagePane}>
             <img
-              src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&q=85&auto=format&fit=crop"
+              src="https://i.ibb.co/mCHxnj2v/image.jpg"
               alt="Client portal dashboard preview"
               className={spotlightStyles.eventImage}
               loading="lazy"
@@ -63,16 +63,16 @@ export function ClientPortalLandingPage() {
             <div className={spotlightStyles.contentInner}>
               <span className={spotlightStyles.eyebrow}>Client Portal</span>
               <h2 className={spotlightStyles.headline}>
-                Keep clients informed<br />without the calls.
+                A professional portal<br />for client approvals.
               </h2>
               <p className={spotlightStyles.subtext}>
-                Share a single, secure link that gives your clients real-time visibility into budgets, timelines, RSVPs, and progress — without exposing sensitive controls.
+                Stop answering "are we there yet" calls. Share a secure, branded portal link where your clients can monitor phase progress and sign off on decisions.
               </p>
               <div className={spotlightStyles.cardStack}>
                 {[
-                  { icon: '◈', title: 'Live Budget Visibility', body: 'Clients see exactly where their money is going — vendor payments made, upcoming installments, and remaining balance. No more spreadsheet requests.' },
-                  { icon: '◆', title: 'Real-Time RSVP Dashboard', body: 'Share live guest counts, dietary preferences, and table assignments. Clients watch attendance numbers update as invites are confirmed.' },
-                  { icon: '◇', title: 'Timeline & Milestone View', body: 'Let clients see phase completion status. They stay informed without calling you for every update — reducing your overhead significantly.' },
+                  { icon: '◇', title: 'Branded Portal Link', body: 'Share a read-only portal styled with your logo and brand colors.' },
+                  { icon: '◈', title: 'Milestone Approvals', body: 'Let clients approve vendor bookings and stage designs digitally.' },
+                  { icon: '◆', title: 'Secure Payment Ledger', body: 'Clients view invoices, Naira receipts, and outstanding budgets safely.' },
                 ].map((card) => (
                   <div key={card.title} className={spotlightStyles.featureCard}>
                     <span className={spotlightStyles.cardIcon}>{card.icon}</span>
@@ -91,10 +91,10 @@ export function ClientPortalLandingPage() {
       {/* Benefits Section */}
       <section className={styles.featuresSection} aria-label="Client portal benefits">
         <div className={styles.container}>
-          <span className={styles.eyebrow} style={{ textAlign: 'center' }}>Benefits</span>
-          <h2 className={styles.sectionTitle}>Delight Clients Without Extra Work</h2>
+          <span className={styles.eyebrow} style={{ textAlign: 'center' }}>Portal Benefits</span>
+          <h2 className={styles.sectionTitle}>Build Trust Through Transparency</h2>
           <p className={styles.sectionSubtitle}>
-            A premium client experience that reduces your support burden and builds trust at every stage.
+            Give your clients a polished, professional oversight space without sharing internal planning details.
           </p>
           <div className={styles.cardsGrid}>
             <div className={styles.card}>
@@ -123,6 +123,23 @@ export function ClientPortalLandingPage() {
               <p className={styles.cardDesc}>
                 Clients can review and approve vendor deposit releases, menu selections, and budget adjustments directly from their portal — no back-and-forth.
               </p>
+            </div>
+            <div className={styles.testimonialCard}>
+              <p className={styles.testimonialQuote}>
+                "My clients keep asking what software I'm using because the portal looks so professional. I'm not telling them. It's my competitive advantage."
+              </p>
+              <div className={styles.testimonialAuthor}>
+                <img
+                  className={styles.testimonialAvatar}
+                  src="https://images.unsplash.com/photo-1703544022909-6968d29d505e?w=120&q=80&auto=format&fit=crop&crop=faces"
+                  alt="Adunola Falade"
+                  loading="lazy"
+                />
+                <div className={styles.testimonialMeta}>
+                  <span className={styles.testimonialName}>Adunola Falade</span>
+                  <span className={styles.testimonialRole}>Corporate Event Planner, Lagos</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

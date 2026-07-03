@@ -4,7 +4,7 @@ import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
 import Footer from '@/pages/landing/Footer'
-import { CalendarRange, ClipboardList, Zap, ShieldCheck, Wifi, Smartphone, Bell } from 'lucide-react'
+import { CalendarRange, ClipboardList, Zap, ShieldCheck, Wifi, Smartphone, Bell, Clock } from 'lucide-react'
 import styles from './RolesLanding.module.css'
 import spotlightStyles from '@/pages/landing/FeatureSpotlightB.module.css'
 
@@ -49,7 +49,7 @@ export function CoordinatorsLandingPage() {
         <div className={spotlightStyles.layout}>
           <div className={spotlightStyles.imagePane}>
             <img
-              src="https://i.ibb.co/Lz4Tsxk5"
+              src="https://i.ibb.co/3ytxPprz/img-4.jpg"
               alt="Coordinator managing event timeline"
               className={spotlightStyles.eventImage}
               loading="lazy"
@@ -122,6 +122,15 @@ export function CoordinatorsLandingPage() {
               <h3 className={styles.cardTitle}>Targeted Notifications</h3>
               <p className={styles.cardDesc}>
                 Get alerts only for the tasks and zones you are assigned to. No noise, no irrelevant updates — just the information you need.
+              </p>
+            </div>
+            <div className={styles.card}>
+              <div className={`${styles.iconWrap} ${styles.goldGlow}`}>
+                <Clock size={22} className={styles.icon} />
+              </div>
+              <h3 className={styles.cardTitle}>Live Sequence Control</h3>
+              <p className={styles.cardDesc}>
+                View real-time updates of the reception program or master schedule. Sync instant adjustments to floor plans and logistics on the fly.
               </p>
             </div>
           </div>

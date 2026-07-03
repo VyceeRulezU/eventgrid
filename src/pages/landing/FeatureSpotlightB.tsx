@@ -26,7 +26,7 @@ export default function FeatureSpotlightB() {
         {/* Image — 60% */}
         <div className={styles.imagePane}>
           <img
-            src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1200&q=85&auto=format&fit=crop"
+            src="https://i.ibb.co/LzD8s7J4/Gemini-Generated-Image-vki3aovki3aovki3.png"
             alt="Premium wedding reception event setup"
             className={styles.eventImage}
             loading="lazy"
@@ -57,7 +57,7 @@ export default function FeatureSpotlightB() {
                 </div>
               ))}
             </div>
-            <a href="#how-it-works" className={styles.ctaLink}>
+            <a href="/planners" className={styles.ctaLink}>
               See how it works <span aria-hidden>→</span>
             </a>
           </div>

@@ -85,7 +85,7 @@ const PHASES = [
     headline: 'Plan',
     summary:
       'Map out every detail before a single naira is spent. Build proposals, set budgets, assign ownership — all in one place, long before the day arrives.',
-    image: 'https://images.unsplash.com/photo-1720010943528-d709a0857650?w=800&q=80&auto=format&fit=crop',
+    image: 'https://i.ibb.co/7Jdx24qD/Gemini-Generated-Image-81e9sl81e9sl81e9.png',
     imageAlt: 'Event planner reviewing notes and documents',
   },
   {
@@ -103,7 +103,7 @@ const PHASES = [
     headline: 'Celebrate',
     summary:
       'When the lights go up, you take the bow. Aftermath reports, client reviews, and payment reconciliation done beautifully — so you can do it all again.',
-    image: 'https://images.unsplash.com/photo-1695281536457-01f9a07c575b?w=800&q=80&auto=format&fit=crop',
+    image: 'https://i.ibb.co/chRKL8sb/Gemini-Generated-Image-pji6ejpji6ejpji6.png',
     imageAlt: 'Guests celebrating at a Nigerian event',
   },
 ]

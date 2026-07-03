@@ -49,7 +49,7 @@ export function VendorsLandingPage() {
         <div className={spotlightStyles.layout}>
           <div className={spotlightStyles.imagePane}>
             <img
-              src="https://i.ibb.co/hRYzRJ67"
+              src="https://i.ibb.co/4Z1rZnqm/img-5.jpg"
               alt="Event vendor setting up"
               className={spotlightStyles.eventImage}
               loading="lazy"
@@ -122,6 +122,15 @@ export function VendorsLandingPage() {
               <h3 className={styles.cardTitle}>Dispute Resolution Support</h3>
               <p className={styles.cardDesc}>
                 Our support team mediates any payment disputes. Escrow ensures funds are never released until both parties confirm milestone completion.
+              </p>
+            </div>
+            <div className={styles.card}>
+              <div className={`${styles.iconWrap} ${styles.goldGlow}`}>
+                <Wallet size={22} className={styles.icon} />
+              </div>
+              <h3 className={styles.cardTitle}>Direct Bank Payouts</h3>
+              <p className={styles.cardDesc}>
+                Get paid safely and directly. Funds are deposited by planners into escrow and disbursed straight to your bank account upon verification.
               </p>
             </div>
           </div>

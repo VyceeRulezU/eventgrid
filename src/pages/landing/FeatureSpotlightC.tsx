@@ -44,7 +44,7 @@ export default function FeatureSpotlightC() {
                 </div>
               ))}
             </div>
-            <a href="#how-it-works" className={styles.ctaLink}>
+            <a href="/coordinators" className={styles.ctaLink}>
               See how it works <span aria-hidden>→</span>
             </a>
           </div>

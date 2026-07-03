@@ -49,7 +49,7 @@ export function AftermathReportsLandingPage() {
         <div className={spotlightStyles.layout}>
           <div className={spotlightStyles.imagePane}>
             <img
-              src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&q=85&auto=format&fit=crop"
+              src="https://i.ibb.co/8LcDXhnp/Gemini-Generated-Image-7yqyvt7yqyvt7yqy.png"
               alt="Aftermath report dashboard"
               className={spotlightStyles.eventImage}
               loading="lazy"
@@ -63,16 +63,16 @@ export function AftermathReportsLandingPage() {
             <div className={spotlightStyles.contentInner}>
               <span className={spotlightStyles.eyebrow}>Aftermath Reports</span>
               <h2 className={spotlightStyles.headline}>
-                Turn event data into <br />professional reports.
+                Flawless aftermath reports,<br />compiled instantly.
               </h2>
               <p className={spotlightStyles.subtext}>
-                After the event ends, the work of documenting begins. NaliGrid automatically consolidates your budget, guest data, vendor feedback, and timeline into a polished PDF report.
+                Impress clients and clean up P&L statements. NaliGrid consolidates budget logs, vendor balances, task results, and guest analytics into custom, branded PDF summaries.
               </p>
               <div className={spotlightStyles.cardStack}>
                 {[
-                  { icon: '◈', title: 'Automated Financial Summary', body: 'Actual spend vs budget. Vendor deposits paid, balances outstanding, and total event cost — all compiled without manual data entry.' },
-                  { icon: '◆', title: 'Guest & Attendance Analytics', body: 'Invited vs confirmed vs attended counts. Dietary preferences, VIP percentages, and RSVP trends visualized in clear charts.' },
-                  { icon: '◇', title: 'Vendor & Team Performance', body: 'Vendor arrival times, service feedback scores, and coordinator task completion rates. Everything you need for post-event review.' },
+                  { icon: '◈', title: 'Naira Balance Sheets', body: 'Review actual budgets against targets instantly for total Naira precision.' },
+                  { icon: '◆', title: 'Export Branded PDFs', body: 'Generate client-ready reports styled with your business logo.' },
+                  { icon: '◇', title: 'Task & RSVP Summaries', body: 'Aggregate coordinator timelines and guest counts in visual charts.' },
                 ].map((card) => (
                   <div key={card.title} className={spotlightStyles.featureCard}>
                     <span className={spotlightStyles.cardIcon}>{card.icon}</span>
@@ -92,9 +92,9 @@ export function AftermathReportsLandingPage() {
       <section className={styles.featuresSection} aria-label="Reports benefits">
         <div className={styles.container}>
           <span className={styles.eyebrow} style={{ textAlign: 'center' }}>Benefits</span>
-          <h2 className={styles.sectionTitle}>Close Every Event Like a Pro</h2>
+          <h2 className={styles.sectionTitle}>Close Every Event With Excellence</h2>
           <p className={styles.sectionSubtitle}>
-            A comprehensive aftermath report demonstrates professionalism and builds trust for future bookings.
+            Consolidate your event budget, timeline records, and guest data into a clean PDF summary.
           </p>
           <div className={styles.cardsGrid}>
             <div className={styles.card}>
@@ -121,8 +121,25 @@ export function AftermathReportsLandingPage() {
               </div>
               <h3 className={styles.cardTitle}>Client-Ready Deliverable</h3>
               <p className={styles.cardDesc}>
-                The generated PDF features your event branding, professional typography, and clear data layouts. Share it immediately with no additional formatting.
+                The generated PDF features your event branding, professional typography, and data layouts. Share it immediately with no additional formatting.
               </p>
+            </div>
+            <div className={styles.testimonialCard}>
+              <p className={styles.testimonialQuote}>
+                "Managing financials and tracking payments for corporate events used to be a nightmare. Now, it's fully automated."
+              </p>
+              <div className={styles.testimonialAuthor}>
+                <img
+                  className={styles.testimonialAvatar}
+                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face"
+                  alt="Chinedu"
+                  loading="lazy"
+                />
+                <div className={styles.testimonialMeta}>
+                  <span className={styles.testimonialName}>Chinedu</span>
+                  <span className={styles.testimonialRole}>Managing Director, Innovate Africa Events</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

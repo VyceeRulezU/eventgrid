@@ -49,7 +49,7 @@ export function LiveBoardLandingPage() {
         <div className={spotlightStyles.layout}>
           <div className={spotlightStyles.imagePane}>
             <img
-              src="https://i.ibb.co/Y7c4HCNF"
+              src="https://i.ibb.co/SDmM22pY/Gemini-Generated-Image-2g9hx82g9hx82g9h.png"
               alt="Live event coordination dashboard"
               className={spotlightStyles.eventImage}
               loading="lazy"
@@ -61,18 +61,18 @@ export function LiveBoardLandingPage() {
 
           <div className={spotlightStyles.contentPane}>
             <div className={spotlightStyles.contentInner}>
-              <span className={spotlightStyles.eyebrow}>Live Operations</span>
+              <span className={spotlightStyles.eyebrow}>Live Board</span>
               <h2 className={spotlightStyles.headline}>
-                See event day unfold <br />as it happens.
+                The heartbeat of<br />your event day.
               </h2>
               <p className={spotlightStyles.subtext}>
-                The Live Board is your mission control for event day. Every vendor check-in, task completion, and schedule shift appears in under one second — so your team always has the full picture.
+                No more walkie-talkie chaos or lost printouts. Give your venue leads and coordinators a live, real-time board that broadcasts every phase change instantly.
               </p>
               <div className={spotlightStyles.cardStack}>
                 {[
-                  { icon: '◈', title: 'Live Activity Feed', body: 'A scrolling timeline of every action taken by coordinators, vendors, and team members. Filter by zone, role, or task type.' },
-                  { icon: '◆', title: 'Master Program Timeline', body: 'Follow the official event schedule in real time. The timeline auto-advances and alerts coordinators when items run over.' },
-                  { icon: '◇', title: 'Issue Flagging & Resolution', body: 'Flag problems instantly — vendor delay, equipment failure, schedule conflict. Everyone who needs to know gets notified immediately.' },
+                  { icon: '◈', title: 'Sub-Second Broadcast', body: 'Milestones and checklists sync instantly for everyone on the floor.' },
+                  { icon: '◆', title: 'Live Timeline Feeds', body: 'Track receptions, stage setups, and vendor handovers live.' },
+                  { icon: '◇', title: 'Smart Delay Tracking', body: 'Spot timing discrepancies instantly to adapt and execute flawlessly.' },
                 ].map((card) => (
                   <div key={card.title} className={spotlightStyles.featureCard}>
                     <span className={spotlightStyles.cardIcon}>{card.icon}</span>
@@ -91,10 +91,10 @@ export function LiveBoardLandingPage() {
       {/* Benefits Section */}
       <section className={styles.featuresSection} aria-label="Live board benefits">
         <div className={styles.container}>
-          <span className={styles.eyebrow} style={{ textAlign: 'center' }}>Why Real-Time Matters</span>
-          <h2 className={styles.sectionTitle}>No Delays. No Surprises.</h2>
+          <span className={styles.eyebrow} style={{ textAlign: 'center' }}>Live Control</span>
+          <h2 className={styles.sectionTitle}>Zero Delay, Zero Distraction</h2>
           <p className={styles.sectionSubtitle}>
-            When every second counts, your coordination tools need to keep pace. NaliGrid Live Board ensures your team operates as one unit.
+            Designed for high-pressure, live coordination where every second counts.
           </p>
           <div className={styles.cardsGrid}>
             <div className={styles.card}>
@@ -123,6 +123,23 @@ export function LiveBoardLandingPage() {
               <p className={styles.cardDesc}>
                 The Live Board is designed to be displayed on venue screens. Everyone — from stage manager to catering lead — stays in sync at a glance.
               </p>
+            </div>
+            <div className={styles.testimonialCard}>
+              <p className={styles.testimonialQuote}>
+                "As a coordinator, the live board changed my event day. I stopped running around shouting into a walkie-talkie and started actually coordinating."
+              </p>
+              <div className={styles.testimonialAuthor}>
+                <img
+                  className={styles.testimonialAvatar}
+                  src="https://images.unsplash.com/photo-1661332186404-cfddad48db04?w=120&q=80&auto=format&fit=crop&crop=faces"
+                  alt="Blessing Nwosu"
+                  loading="lazy"
+                />
+                <div className={styles.testimonialMeta}>
+                  <span className={styles.testimonialName}>Blessing Nwosu</span>
+                  <span className={styles.testimonialRole}>Event Coordinator, Port Harcourt</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
