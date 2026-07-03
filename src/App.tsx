@@ -50,6 +50,7 @@ import { BlogPostPage } from '@/pages/info/BlogPostPage'
 import { CareersPage } from '@/pages/info/CareersPage'
 import { PressPage } from '@/pages/info/PressPage'
 import { ContactPage } from '@/pages/info/ContactPage'
+import { SurveyPage } from '@/pages/survey/SurveyPage'
 import { FAQPage } from '@/pages/info/FAQPage'
 import { PricingPage } from '@/pages/info/PricingPage'
 import { PrivacyPage } from '@/pages/info/PrivacyPage'
@@ -577,6 +578,7 @@ export function App() {
           <Route path="/careers" element={<CareersPage />} />
           <Route path="/press" element={<PressPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/survey" element={<SurveyPage />} />
           <Route path="/faq" element={<FAQPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />

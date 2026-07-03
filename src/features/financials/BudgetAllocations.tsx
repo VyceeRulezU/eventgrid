@@ -26,7 +26,6 @@ interface BudgetRow {
 interface BudgetAllocationsProps {
   eventId: string
   eventName?: string
-  pettyCashTotal?: number
 }
 
 function getCategorySublabel(category: string): string {
@@ -45,7 +44,7 @@ function getCategorySublabel(category: string): string {
   return 'Allocated event budget'
 }
 
-export function BudgetAllocations({ eventId, eventName, pettyCashTotal = 0 }: BudgetAllocationsProps) {
+export function BudgetAllocations({ eventId, eventName }: BudgetAllocationsProps) {
   const showNotification = useUIStore((s) => s.showNotification)
   const [allocations, setAllocations] = useState<BudgetRow[]>([])
   const [loading, setLoading] = useState(true)
