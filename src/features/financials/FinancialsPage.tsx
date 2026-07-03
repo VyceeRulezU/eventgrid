@@ -100,6 +100,7 @@ export function FinancialsPage() {
   const [clientPayments, setClientPayments] = useState<{ amount: number; status: string; due_date: string | null; description: string }[]>([])
   const [pettyCashTotal, setPettyCashTotal] = useState(0)
   const [categories, setCategories] = useState(DEFAULT_CATEGORIES)
+  const prevEventRef = useRef(eventId)
   // CSV Parser — no external deps, handles comma-delimited files
   function parseCsv(text: string): Record<string, string>[] {
     const lines = text.replace(/\r/g, '').split('\n').filter((l) => l.trim())
@@ -171,6 +172,12 @@ export function FinancialsPage() {
 
   useEffect(() => {
     if (!user) { setLoading(false); return }
+
+    // Reset stale per-event state to prevent false redirect
+    setEventOwnerId(null)
+    setEventOrgId(null)
+    setIsPartner(false)
+
     const userId = user.id
     const orgId = org?.id
 
@@ -455,7 +462,10 @@ export function FinancialsPage() {
     )
   }
 
-  if (eventId && eventOwnerId && !canView) {
+  // Skip redirect when eventId just changed (stale eventOwnerId hasn't been refetched yet)
+  if (prevEventRef.current !== eventId) {
+    prevEventRef.current = eventId
+  } else if (eventId && eventOwnerId && !canView) {
     return <Navigate to="/financials" replace />
   }
 

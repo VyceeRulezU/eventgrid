@@ -369,7 +369,7 @@ export function App() {
           const { data: org } = await withTimeout(
             supabase
               .from('organizations')
-              .select('id, name, logo_url, show_beta_label')
+              .select('id, name, logo_url, show_beta_label, owner_id')
               .eq('id', profile.org_id)
               .single(),
             8000,

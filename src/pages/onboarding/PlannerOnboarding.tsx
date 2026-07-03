@@ -101,15 +101,36 @@ export function PlannerOnboarding() {
   const showToast = useUIStore((s) => s.showToast)
   const navigate = useNavigate()
   const existingOrg = useAuthStore((s) => s.profile?.org_id)
+  const [isOwner, setIsOwner] = useState(false)
+  const [checkingOrg, setCheckingOrg] = useState(true)
 
-  const isUpgrade = !!existingOrg
+  const isUpgrade = !!existingOrg && isOwner
 
   useEffect(() => {
-    if (isUpgrade) {
-      setStep(TOTAL_STEPS)
-      showToast({ type: 'info', title: 'Upgrading to Planner', body: 'Review and confirm to unlock financial features.' })
+    async function checkOwnership() {
+      if (!user || !existingOrg) {
+        setCheckingOrg(false)
+        return
+      }
+      try {
+        const { data } = await supabase
+          .from('organizations')
+          .select('owner_id')
+          .eq('id', existingOrg)
+          .single()
+        if (data && data.owner_id === user.id) {
+          setIsOwner(true)
+          setStep(TOTAL_STEPS)
+          showToast({ type: 'info', title: 'Upgrading to Planner', body: 'Review and confirm to unlock financial features.' })
+        }
+      } catch (err) {
+        console.error('Error checking org ownership:', err)
+      } finally {
+        setCheckingOrg(false)
+      }
     }
-  }, [])
+    checkOwnership()
+  }, [user, existingOrg])
 
   const TOTAL_STEPS = 5
 
@@ -248,6 +269,14 @@ export function PlannerOnboarding() {
 
   const handleBack = () => {
     if (step > 1) setStep((prev) => prev - 1)
+  }
+
+  if (existingOrg && checkingOrg) {
+    return (
+      <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="skeleton skeleton-card" style={{ width: 100, height: 100, borderRadius: '50%' }} />
+      </div>
+    )
   }
 
   return (

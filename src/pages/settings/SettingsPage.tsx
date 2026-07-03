@@ -167,6 +167,7 @@ export function SettingsPage() {
   const [orgWebsite, setOrgWebsite] = useState('')
   const [orgInstagram, setOrgInstagram] = useState('')
   const [logoPreview, setLogoPreview] = useState<string | null>(org?.logo_url || null)
+  const [orgOwnerId, setOrgOwnerId] = useState<string | null>(org?.owner_id || null)
   const [savingOrg, setSavingOrg] = useState(false)
 
   const displayNameFinal = profile?.display_name || user?.user_metadata?.display_name || 'User'
@@ -186,6 +187,7 @@ export function SettingsPage() {
         setOrgWebsite(data.website || '')
         setOrgInstagram(data.instagram || '')
         setLogoPreview(data.logo_url || org.logo_url)
+        setOrgOwnerId(data.owner_id || null)
       })
   }, [org?.id, org?.name, org?.logo_url, user?.id])
 
@@ -481,6 +483,30 @@ export function SettingsPage() {
                   onClick={() => navigate('/onboarding/planner')}
                 >
                   Create Organisation
+                </button>
+              </div>
+            ) : orgOwnerId && orgOwnerId !== user?.id && role === 'planner' ? (
+              <div style={{ padding: 'var(--space-6) 0', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+                <Building2 size={32} style={{ opacity: 0.3, margin: '0 auto 8px', display: 'block' }} />
+                <p style={{ marginBottom: 'var(--space-4)', lineHeight: 1.5 }}>
+                  You are currently a member of <strong>{orgName || org.name}</strong>.<br />
+                  Since your role was upgraded to <strong>Event Planner</strong>, you can set up and manage your own independent organisation.
+                </p>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={async () => {
+                    const { error } = await supabase.rpc('change_user_org', { p_new_org_id: null })
+                    if (error) {
+                      showToast({ type: 'error', title: 'Action failed', body: error.message })
+                      return
+                    }
+                    setOrg(null)
+                    setProfile({ ...profile, org_id: null } as Profile)
+                    navigate('/onboarding/planner')
+                  }}
+                >
+                  Create My Own Organisation
                 </button>
               </div>
             ) : (
