@@ -22,10 +22,21 @@ AS $$
 DECLARE
   v_my_org_id uuid;
 BEGIN
-  -- Get the user's org_id directly from profiles (bypasses RLS)
-  SELECT org_id INTO v_my_org_id FROM public.profiles WHERE id = auth.uid();
+  -- Super admins can edit any org
+  IF public.is_super_admin() THEN
+    UPDATE public.organizations
+    SET
+      name      = COALESCE(p_name, name),
+      city      = COALESCE(p_city, city),
+      website   = COALESCE(p_website, website),
+      instagram = COALESCE(p_instagram, instagram),
+      logo_url  = COALESCE(p_logo_url, logo_url)
+    WHERE id = p_id;
+    RETURN FOUND;
+  END IF;
 
-  -- Only allow if the user belongs to this org
+  -- Regular users: only allow if they belong to this org
+  SELECT org_id INTO v_my_org_id FROM public.profiles WHERE id = auth.uid();
   IF v_my_org_id IS NULL OR v_my_org_id != p_id THEN
     RETURN false;
   END IF;

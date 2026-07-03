@@ -65,6 +65,10 @@ export function VendorDirectoryPage() {
   })
 
   const [showCSVImport, setShowCSVImport] = useState(false)
+  // Org editing (super admin only)
+  const isSuperAdmin = role === 'super_admin'
+  const [orgForm, setOrgForm] = useState({ name: '', city: '', website: '', instagram: '' })
+  const [orgLoading, setOrgLoading] = useState(false)
 
   // Merge state (super admin only)
   const [showMergeModal, setShowMergeModal] = useState(false)
@@ -208,9 +212,8 @@ export function VendorDirectoryPage() {
   const openEdit = (vendor: Vendor) => {
     const isOwner = vendor.claimed_by_vendor_id === user?.id && vendor.is_verified === true
     const isCreatorOrg = vendor.org_id === org?.id && vendor.is_verified === false
-    const isSuperAdmin = role === 'super_admin'
 
-    if (isOwner || isCreatorOrg || isSuperAdmin) {
+    if (isOwner || isCreatorOrg || role === 'super_admin') {
       setEditingVendor(vendor)
       setForm({
         category: vendor.category,
@@ -223,6 +226,19 @@ export function VendorDirectoryPage() {
         instagram: vendor.instagram || '',
         website: vendor.website || '',
       })
+      setOrgForm({ name: '', city: '', website: '', instagram: '' })
+      if (role === 'super_admin' && vendor.org_id) {
+        setOrgLoading(true)
+        supabase
+          .from('organizations')
+          .select('name, city, website, instagram')
+          .eq('id', vendor.org_id)
+          .single()
+          .then(({ data }) => {
+            if (data) setOrgForm({ name: data.name || '', city: data.city || '', website: data.website || '', instagram: data.instagram || '' })
+          })
+          .finally(() => setOrgLoading(false))
+      }
       setShowForm(true)
     } else {
       setSuggestingVendor(vendor)
@@ -281,6 +297,23 @@ export function VendorDirectoryPage() {
       if (error) {
         showNotification({ variant: 'error', title: 'Failed to update', message: error.message })
         return
+      }
+
+      if (role === 'super_admin' && (orgForm.name || orgForm.city || orgForm.website || orgForm.instagram)) {
+        if (editingVendor.org_id) {
+          const { error: orgErr } = await supabase.rpc('update_org', {
+            p_id: editingVendor.org_id,
+            p_name: orgForm.name.trim() || null,
+            p_city: orgForm.city.trim() || null,
+            p_website: orgForm.website.trim() || null,
+            p_instagram: orgForm.instagram.trim() || null,
+          })
+          if (orgErr) {
+            showNotification({ variant: 'error', title: 'Org save failed', message: orgErr.message })
+          }
+        } else {
+          showNotification({ variant: 'warning', title: 'No organisation', message: 'This vendor has no linked organisation to update.' })
+        }
       }
 
       setVendors(vendors.map((v) => (v.id === editingVendor.id ? { ...v, ...form, rating: form.rating || null } : v)))
@@ -595,6 +628,37 @@ export function VendorDirectoryPage() {
                   <textarea className="input" style={{ minHeight: 80, resize: 'vertical' }} placeholder="Additional notes..." value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
                 </div>
               </div>
+
+              {role === 'super_admin' && (
+                <div style={{ marginTop: 'var(--space-5)', paddingTop: 'var(--space-4)', borderTop: '1px solid var(--color-border-subtle)' }}>
+                  <label style={{ fontWeight: 600, fontSize: 'var(--text-sm)', display: 'block', marginBottom: 'var(--space-3)' }}>
+                    Organisation <span style={{ fontWeight: 400, color: 'var(--color-text-muted)' }}>(super admin only)</span>
+                  </label>
+                  {orgLoading ? (
+                    <div className="skeleton skeleton-card" style={{ height: 80 }} />
+                  ) : (
+                    <div className={styles.formGrid}>
+                      <div className="input-wrapper" style={{ gridColumn: '1 / -1' }}>
+                        <label className="input-label">Organisation Name</label>
+                        <input className="input" value={orgForm.name} onChange={(e) => setOrgForm({ ...orgForm, name: e.target.value })} placeholder="Business name" />
+                      </div>
+                      <div className="input-wrapper">
+                        <label className="input-label">City</label>
+                        <input className="input" value={orgForm.city} onChange={(e) => setOrgForm({ ...orgForm, city: e.target.value })} placeholder="e.g. Lagos" />
+                      </div>
+                      <div className="input-wrapper">
+                        <label className="input-label">Website</label>
+                        <input className="input" value={orgForm.website} onChange={(e) => setOrgForm({ ...orgForm, website: e.target.value })} placeholder="https://..." />
+                      </div>
+                      <div className="input-wrapper">
+                        <label className="input-label">Instagram</label>
+                        <input className="input" value={orgForm.instagram} onChange={(e) => setOrgForm({ ...orgForm, instagram: e.target.value })} placeholder="@handle" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-4)' }}>
                 <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleSave} disabled={saving}>
                   {saving ? 'Saving...' : editingVendor ? 'Update' : 'Save'}

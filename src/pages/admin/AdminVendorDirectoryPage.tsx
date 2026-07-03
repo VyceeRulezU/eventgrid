@@ -1,10 +1,11 @@
 import { useEffect, useState, useMemo } from 'react'
-import { LayoutGrid, List, Users, Plus, Pencil, Star, Trash2, Phone, Mail, Building, X, ChevronLeft, ChevronRight, BadgeCheck, Globe, GitMerge } from 'lucide-react'
+import { LayoutGrid, List, Users, Plus, Pencil, Star, Trash2, Phone, Mail, Building, Shield, X, ChevronLeft, ChevronRight, BadgeCheck, Globe, GitMerge } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
 import { useUIStore } from '@/store/ui.store'
 import { AdminPageHero } from '@/components/shared/AdminPageHero'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
+import { Tabs, type TabItem } from '@/components/ui/Tabs'
 import { useSearch } from '@/hooks/useSearch'
 import { SearchBar } from '@/components/shared/SearchBar'
 import { sendInvite } from '@/lib/edgeFunctions'
@@ -62,6 +63,16 @@ export function AdminVendorDirectoryPage() {
     website: '',
     notes: '',
   })
+
+  // Org editing (super admin only)
+  const [orgForm, setOrgForm] = useState({ name: '', city: '', website: '', instagram: '' })
+  const [orgLoading, setOrgLoading] = useState(false)
+
+  // Approvals tab state
+  const [tab, setTab] = useState<'directory' | 'approvals'>('directory')
+  const [pendingClaims, setPendingClaims] = useState<any[]>([])
+  const [approvalsLoading, setApprovalsLoading] = useState(false)
+  const [approving, setApproving] = useState<string | null>(null)
 
   // Merge state (super admin only)
   const [showMergeModal, setShowMergeModal] = useState(false)
@@ -136,6 +147,49 @@ export function AdminVendorDirectoryPage() {
     load()
   }, [user])
 
+  // ── Approvals ──────────────────────────────────────────────────────────────
+  const loadApprovals = async () => {
+    setApprovalsLoading(true)
+    const { data } = await supabase
+      .from('vendor_claims')
+      .select('*, vendor:vendors(*, organizations(name)), profile:profiles!vendor_claims_user_id_fkey(display_name, email)')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false })
+    if (data) setPendingClaims(data as any[])
+    setApprovalsLoading(false)
+  }
+
+  const handleApprove = async (claim: any) => {
+    setApproving(claim.id)
+    const { error: claimError } = await supabase.from('vendor_claims').update({ status: 'approved' }).eq('id', claim.id)
+    if (claimError) { showNotification({ variant: 'error', title: 'Approval failed', message: claimError.message }); setApproving(null); return }
+    await supabase.from('vendors').update({ is_verified: true, claimed_by_vendor_id: claim.user_id, verified_by_admin_id: user!.id, claim_verified_at: new Date().toISOString() }).eq('id', claim.vendor_id)
+    setPendingClaims((prev: any[]) => prev.filter((c: any) => c.id !== claim.id))
+    showNotification({ variant: 'success', title: 'Claim approved' })
+    setApproving(null)
+  }
+
+  const handleReject = async (claimId: string) => {
+    setApproving(claimId)
+    await supabase.from('vendor_claims').update({ status: 'rejected' }).eq('id', claimId)
+    setPendingClaims((prev: any[]) => prev.filter((c: any) => c.id !== claimId))
+    showNotification({ variant: 'success', title: 'Claim rejected' })
+    setApproving(null)
+  }
+
+  // Load approvals when tab switches to approvals
+  useEffect(() => {
+    if (tab === 'approvals') loadApprovals()
+  }, [tab])
+
+  const vendorTabs = useMemo<TabItem<'directory' | 'approvals'>[]>(
+    () => [
+      { key: 'directory', label: 'Directory', icon: <Building size={16} /> },
+      { key: 'approvals', label: 'Approvals', icon: <Shield size={16} />, badge: pendingClaims.length > 0 ? pendingClaims.length : undefined },
+    ],
+    [pendingClaims.length],
+  )
+
   const availableTypes = [...new Set([...DEFAULT_TYPES, ...vendors.map((v) => v.category)])]
 
   /* ══════════════════════════════════════════════
@@ -160,9 +214,8 @@ export function AdminVendorDirectoryPage() {
   const openEdit = (vendor: Vendor) => {
     const isOwner = vendor.claimed_by_vendor_id === user?.id && vendor.is_verified === true
     const isCreatorOrg = vendor.org_id === org?.id && vendor.is_verified === false
-    const isSuperAdmin = role === 'super_admin'
 
-    if (isOwner || isCreatorOrg || isSuperAdmin) {
+    if (isOwner || isCreatorOrg || role === 'super_admin') {
       setEditingVendor(vendor)
       setForm({
         category: vendor.category,
@@ -175,6 +228,19 @@ export function AdminVendorDirectoryPage() {
         instagram: vendor.instagram || '',
         website: vendor.website || '',
       })
+      setOrgForm({ name: '', city: '', website: '', instagram: '' })
+      if (role === 'super_admin' && vendor.org_id) {
+        setOrgLoading(true)
+        supabase
+          .from('organizations')
+          .select('name, city, website, instagram')
+          .eq('id', vendor.org_id)
+          .single()
+          .then(({ data }) => {
+            if (data) setOrgForm({ name: data.name || '', city: data.city || '', website: data.website || '', instagram: data.instagram || '' })
+          })
+          .finally(() => setOrgLoading(false))
+      }
       setShowForm(true)
     } else {
       setSuggestingVendor(vendor)
@@ -233,6 +299,21 @@ export function AdminVendorDirectoryPage() {
       if (error) {
         showNotification({ variant: 'error', title: 'Failed to update', message: error.message })
         return
+      }
+
+      if (role === 'super_admin' && (orgForm.name || orgForm.city || orgForm.website || orgForm.instagram)) {
+        if (editingVendor.org_id) {
+          const { error: orgErr } = await supabase.rpc('update_org', {
+            p_id: editingVendor.org_id,
+            p_name: orgForm.name.trim() || null,
+            p_city: orgForm.city.trim() || null,
+            p_website: orgForm.website.trim() || null,
+            p_instagram: orgForm.instagram.trim() || null,
+          })
+          if (orgErr) showNotification({ variant: 'error', title: 'Org save failed', message: orgErr.message })
+        } else {
+          showNotification({ variant: 'warning', title: 'No organisation', message: 'This vendor has no linked organisation to update.' })
+        }
       }
 
       setVendors(vendors.map((v) => (v.id === editingVendor.id ? { ...v, ...form, rating: form.rating || null } : v)))
@@ -458,39 +539,45 @@ export function AdminVendorDirectoryPage() {
         }
       />
 
-      <div className={styles.toolbar}>
-        <div className={styles.toolbarLeft}>
-          <SearchBar value={query} onChange={setQuery} placeholder="Search vendors..." containerStyle={{ flex: 1, minWidth: 200, maxWidth: 320 }} />
-          <div style={{ minWidth: 180, maxWidth: 220 }}>
-            <DropdownMenu
-              trigger={categoryFilter || 'All Categories'}
-              items={[{ label: 'All Categories', value: '' }, ...availableTypes.map((t) => ({ label: t, value: t }))]}
-              onSelect={(item) => setCategoryFilter(item.value)}
-            />
-          </div>
-        </div>
-        <div className={styles.toolbarRight}>
-          <span className={styles.pageInfo}>{filtered.length} vendor{filtered.length !== 1 ? 's' : ''}</span>
-          <div className={styles.viewToggle}>
-            <button
-              className={`${styles.viewToggleBtn} ${view === 'grid' ? styles.viewToggleBtnActive : ''}`}
-              onClick={() => setView('grid')}
-              aria-label="Grid view"
-              title="Grid view"
-            >
-              <LayoutGrid size={16} />
-            </button>
-            <button
-              className={`${styles.viewToggleBtn} ${view === 'list' ? styles.viewToggleBtnActive : ''}`}
-              onClick={() => setView('list')}
-              aria-label="List view"
-              title="List view"
-            >
-              <List size={16} />
-            </button>
-          </div>
-        </div>
+      <div style={{ marginBottom: 'var(--space-4)' }}>
+        <Tabs tabs={vendorTabs} activeTab={tab} onChange={setTab} />
       </div>
+
+      {tab === 'directory' && (
+        <div className={styles.toolbar}>
+          <div className={styles.toolbarLeft}>
+            <SearchBar value={query} onChange={setQuery} placeholder="Search vendors..." containerStyle={{ flex: 1, minWidth: 200, maxWidth: 320 }} />
+            <div style={{ minWidth: 180, maxWidth: 220 }}>
+              <DropdownMenu
+                trigger={categoryFilter || 'All Categories'}
+                items={[{ label: 'All Categories', value: '' }, ...availableTypes.map((t) => ({ label: t, value: t }))]}
+                onSelect={(item) => setCategoryFilter(item.value)}
+              />
+            </div>
+          </div>
+          <div className={styles.toolbarRight}>
+            <span className={styles.pageInfo}>{filtered.length} vendor{filtered.length !== 1 ? 's' : ''}</span>
+            <div className={styles.viewToggle}>
+              <button
+                className={`${styles.viewToggleBtn} ${view === 'grid' ? styles.viewToggleBtnActive : ''}`}
+                onClick={() => setView('grid')}
+                aria-label="Grid view"
+                title="Grid view"
+              >
+                <LayoutGrid size={16} />
+              </button>
+              <button
+                className={`${styles.viewToggleBtn} ${view === 'list' ? styles.viewToggleBtnActive : ''}`}
+                onClick={() => setView('list')}
+                aria-label="List view"
+                title="List view"
+              >
+                <List size={16} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showForm && (
         <div className="overlay" onClick={() => { if (!saving) { resetForm(); setShowForm(false) } }}>
@@ -542,6 +629,37 @@ export function AdminVendorDirectoryPage() {
                   <textarea className="input" style={{ minHeight: 80, resize: 'vertical' }} placeholder="Additional notes..." value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
                 </div>
               </div>
+
+              {role === 'super_admin' && (
+                <div style={{ marginTop: 'var(--space-5)', paddingTop: 'var(--space-4)', borderTop: '1px solid var(--color-border-subtle)' }}>
+                  <label style={{ fontWeight: 600, fontSize: 'var(--text-sm)', display: 'block', marginBottom: 'var(--space-3)' }}>
+                    Organisation <span style={{ fontWeight: 400, color: 'var(--color-text-muted)' }}>(super admin only)</span>
+                  </label>
+                  {orgLoading ? (
+                    <div className="skeleton skeleton-card" style={{ height: 80 }} />
+                  ) : (
+                    <div className={styles.formGrid}>
+                      <div className="input-wrapper" style={{ gridColumn: '1 / -1' }}>
+                        <label className="input-label">Organisation Name</label>
+                        <input className="input" value={orgForm.name} onChange={(e) => setOrgForm({ ...orgForm, name: e.target.value })} placeholder="Business name" />
+                      </div>
+                      <div className="input-wrapper">
+                        <label className="input-label">City</label>
+                        <input className="input" value={orgForm.city} onChange={(e) => setOrgForm({ ...orgForm, city: e.target.value })} placeholder="e.g. Lagos" />
+                      </div>
+                      <div className="input-wrapper">
+                        <label className="input-label">Website</label>
+                        <input className="input" value={orgForm.website} onChange={(e) => setOrgForm({ ...orgForm, website: e.target.value })} placeholder="https://..." />
+                      </div>
+                      <div className="input-wrapper">
+                        <label className="input-label">Instagram</label>
+                        <input className="input" value={orgForm.instagram} onChange={(e) => setOrgForm({ ...orgForm, instagram: e.target.value })} placeholder="@handle" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-4)' }}>
                 <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleSave} disabled={saving}>
                   {saving ? 'Saving...' : editingVendor ? 'Update' : 'Save'}
@@ -653,7 +771,7 @@ export function AdminVendorDirectoryPage() {
         </div>
       )}
 
-      {filtered.length > 0 ? (
+      {tab === 'directory' && (filtered.length > 0 ? (
         <>
           {view === 'grid' ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 'var(--space-4)' }}>
@@ -947,10 +1065,71 @@ export function AdminVendorDirectoryPage() {
             </button>
           )}
         </div>
+      ))}
+
+      {/* ── Approvals Tab ─────────────────────────────────────────────────── */}
+      {tab === 'approvals' && (
+        <div style={{ padding: 'var(--space-4) 0' }}>
+          {approvalsLoading ? (
+            <div className="flex items-center justify-center" style={{ padding: '3rem' }}>
+              <div className="spinner" />
+            </div>
+          ) : pendingClaims.length === 0 ? (
+            <div className="empty-state" style={{ paddingTop: '2rem' }}>
+              <div className="empty-state__icon"><Shield size={24} /></div>
+              <div className="empty-state__title">No pending approvals</div>
+              <div className="empty-state__description">All vendor claims have been processed</div>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+              {pendingClaims.map((claim) => (
+                <div key={claim.id} className="card" style={{ padding: 'var(--space-4)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 600, fontSize: 'var(--text-base)', marginBottom: 4 }}>
+                        {claim.vendor?.name || 'Unknown vendor'}
+                        <span className="badge badge-sm" style={{ marginLeft: 8, background: 'var(--color-warning)', color: '#000' }}>Pending</span>
+                      </div>
+                      <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 8 }}>
+                        Claimed by <strong>{claim.profile?.display_name || claim.profile?.email || 'Unknown user'}</strong>
+                      </div>
+                      {claim.vendor?.organizations && (
+                        <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                          Org: {claim.vendor.organizations.name}
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                      <button
+                        className="btn btn-primary btn-sm"
+                        onClick={() => handleApprove(claim)}
+                        disabled={approving === claim.id}
+                      >
+                        {approving === claim.id ? 'Approving...' : 'Approve'}
+                      </button>
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        style={{ color: 'var(--color-error)' }}
+                        onClick={() => handleReject(claim.id)}
+                        disabled={approving === claim.id}
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 'var(--space-4)', flexWrap: 'wrap', marginTop: 8, fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                    <span>Category: {claim.vendor?.category}</span>
+                    <span>Email: {claim.vendor?.email || 'N/A'}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       )}
 
       {/* Floating Merge Bar (Super Admin Only) */}
-      {role === 'super_admin' && selectedVendorIds.length >= 2 && (
+      {tab === 'directory' && role === 'super_admin' && selectedVendorIds.length >= 2 && (
         <div style={{
           position: 'fixed',
           bottom: 'var(--space-6)',
@@ -991,7 +1170,7 @@ export function AdminVendorDirectoryPage() {
       )}
 
       {/* Merge Modal (Super Admin Only) */}
-      {showMergeModal && selectedVendorIds.length >= 2 && (
+      {tab === 'directory' && showMergeModal && selectedVendorIds.length >= 2 && (
         <div className="overlay" onClick={() => { if (!saving) { setShowMergeModal(false) } }}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 560 }}>
             <div className="modal-card-header">
