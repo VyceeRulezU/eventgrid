@@ -956,7 +956,7 @@ const POST_CLIENT_COMMUNICATION: StaticPost = {
   publishedAt: '2026-07-03T00:00:00.000Z',
   readTime: '5 min read',
   featuredImage: {
-    placeholderUrl: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=1200&auto=format&fit=crop',
+    placeholderUrl: 'https://i.ibb.co/gFV7PWLq/49360.jpg',
     alt: 'An event client talking on a smartphone, checking status and updates',
   },
   body: [
@@ -1011,7 +1011,7 @@ const POST_CLIENT_COMMUNICATION: StaticPost = {
     },
     {
       type: 'sectionImage',
-      placeholderUrl: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=800&auto=format&fit=crop',
+      placeholderUrl: 'https://i.ibb.co/xT1fFXj/3230.jpg',
       alt: 'Anxious client checking smartphone representing stress and information gap',
       caption: 'When clients lack real-time visibility into their event planning, it naturally creates check-in anxiety.',
     },
@@ -1084,7 +1084,7 @@ const POST_CLIENT_COMMUNICATION: StaticPost = {
     },
     {
       type: 'sectionImage',
-      placeholderUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=800&auto=format&fit=crop',
+      placeholderUrl: 'https://i.ibb.co/N69gcvFd/16532.jpg',
       alt: 'Modern event planning client portal interface showing milestones and approvals',
       caption: 'A professional client portal keeps the client updated on milestones without showing internal operator details.',
     },
@@ -1163,7 +1163,7 @@ const POST_CLIENT_COMMUNICATION: StaticPost = {
     },
     {
       type: 'cta',
-      text: 'NaliGrid is in beta. First event activation is ₦100.',
+      text: 'NaliGrid is here, your first Event is FREE.',
       buttonText: 'See how the client portal works →',
       buttonUrl: '/register',
     },
@@ -1171,13 +1171,13 @@ const POST_CLIENT_COMMUNICATION: StaticPost = {
 }
 
 export const STATIC_POSTS: StaticPost[] = [
+  POST_CLIENT_COMMUNICATION,
   POST_EVENT_COORDINATOR,
   POST_VENDOR_MGMT,
   POST_ESCROW,
   POST_WHATSAPP_EXCEL,
   POST_CHECKLIST,
   POST_RECONCILE,
-  POST_CLIENT_COMMUNICATION,
 ]
 
 export function getStaticPost(slug: string): StaticPost | undefined {
