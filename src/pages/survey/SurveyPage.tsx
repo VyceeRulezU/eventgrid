@@ -3,8 +3,9 @@ import { SEO } from '@/components/shared/SEO'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/ui.store'
 import Navbar from '@/components/layout/Navbar'
+import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import Footer from '@/pages/landing/Footer'
-import { ClipboardList, Check } from 'lucide-react'
+import { Check } from 'lucide-react'
 
 const ROLE_OPTIONS = [
   { value: 'planner', label: 'Event Planner' },
@@ -130,30 +131,15 @@ export function SurveyPage() {
     <>
       <SEO title="Survey" description="Help us improve NaliGrid by sharing your event planning needs." />
       <Navbar />
+      <LandingPageHero
+        title="NaliGrid Survey"
+        subtitle="Help us understand your event planning needs so we can build the best tools for you."
+      />
       <div style={{
-        minHeight: '100vh',
         background: 'var(--color-bg)',
         padding: 'var(--space-8) var(--space-4)',
       }}>
         <div style={{ maxWidth: 700, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: 'var(--space-8)' }}>
-            <div style={{
-              width: 56, height: 56,
-              background: 'var(--color-accent)',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 12px',
-            }}>
-              <ClipboardList size={28} color="#fff" />
-            </div>
-            <h1 style={{ fontSize: 'var(--text-2xl)', fontWeight: 700, marginBottom: 8 }}>NaliGrid Survey</h1>
-            <p style={{ color: 'var(--color-text-secondary)', maxWidth: 500, margin: '0 auto', lineHeight: 1.6 }}>
-              Help us understand your event planning needs so we can build the best tools for you.
-            </p>
-          </div>
-
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
             <div className="card" style={{ padding: 'var(--space-6)' }}>
               <h2 style={{ fontSize: 'var(--text-lg)', fontWeight: 600, marginBottom: 'var(--space-4)' }}>About You</h2>
