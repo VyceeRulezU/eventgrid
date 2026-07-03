@@ -13,7 +13,7 @@ function formatNaira(kobo: number) {
   return `₦${(kobo / 100).toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
 }
 
-export function exportBudgetToExcel(rows: BudgetRow[], eventName: string, pettyCashTotal = 0) {
+export function exportBudgetToExcel(rows: BudgetRow[], eventName: string) {
   const dataRows = rows.map((r) => ({
     Category: r.category,
     'Allocated (₦)': r.allocated / 100,
@@ -25,16 +25,6 @@ export function exportBudgetToExcel(rows: BudgetRow[], eventName: string, pettyC
   const totalAllocated = rows.reduce((s, r) => s + r.allocated, 0)
   const totalActual = rows.reduce((s, r) => s + r.actual, 0)
 
-  if (pettyCashTotal > 0) {
-    dataRows.push({ Category: '', 'Allocated (₦)': 0, 'Actual Spend (₦)': 0, 'Variance (₦)': 0, '% Used': '' })
-    dataRows.push({
-      Category: 'Miscellaneous',
-      'Allocated (₦)': pettyCashTotal / 100,
-      'Actual Spend (₦)': 0,
-      'Variance (₦)': pettyCashTotal / 100,
-      '% Used': '—',
-    })
-  }
   dataRows.push({
     Category: 'GRAND TOTAL',
     'Allocated (₦)': totalAllocated / 100,
@@ -59,7 +49,7 @@ export function exportBudgetToExcel(rows: BudgetRow[], eventName: string, pettyC
   XLSX.writeFile(wb, `${eventName || 'Budget'}-Allocations.xlsx`)
 }
 
-export function exportBudgetToPDF(rows: BudgetRow[], eventName: string, pettyCashTotal = 0) {
+export function exportBudgetToPDF(rows: BudgetRow[], eventName: string) {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
 
   // Header bar
@@ -120,17 +110,6 @@ export function exportBudgetToPDF(rows: BudgetRow[], eventName: string, pettyCas
       r.allocated > 0 ? `${pct}%` : '—',
     ]
   })
-
-  if (pettyCashTotal > 0) {
-    tableData.push(['', '', '', '', ''])
-    tableData.push([
-      'Miscellaneous',
-      formatNaira(pettyCashTotal),
-      formatNaira(0),
-      formatNaira(pettyCashTotal),
-      '—',
-    ])
-  }
 
   tableData.push([
     'GRAND TOTAL',

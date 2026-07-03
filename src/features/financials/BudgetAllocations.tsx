@@ -185,8 +185,8 @@ export function BudgetAllocations({ eventId, eventName, pettyCashTotal = 0 }: Bu
           ]}
           onSelect={(item) => {
             const rows = allocations.filter(a => a.allocated > 0 || a.actual > 0 || a.category === 'Other')
-            if (item.value === 'excel') exportBudgetToExcel(rows, eventName || '', pettyCashTotal)
-            else exportBudgetToPDF(rows, eventName || '', pettyCashTotal)
+            if (item.value === 'excel') exportBudgetToExcel(rows, eventName || '')
+            else exportBudgetToPDF(rows, eventName || '')
           }}
         />
       </div>
