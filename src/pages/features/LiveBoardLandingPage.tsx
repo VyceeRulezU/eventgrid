@@ -4,8 +4,9 @@ import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
 import Footer from '@/pages/landing/Footer'
-import { Radio, AlertCircle, Play, Users } from 'lucide-react'
+import { Radio, AlertCircle, Play, Users, Activity, Bell, Wifi } from 'lucide-react'
 import styles from './FeaturesLanding.module.css'
+import spotlightStyles from '@/pages/landing/FeatureSpotlightB.module.css'
 
 export function LiveBoardLandingPage() {
   return (
@@ -16,7 +17,7 @@ export function LiveBoardLandingPage() {
         url="/features/live-board"
       />
       <Navbar />
-      
+
       <LandingPageHero
         eyebrow="Feature Showcase"
         title="Live Feed & Event Board"
@@ -38,6 +39,90 @@ export function LiveBoardLandingPage() {
             <div className={styles.metricItem}>
               <span className={styles.metricVal}>24/7</span>
               <span className={styles.metricLbl}>Unified activity feed tracing log details for compliance audits</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Overlay Section */}
+      <section className={spotlightStyles.section} aria-label="Live board in action">
+        <div className={spotlightStyles.layout}>
+          <div className={spotlightStyles.imagePane}>
+            <img
+              src="https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1200&q=85&auto=format&fit=crop"
+              alt="Live event coordination dashboard"
+              className={spotlightStyles.eventImage}
+              loading="lazy"
+            />
+            <div className={spotlightStyles.imageOverlay}>
+              <span className={spotlightStyles.overlayLabel}>Sub-second sync</span>
+            </div>
+          </div>
+
+          <div className={spotlightStyles.contentPane}>
+            <div className={spotlightStyles.contentInner}>
+              <span className={spotlightStyles.eyebrow}>Live Operations</span>
+              <h2 className={spotlightStyles.headline}>
+                See event day unfold <br />as it happens.
+              </h2>
+              <p className={spotlightStyles.subtext}>
+                The Live Board is your mission control for event day. Every vendor check-in, task completion, and schedule shift appears in under one second — so your team always has the full picture.
+              </p>
+              <div className={spotlightStyles.cardStack}>
+                {[
+                  { icon: '◈', title: 'Live Activity Feed', body: 'A scrolling timeline of every action taken by coordinators, vendors, and team members. Filter by zone, role, or task type.' },
+                  { icon: '◆', title: 'Master Program Timeline', body: 'Follow the official event schedule in real time. The timeline auto-advances and alerts coordinators when items run over.' },
+                  { icon: '◇', title: 'Issue Flagging & Resolution', body: 'Flag problems instantly — vendor delay, equipment failure, schedule conflict. Everyone who needs to know gets notified immediately.' },
+                ].map((card) => (
+                  <div key={card.title} className={spotlightStyles.featureCard}>
+                    <span className={spotlightStyles.cardIcon}>{card.icon}</span>
+                    <div className={spotlightStyles.cardBody}>
+                      <h3 className={spotlightStyles.cardTitle}>{card.title}</h3>
+                      <p className={spotlightStyles.cardText}>{card.body}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Benefits Section */}
+      <section className={styles.featuresSection} aria-label="Live board benefits">
+        <div className={styles.container}>
+          <span className={styles.eyebrow} style={{ textAlign: 'center' }}>Why Real-Time Matters</span>
+          <h2 className={styles.sectionTitle}>No Delays. No Surprises.</h2>
+          <p className={styles.sectionSubtitle}>
+            When every second counts, your coordination tools need to keep pace. NaliGrid Live Board ensures your team operates as one unit.
+          </p>
+          <div className={styles.cardsGrid}>
+            <div className={styles.card}>
+              <div className={`${styles.iconWrap} ${styles.goldGlow}`}>
+                <Activity size={22} className={styles.icon} />
+              </div>
+              <h3 className={styles.cardTitle}>Zero-Lag Broadcast</h3>
+              <p className={styles.cardDesc}>
+                Powered by secure websockets, every update reaches all connected devices in under a second. Everyone on your team sees the same reality.
+              </p>
+            </div>
+            <div className={styles.card}>
+              <div className={`${styles.iconWrap} ${styles.goldGlow}`}>
+                <Bell size={22} className={styles.icon} />
+              </div>
+              <h3 className={styles.cardTitle}>Role-Targeted Alerts</h3>
+              <p className={styles.cardDesc}>
+                Coordinators only get notified about items relevant to their zone. The head planner sees everything. No noise, no distraction.
+              </p>
+            </div>
+            <div className={styles.card}>
+              <div className={`${styles.iconWrap} ${styles.goldGlow}`}>
+                <Wifi size={22} className={styles.icon} />
+              </div>
+              <h3 className={styles.cardTitle}>Projection-Ready Display</h3>
+              <p className={styles.cardDesc}>
+                The Live Board is designed to be displayed on venue screens. Everyone — from stage manager to catering lead — stays in sync at a glance.
+              </p>
             </div>
           </div>
         </div>

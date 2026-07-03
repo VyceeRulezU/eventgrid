@@ -4,8 +4,9 @@ import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
 import Footer from '@/pages/landing/Footer'
-import { Landmark, Compass, Eye, ShieldAlert } from 'lucide-react'
+import { Landmark, Compass, Eye, ShieldAlert, Link, LockKeyhole, ClipboardCheck } from 'lucide-react'
 import styles from './FeaturesLanding.module.css'
+import spotlightStyles from '@/pages/landing/FeatureSpotlightB.module.css'
 
 export function ClientPortalLandingPage() {
   return (
@@ -16,7 +17,7 @@ export function ClientPortalLandingPage() {
         url="/features/client-portal"
       />
       <Navbar />
-      
+
       <LandingPageHero
         eyebrow="Feature Showcase"
         title="Interactive Client Portal"
@@ -38,6 +39,90 @@ export function ClientPortalLandingPage() {
             <div className={styles.metricItem}>
               <span className={styles.metricVal}>0</span>
               <span className={styles.metricLbl}>Email chains or missed updates regarding event budgets</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Overlay Section */}
+      <section className={spotlightStyles.section} aria-label="Client portal preview">
+        <div className={spotlightStyles.layout}>
+          <div className={spotlightStyles.imagePane}>
+            <img
+              src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&q=85&auto=format&fit=crop"
+              alt="Client portal dashboard preview"
+              className={spotlightStyles.eventImage}
+              loading="lazy"
+            />
+            <div className={spotlightStyles.imageOverlay}>
+              <span className={spotlightStyles.overlayLabel}>Read-only peace of mind</span>
+            </div>
+          </div>
+
+          <div className={spotlightStyles.contentPane}>
+            <div className={spotlightStyles.contentInner}>
+              <span className={spotlightStyles.eyebrow}>Client Portal</span>
+              <h2 className={spotlightStyles.headline}>
+                Keep clients informed<br />without the calls.
+              </h2>
+              <p className={spotlightStyles.subtext}>
+                Share a single, secure link that gives your clients real-time visibility into budgets, timelines, RSVPs, and progress — without exposing sensitive controls.
+              </p>
+              <div className={spotlightStyles.cardStack}>
+                {[
+                  { icon: '◈', title: 'Live Budget Visibility', body: 'Clients see exactly where their money is going — vendor payments made, upcoming installments, and remaining balance. No more spreadsheet requests.' },
+                  { icon: '◆', title: 'Real-Time RSVP Dashboard', body: 'Share live guest counts, dietary preferences, and table assignments. Clients watch attendance numbers update as invites are confirmed.' },
+                  { icon: '◇', title: 'Timeline & Milestone View', body: 'Let clients see phase completion status. They stay informed without calling you for every update — reducing your overhead significantly.' },
+                ].map((card) => (
+                  <div key={card.title} className={spotlightStyles.featureCard}>
+                    <span className={spotlightStyles.cardIcon}>{card.icon}</span>
+                    <div className={spotlightStyles.cardBody}>
+                      <h3 className={spotlightStyles.cardTitle}>{card.title}</h3>
+                      <p className={spotlightStyles.cardText}>{card.body}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Benefits Section */}
+      <section className={styles.featuresSection} aria-label="Client portal benefits">
+        <div className={styles.container}>
+          <span className={styles.eyebrow} style={{ textAlign: 'center' }}>Benefits</span>
+          <h2 className={styles.sectionTitle}>Delight Clients Without Extra Work</h2>
+          <p className={styles.sectionSubtitle}>
+            A premium client experience that reduces your support burden and builds trust at every stage.
+          </p>
+          <div className={styles.cardsGrid}>
+            <div className={styles.card}>
+              <div className={`${styles.iconWrap} ${styles.goldGlow}`}>
+                <Link size={22} className={styles.icon} />
+              </div>
+              <h3 className={styles.cardTitle}>One-Click Share</h3>
+              <p className={styles.cardDesc}>
+                Generate a secure magic link in seconds. Share it via email or WhatsApp — clients access their portal instantly with no account creation required.
+              </p>
+            </div>
+            <div className={styles.card}>
+              <div className={`${styles.iconWrap} ${styles.goldGlow}`}>
+                <LockKeyhole size={22} className={styles.icon} />
+              </div>
+              <h3 className={styles.cardTitle}>Granular Access Control</h3>
+              <p className={styles.cardDesc}>
+                Choose exactly what each client can see — budget only, timeline only, or full visibility. Your event data stays protected and controlled.
+              </p>
+            </div>
+            <div className={styles.card}>
+              <div className={`${styles.iconWrap} ${styles.goldGlow}`}>
+                <ClipboardCheck size={22} className={styles.icon} />
+              </div>
+              <h3 className={styles.cardTitle}>Approval Workflows</h3>
+              <p className={styles.cardDesc}>
+                Clients can review and approve vendor deposit releases, menu selections, and budget adjustments directly from their portal — no back-and-forth.
+              </p>
             </div>
           </div>
         </div>

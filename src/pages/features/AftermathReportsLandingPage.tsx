@@ -4,8 +4,9 @@ import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
 import Footer from '@/pages/landing/Footer'
-import { FileBarChart, PiggyBank, Smile, Download } from 'lucide-react'
+import { FileBarChart, PiggyBank, Smile, Download, FileSpreadsheet, BarChart3, Presentation } from 'lucide-react'
 import styles from './FeaturesLanding.module.css'
+import spotlightStyles from '@/pages/landing/FeatureSpotlightB.module.css'
 
 export function AftermathReportsLandingPage() {
   return (
@@ -16,7 +17,7 @@ export function AftermathReportsLandingPage() {
         url="/features/aftermath-reports"
       />
       <Navbar />
-      
+
       <LandingPageHero
         eyebrow="Feature Showcase"
         title="Automated Aftermath Reports"
@@ -38,6 +39,90 @@ export function AftermathReportsLandingPage() {
             <div className={styles.metricItem}>
               <span className={styles.metricVal}>100%</span>
               <span className={styles.metricLbl}>Professional PDF presentation layouts ready for clients</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Overlay Section */}
+      <section className={spotlightStyles.section} aria-label="Reports preview">
+        <div className={spotlightStyles.layout}>
+          <div className={spotlightStyles.imagePane}>
+            <img
+              src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&q=85&auto=format&fit=crop"
+              alt="Aftermath report dashboard"
+              className={spotlightStyles.eventImage}
+              loading="lazy"
+            />
+            <div className={spotlightStyles.imageOverlay}>
+              <span className={spotlightStyles.overlayLabel}>Generated in 30 seconds</span>
+            </div>
+          </div>
+
+          <div className={spotlightStyles.contentPane}>
+            <div className={spotlightStyles.contentInner}>
+              <span className={spotlightStyles.eyebrow}>Aftermath Reports</span>
+              <h2 className={spotlightStyles.headline}>
+                Turn event data into <br />professional reports.
+              </h2>
+              <p className={spotlightStyles.subtext}>
+                After the event ends, the work of documenting begins. NaliGrid automatically consolidates your budget, guest data, vendor feedback, and timeline into a polished PDF report.
+              </p>
+              <div className={spotlightStyles.cardStack}>
+                {[
+                  { icon: '◈', title: 'Automated Financial Summary', body: 'Actual spend vs budget. Vendor deposits paid, balances outstanding, and total event cost — all compiled without manual data entry.' },
+                  { icon: '◆', title: 'Guest & Attendance Analytics', body: 'Invited vs confirmed vs attended counts. Dietary preferences, VIP percentages, and RSVP trends visualized in clear charts.' },
+                  { icon: '◇', title: 'Vendor & Team Performance', body: 'Vendor arrival times, service feedback scores, and coordinator task completion rates. Everything you need for post-event review.' },
+                ].map((card) => (
+                  <div key={card.title} className={spotlightStyles.featureCard}>
+                    <span className={spotlightStyles.cardIcon}>{card.icon}</span>
+                    <div className={spotlightStyles.cardBody}>
+                      <h3 className={spotlightStyles.cardTitle}>{card.title}</h3>
+                      <p className={spotlightStyles.cardText}>{card.body}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Benefits Section */}
+      <section className={styles.featuresSection} aria-label="Reports benefits">
+        <div className={styles.container}>
+          <span className={styles.eyebrow} style={{ textAlign: 'center' }}>Benefits</span>
+          <h2 className={styles.sectionTitle}>Close Every Event Like a Pro</h2>
+          <p className={styles.sectionSubtitle}>
+            A comprehensive aftermath report demonstrates professionalism and builds trust for future bookings.
+          </p>
+          <div className={styles.cardsGrid}>
+            <div className={styles.card}>
+              <div className={`${styles.iconWrap} ${styles.goldGlow}`}>
+                <FileSpreadsheet size={22} className={styles.icon} />
+              </div>
+              <h3 className={styles.cardTitle}>Zero Manual Compilation</h3>
+              <p className={styles.cardDesc}>
+                No more copying data from spreadsheets into Word documents. NaliGrid automatically pulls financial, guest, and timeline data into a single report.
+              </p>
+            </div>
+            <div className={styles.card}>
+              <div className={`${styles.iconWrap} ${styles.goldGlow}`}>
+                <BarChart3 size={22} className={styles.icon} />
+              </div>
+              <h3 className={styles.cardTitle}>Visual Data Storytelling</h3>
+              <p className={styles.cardDesc}>
+                Budget charts, RSVP graphs, and timeline heatmaps transform raw numbers into a compelling narrative that clients and stakeholders love.
+              </p>
+            </div>
+            <div className={styles.card}>
+              <div className={`${styles.iconWrap} ${styles.goldGlow}`}>
+                <Presentation size={22} className={styles.icon} />
+              </div>
+              <h3 className={styles.cardTitle}>Client-Ready Deliverable</h3>
+              <p className={styles.cardDesc}>
+                The generated PDF features your event branding, professional typography, and clear data layouts. Share it immediately with no additional formatting.
+              </p>
             </div>
           </div>
         </div>

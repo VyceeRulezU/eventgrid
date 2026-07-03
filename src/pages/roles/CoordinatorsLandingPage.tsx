@@ -4,8 +4,9 @@ import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
 import Footer from '@/pages/landing/Footer'
-import { CalendarRange, ClipboardList, Zap, ShieldCheck } from 'lucide-react'
+import { CalendarRange, ClipboardList, Zap, ShieldCheck, Wifi, Smartphone, Bell } from 'lucide-react'
 import styles from './RolesLanding.module.css'
+import spotlightStyles from '@/pages/landing/FeatureSpotlightB.module.css'
 
 export function CoordinatorsLandingPage() {
   return (
@@ -16,7 +17,7 @@ export function CoordinatorsLandingPage() {
         url="/coordinators"
       />
       <Navbar />
-      
+
       <LandingPageHero
         eyebrow="For Coordinators"
         title="Flawless Event Day Coordination"
@@ -38,6 +39,90 @@ export function CoordinatorsLandingPage() {
             <div className={styles.metricItem}>
               <span className={styles.metricVal}>24/7</span>
               <span className={styles.metricLbl}>Real-time synchronization with lead planners</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Overlay Section — Day-of Coordination */}
+      <section className={spotlightStyles.section} aria-label="Day-of coordination tools">
+        <div className={spotlightStyles.layout}>
+          <div className={spotlightStyles.imagePane}>
+            <img
+              src="https://i.ibb.co/Lz4Tsxk5"
+              alt="Coordinator managing event timeline"
+              className={spotlightStyles.eventImage}
+              loading="lazy"
+            />
+            <div className={spotlightStyles.imageOverlay}>
+              <span className={spotlightStyles.overlayLabel}>Real-time sync</span>
+            </div>
+          </div>
+
+          <div className={spotlightStyles.contentPane}>
+            <div className={spotlightStyles.contentInner}>
+              <span className={spotlightStyles.eyebrow}>Day-of Coordination</span>
+              <h2 className={spotlightStyles.headline}>
+                Run event day like a <br />well-oiled machine.
+              </h2>
+              <p className={spotlightStyles.subtext}>
+                Coordinators get everything they need on their phone — live checklists, real-time timeline updates, and instant alerts when things change.
+              </p>
+              <div className={spotlightStyles.cardStack}>
+                {[
+                  { icon: '◈', title: 'Live Checklist Sync', body: 'Check off vendor arrivals, venue setup tasks, and catering milestones. The planner sees every update the second it happens.' },
+                  { icon: '◆', title: 'Interactive Program Timeline', body: 'Follow the master event schedule in real time. See phase transitions, schedule shifts, and pending items at a glance.' },
+                  { icon: '◇', title: 'Instant Issue Alerts', body: 'Flag delays, vendor no-shows, or equipment issues immediately. All coordinators and the planner get notified in under a second.' },
+                ].map((card) => (
+                  <div key={card.title} className={spotlightStyles.featureCard}>
+                    <span className={spotlightStyles.cardIcon}>{card.icon}</span>
+                    <div className={spotlightStyles.cardBody}>
+                      <h3 className={spotlightStyles.cardTitle}>{card.title}</h3>
+                      <p className={spotlightStyles.cardText}>{card.body}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Benefits Section */}
+      <section className={styles.featuresSection} aria-label="Coordination benefits">
+        <div className={styles.container}>
+          <span className={styles.eyebrow} style={{ textAlign: 'center' }}>Why Coordinators Love NaliGrid</span>
+          <h2 className={styles.sectionTitle}>Built for the Event Floor</h2>
+          <p className={styles.sectionSubtitle}>
+            No more clipboards, phone tag, or frantic walkie-talkies. Everything your team needs fits in their pocket.
+          </p>
+          <div className={styles.cardsGrid}>
+            <div className={styles.card}>
+              <div className={`${styles.iconWrap} ${styles.goldGlow}`}>
+                <Smartphone size={22} className={styles.icon} />
+              </div>
+              <h3 className={styles.cardTitle}>Fully Mobile-Optimized</h3>
+              <p className={styles.cardDesc}>
+                Works perfectly on any phone or tablet. No app download required — just open the browser and coordinate instantly from anywhere in the venue.
+              </p>
+            </div>
+            <div className={styles.card}>
+              <div className={`${styles.iconWrap} ${styles.goldGlow}`}>
+                <Wifi size={22} className={styles.icon} />
+              </div>
+              <h3 className={styles.cardTitle}>Offline Resilience</h3>
+              <p className={styles.cardDesc}>
+                Tasks and checklists save locally when the network drops. Everything syncs automatically the moment your connection is restored.
+              </p>
+            </div>
+            <div className={styles.card}>
+              <div className={`${styles.iconWrap} ${styles.goldGlow}`}>
+                <Bell size={22} className={styles.icon} />
+              </div>
+              <h3 className={styles.cardTitle}>Targeted Notifications</h3>
+              <p className={styles.cardDesc}>
+                Get alerts only for the tasks and zones you are assigned to. No noise, no irrelevant updates — just the information you need.
+              </p>
             </div>
           </div>
         </div>

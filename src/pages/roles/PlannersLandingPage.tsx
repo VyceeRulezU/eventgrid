@@ -4,8 +4,9 @@ import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
 import Footer from '@/pages/landing/Footer'
-import { Calendar, Users, BarChart3, Shield } from 'lucide-react'
+import { Calendar, Users, BarChart3, Shield, Target, Sparkles, Clock } from 'lucide-react'
 import styles from './RolesLanding.module.css'
+import spotlightStyles from '@/pages/landing/FeatureSpotlightB.module.css'
 
 export function PlannersLandingPage() {
   return (
@@ -16,7 +17,7 @@ export function PlannersLandingPage() {
         url="/planners"
       />
       <Navbar />
-      
+
       <LandingPageHero
         eyebrow="For Planners"
         title="Command Your Events from One Place"
@@ -38,6 +39,90 @@ export function PlannersLandingPage() {
             <div className={styles.metricItem}>
               <span className={styles.metricVal}>100%</span>
               <span className={styles.metricLbl}>Transparent oversight on budgets, timelines, and team tasks</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Overlay Section — Why Planners Choose NaliGrid */}
+      <section className={spotlightStyles.section} aria-label="Why planners choose us">
+        <div className={spotlightStyles.layout}>
+          <div className={spotlightStyles.imagePane}>
+            <img
+              src="https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=1200&q=85&auto=format&fit=crop"
+              alt="Event planner reviewing timelines"
+              className={spotlightStyles.eventImage}
+              loading="lazy"
+            />
+            <div className={spotlightStyles.imageOverlay}>
+              <span className={spotlightStyles.overlayLabel}>Trusted by 5,000+ events</span>
+            </div>
+          </div>
+
+          <div className={spotlightStyles.contentPane}>
+            <div className={spotlightStyles.contentInner}>
+              <span className={spotlightStyles.eyebrow}>Why Planners Choose NaliGrid</span>
+              <h2 className={spotlightStyles.headline}>
+                Your entire planning workflow.<br />One workspace.
+              </h2>
+              <p className={spotlightStyles.subtext}>
+                From the first client consultation to the final aftermath report, NaliGrid gives planners a structured command centre that eliminates spreadsheets and endless email threads.
+              </p>
+              <div className={spotlightStyles.cardStack}>
+                {[
+                  { icon: '◈', title: '9-Phase Pipeline Builder', body: 'Every event follows a structured journey — lead capture, vendor booking, venue walkthrough, event day, and post-event review. No phase gets skipped.' },
+                  { icon: '◆', title: 'Real-Time Budget Ledger', body: 'Track every payment, advance, and balance in real time. Your P&L per event, visible only to you and your team — never to vendors.' },
+                  { icon: '◇', title: 'Client Portal with Approvals', body: 'Share a branded portal link. Your client sees phase progress, approves decisions, and stops calling you for updates.' },
+                ].map((card) => (
+                  <div key={card.title} className={spotlightStyles.featureCard}>
+                    <span className={spotlightStyles.cardIcon}>{card.icon}</span>
+                    <div className={spotlightStyles.cardBody}>
+                      <h3 className={spotlightStyles.cardTitle}>{card.title}</h3>
+                      <p className={spotlightStyles.cardText}>{card.body}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Benefits Section */}
+      <section className={styles.featuresSection} aria-label="Planner benefits">
+        <div className={styles.container}>
+          <span className={styles.eyebrow} style={{ textAlign: 'center' }}>Planner Benefits</span>
+          <h2 className={styles.sectionTitle}>What Makes NaliGrid Different</h2>
+          <p className={styles.sectionSubtitle}>
+            Purpose-built for Nigerian event professionals who need speed, clarity, and total control.
+          </p>
+          <div className={styles.cardsGrid}>
+            <div className={styles.card}>
+              <div className={`${styles.iconWrap} ${styles.goldGlow}`}>
+                <Target size={22} className={styles.icon} />
+              </div>
+              <h3 className={styles.cardTitle}>Eliminate Manual Handovers</h3>
+              <p className={styles.cardDesc}>
+                No more WhatsApp group chaos or clipboard checklists. Every phase, task, and payment is tracked digitally — accessible to every stakeholder instantly.
+              </p>
+            </div>
+            <div className={styles.card}>
+              <div className={`${styles.iconWrap} ${styles.goldGlow}`}>
+                <Sparkles size={22} className={styles.icon} />
+              </div>
+              <h3 className={styles.cardTitle}>Reusable Event Templates</h3>
+              <p className={styles.cardDesc}>
+                Create a pipeline once and duplicate it for every new client. Save hours on event setup while maintaining consistent quality across all your projects.
+              </p>
+            </div>
+            <div className={styles.card}>
+              <div className={`${styles.iconWrap} ${styles.goldGlow}`}>
+                <Clock size={22} className={styles.icon} />
+              </div>
+              <h3 className={styles.cardTitle}>Proactive Timeline Alerts</h3>
+              <p className={styles.cardDesc}>
+                Get notified when phases fall behind, vendor payments are due, or coordinators complete milestones. Stay ahead of every deadline.
+              </p>
             </div>
           </div>
         </div>

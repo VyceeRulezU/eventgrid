@@ -4,8 +4,9 @@ import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
 import Footer from '@/pages/landing/Footer'
-import { Store, Wallet, Clock, CheckCircle } from 'lucide-react'
+import { Store, Wallet, Clock, CheckCircle, Star, TrendingUp, Shield } from 'lucide-react'
 import styles from './RolesLanding.module.css'
+import spotlightStyles from '@/pages/landing/FeatureSpotlightB.module.css'
 
 export function VendorsLandingPage() {
   return (
@@ -16,7 +17,7 @@ export function VendorsLandingPage() {
         url="/vendors-landing"
       />
       <Navbar />
-      
+
       <LandingPageHero
         eyebrow="For Vendors"
         title="Scale Your Event Business"
@@ -38,6 +39,90 @@ export function VendorsLandingPage() {
             <div className={styles.metricItem}>
               <span className={styles.metricVal}>100%</span>
               <span className={styles.metricLbl}>Escrow guarantee on milestone deposits</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Overlay Section — Vendor Success */}
+      <section className={spotlightStyles.section} aria-label="Vendor success tools">
+        <div className={spotlightStyles.layout}>
+          <div className={spotlightStyles.imagePane}>
+            <img
+              src="https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=1200&q=85&auto=format&fit=crop"
+              alt="Event vendor setting up"
+              className={spotlightStyles.eventImage}
+              loading="lazy"
+            />
+            <div className={spotlightStyles.imageOverlay}>
+              <span className={spotlightStyles.overlayLabel}>Trusted by vendors across Nigeria</span>
+            </div>
+          </div>
+
+          <div className={spotlightStyles.contentPane}>
+            <div className={spotlightStyles.contentInner}>
+              <span className={spotlightStyles.eyebrow}>For Vendors</span>
+              <h2 className={spotlightStyles.headline}>
+                More bookings, less <br />payment hassle.
+              </h2>
+              <p className={spotlightStyles.subtext}>
+                NaliGrid connects vendors with serious planners who need verified professionals. Build your profile, receive booking requests, and get paid securely — all from one dashboard.
+              </p>
+              <div className={spotlightStyles.cardStack}>
+                {[
+                  { icon: '◈', title: 'Smart Matching to Planners', body: 'Get discovered by planners searching for your category. Your profile shows past work, reviews, and starting prices so planners can book with confidence.' },
+                  { icon: '◆', title: 'Milestone Payment Escrow', body: 'Deposits and final balances are secured in escrow. Funds are released automatically when you complete agreed milestones — no chasing clients.' },
+                  { icon: '◇', title: 'Calendar & Availability Sync', body: 'Avoid double-bookings. Update your availability once and planners see real-time open slots. No more back-and-forth scheduling.' },
+                ].map((card) => (
+                  <div key={card.title} className={spotlightStyles.featureCard}>
+                    <span className={spotlightStyles.cardIcon}>{card.icon}</span>
+                    <div className={spotlightStyles.cardBody}>
+                      <h3 className={spotlightStyles.cardTitle}>{card.title}</h3>
+                      <p className={spotlightStyles.cardText}>{card.body}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Benefits Section */}
+      <section className={styles.featuresSection} aria-label="Vendor benefits">
+        <div className={styles.container}>
+          <span className={styles.eyebrow} style={{ textAlign: 'center' }}>Vendor Benefits</span>
+          <h2 className={styles.sectionTitle}>Grow Your Business with Confidence</h2>
+          <p className={styles.sectionSubtitle}>
+            Whether you are a caterer, DJ, decorator, or photographer — NaliGrid gives you the tools to win more clients and get paid faster.
+          </p>
+          <div className={styles.cardsGrid}>
+            <div className={styles.card}>
+              <div className={`${styles.iconWrap} ${styles.goldGlow}`}>
+                <Star size={22} className={styles.icon} />
+              </div>
+              <h3 className={styles.cardTitle}>Verified Reviews Build Trust</h3>
+              <p className={styles.cardDesc}>
+                Collect verified reviews from real planners after every event. Future clients see authentic feedback that helps them choose you with confidence.
+              </p>
+            </div>
+            <div className={styles.card}>
+              <div className={`${styles.iconWrap} ${styles.goldGlow}`}>
+                <TrendingUp size={22} className={styles.icon} />
+              </div>
+              <h3 className={styles.cardTitle}>Free Profile Listing</h3>
+              <p className={styles.cardDesc}>
+                Create a professional storefront for free. Showcase your portfolio, services, and pricing. Only pay a small service fee on completed bookings.
+              </p>
+            </div>
+            <div className={styles.card}>
+              <div className={`${styles.iconWrap} ${styles.goldGlow}`}>
+                <Shield size={22} className={styles.icon} />
+              </div>
+              <h3 className={styles.cardTitle}>Dispute Resolution Support</h3>
+              <p className={styles.cardDesc}>
+                Our support team mediates any payment disputes. Escrow ensures funds are never released until both parties confirm milestone completion.
+              </p>
             </div>
           </div>
         </div>

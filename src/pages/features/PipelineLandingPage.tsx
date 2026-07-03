@@ -4,8 +4,9 @@ import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
 import Footer from '@/pages/landing/Footer'
-import { GitMerge, Layers, Clock, Settings } from 'lucide-react'
+import { GitMerge, Layers, Clock, Settings, Route, CheckSquare, Eye } from 'lucide-react'
 import styles from './FeaturesLanding.module.css'
+import spotlightStyles from '@/pages/landing/FeatureSpotlightB.module.css'
 
 export function PipelineLandingPage() {
   return (
@@ -16,7 +17,7 @@ export function PipelineLandingPage() {
         url="/features/pipeline"
       />
       <Navbar />
-      
+
       <LandingPageHero
         eyebrow="Feature Showcase"
         title="Visual Event Pipeline"
@@ -38,6 +39,90 @@ export function PipelineLandingPage() {
             <div className={styles.metricItem}>
               <span className={styles.metricVal}>1-Click</span>
               <span className={styles.metricLbl}>Export timeline summary to PDF client reports</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Overlay Section */}
+      <section className={spotlightStyles.section} aria-label="Pipeline in action">
+        <div className={spotlightStyles.layout}>
+          <div className={spotlightStyles.imagePane}>
+            <img
+              src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&q=85&auto=format&fit=crop"
+              alt="Event pipeline workflow on dashboard"
+              className={spotlightStyles.eventImage}
+              loading="lazy"
+            />
+            <div className={spotlightStyles.imageOverlay}>
+              <span className={spotlightStyles.overlayLabel}>Structured event phases</span>
+            </div>
+          </div>
+
+          <div className={spotlightStyles.contentPane}>
+            <div className={spotlightStyles.contentInner}>
+              <span className={spotlightStyles.eyebrow}>Pipeline Workflow</span>
+              <h2 className={spotlightStyles.headline}>
+                Map every milestone.<br />Track every phase.
+              </h2>
+              <p className={spotlightStyles.subtext}>
+                Break your event down into clear, manageable phases. Assign tasks, set deadlines, and monitor progress — all from a single timeline view.
+              </p>
+              <div className={spotlightStyles.cardStack}>
+                {[
+                  { icon: '◈', title: '9 Pre-Built Phases', body: 'Lead capture, booking, vendor sourcing, venue walkthrough, event week, rehearsal, event day, wrap, and aftermath — each with default tasks ready to go.' },
+                  { icon: '◆', title: 'Visual Phase Progress', body: 'See at a glance which phases are complete, in progress, or overdue. Each phase shows checklists, assigned team members, and due dates.' },
+                  { icon: '◇', title: 'Full Audit Trail', body: 'Every task check-off, status change, and comment is logged with timestamps and user attribution. Never lose track of who did what.' },
+                ].map((card) => (
+                  <div key={card.title} className={spotlightStyles.featureCard}>
+                    <span className={spotlightStyles.cardIcon}>{card.icon}</span>
+                    <div className={spotlightStyles.cardBody}>
+                      <h3 className={spotlightStyles.cardTitle}>{card.title}</h3>
+                      <p className={spotlightStyles.cardText}>{card.body}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Benefits Section */}
+      <section className={styles.featuresSection} aria-label="Pipeline benefits">
+        <div className={styles.container}>
+          <span className={styles.eyebrow} style={{ textAlign: 'center' }}>Why It Matters</span>
+          <h2 className={styles.sectionTitle}>Stay Ahead of Every Deadline</h2>
+          <p className={styles.sectionSubtitle}>
+            A structured pipeline ensures nothing falls through the cracks — from the first client call to the final event review.
+          </p>
+          <div className={styles.cardsGrid}>
+            <div className={styles.card}>
+              <div className={`${styles.iconWrap} ${styles.goldGlow}`}>
+                <Route size={22} className={styles.icon} />
+              </div>
+              <h3 className={styles.cardTitle}>Clear Milestone Mapping</h3>
+              <p className={styles.cardDesc}>
+                Every event follows a predictable path. With pre-defined phases and tasks, your team always knows what needs to happen next and when.
+              </p>
+            </div>
+            <div className={styles.card}>
+              <div className={`${styles.iconWrap} ${styles.goldGlow}`}>
+                <CheckSquare size={22} className={styles.icon} />
+              </div>
+              <h3 className={styles.cardTitle}>Task Ownership & Accountability</h3>
+              <p className={styles.cardDesc}>
+                Assign every task to a specific team member. Each person sees only their responsibilities, reducing confusion and missed handoffs.
+              </p>
+            </div>
+            <div className={styles.card}>
+              <div className={`${styles.iconWrap} ${styles.goldGlow}`}>
+                <Eye size={22} className={styles.icon} />
+              </div>
+              <h3 className={styles.cardTitle}>Real-Time Progress Visibility</h3>
+              <p className={styles.cardDesc}>
+                Planners get a bird's-eye view of every event's status. Spot bottlenecks before they become problems and keep clients informed with confidence.
+              </p>
             </div>
           </div>
         </div>

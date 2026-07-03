@@ -4,8 +4,9 @@ import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
 import Footer from '@/pages/landing/Footer'
-import { Truck, Wallet, FileText, CheckSquare } from 'lucide-react'
+import { Truck, Wallet, FileText, CheckSquare, Calendar, ShieldCheck, Bell } from 'lucide-react'
 import styles from './FeaturesLanding.module.css'
+import spotlightStyles from '@/pages/landing/FeatureSpotlightB.module.css'
 
 export function VendorTrackerLandingPage() {
   return (
@@ -16,7 +17,7 @@ export function VendorTrackerLandingPage() {
         url="/features/vendor-tracker"
       />
       <Navbar />
-      
+
       <LandingPageHero
         eyebrow="Feature Showcase"
         title="Vendor Logistics & Payment Tracker"
@@ -38,6 +39,90 @@ export function VendorTrackerLandingPage() {
             <div className={styles.metricItem}>
               <span className={styles.metricVal}>₦0</span>
               <span className={styles.metricLbl}>Cash handling risks for coordinators on the event day</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Overlay Section */}
+      <section className={spotlightStyles.section} aria-label="Vendor tracker overview">
+        <div className={spotlightStyles.layout}>
+          <div className={spotlightStyles.imagePane}>
+            <img
+              src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&q=85&auto=format&fit=crop"
+              alt="Vendor coordination dashboard"
+              className={spotlightStyles.eventImage}
+              loading="lazy"
+            />
+            <div className={spotlightStyles.imageOverlay}>
+              <span className={spotlightStyles.overlayLabel}>Vendor management hub</span>
+            </div>
+          </div>
+
+          <div className={spotlightStyles.contentPane}>
+            <div className={spotlightStyles.contentInner}>
+              <span className={spotlightStyles.eyebrow}>Vendor Tracker</span>
+              <h2 className={spotlightStyles.headline}>
+                Every vendor, every payment,<br />in one place.
+              </h2>
+              <p className={spotlightStyles.subtext}>
+                Track vendor relationships from initial booking to final payout. Store contracts, monitor deposits, and coordinate delivery schedules without losing sight of any detail.
+              </p>
+              <div className={spotlightStyles.cardStack}>
+                {[
+                  { icon: '◈', title: 'Centralized Vendor Directory', body: 'Keep every vendor — caterers, DJs, decorators, security — organized by category. Access contact info, contracts, and payment history instantly.' },
+                  { icon: '◆', title: 'Milestone Payment Tracking', body: 'Track deposits paid, balances due, and final payouts for each vendor. Escrow integration ensures funds are secure until services are delivered.' },
+                  { icon: '◇', title: 'Delivery & Logistics Timeline', body: 'Log arrival times, setup windows, and departure schedules. Co-ordinate multiple vendor arrivals without overlap or delays.' },
+                ].map((card) => (
+                  <div key={card.title} className={spotlightStyles.featureCard}>
+                    <span className={spotlightStyles.cardIcon}>{card.icon}</span>
+                    <div className={spotlightStyles.cardBody}>
+                      <h3 className={spotlightStyles.cardTitle}>{card.title}</h3>
+                      <p className={spotlightStyles.cardText}>{card.body}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Benefits Section */}
+      <section className={styles.featuresSection} aria-label="Vendor tracker benefits">
+        <div className={styles.container}>
+          <span className={styles.eyebrow} style={{ textAlign: 'center' }}>Why It Matters</span>
+          <h2 className={styles.sectionTitle}>No More Vendor Chaos</h2>
+          <p className={styles.sectionSubtitle}>
+            When multiple vendors are involved in a single event, coordination is everything. NaliGrid keeps every relationship on track.
+          </p>
+          <div className={styles.cardsGrid}>
+            <div className={styles.card}>
+              <div className={`${styles.iconWrap} ${styles.goldGlow}`}>
+                <Calendar size={22} className={styles.icon} />
+              </div>
+              <h3 className={styles.cardTitle}>Conflict-Free Scheduling</h3>
+              <p className={styles.cardDesc}>
+                Overlapping vendor arrivals are flagged automatically. See at a glance which vendors are scheduled for each time slot and avoid bottlenecks at the venue.
+              </p>
+            </div>
+            <div className={styles.card}>
+              <div className={`${styles.iconWrap} ${styles.goldGlow}`}>
+                <ShieldCheck size={22} className={styles.icon} />
+              </div>
+              <h3 className={styles.cardTitle}>Contract & Invoice Vault</h3>
+              <p className={styles.cardDesc}>
+                Upload and store all vendor contracts, quotes, and invoices in one secure place. No more digging through email attachments on event day.
+              </p>
+            </div>
+            <div className={styles.card}>
+              <div className={`${styles.iconWrap} ${styles.goldGlow}`}>
+                <Bell size={22} className={styles.icon} />
+              </div>
+              <h3 className={styles.cardTitle}>Proactive Payment Reminders</h3>
+              <p className={styles.cardDesc}>
+                Get notified when deposits are due, balances are pending, or final payouts need processing. Never miss a vendor payment deadline again.
+              </p>
             </div>
           </div>
         </div>
