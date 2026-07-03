@@ -4,10 +4,12 @@
 -- Fix: Add ownership and event membership checks.
 
 -- === AVATARS ===
--- Only the owner can manage their own avatar
+-- Only the owner can manage their own avatar.
+-- Code path convention: avatars/{user.id}/avatar.{ext}
 DROP POLICY IF EXISTS "avatars_select_own" ON storage.objects;
 DROP POLICY IF EXISTS "avatars_insert_own" ON storage.objects;
 DROP POLICY IF EXISTS "avatars_update_own" ON storage.objects;
+DROP POLICY IF EXISTS "avatars_delete_own" ON storage.objects;
 
 CREATE POLICY "avatars_select_own"
   ON storage.objects FOR SELECT
@@ -15,21 +17,38 @@ CREATE POLICY "avatars_select_own"
 
 CREATE POLICY "avatars_insert_own"
   ON storage.objects FOR INSERT
-  WITH CHECK (bucket_id = 'avatars' AND auth.role() = 'authenticated' AND (storage.objects.name LIKE auth.uid()::text || '%'));
+  WITH CHECK (
+    bucket_id = 'avatars'
+    AND auth.role() = 'authenticated'
+    AND storage.objects.name LIKE 'avatars/' || auth.uid()::text || '%'
+  );
 
 CREATE POLICY "avatars_update_own"
   ON storage.objects FOR UPDATE
-  USING (bucket_id = 'avatars' AND auth.role() = 'authenticated' AND (storage.objects.name LIKE auth.uid()::text || '%'));
+  USING (
+    bucket_id = 'avatars'
+    AND auth.role() = 'authenticated'
+    AND storage.objects.name LIKE 'avatars/' || auth.uid()::text || '%'
+  );
 
 CREATE POLICY "avatars_delete_own"
   ON storage.objects FOR DELETE
-  USING (bucket_id = 'avatars' AND auth.role() = 'authenticated' AND (storage.objects.name LIKE auth.uid()::text || '%'));
+  USING (
+    bucket_id = 'avatars'
+    AND auth.role() = 'authenticated'
+    AND storage.objects.name LIKE 'avatars/' || auth.uid()::text || '%'
+  );
 
 -- === ORG ASSETS ===
--- Org assets: restrict to org members via organization owner check
+-- Org assets: restrict to org members via organization owner check.
+-- Code path convention: {org_id}/org-logos/{timestamp}.{ext}
 DROP POLICY IF EXISTS "org_assets_select_own_org" ON storage.objects;
 DROP POLICY IF EXISTS "org_assets_insert_own_org" ON storage.objects;
 DROP POLICY IF EXISTS "org_assets_update_own_org" ON storage.objects;
+DROP POLICY IF EXISTS "org_assets_select" ON storage.objects;
+DROP POLICY IF EXISTS "org_assets_insert" ON storage.objects;
+DROP POLICY IF EXISTS "org_assets_update" ON storage.objects;
+DROP POLICY IF EXISTS "org_assets_delete" ON storage.objects;
 
 -- Extract org_id from first segment of the path
 CREATE OR REPLACE FUNCTION public.storage_path_org_id(path text)
@@ -90,7 +109,9 @@ CREATE POLICY "org_assets_delete"
   );
 
 -- === EVENT MEDIA ===
--- Public bucket for reading, but restrict write to event members
+-- Public bucket for reading, but restrict write to event members.
+-- Code path convention: {event_id}/assets/..., {event_id}/floor-plan/..., {event_id}/comments/...,
+-- {event_id}/portal/..., {event_id}/live-feed/...
 DROP POLICY IF EXISTS "event_media_select" ON storage.objects;
 DROP POLICY IF EXISTS "event_media_insert" ON storage.objects;
 DROP POLICY IF EXISTS "event_media_update" ON storage.objects;
@@ -162,6 +183,7 @@ CREATE POLICY "event_media_delete"
 DROP POLICY IF EXISTS "event_docs_select" ON storage.objects;
 DROP POLICY IF EXISTS "event_docs_insert" ON storage.objects;
 DROP POLICY IF EXISTS "event_docs_update" ON storage.objects;
+DROP POLICY IF EXISTS "event_docs_delete" ON storage.objects;
 
 CREATE POLICY "event_docs_select"
   ON storage.objects FOR SELECT

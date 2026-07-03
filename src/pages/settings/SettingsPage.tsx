@@ -231,7 +231,7 @@ export function SettingsPage() {
     }
 
     const ext = file.name.split('.').pop()
-    const path = `org-logos/${org.id}-${Date.now()}.${ext}`
+    const path = `${org.id}/org-logos/${Date.now()}.${ext}`
 
     const { url: publicUrl } = await uploadFile('org-assets', file, path)
     setLogoPreview(publicUrl)

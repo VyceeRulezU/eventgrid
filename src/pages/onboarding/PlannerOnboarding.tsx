@@ -139,22 +139,10 @@ export function PlannerOnboarding() {
     if (!user) return
     setLoading(true)
 
-    let logoUrl: string | null = null
-
-    if (logoFile && logoPreview) {
-      const ext = logoFile.name.split('.').pop()
-      const path = `org-logos/${user.id}-${Date.now()}.${ext}`
-      try {
-        const { url } = await uploadFile('org-assets', logoFile, path)
-        logoUrl = url
-      } catch {
-        // upload failed silently — logoUrl stays null
-      }
-    }
-
     let orgId: string | null = null
     let orgData: { id: string; name: string; logo_url: string | null; show_beta_label: boolean; owner_id: string | null } | null = null
 
+    // Step 1: Find or create the org (without logo — upload happens after we have the orgId)
     if (isUpgrade && existingOrg) {
       orgId = existingOrg
     } else {
@@ -163,7 +151,7 @@ export function PlannerOnboarding() {
           p_name: orgName,
           p_owner_id: user.id,
           p_city: `${city}, ${state}`,
-          p_logo_url: logoUrl,
+          p_logo_url: null,
         })
 
       if (orgErr || !org) {
@@ -175,6 +163,22 @@ export function PlannerOnboarding() {
       const created = org as { id: string; name: string; logo_url: string | null }
       orgId = created.id
       orgData = { ...created, show_beta_label: true, owner_id: user.id }
+    }
+
+    // Step 2: Upload logo (orgId is now available for the path)
+    if (logoFile && logoPreview && orgId) {
+      const ext = logoFile.name.split('.').pop()
+      const path = `${orgId}/org-logos/${Date.now()}.${ext}`
+      try {
+        const { url } = await uploadFile('org-assets', logoFile, path)
+        await supabase
+          .from('organizations')
+          .update({ logo_url: url })
+          .eq('id', orgId)
+        if (orgData) orgData.logo_url = url
+      } catch {
+        // upload failed silently — logo stays null
+      }
     }
 
     // Update profile role to planner

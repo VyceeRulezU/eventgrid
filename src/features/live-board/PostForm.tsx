@@ -149,7 +149,7 @@ export function PostForm({ eventId, parentId, parentAuthorName, teamMembers = []
       const mediaRows: { event_id: string; uploader_id: string; url: string; storage_path: string }[] = []
       for (const f of files) {
         const ext = f.name.split('.').pop()
-        const path = `live-feed/${eventId}/${user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
+        const path = `${eventId}/live-feed/${user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
         const isPdf = f.type === 'application/pdf' || ext?.toLowerCase() === 'pdf'
         const blob = isPdf ? f : await compressImage(f)
         try {
