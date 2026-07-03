@@ -221,33 +221,44 @@ export function SettingsPage() {
     }
   }
 
+  const [uploadingLogo, setUploadingLogo] = useState(false)
+
   const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file || !user || !org || !supabase) return
+    if (uploadingLogo) return
 
     if (file.size > 2 * 1024 * 1024) {
       showToast({ type: 'error', title: 'File too large', body: 'Logo must be under 2MB' })
       return
     }
 
-    const ext = file.name.split('.').pop()
-    const path = `${org.id}/org-logos/${Date.now()}.${ext}`
+    setUploadingLogo(true)
+    try {
+      const ext = file.name.split('.').pop()
+      const path = `${org.id}/org-logos/${Date.now()}.${ext}`
 
-    const { url: publicUrl } = await uploadFile('org-assets', file, path)
-    setLogoPreview(publicUrl)
+      const { url: publicUrl } = await uploadFile('org-assets', file, path)
+      setLogoPreview(publicUrl)
 
-    const { error } = await supabase
-      .from('organizations')
-      .update({ logo_url: publicUrl })
-      .eq('id', org.id)
+      const { error } = await supabase
+        .from('organizations')
+        .update({ logo_url: publicUrl })
+        .eq('id', org.id)
 
-    if (error) {
-      showToast({ type: 'error', title: 'Save failed', body: error.message })
-      return
+      if (error) {
+        showToast({ type: 'error', title: 'Save failed', body: error.message })
+        return
+      }
+
+      setOrg({ ...org, logo_url: publicUrl })
+      showToast({ type: 'success', title: 'Logo updated', body: 'Your organisation logo has been saved.' })
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Could not upload logo'
+      showToast({ type: 'error', title: 'Upload failed', body: message })
+    } finally {
+      setUploadingLogo(false)
     }
-
-    setOrg({ ...org, logo_url: publicUrl })
-    showToast({ type: 'success', title: 'Logo updated', body: 'Your organisation logo has been saved.' })
   }
 
   const handleSave = async () => {
