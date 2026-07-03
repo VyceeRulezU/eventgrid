@@ -945,6 +945,231 @@ const POST_EVENT_COORDINATOR: StaticPost = {
   ],
 }
 
+const POST_CLIENT_COMMUNICATION: StaticPost = {
+  _id: 'static-007',
+  title: 'Why Your Event Clients Keep Calling You (And How to Stop It)',
+  metaTitle: 'Why Your Event Clients Keep Calling — Better Client Communication for Nigerian Planners | NaliGrid',
+  slug: { current: 'event-planner-client-communication-nigeria' },
+  excerpt: "Nigerian event planners spend hours every week on client update calls that shouldn't be necessary. Here's why clients keep calling — and how professional planners are changing that.",
+  category: 'Client Management',
+  tags: ['Client Communication', 'Nigerian Event Planners', 'Client Portal', 'Event Management'],
+  publishedAt: '2026-07-03T00:00:00.000Z',
+  readTime: '5 min read',
+  featuredImage: {
+    placeholderUrl: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=1200&auto=format&fit=crop',
+    alt: 'An event client talking on a smartphone, checking status and updates',
+  },
+  body: [
+    {
+      type: 'paragraph',
+      text: 'There is a call that every Nigerian event planner knows.',
+    },
+    {
+      type: 'paragraph',
+      text: "It comes mid-afternoon on a Tuesday, three weeks before the event. The number is saved in their phone. They know before they answer what the call is about.",
+    },
+    {
+      type: 'paragraph',
+      text: '"I just wanted to check in. How is everything going? Have the vendors been confirmed? What\'s happening with the venue? Did you follow up on the decor like we discussed?"',
+    },
+    {
+      type: 'paragraph',
+      text: "The planner answers every question. Everything is under control. The venue has been confirmed. Three vendors are fully booked, four more are in negotiation. The decor concept was finalised last week. Nothing has changed since they spoke on Friday.",
+    },
+    {
+      type: 'paragraph',
+      text: 'The client says "okay, great" and hangs up. They will call again on Thursday.',
+    },
+    {
+      type: 'heading',
+      level: 2,
+      text: 'Why This Keeps Happening',
+    },
+    {
+      type: 'paragraph',
+      text: 'The client is not being difficult. They are being rational.',
+    },
+    {
+      type: 'paragraph',
+      text: "They have committed a significant amount of money — possibly more money than they've spent on anything in recent memory — to an event that they cannot see. The planning is happening somewhere, in someone else's head, in someone else's spreadsheets, across vendor conversations they have no visibility into.",
+    },
+    {
+      type: 'paragraph',
+      text: 'Their only source of information about the thing they\'ve paid for is calling the person who is managing it.',
+    },
+    {
+      type: 'paragraph',
+      text: 'So they call.',
+    },
+    {
+      type: 'paragraph',
+      text: "The planner takes the call because taking the call is part of the job. But the call interrupts whatever the planner was actually doing. It takes 15 minutes. Multiplied across multiple clients with multiple events, it adds up to several hours every week spent on calls that convey no new information to anyone.",
+    },
+    {
+      type: 'paragraph',
+      text: 'This is not a client problem. It is an information problem.',
+    },
+    {
+      type: 'sectionImage',
+      placeholderUrl: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=800&auto=format&fit=crop',
+      alt: 'Anxious client checking smartphone representing stress and information gap',
+      caption: 'When clients lack real-time visibility into their event planning, it naturally creates check-in anxiety.',
+    },
+    {
+      type: 'heading',
+      level: 2,
+      text: 'The Information Gap in Event Planning',
+    },
+    {
+      type: 'paragraph',
+      text: "When a planner is managing an event, they have complete visibility into everything happening. They know that the venue deposit was paid on the 3rd. They know that the photographer has been confirmed and the contract is signed. They know that the decor concept was approved and the installation team is booked. They know the event is on track.",
+    },
+    {
+      type: 'paragraph',
+      text: 'The client knows none of this unless the planner tells them.',
+    },
+    {
+      type: 'paragraph',
+      text: 'In most Nigerian event planning relationships, the communication model is entirely reactive. The client asks, the planner answers. The planner updates, the client acknowledges. Information flows through calls, messages, and emails initiated by one party or the other.',
+    },
+    {
+      type: 'paragraph',
+      text: 'The problem with reactive communication is that it creates anxiety in the party with no visibility — the client — that compounds over time. Each unanswered question generates another question. Each day without an update generates a call to check in. The planner, who is busy actually planning the event, spends an increasing portion of their time managing the anxiety their lack of visible progress creates in their clients.',
+    },
+    {
+      type: 'heading',
+      level: 2,
+      text: 'What Clients Actually Need',
+    },
+    {
+      type: 'paragraph',
+      text: "Clients don't call because they want to talk. They call because they want to know that things are under control.",
+    },
+    {
+      type: 'paragraph',
+      text: 'What they actually need is visibility. Not full operational visibility — they don\'t need to know which vendor is still being negotiated with or what the caterer costs versus the budget. What they need is a clear, current answer to a simple question: is my event on track?',
+    },
+    {
+      type: 'paragraph',
+      text: 'If a client could look at something — a page, a dashboard, a document — that showed them where their event currently is in the planning process, what has been completed, what\'s in progress, and what needs their attention or input, the number of check-in calls would drop dramatically.',
+    },
+    {
+      type: 'paragraph',
+      text: 'Not to zero. But dramatically.',
+    },
+    {
+      type: 'heading',
+      level: 2,
+      text: 'The Client Portal Approach',
+    },
+    {
+      type: 'paragraph',
+      text: "NaliGrid's client portal is built around exactly this insight.",
+    },
+    {
+      type: 'paragraph',
+      text: 'When a planner generates a client portal for their event, they get a private link that they share with the client. The client clicks the link — no account creation, no app download — and they see a clean, professional view of their event.',
+    },
+    {
+      type: 'paragraph',
+      text: "What the client sees:\n- The current phase of planning and which phases are complete\n- Milestones that have been reached\n- Items that need their approval or input\n- After the event, a summary report and selected photos",
+    },
+    {
+      type: 'paragraph',
+      text: "What the client does not see:\n- Vendor costs or payment details\n- The planner's profit margin\n- Internal team notes or vendor negotiations\n- Any operational details the planner hasn't chosen to share",
+    },
+    {
+      type: 'paragraph',
+      text: 'The information is curated. The planner controls what is visible. The client gets enough to know that their event is progressing — which is all they actually needed to know.',
+    },
+    {
+      type: 'sectionImage',
+      placeholderUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=800&auto=format&fit=crop',
+      alt: 'Modern event planning client portal interface showing milestones and approvals',
+      caption: 'A professional client portal keeps the client updated on milestones without showing internal operator details.',
+    },
+    {
+      type: 'heading',
+      level: 2,
+      text: 'What Changes When Clients Have Visibility',
+    },
+    {
+      type: 'paragraph',
+      text: "The check-in call doesn't disappear entirely. Some clients will always want to talk. But the nature of the call changes.",
+    },
+    {
+      type: 'paragraph',
+      text: 'Instead of "what\'s happening with my event," the call becomes "I saw on the portal that Phase 3 is complete — can you tell me more about the vendor you selected for the decor?" That is a productive conversation about a specific topic, not a general anxiety check.',
+    },
+    {
+      type: 'paragraph',
+      text: "The client who was calling three times a week becomes a client who calls once, with a specific question that has a specific answer. The planner's time is freed for the work they're being paid to do.",
+    },
+    {
+      type: 'paragraph',
+      text: 'There is a secondary benefit that planners often underestimate: the perception of professionalism.',
+    },
+    {
+      type: 'paragraph',
+      text: 'When a planner shares a client portal link and the client clicks it and sees a clean, current, well-organised view of their event progress, the impression it creates is significant. Most of their clients have never experienced anything like this. Their previous event planners worked through WhatsApp and informal updates.',
+    },
+    {
+      type: 'paragraph',
+      text: "A portal that looks like this — branded, organised, professional — communicates something about the standard of the person managing their event that words alone don't convey. Clients refer their friends not just because the event went well, but because working with the planner felt like working with someone who had a serious, professional operation. The portal is part of that signal.",
+    },
+    {
+      type: 'heading',
+      level: 2,
+      text: 'The Approval Flow',
+    },
+    {
+      type: 'paragraph',
+      text: 'Beyond passive visibility, the client portal also handles something that typically generates significant back-and-forth: approvals.',
+    },
+    {
+      type: 'paragraph',
+      text: 'When a planner needs a client to confirm a decision — the final venue, the event concept, the seating arrangement — the process currently involves sending documents via WhatsApp or email, waiting for a response, following up when the response doesn\'t come, and eventually getting a verbal confirmation over the phone that no one has written down anywhere.',
+    },
+    {
+      type: 'paragraph',
+      text: "In NaliGrid, the planner can mark any deliverable as requiring client approval. The client sees it in their portal, reviews it, and clicks Approve or Request Changes (with a comment if they're requesting changes). The planner gets notified immediately. The decision is documented.",
+    },
+    {
+      type: 'paragraph',
+      text: 'No follow-up required. No chasing. No "I thought we agreed on this" conversations three weeks later.',
+    },
+    {
+      type: 'sectionImage',
+      placeholderUrl: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=800&auto=format&fit=crop',
+      alt: 'Client and planner aligned on decisions, confirming deliverables digitally',
+      caption: 'Digital approvals document final decisions, ending miscommunications and disputes.',
+    },
+    {
+      type: 'heading',
+      level: 2,
+      text: 'A Different Kind of Client Relationship',
+    },
+    {
+      type: 'paragraph',
+      text: 'The shift that the client portal enables is subtle but significant. The relationship moves from one where the planner is the sole keeper of all information — and therefore the subject of constant information requests — to one where the client is a participant in a shared, visible process.',
+    },
+    {
+      type: 'paragraph',
+      text: "The client still isn't managing anything. They're not in the vendor conversations or the logistics decisions. They're watching progress happen, with appropriate detail, on their own time.",
+    },
+    {
+      type: 'paragraph',
+      text: 'That change in dynamic makes for a better client relationship, a more professional experience, and a planner who spends their time planning events rather than fielding check-in calls.',
+    },
+    {
+      type: 'cta',
+      text: 'NaliGrid is in beta. First event activation is ₦100.',
+      buttonText: 'See how the client portal works →',
+      buttonUrl: '/register',
+    },
+  ],
+}
+
 export const STATIC_POSTS: StaticPost[] = [
   POST_EVENT_COORDINATOR,
   POST_VENDOR_MGMT,
@@ -952,6 +1177,7 @@ export const STATIC_POSTS: StaticPost[] = [
   POST_WHATSAPP_EXCEL,
   POST_CHECKLIST,
   POST_RECONCILE,
+  POST_CLIENT_COMMUNICATION,
 ]
 
 export function getStaticPost(slug: string): StaticPost | undefined {
