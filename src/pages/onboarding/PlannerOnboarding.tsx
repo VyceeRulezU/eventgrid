@@ -82,8 +82,8 @@ export function PlannerOnboarding() {
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
 
-  // Step 2: Primary Focus
-  const [experience, setExperience] = useState('boutique_weddings')
+  // Step 2: Primary Focus (multi-select)
+  const [focusAreas, setFocusAreas] = useState<string[]>([])
 
   // Step 3: Secondary Services (Multi-select)
   const [secondaryServices, setSecondaryServices] = useState<string[]>([])
@@ -240,7 +240,7 @@ export function PlannerOnboarding() {
       data: {
         role: 'planner',
         onboarding_completed: true,
-        planner_experience: experience,
+        planner_experience: focusAreas,
         secondary_services: secondaryServices,
         expected_volume: volume,
         team_size: teamSize,
@@ -259,7 +259,7 @@ export function PlannerOnboarding() {
       setProfile({ ...profile, role: 'planner', org_id: orgId } as Profile)
     }
 
-    showToast({ type: 'success', title: 'Welcome to NaliGrid!', body: 'Your account has been upgraded to Planner.' })
+    showToast({ type: 'success', title: 'Welcome to NaliGrid!', body: isUpgrade ? 'Your account has been upgraded to Planner.' : 'Your Planner account is ready.' })
     navigate('/dashboard/planner')
     setLoading(false)
   }
@@ -455,27 +455,30 @@ export function PlannerOnboarding() {
                 </p>
               </div>
 
-              <h2 className={styles.question}>What is your primary event focus?</h2>
+              <h2 className={styles.question}>What event types do you focus on?</h2>
 
               <div className={styles.photoGrid}>
-                {PRIMARY_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.id}
-                    className={`${styles.photoCard} ${experience === opt.id ? styles.photoCardActive : ''}`}
-                    onClick={() => setExperience(opt.id)}
-                  >
-                    <div className={styles.photoCardOverlay} />
-                    <div className={styles.photoCardContent}>
-                      <div className={styles.photoCardTitle}>
-                        {opt.title}
-                        <div className={styles.radioIndicator} style={{ border: experience === opt.id ? '2px solid var(--color-accent)' : '2px solid rgba(255,255,255,0.6)' }}>
-                          <div className={styles.radioIndicatorInner} style={{ opacity: experience === opt.id ? 1 : 0, transform: experience === opt.id ? 'scale(1)' : 'scale(0.4)' }} />
+                {PRIMARY_OPTIONS.map((opt) => {
+                  const isSelected = focusAreas.includes(opt.id)
+                  return (
+                    <button
+                      key={opt.id}
+                      className={`${styles.photoCard} ${isSelected ? styles.photoCardActive : ''}`}
+                      onClick={() => setFocusAreas((prev) => prev.includes(opt.id) ? prev.filter((id) => id !== opt.id) : [...prev, opt.id])}
+                    >
+                      <div className={styles.photoCardOverlay} />
+                      <div className={styles.photoCardContent}>
+                        <div className={styles.photoCardTitle}>
+                          {opt.title}
+                          <div className={styles.checkboxIndicator} style={{ borderColor: isSelected ? 'var(--color-accent)' : 'rgba(255,255,255,0.6)' }}>
+                            {isSelected && <Check size={12} style={{ color: '#fff' }} />}
+                          </div>
                         </div>
+                        <div className={styles.photoCardDesc}>{opt.desc}</div>
                       </div>
-                      <div className={styles.photoCardDesc}>{opt.desc}</div>
-                    </div>
-                  </button>
-                ))}
+                    </button>
+                  )
+                })}
               </div>
             </div>
           )}

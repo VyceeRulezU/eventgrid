@@ -53,6 +53,7 @@ export function SettingsPage() {
   const linkedGoogle = googleIdentities.length > 0
   const facebookIdentities = user?.identities?.filter((i) => i.provider === 'facebook') ?? []
   const linkedFacebook = facebookIdentities.length > 0
+  const totalIdentities = user?.identities?.length ?? 0
 
   const handleLinkGoogle = async () => {
     setLinkingGoogle(true)
@@ -76,6 +77,10 @@ export function SettingsPage() {
   const handleUnlinkGoogle = async () => {
     const identity = googleIdentities[0]
     if (!identity) return
+    if (totalIdentities <= 1) {
+      showToast({ type: 'error', title: 'Cannot unlink', body: 'This is your only sign-in method. Set a password or link another account first.' })
+      return
+    }
     setLinkingGoogle(true)
     try {
       const { error } = await supabase.auth.unlinkIdentity(identity)
@@ -116,6 +121,10 @@ export function SettingsPage() {
   const handleUnlinkFacebook = async () => {
     const identity = facebookIdentities[0]
     if (!identity) return
+    if (totalIdentities <= 1) {
+      showToast({ type: 'error', title: 'Cannot unlink', body: 'This is your only sign-in method. Set a password or link another account first.' })
+      return
+    }
     setLinkingFacebook(true)
     try {
       const { error } = await supabase.auth.unlinkIdentity(identity)
