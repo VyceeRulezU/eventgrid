@@ -89,6 +89,12 @@
   line-height: 1.6;
 }
 
+.benefitsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
 .cardsGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

@@ -35,100 +35,85 @@ export default function MobileAppFeature() {
         <div className={styles.mainGrid}>
           {/* Left Column: Larger Interactive Phone Mockup */}
           <div className={styles.phoneColumn}>
-            <div className={styles.phone}>
-              {/* Notch */}
-              <div className={styles.notch}>
-                <div className={styles.speaker} />
-                <div className={styles.camera} />
-              </div>
-              
-              {/* Status Bar */}
-              <div className={styles.statusBar}>
-                <span className={styles.statusTime}>9:41</span>
-                <div className={styles.statusIcons}>
-                  <Signal size={12} className={styles.statusIcon} />
-                  <Wifi size={12} className={styles.statusIcon} />
-                  <Battery size={14} className={styles.statusIcon} />
+            <img
+              src="https://i.ibb.co/3mbPvPjq/Gemini-Generated-Image-6xorks6xorks6xor-1.png"
+              alt="NaliGrid mobile app interface mockup"
+              className={styles.phoneImg}
+              style={{ width: '100%', height: 'auto', maxWidth: '375px', display: 'block', margin: '0 auto' }}
+            />
+            {false && (
+              <div className={styles.phone}>
+                <img
+                  src="https://i.ibb.co/kgdM4Zw3/Gemini-Generated-Image-6xorks6xorks6xor.png"
+                  alt="NaliGrid mobile app interface mockup"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '28px', display: 'block' }}
+                />
+                {/* Notch */}
+                <div className={styles.notch}>
+                  <div className={styles.speaker} />
+                  <div className={styles.camera} />
                 </div>
-              </div>
-
-              {/* Screen Content - Dark Mode matching the user screenshot */}
-              <div className={styles.screen}>
                 
-                {/* Mockup App Header */}
-                <div className={styles.appHeader}>
-                  <div className={styles.headerLeft}>
-                    <Menu size={16} className={styles.menuIcon} />
-                    <ArrowLeft size={16} className={styles.backArrow} />
-                  </div>
-                  <span className={styles.appTitle}>Live Feed</span>
-                  <div className={styles.headerRight}>
-                    <span className={styles.bellIcon}>
-                      <Bell size={14} />
-                      <span className={styles.bellBadge}>2</span>
-                    </span>
-                    <div className={styles.userAvatar}>CO</div>
+                {/* Status Bar */}
+                <div className={styles.statusBar}>
+                  <span className={styles.statusTime}>9:41</span>
+                  <div className={styles.statusIcons}>
+                    <Signal size={12} className={styles.statusIcon} />
+                    <Wifi size={12} className={styles.statusIcon} />
+                    <Battery size={14} className={styles.statusIcon} />
                   </div>
                 </div>
 
-                {/* Feed scroll area */}
-                <div className={styles.mockupList}>
+                {/* Screen Content - Dark Mode matching the user screenshot */}
+                <div className={styles.screen}>
                   
-                  {/* Thread Group 1 */}
-                  <div className={styles.mockupThread}>
-                    {/* Parent Post */}
-                    <div className={styles.feedPost}>
-                      <div className={styles.postHeader}>
-                        <div className={styles.postAvatar}>CO</div>
-                        <div className={styles.postMeta}>
-                          <span className={styles.postName}>Chinedu Okafor</span>
-                          <span className={styles.postTime}>
-                            <Clock size={10} style={{ marginRight: 2, display: 'inline-block', verticalAlign: 'middle' }} />
-                            10m ago
-                          </span>
-                        </div>
-                      </div>
-                      <div className={styles.postContent}>Awards stage setup is complete. Ready for sound check.</div>
-                      
-                      {/* Integrated Stage Banner */}
-                      <div className={styles.bannerCard} style={{ marginTop: 8, height: 90 }}>
-                        <img 
-                          src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400&q=80&auto=format&fit=crop" 
-                          className={styles.bannerImg} 
-                          alt="Awards reception"
-                        />
-                      </div>
-
-                      <div className={styles.postFooter}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                          <Heart size={10} /> 3
-                        </span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                          <MessageSquare size={10} /> Reply
-                        </span>
-                        <span className={styles.flagIssue} style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                          <Flag size={10} /> Flag
-                        </span>
-                      </div>
+                  {/* Mockup App Header */}
+                  <div className={styles.appHeader}>
+                    <div className={styles.headerLeft}>
+                      <Menu size={16} className={styles.menuIcon} />
+                      <ArrowLeft size={16} className={styles.backArrow} />
                     </div>
+                    <span className={styles.appTitle}>Live Feed</span>
+                    <div className={styles.headerRight}>
+                      <span className={styles.bellIcon}>
+                        <Bell size={14} />
+                        <span className={styles.bellBadge}>2</span>
+                      </span>
+                      <div className={styles.userAvatar}>CO</div>
+                    </div>
+                  </div>
 
-                    {/* Replies Container with Indentation and Visual Connector Line */}
-                    <div className={styles.feedRepliesContainer}>
-                      <div className={styles.feedPostReply}>
+                  {/* Feed scroll area */}
+                  <div className={styles.mockupList}>
+                    
+                    {/* Thread Group 1 */}
+                    <div className={styles.mockupThread}>
+                      {/* Parent Post */}
+                      <div className={styles.feedPost}>
                         <div className={styles.postHeader}>
-                          <div className={styles.postAvatar} style={{ background: '#0284c7' }}>TB</div>
+                          <div className={styles.postAvatar}>CO</div>
                           <div className={styles.postMeta}>
-                            <span className={styles.postName}>Tunde Bakare</span>
+                            <span className={styles.postName}>Chinedu Okafor</span>
                             <span className={styles.postTime}>
                               <Clock size={10} style={{ marginRight: 2, display: 'inline-block', verticalAlign: 'middle' }} />
-                              5m ago
+                              10m ago
                             </span>
                           </div>
                         </div>
-                        <div className={styles.postContent}>Sound console is live. Microphone testing complete.</div>
+                        <div className={styles.postContent}>Awards stage setup is complete. Ready for sound check.</div>
+                        
+                        {/* Integrated Stage Banner */}
+                        <div className={styles.bannerCard} style={{ marginTop: 8, height: 90 }}>
+                          <img 
+                            src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400&q=80&auto=format&fit=crop" 
+                            className={styles.bannerImg} 
+                            alt="Awards reception"
+                          />
+                        </div>
+
                         <div className={styles.postFooter}>
                           <span style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                            <Heart size={10} /> 1
+                            <Heart size={10} /> 3
                           </span>
                           <span style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                             <MessageSquare size={10} /> Reply
@@ -138,77 +123,105 @@ export default function MobileAppFeature() {
                           </span>
                         </div>
                       </div>
-                    </div>
-                  </div>
 
-                  {/* Post 2: Critical Event Issue */}
-                  <div className={`${styles.feedPost} ${styles.flaggedIssueCard}`}>
-                    <div className={styles.postHeader}>
-                      <div className={styles.postAvatar}>CO</div>
-                      <div className={styles.postMeta}>
-                        <span className={styles.postName}>Chinedu Okafor</span>
-                        <span className={styles.postTime}>
-                          <Clock size={10} style={{ marginRight: 2, display: 'inline-block', verticalAlign: 'middle' }} />
-                          2m ago
+                      {/* Replies Container with Indentation and Visual Connector Line */}
+                      <div className={styles.feedRepliesContainer}>
+                        <div className={styles.feedPostReply}>
+                          <div className={styles.postHeader}>
+                            <div className={styles.postAvatar} style={{ background: '#0284c7' }}>TB</div>
+                            <div className={styles.postMeta}>
+                              <span className={styles.postName}>Tunde Bakare</span>
+                              <span className={styles.postTime}>
+                                <Clock size={10} style={{ marginRight: 2, display: 'inline-block', verticalAlign: 'middle' }} />
+                                5m ago
+                              </span>
+                            </div>
+                          </div>
+                          <div className={styles.postContent}>Sound console is live. Microphone testing complete.</div>
+                          <div className={styles.postFooter}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                              <Heart size={10} /> 1
+                            </span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                              <MessageSquare size={10} /> Reply
+                            </span>
+                            <span className={styles.flagIssue} style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                              <Flag size={10} /> Flag
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Post 2: Critical Event Issue */}
+                    <div className={`${styles.feedPost} ${styles.flaggedIssueCard}`}>
+                      <div className={styles.postHeader}>
+                        <div className={styles.postAvatar}>CO</div>
+                        <div className={styles.postMeta}>
+                          <span className={styles.postName}>Chinedu Okafor</span>
+                          <span className={styles.postTime}>
+                            <Clock size={10} style={{ marginRight: 2, display: 'inline-block', verticalAlign: 'middle' }} />
+                            2m ago
+                          </span>
+                        </div>
+                        <span className={styles.criticalBadge}>Critical Issue</span>
+                      </div>
+                      <div className={styles.postContent}>
+                        Wireless mic feedback on main stage. Audio tech is troubleshooting now.
+                      </div>
+                      <div className={styles.postFooter}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                          <Heart size={10} /> 0
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                          <MessageSquare size={10} /> Reply
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 2, color: '#ef4444' }}>
+                          <Flag size={10} fill="#ef4444" /> Flagged
                         </span>
                       </div>
-                      <span className={styles.criticalBadge}>Critical Issue</span>
                     </div>
-                    <div className={styles.postContent}>
-                      Wireless mic feedback on main stage. Audio tech is troubleshooting now.
+
+                  </div>
+
+                  {/* Input row */}
+                  <div className={styles.inputRow}>
+                    <input className={styles.textInput} placeholder="What's happening?" disabled />
+                    <div className={styles.questionBtn}>
+                      <HelpCircle size={14} />
                     </div>
-                    <div className={styles.postFooter}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Heart size={10} /> 0
-                      </span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <MessageSquare size={10} /> Reply
-                      </span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 2, color: '#ef4444' }}>
-                        <Flag size={10} fill="#ef4444" /> Flagged
-                      </span>
+                  </div>
+
+                  {/* Bottom Navigation Bar */}
+                  <div className={styles.mockupTabBar}>
+                    <div className={styles.tabItem}>
+                      <LayoutDashboard size={16} className={styles.tabIcon} />
+                      <span className={styles.tabLabel}>Dashboard</span>
+                    </div>
+                    <div className={styles.tabItem}>
+                      <CheckSquare size={16} className={styles.tabIcon} />
+                      <span className={styles.tabLabel}>My Tasks</span>
+                    </div>
+                    <div className={`${styles.tabItem} ${styles.tabItemActive}`}>
+                      <Calendar size={16} className={styles.tabIcon} />
+                      <span className={styles.tabLabel}>Events</span>
+                    </div>
+                    <div className={styles.tabItem}>
+                      <Wallet size={16} className={styles.tabIcon} />
+                      <span className={styles.tabLabel}>Financials</span>
+                    </div>
+                    <div className={styles.tabItem}>
+                      <Users size={16} className={styles.tabIcon} />
+                      <span className={styles.tabLabel}>Vendors</span>
                     </div>
                   </div>
 
                 </div>
 
-                {/* Input row */}
-                <div className={styles.inputRow}>
-                  <input className={styles.textInput} placeholder="What's happening?" disabled />
-                  <div className={styles.questionBtn}>
-                    <HelpCircle size={14} />
-                  </div>
-                </div>
-
-                {/* Bottom Navigation Bar */}
-                <div className={styles.mockupTabBar}>
-                  <div className={styles.tabItem}>
-                    <LayoutDashboard size={16} className={styles.tabIcon} />
-                    <span className={styles.tabLabel}>Dashboard</span>
-                  </div>
-                  <div className={styles.tabItem}>
-                    <CheckSquare size={16} className={styles.tabIcon} />
-                    <span className={styles.tabLabel}>My Tasks</span>
-                  </div>
-                  <div className={`${styles.tabItem} ${styles.tabItemActive}`}>
-                    <Calendar size={16} className={styles.tabIcon} />
-                    <span className={styles.tabLabel}>Events</span>
-                  </div>
-                  <div className={styles.tabItem}>
-                    <Wallet size={16} className={styles.tabIcon} />
-                    <span className={styles.tabLabel}>Financials</span>
-                  </div>
-                  <div className={styles.tabItem}>
-                    <Users size={16} className={styles.tabIcon} />
-                    <span className={styles.tabLabel}>Vendors</span>
-                  </div>
-                </div>
-
+                {/* Bottom Home Indicator Bar */}
+                <div className={styles.homeIndicator} />
               </div>
-
-              {/* Bottom Home Indicator Bar */}
-              <div className={styles.homeIndicator} />
-            </div>
+            )}
           </div>
 
           {/* Right Column: Process steps list */}

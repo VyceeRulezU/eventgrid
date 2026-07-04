@@ -49,7 +49,7 @@ export function CoordinatorsLandingPage() {
         <div className={spotlightStyles.layout}>
           <div className={spotlightStyles.imagePane}>
             <img
-              src="https://i.ibb.co/3ytxPprz/img-4.jpg"
+              src="https://i.ibb.co/N26d9m3V/Gemini-Generated-Image-md1sf5md1sf5md1s.png"
               alt="Coordinator managing event timeline"
               className={spotlightStyles.eventImage}
               loading="lazy"

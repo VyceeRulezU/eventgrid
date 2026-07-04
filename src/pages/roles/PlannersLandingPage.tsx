@@ -96,7 +96,7 @@ export function PlannersLandingPage() {
           <p className={styles.sectionSubtitle}>
             Purpose-built for Nigerian event professionals who need speed, clarity, and total control.
           </p>
-          <div className={styles.cardsGrid}>
+          <div className={styles.benefitsGrid}>
             <div className={styles.card}>
               <div className={`${styles.iconWrap} ${styles.goldGlow}`}>
                 <Target size={22} className={styles.icon} />
@@ -122,15 +122,6 @@ export function PlannersLandingPage() {
               <h3 className={styles.cardTitle}>Proactive Timeline Alerts</h3>
               <p className={styles.cardDesc}>
                 Get notified when phases fall behind, vendor payments are due, or coordinators complete milestones. Stay ahead of every deadline.
-              </p>
-            </div>
-            <div className={styles.card}>
-              <div className={`${styles.iconWrap} ${styles.goldGlow}`}>
-                <Shield size={22} className={styles.icon} />
-              </div>
-              <h3 className={styles.cardTitle}>Secure Escrow Controls</h3>
-              <p className={styles.cardDesc}>
-                Protect your reputation and budget. Secure payments in escrow and release payouts dynamically as project phases are marked complete.
               </p>
             </div>
           </div>

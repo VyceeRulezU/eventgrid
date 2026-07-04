@@ -49,7 +49,7 @@ export function VendorsLandingPage() {
         <div className={spotlightStyles.layout}>
           <div className={spotlightStyles.imagePane}>
             <img
-              src="https://i.ibb.co/4Z1rZnqm/img-5.jpg"
+              src="https://i.ibb.co/TxVKsj0n/Gemini-Generated-Image-usmzs7usmzs7usmz.png"
               alt="Event vendor setting up"
               className={spotlightStyles.eventImage}
               loading="lazy"
