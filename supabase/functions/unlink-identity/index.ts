@@ -1,57 +1,63 @@
-import { createClient } from 'npm:@supabase/supabase-js@2'
+import { createClient } from 'jsr:@supabase/supabase-js@2'
 
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
-const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+const supabaseAdmin = createClient(
+  Deno.env.get('SUPABASE_URL')!,
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+)
 
-const admin = createClient(SUPABASE_URL, SERVICE_KEY)
-
-const CORS = {
+const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-function json(status: number, body: unknown) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...CORS, 'Content-Type': 'application/json' },
-  })
-}
-
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response(null, { headers: CORS })
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders })
+  }
 
   try {
-    const token = (req.headers.get('Authorization') || '').replace('Bearer ', '')
-    if (!token) return json(401, { error: 'Missing auth token' })
-
-    const { data: { user: caller }, error: authErr } = await admin.auth.getUser(token)
-    if (authErr || !caller) return json(401, { error: 'Invalid token' })
+    const authHeader = req.headers.get('Authorization') || ''
+    const token = authHeader.replace('Bearer ', '')
+    if (!token) {
+      return new Response(JSON.stringify({ error: 'Missing authorization token' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+    const { data: { user: caller }, error: authError } = await supabaseAdmin.auth.getUser(token)
+    if (authError || !caller) {
+      return new Response(JSON.stringify({ error: 'Invalid authorization token' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
 
     const { user_id, provider } = await req.json()
-    if (!user_id || !provider) return json(400, { error: 'user_id and provider required' })
-    if (caller.id !== user_id) return json(403, { error: 'Cannot unlink others' })
+    if (!user_id || !provider) {
+      return new Response(JSON.stringify({ error: 'user_id and provider are required' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+    if (caller.id !== user_id) {
+      return new Response(JSON.stringify({ error: 'You can only unlink your own identities' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
 
-    const del = await fetch(
+    const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
+    const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+
+    const deleteRes = await fetch(
       `${SUPABASE_URL}/auth/v1/admin/users/${user_id}/identities/${provider}`,
       {
         method: 'DELETE',
         headers: {
-          Authorization: `Bearer ${SERVICE_KEY}`,
+          'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
           'Content-Type': 'application/json',
         },
       }
     )
-    const body = await del.text()
 
-    if (!del.ok) {
-      return json(500, { error: body || del.statusText, debug: { status: del.status } })
+    const bodyText = await deleteRes.text()
+
+    if (!deleteRes.ok) {
+      return new Response(JSON.stringify({ error: bodyText || deleteRes.statusText, debug: { status: deleteRes.status } }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    return json(200, { success: true })
+    return new Response(JSON.stringify({ success: true }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   } catch (err) {
-    const msg = err instanceof Error ? `${err.name}: ${err.message}` : 'Internal error'
-    console.error('unlink-identity error:', msg)
-    return json(500, { error: msg })
+    console.error('unlink-identity error:', err instanceof Error ? err.stack || err.message : err)
+    return new Response(JSON.stringify({ error: err instanceof Error ? `${err.name}: ${err.message}` : 'Internal error' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   }
 })
