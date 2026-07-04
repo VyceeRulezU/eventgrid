@@ -20,70 +20,25 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get('Authorization') || ''
     const token = authHeader.replace('Bearer ', '')
     if (!token) {
-      return new Response(
-        JSON.stringify({ error: 'Missing authorization token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      return respond(401, { error: 'Missing authorization token' })
     }
+
     const { data: { user: caller }, error: authError } = await supabaseAdmin.auth.getUser(token)
     if (authError || !caller) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid authorization token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      return respond(401, { error: 'Invalid authorization token' })
     }
 
     const { user_id, provider } = await req.json()
     if (!user_id || !provider) {
-      return new Response(
-        JSON.stringify({ error: 'user_id and provider are required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      return respond(400, { error: 'user_id and provider are required' })
     }
 
     if (caller.id !== user_id) {
-      return new Response(
-        JSON.stringify({ error: 'You can only unlink your own identities' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    // Fetch user via admin API to check has_password and find identity
-    const userRes = await fetch(
-      `${SUPABASE_URL}/auth/v1/admin/users/${user_id}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    )
-    if (!userRes.ok) {
-      return new Response(
-        JSON.stringify({ error: 'Failed to fetch user' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-    const userDoc = await userRes.json()
-    console.log('unlink-identity admin response keys:', Object.keys(userDoc), 'has_password:', userDoc?.has_password, 'has_password_in:', 'has_password' in userDoc)
-
-    if (!userDoc?.id) {
-      return new Response(
-        JSON.stringify({ error: 'User not found in admin API' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    const identity = userDoc?.identities?.find((i: any) => i.provider === provider)
-    if (!identity) {
-      return new Response(
-        JSON.stringify({ error: `${provider} identity not found for this user` }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      return respond(403, { error: 'You can only unlink your own identities' })
     }
 
     const deleteRes = await fetch(
-      `${SUPABASE_URL}/auth/v1/admin/users/${user_id}/identities/${identity.id}`,
+      `${SUPABASE_URL}/auth/v1/admin/users/${user_id}/identities/${provider}`,
       {
         method: 'DELETE',
         headers: {
@@ -93,23 +48,27 @@ Deno.serve(async (req) => {
       }
     )
 
+    const statusText = deleteRes.status === 404 ? 'Identity not found' : deleteRes.statusText
+    const bodyText = await deleteRes.text()
+
     if (!deleteRes.ok) {
-      const errBody = await deleteRes.text()
-      return new Response(
-        JSON.stringify({ error: errBody || `Failed to delete identity (${deleteRes.status})` }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      return respond(500, {
+        error: bodyText || statusText,
+        _debug: { status: deleteRes.status, statusText: deleteRes.statusText },
+      })
     }
 
-    return new Response(
-      JSON.stringify({ success: true }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    return respond(200, { success: true })
   } catch (err) {
-    console.error('unlink-identity error:', err instanceof Error ? err.stack || err.message : err)
-    return new Response(
-      JSON.stringify({ error: err instanceof Error ? `${err.name}: ${err.message}` : 'Internal error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    const msg = err instanceof Error ? `${err.name}: ${err.message}` : 'Internal error'
+    console.error('unlink-identity error:', msg)
+    return respond(500, { error: msg })
+  }
+
+  function respond(status: number, body: Record<string, unknown>) {
+    return new Response(JSON.stringify(body), {
+      status,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
   }
 })
