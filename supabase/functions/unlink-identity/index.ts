@@ -36,27 +36,14 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Cannot unlink others' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
-    const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    // Call the database RPC function to delete the identity securely
+    const { error: rpcError } = await supabaseAdmin.rpc('unlink_user_identity', {
+      p_user_id: user_id,
+      p_provider: provider
+    })
 
-    // Delete the identity row directly from auth.identities via PostgREST with service_role
-    const deleteRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/identities?user_id=eq.${user_id}&provider=eq.${provider}`,
-      {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
-          'Content-Type': 'application/json',
-          'Accept-Profile': 'auth',
-          'Content-Profile': 'auth',
-        },
-      }
-    )
-
-    const bodyText = await deleteRes.text()
-
-    if (!deleteRes.ok) {
-      return new Response(JSON.stringify({ error: bodyText || deleteRes.statusText, debug: { status: deleteRes.status } }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    if (rpcError) {
+      return new Response(JSON.stringify({ error: rpcError.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     return new Response(JSON.stringify({ success: true }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
