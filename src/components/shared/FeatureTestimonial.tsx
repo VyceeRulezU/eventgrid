@@ -5,6 +5,7 @@ import styles from '@/pages/features/FeaturesLanding.module.css'
 interface Testimonial {
   name: string
   role: string
+  location?: string
   quote: string
   image_url: string
 }
@@ -55,8 +56,8 @@ export function FeatureTestimonial() {
         setT(pick)
         return
       }
-      const pick = data[Math.floor(Math.random() * data.length)]
-      setT({ name: pick.name, role: `${pick.role}${pick.location ? ', ' + pick.location : ''}`, quote: `"${pick.quote}"`, image_url: pick.image_url })
+      const row = data[Math.floor(Math.random() * data.length)]
+      setT({ name: row.name, role: `${row.role}${row.location ? ', ' + row.location : ''}`, quote: `"${row.quote}"`, image_url: row.image_url })
     })()
     return () => { cancelled = true }
   }, [])
