@@ -64,23 +64,17 @@ Deno.serve(async (req) => {
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
-    const userData = await userRes.json()
-    const user = userData?.user
-    if (!user) {
+    const userDoc = await userRes.json()
+    console.log('unlink-identity admin response keys:', Object.keys(userDoc), 'has_password:', userDoc?.has_password, 'has_password_in:', 'has_password' in userDoc)
+
+    if (!userDoc?.id) {
       return new Response(
-        JSON.stringify({ error: 'User not found' }),
+        JSON.stringify({ error: 'User not found in admin API' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    if (!user.has_password) {
-      return new Response(
-        JSON.stringify({ error: 'Set a password first before unlinking the last identity' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    const identity = user?.identities?.find((i: any) => i.provider === provider)
+    const identity = userDoc?.identities?.find((i: any) => i.provider === provider)
     if (!identity) {
       return new Response(
         JSON.stringify({ error: `${provider} identity not found for this user` }),
