@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { EmailWrapper } from '@/lib/emails/EmailWrapper'
 import { WelcomeEmail } from '@/lib/emails/WelcomeEmail'
 import { QuickStartEmail } from '@/lib/emails/QuickStartEmail'
 import { TrialReminderEmail } from '@/lib/emails/TrialReminderEmail'
@@ -34,7 +33,7 @@ export function EmailPreviewPage() {
 
   return (
     <div className={styles.page}>
-      <SEO title="Email Preview" description="Preview email templates" noIndex />
+      <SEO title="Email Preview" description="Preview email templates" noindex />
       <div className={styles.header}>
         <Link to="/admin" className={styles.back}><ArrowLeft size={16} /> Back to Admin</Link>
         <h1>Email Previews</h1>
