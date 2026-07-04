@@ -74,6 +74,7 @@ const FeedbackManagementPage = lazy(() => import('@/pages/admin/FeedbackManageme
 const SuperAdminTeamPage = lazy(() => import('@/pages/admin/SuperAdminTeamPage').then(m => ({ default: m.SuperAdminTeamPage })))
 const AdminEngagementPage = lazy(() => import('@/pages/admin/AdminEngagementPage').then(m => ({ default: m.AdminEngagementPage })))
 const AnalyticsPage = lazy(() => import('@/pages/admin/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })))
+const EmailPreviewPage = lazy(() => import('@/pages/dev/EmailPreviewPage').then(m => ({ default: m.EmailPreviewPage })))
 const AdminMyTasksPage = lazy(() => import('@/pages/admin/AdminMyTasksPage').then(m => ({ default: m.AdminMyTasksPage })))
 const AdminEventsListPage = lazy(() => import('@/pages/admin/AdminEventsListPage').then(m => ({ default: m.AdminEventsListPage })))
 const AdminVendorsPage = lazy(() => import('@/pages/admin/AdminVendorsPage').then(m => ({ default: m.AdminVendorsPage })))
@@ -852,6 +853,11 @@ export function App() {
           <Route path="/admin/engagement" element={
             <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
               <AdminGuard><AdminEngagementPage /></AdminGuard>
+            </Suspense>
+          } />
+          <Route path="/admin/emails" element={
+            <Suspense fallback={<div className="skeleton skeleton-card" style={{ height: 300 }} />}>
+              <AdminGuard><EmailPreviewPage /></AdminGuard>
             </Suspense>
           } />
         </Route>
