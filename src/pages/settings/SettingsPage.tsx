@@ -8,7 +8,7 @@ import { useUIStore } from '@/store/ui.store'
 import { EVENT_FEE_DISPLAY } from '@/lib/pricing'
 import { compressImage } from '@/lib/image'
 import { clearTourForRole } from '@/components/shared/AppTour'
-import { sendLinkNotification } from '@/lib/edgeFunctions'
+import { sendLinkNotification, unlinkIdentity as unlinkIdentityEdge } from '@/lib/edgeFunctions'
 import { Switch } from '@/components/ui/Switch'
 import { SEO } from '@/components/shared/SEO'
 import { PushNotificationSetup } from '@/components/shared/PushNotificationSetup'
@@ -87,6 +87,15 @@ export function SettingsPage() {
       const { error } = await supabase.auth.unlinkIdentity(identity)
       if (error) {
         if (error.message?.toLowerCase().includes('at least 1 identity')) {
+          // Last identity — try edge function (works if user already has a password)
+          const edgeResult = await unlinkIdentityEdge({ user_id: user!.id, provider: 'google' })
+          if (edgeResult.success) {
+            const { data } = await supabase.auth.getUser()
+            if (data?.user) useAuthStore.getState().setUser(data.user)
+            showToast({ type: 'success', title: 'Google account unlinked' })
+            sendLinkNotification({ email: user!.email!, first_name: displayNameFinal, provider: 'google', action: 'unlinked' }).catch(() => {})
+            return
+          }
           setPasswordModal({ provider: 'google' })
           return
         }
@@ -131,6 +140,15 @@ export function SettingsPage() {
       const { error } = await supabase.auth.unlinkIdentity(identity)
       if (error) {
         if (error.message?.toLowerCase().includes('at least 1 identity')) {
+          // Last identity — try edge function (works if user already has a password)
+          const edgeResult = await unlinkIdentityEdge({ user_id: user!.id, provider: 'facebook' })
+          if (edgeResult.success) {
+            const { data } = await supabase.auth.getUser()
+            if (data?.user) useAuthStore.getState().setUser(data.user)
+            showToast({ type: 'success', title: 'Facebook account unlinked' })
+            sendLinkNotification({ email: user!.email!, first_name: displayNameFinal, provider: 'facebook', action: 'unlinked' }).catch(() => {})
+            return
+          }
           setPasswordModal({ provider: 'facebook' })
           return
         }
@@ -176,16 +194,9 @@ export function SettingsPage() {
       }
       useAuthStore.getState().setUser(refreshed.user)
 
-      const identities = refreshed.user.identities ?? []
-      const identity = identities.find((i) => i.provider === modal.provider)
-      if (!identity) {
-        showToast({ type: 'error', title: 'Identity not found', body: 'Could not find the linked account.' })
-        return
-      }
-
-      const { error: unlinkErr } = await supabase.auth.unlinkIdentity(identity)
-      if (unlinkErr) {
-        showToast({ type: 'error', title: 'Unlink failed', body: unlinkErr.message })
+      const edgeResult = await unlinkIdentityEdge({ user_id: user!.id, provider: modal.provider })
+      if (!edgeResult.success) {
+        showToast({ type: 'error', title: 'Unlink failed', body: edgeResult.error || 'Could not unlink identity.' })
         return
       }
 

@@ -177,6 +177,36 @@ export async function sendLinkNotification(params: SendLinkNotificationParams): 
   }
 }
 
+export interface UnlinkIdentityParams {
+  user_id: string
+  provider: 'google' | 'facebook'
+}
+
+export async function unlinkIdentity(params: UnlinkIdentityParams): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { data, error } = await supabase.functions.invoke('unlink-identity', {
+      body: params,
+    })
+
+    if (error) {
+      let errMsg = error.message
+      if (error.context) {
+        try {
+          const resClone = error.context.clone ? error.context.clone() : error.context
+          const body = await resClone.json()
+          if (body && body.error) errMsg = body.error
+        } catch {}
+      }
+      return { success: false, error: errMsg }
+    }
+
+    return { success: data?.success ?? false, error: data?.error }
+  } catch (err) {
+    console.error('unlinkIdentity error:', err)
+    return { success: false, error: err instanceof Error ? err.message : 'Failed to unlink identity' }
+  }
+}
+
 /**
  * Fetches client portal data via the `client-portal` Edge Function.
  * Called from the ClientPortalPage — no auth required.
