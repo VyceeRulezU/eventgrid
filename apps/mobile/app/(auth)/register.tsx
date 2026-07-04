@@ -191,6 +191,32 @@ export default function RegisterScreen() {
     }
   }
 
+  const handleFacebookAuth = async () => {
+    setError('')
+    setLoading(true)
+
+    try {
+      const redirectUrl = Linking.createURL('(auth)/login')
+      const { data, error: authError } = await supabase.auth.signInWithOAuth({
+        provider: 'facebook',
+        options: {
+          redirectTo: redirectUrl,
+          skipBrowserRedirect: Platform.OS !== 'web',
+        },
+      })
+
+      if (authError) throw authError
+
+      if (Platform.OS !== 'web' && data?.url) {
+        await Linking.openURL(data.url)
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Facebook OAuth failed.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -264,6 +290,16 @@ export default function RegisterScreen() {
             >
               <AntDesign name="google" size={16} color="#FFFFFF" style={styles.googleIcon} />
               <Text style={styles.googleButtonText}>Google</Text>
+            </TouchableOpacity>
+
+            {/* Facebook SSO Button */}
+            <TouchableOpacity
+              style={styles.googleButton}
+              onPress={handleFacebookAuth}
+              activeOpacity={0.85}
+            >
+              <AntDesign name="facebook-square" size={16} color="#1877F2" style={styles.googleIcon} />
+              <Text style={styles.googleButtonText}>Facebook</Text>
             </TouchableOpacity>
           </View>
         ) : (

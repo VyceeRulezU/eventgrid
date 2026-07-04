@@ -5,6 +5,7 @@ import { QuickStartEmail } from './QuickStartEmail.tsx'
 import { TrialReminderEmail } from './TrialReminderEmail.tsx'
 import { FeedbackEmail } from './FeedbackEmail.tsx'
 import { PaymentEmail } from './PaymentEmail.tsx'
+import { LinkNotificationEmail } from './LinkNotificationEmail.tsx'
 
 /**
  * Strips HTML tags and formats spacing to generate a readable plain-text fallback.
@@ -31,7 +32,7 @@ export function convertHtmlToText(html: string): string {
 /**
  * Transactional Email Definitions
  */
-export type OnboardingEmailType = 'welcome' | 'quick_start' | 'trial_reminder' | 'feedback' | 'payment'
+export type OnboardingEmailType = 'welcome' | 'quick_start' | 'trial_reminder' | 'feedback' | 'payment' | 'link_notification'
 
 export interface EmailRenderResult {
   subject: string
@@ -91,6 +92,16 @@ export function renderOnboardingEmail(
         amount: props.amount || '₦0',
         payment_method: props.payment_method || 'Card',
         portal_url: props.portal_url || 'https://naligrid.com/login',
+      })
+      break
+
+    case 'link_notification':
+      subject = `${props.provider === 'google' ? 'Google' : 'Facebook'} account ${props.action === 'linked' ? 'linked' : 'unlinked'} — NaliGrid`
+      element = React.createElement(LinkNotificationEmail, {
+        first_name: props.first_name || 'there',
+        provider: props.provider || 'google',
+        action: props.action || 'linked',
+        settings_url: props.settings_url || 'https://naligrid.com/settings',
       })
       break
 

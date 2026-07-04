@@ -139,6 +139,44 @@ export async function sendWelcomeEmail(params: SendWelcomeEmailParams): Promise<
   }
 }
 
+export interface SendLinkNotificationParams {
+  email: string
+  first_name: string
+  provider: 'google' | 'facebook'
+  action: 'linked' | 'unlinked'
+}
+
+export async function sendLinkNotification(params: SendLinkNotificationParams): Promise<boolean> {
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    const token = session?.access_token
+
+    const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/onboarding-emails`
+
+    const res = await fetch(functionUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        type: 'link_notification',
+        email: params.email,
+        first_name: params.first_name,
+        meta: {
+          provider: params.provider,
+          action: params.action,
+        },
+      }),
+    })
+
+    return res.ok
+  } catch (err) {
+    console.error('sendLinkNotification error:', err)
+    return false
+  }
+}
+
 /**
  * Fetches client portal data via the `client-portal` Edge Function.
  * Called from the ClientPortalPage — no auth required.

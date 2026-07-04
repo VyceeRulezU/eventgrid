@@ -8,6 +8,7 @@ import { useUIStore } from '@/store/ui.store'
 import { EVENT_FEE_DISPLAY } from '@/lib/pricing'
 import { compressImage } from '@/lib/image'
 import { clearTourForRole } from '@/components/shared/AppTour'
+import { sendLinkNotification } from '@/lib/edgeFunctions'
 import { Switch } from '@/components/ui/Switch'
 import { SEO } from '@/components/shared/SEO'
 import { PushNotificationSetup } from '@/components/shared/PushNotificationSetup'
@@ -46,9 +47,12 @@ export function SettingsPage() {
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [deletingAccount, setDeletingAccount] = useState(false)
   const [linkingGoogle, setLinkingGoogle] = useState(false)
+  const [linkingFacebook, setLinkingFacebook] = useState(false)
 
   const googleIdentities = user?.identities?.filter((i) => i.provider === 'google') ?? []
   const linkedGoogle = googleIdentities.length > 0
+  const facebookIdentities = user?.identities?.filter((i) => i.provider === 'facebook') ?? []
+  const linkedFacebook = facebookIdentities.length > 0
 
   const handleLinkGoogle = async () => {
     setLinkingGoogle(true)
@@ -60,6 +64,7 @@ export function SettingsPage() {
         const { data } = await supabase.auth.getUser()
         if (data?.user) useAuthStore.getState().setUser(data.user)
         showToast({ type: 'success', title: 'Google account linked', body: 'You can now sign in with Google.' })
+        sendLinkNotification({ email: user!.email!, first_name: displayNameFinal, provider: 'google', action: 'linked' }).catch(() => {})
       }
     } catch {
       showToast({ type: 'error', title: 'Link failed', body: 'An unexpected error occurred.' })
@@ -80,11 +85,52 @@ export function SettingsPage() {
         const { data } = await supabase.auth.getUser()
         if (data?.user) useAuthStore.getState().setUser(data.user)
         showToast({ type: 'success', title: 'Google account unlinked' })
+        sendLinkNotification({ email: user!.email!, first_name: displayNameFinal, provider: 'google', action: 'unlinked' }).catch(() => {})
       }
     } catch {
       showToast({ type: 'error', title: 'Unlink failed', body: 'An unexpected error occurred.' })
     } finally {
       setLinkingGoogle(false)
+    }
+  }
+
+  const handleLinkFacebook = async () => {
+    setLinkingFacebook(true)
+    try {
+      const { error } = await supabase.auth.linkIdentity({ provider: 'facebook' })
+      if (error) {
+        showToast({ type: 'error', title: 'Link failed', body: error.message })
+      } else {
+        const { data } = await supabase.auth.getUser()
+        if (data?.user) useAuthStore.getState().setUser(data.user)
+        showToast({ type: 'success', title: 'Facebook account linked', body: 'You can now sign in with Facebook.' })
+        sendLinkNotification({ email: user!.email!, first_name: displayNameFinal, provider: 'facebook', action: 'linked' }).catch(() => {})
+      }
+    } catch {
+      showToast({ type: 'error', title: 'Link failed', body: 'An unexpected error occurred.' })
+    } finally {
+      setLinkingFacebook(false)
+    }
+  }
+
+  const handleUnlinkFacebook = async () => {
+    const identity = facebookIdentities[0]
+    if (!identity) return
+    setLinkingFacebook(true)
+    try {
+      const { error } = await supabase.auth.unlinkIdentity(identity)
+      if (error) {
+        showToast({ type: 'error', title: 'Unlink failed', body: error.message })
+      } else {
+        const { data } = await supabase.auth.getUser()
+        if (data?.user) useAuthStore.getState().setUser(data.user)
+        showToast({ type: 'success', title: 'Facebook account unlinked' })
+        sendLinkNotification({ email: user!.email!, first_name: displayNameFinal, provider: 'facebook', action: 'unlinked' }).catch(() => {})
+      }
+    } catch {
+      showToast({ type: 'error', title: 'Unlink failed', body: 'An unexpected error occurred.' })
+    } finally {
+      setLinkingFacebook(false)
     }
   }
 
@@ -424,6 +470,43 @@ export function SettingsPage() {
                     style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                   >
                     Link Google Account
+                  </button>
+                )}
+              </div>
+
+              <hr className={styles.identityDivider} />
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                  <div>
+                    <div style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>Facebook</div>
+                    {linkedFacebook && facebookIdentities[0]?.identity_data?.email && (
+                      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>
+                        {facebookIdentities[0].identity_data.email}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {linkedFacebook ? (
+                  <button
+                    type="button"
+                    className="btn btn-outline btn-sm"
+                    onClick={handleUnlinkFacebook}
+                    disabled={linkingFacebook}
+                    style={{ color: 'var(--color-danger, #dc2626)', borderColor: 'var(--color-danger, #dc2626)' }}
+                  >
+                    {linkingFacebook ? 'Removing...' : 'Unlink'}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    onClick={handleLinkFacebook}
+                    disabled={linkingFacebook}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    Link Facebook Account
                   </button>
                 )}
               </div>

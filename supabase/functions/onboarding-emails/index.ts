@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
       )
     }
 
-    const emailTypes: OnboardingEmailType[] = ['welcome', 'quick_start', 'trial_reminder', 'feedback', 'payment']
+    const emailTypes: OnboardingEmailType[] = ['welcome', 'quick_start', 'trial_reminder', 'feedback', 'payment', 'link_notification']
     if (!emailTypes.includes(type)) {
       return new Response(
         JSON.stringify({ error: `Invalid email type. Must be one of: ${emailTypes.join(', ')}` }),
@@ -104,6 +104,10 @@ Deno.serve(async (req) => {
       event_name: meta?.event_name || 'Event',
       payment_method: meta?.payment_method || 'Card',
       portal_url: meta?.portal_url || `${APP_URL}/login`,
+      // link notification specific
+      provider: meta?.provider || 'google',
+      action: meta?.action || 'linked',
+      settings_url: meta?.settings_url || `${APP_URL}/settings`,
     }
 
     // Compile email template to HTML + Plain Text using React rendering helper
