@@ -20,11 +20,12 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get('Authorization') || ''
     const token = authHeader.replace('Bearer ', '')
     if (!token) {
-      return new Response(JSON.stringify({ error: 'Missing authorization token' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      return new Response(JSON.stringify({ error: 'Missing auth token' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
+
     const { data: { user: caller }, error: authError } = await supabaseAdmin.auth.getUser(token)
     if (authError || !caller) {
-      return new Response(JSON.stringify({ error: 'Invalid authorization token' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      return new Response(JSON.stringify({ error: 'Invalid token' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     const { user_id, provider } = await req.json()
@@ -32,19 +33,22 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'user_id and provider are required' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
     if (caller.id !== user_id) {
-      return new Response(JSON.stringify({ error: 'You can only unlink your own identities' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      return new Response(JSON.stringify({ error: 'Cannot unlink others' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
     const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
+    // Delete the identity row directly from auth.identities via PostgREST with service_role
     const deleteRes = await fetch(
-      `${SUPABASE_URL}/auth/v1/admin/users/${user_id}/identities/${provider}`,
+      `${SUPABASE_URL}/rest/v1/identities?user_id=eq.${user_id}&provider=eq.${provider}`,
       {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
           'Content-Type': 'application/json',
+          'Accept-Profile': 'auth',
+          'Content-Profile': 'auth',
         },
       }
     )
