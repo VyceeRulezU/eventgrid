@@ -632,11 +632,11 @@ export function PlannerOnboarding() {
 
                 <div className={styles.summaryGrid}>
                   <div className={styles.summaryGridItem}>
-                    <span className={styles.summaryItemLabel}>Primary Focus</span>
+                      <span className={styles.summaryItemLabel}>Primary Focus</span>
                     <div className={styles.summaryItemValueContainer}>
                       <Target size={14} className={styles.summaryItemIcon} />
                       <span className={styles.summaryItemValue}>
-                        {PRIMARY_OPTIONS.find((o) => o.id === experience)?.title || experience}
+                        {focusAreas.map((id) => PRIMARY_OPTIONS.find((o) => o.id === id)?.title || id).join(', ') || 'None selected'}
                       </span>
                     </div>
                   </div>
