@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Camera, Upload, ArrowLeft, ExternalLink, LogOut, Building2, LifeBuoy, Book, Bell, Send, Trash2, AlertTriangle, MessageSquareText, User, Settings, Sparkles } from 'lucide-react'
+import { Camera, Upload, ArrowLeft, ExternalLink, LogOut, Building2, LifeBuoy, Book, Bell, Send, Trash2, AlertTriangle, MessageSquareText, User, Settings, Sparkles, Eye, EyeOff, Check, X } from 'lucide-react'
 import { uploadFile } from '@/lib/storage'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
@@ -48,6 +48,12 @@ export function SettingsPage() {
   const [deletingAccount, setDeletingAccount] = useState(false)
   const [linkingGoogle, setLinkingGoogle] = useState(false)
   const [linkingFacebook, setLinkingFacebook] = useState(false)
+  const [passwordModal, setPasswordModal] = useState<{ provider: 'google' | 'facebook' } | null>(null)
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [settingPassword, setSettingPassword] = useState(false)
 
   const googleIdentities = user?.identities?.filter((i) => i.provider === 'google') ?? []
   const linkedGoogle = googleIdentities.length > 0
@@ -78,7 +84,7 @@ export function SettingsPage() {
     const identity = googleIdentities[0]
     if (!identity) return
     if (totalIdentities <= 1) {
-      showToast({ type: 'error', title: 'Cannot unlink', body: 'This is your only sign-in method. Set a password or link another account first.' })
+      setPasswordModal({ provider: 'google' })
       return
     }
     setLinkingGoogle(true)
@@ -122,7 +128,7 @@ export function SettingsPage() {
     const identity = facebookIdentities[0]
     if (!identity) return
     if (totalIdentities <= 1) {
-      showToast({ type: 'error', title: 'Cannot unlink', body: 'This is your only sign-in method. Set a password or link another account first.' })
+      setPasswordModal({ provider: 'facebook' })
       return
     }
     setLinkingFacebook(true)
@@ -140,6 +146,53 @@ export function SettingsPage() {
       showToast({ type: 'error', title: 'Unlink failed', body: 'An unexpected error occurred.' })
     } finally {
       setLinkingFacebook(false)
+    }
+  }
+
+  const handleSetPasswordAndUnlink = async () => {
+    const modal = passwordModal
+    if (!modal) return
+
+    if (newPassword.length < 6) {
+      showToast({ type: 'error', title: 'Password too short', body: 'Password must be at least 6 characters.' })
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      showToast({ type: 'error', title: 'Passwords do not match', body: 'New password and confirmation must match.' })
+      return
+    }
+
+    setSettingPassword(true)
+    try {
+      const { error: pwErr } = await supabase.auth.updateUser({ password: newPassword })
+      if (pwErr) {
+        showToast({ type: 'error', title: 'Failed to set password', body: pwErr.message })
+        return
+      }
+
+      const identity = modal.provider === 'google' ? googleIdentities[0] : facebookIdentities[0]
+      if (!identity) {
+        showToast({ type: 'error', title: 'Identity not found', body: 'Could not find the linked account.' })
+        return
+      }
+
+      const { error: unlinkErr } = await supabase.auth.unlinkIdentity(identity)
+      if (unlinkErr) {
+        showToast({ type: 'error', title: 'Unlink failed', body: unlinkErr.message })
+        return
+      }
+
+      const { data } = await supabase.auth.getUser()
+      if (data?.user) useAuthStore.getState().setUser(data.user)
+      showToast({ type: 'success', title: `${modal.provider === 'google' ? 'Google' : 'Facebook'} account unlinked`, body: 'You can now sign in with your password.' })
+      sendLinkNotification({ email: user!.email!, first_name: displayNameFinal, provider: modal.provider, action: 'unlinked' }).catch(() => {})
+      setPasswordModal(null)
+      setNewPassword('')
+      setConfirmPassword('')
+    } catch {
+      showToast({ type: 'error', title: 'Failed', body: 'An unexpected error occurred.' })
+    } finally {
+      setSettingPassword(false)
     }
   }
 
@@ -897,6 +950,101 @@ export function SettingsPage() {
         )}
       </div>
 
+      {passwordModal && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 9999,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+          padding: 'var(--space-4)',
+        }} onClick={() => { setPasswordModal(null); setNewPassword(''); setConfirmPassword('') }}>
+          <div className="card" style={{
+            width: '100%', maxWidth: 420, padding: 'var(--space-6)',
+            position: 'relative',
+          }} onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => { setPasswordModal(null); setNewPassword(''); setConfirmPassword('') }}
+              style={{ position: 'absolute', top: 12, right: 12, background: 'none', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer', padding: 4 }}
+              aria-label="Close"
+            ><X size={18} /></button>
+
+            <h3 style={{ margin: '0 0 4px', fontSize: 'var(--text-lg)', fontWeight: 700 }}>Set Password</h3>
+            <p style={{ margin: '0 0 var(--space-5)', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', lineHeight: 1.5 }}>
+              Your {passwordModal.provider === 'google' ? 'Google' : 'Facebook'} account is your only sign-in method. Set a password to unlink it and sign in with email + password instead.
+            </p>
+
+            <div className="input-wrapper" style={{ marginBottom: 'var(--space-4)' }}>
+              <label className="input-label" htmlFor="set-pw">New Password</label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  id="set-pw"
+                  type={showNewPassword ? 'text' : 'password'}
+                  className="input"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="At least 6 characters"
+                  minLength={6}
+                  style={{ paddingRight: 36, width: '100%' }}
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                  aria-label={showNewPassword ? 'Hide password' : 'Show password'}
+                  style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--color-text-muted)' }}
+                >
+                  {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+
+            <div className="input-wrapper" style={{ marginBottom: 'var(--space-5)' }}>
+              <label className="input-label" htmlFor="confirm-pw">Confirm Password</label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  id="confirm-pw"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  className="input"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Re-enter password"
+                  style={{ paddingRight: 36, width: '100%' }}
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                  style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--color-text-muted)' }}
+                >
+                  {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
+              <button
+                type="button"
+                className="btn btn-ghost"
+                style={{ flex: 1 }}
+                onClick={() => { setPasswordModal(null); setNewPassword(''); setConfirmPassword('') }}
+                disabled={settingPassword}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                style={{ flex: 1 }}
+                onClick={handleSetPasswordAndUnlink}
+                disabled={settingPassword || !newPassword || !confirmPassword}
+              >
+                {settingPassword ? 'Setting…' : 'Set Password & Unlink'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <FeedbackFormModal open={showFeedback} onClose={() => setShowFeedback(false)} />
     </div>
   )
