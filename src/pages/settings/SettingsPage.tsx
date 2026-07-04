@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Camera, Upload, ArrowLeft, ExternalLink, LogOut, Building2, LifeBuoy, Book, Bell, Send, Trash2, AlertTriangle, MessageSquareText, User, Settings, Sparkles, Eye, EyeOff, Check, X } from 'lucide-react'
+import { Camera, Upload, ArrowLeft, ExternalLink, LogOut, Building2, LifeBuoy, Book, Bell, Send, Trash2, AlertTriangle, MessageSquareText, User, Settings, Sparkles, Eye, EyeOff, X } from 'lucide-react'
 import { uploadFile } from '@/lib/storage'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
