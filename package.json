@@ -15,6 +15,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "preview-emails": "tsx --tsconfig tsconfig.app.json scripts/preview-emails.tsx",
     "sanity:dev": "echo Sanity studio has been removed",
     "sanity:build": "echo Sanity studio has been removed",
     "sanity:deploy": "echo Sanity studio has been removed"
@@ -74,6 +75,7 @@
     "jsdom": "^29.1.1",
     "sharp": "^0.35.3",
     "svgo": "^4.0.1",
+    "tsx": "^4.23.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.59.2",
     "vite": "^8.1.2",
