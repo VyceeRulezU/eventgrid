@@ -755,18 +755,18 @@ export function SuperAdminDashboard() {
           const pct = Math.min((infra.totalDbRows / item.max) * 100, 100)
           const barColor = pct > 75 ? 'var(--color-success)' : pct > 40 ? 'var(--color-warning)' : 'var(--color-error)'
           return (
-            <div key={item.label} className="card" style={{ padding: 'var(--space-4)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-3)' }}>
-                <div style={{ width: 36, height: 36, borderRadius: 'var(--radius-md)', background: `${item.color}18`, color: item.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <div key={item.label} className={`card ${styles.infraCard}`}>
+              <div className={styles.infraRow}>
+                <div className={styles.infraIconWrap} style={{ background: `${item.color}18`, color: item.color }}>
                   <item.icon size={18} />
                 </div>
                 <div>
-                  <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>{item.label}</div>
-                  <div style={{ fontSize: 'var(--text-base)', fontWeight: 700 }}>{item.value}</div>
+                  <div className={styles.infraLabel}>{item.label}</div>
+                  <div className={styles.infraValue}>{item.value}</div>
                 </div>
               </div>
-              <div style={{ height: 4, background: 'var(--color-border-subtle)', borderRadius: 2, overflow: 'hidden' }}>
-                <div style={{ width: `${pct}%`, height: '100%', background: barColor, borderRadius: 2, transition: 'width 0.6s ease' }} />
+              <div className={styles.infraBar}>
+                <div className={styles.infraBarFill} style={{ width: `${pct}%`, background: barColor }} />
               </div>
             </div>
           )
