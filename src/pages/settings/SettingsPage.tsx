@@ -170,7 +170,15 @@ export function SettingsPage() {
         return
       }
 
-      const identity = modal.provider === 'google' ? googleIdentities[0] : facebookIdentities[0]
+      const { data: refreshed } = await supabase.auth.getUser()
+      if (!refreshed?.user) {
+        showToast({ type: 'error', title: 'Session expired', body: 'Please log in again.' })
+        return
+      }
+      useAuthStore.getState().setUser(refreshed.user)
+
+      const identities = refreshed.user.identities ?? []
+      const identity = identities.find((i) => i.provider === modal.provider)
       if (!identity) {
         showToast({ type: 'error', title: 'Identity not found', body: 'Could not find the linked account.' })
         return
@@ -182,8 +190,6 @@ export function SettingsPage() {
         return
       }
 
-      const { data } = await supabase.auth.getUser()
-      if (data?.user) useAuthStore.getState().setUser(data.user)
       showToast({ type: 'success', title: `${modal.provider === 'google' ? 'Google' : 'Facebook'} account unlinked`, body: 'You can now sign in with your password.' })
       sendLinkNotification({ email: user!.email!, first_name: displayNameFinal, provider: modal.provider, action: 'unlinked' }).catch(() => {})
       setPasswordModal(null)
