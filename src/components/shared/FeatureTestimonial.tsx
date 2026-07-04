@@ -49,7 +49,7 @@ export function FeatureTestimonial() {
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      const { data, error } = await supabase.from('testimonials').select('name, role, quote, image_url')
+      const { data, error } = await supabase.from('testimonials').select('name, role, location, quote, image_url')
       if (cancelled) return
       if (error || !data || data.length === 0) {
         const pick = FALLBACKS[Math.floor(Math.random() * FALLBACKS.length)]
