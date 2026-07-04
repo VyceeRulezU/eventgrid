@@ -59,7 +59,7 @@ export function SettingsPage() {
   const linkedGoogle = googleIdentities.length > 0
   const facebookIdentities = user?.identities?.filter((i) => i.provider === 'facebook') ?? []
   const linkedFacebook = facebookIdentities.length > 0
-  const totalIdentities = user?.identities?.length ?? 0
+  const hasEmailIdentity = (user?.identities ?? []).some((i) => i.provider === 'email')
 
   const handleLinkGoogle = async () => {
     setLinkingGoogle(true)
@@ -83,7 +83,7 @@ export function SettingsPage() {
   const handleUnlinkGoogle = async () => {
     const identity = googleIdentities[0]
     if (!identity) return
-    if (totalIdentities <= 1) {
+    if (!hasEmailIdentity) {
       setPasswordModal({ provider: 'google' })
       return
     }
@@ -127,7 +127,7 @@ export function SettingsPage() {
   const handleUnlinkFacebook = async () => {
     const identity = facebookIdentities[0]
     if (!identity) return
-    if (totalIdentities <= 1) {
+    if (!hasEmailIdentity) {
       setPasswordModal({ provider: 'facebook' })
       return
     }
@@ -152,6 +152,34 @@ export function SettingsPage() {
   const handleSetPasswordAndUnlink = async () => {
     const modal = passwordModal
     if (!modal) return
+
+    const identity = modal.provider === 'google' ? googleIdentities[0] : facebookIdentities[0]
+    if (!identity) {
+      showToast({ type: 'error', title: 'Identity not found', body: 'Could not find the linked account.' })
+      return
+    }
+
+    // If user already has an email identity, unlink directly without setting password
+    if (hasEmailIdentity) {
+      setSettingPassword(true)
+      try {
+        const { error: unlinkErr } = await supabase.auth.unlinkIdentity(identity)
+        if (unlinkErr) {
+          showToast({ type: 'error', title: 'Unlink failed', body: unlinkErr.message })
+          return
+        }
+        const { data } = await supabase.auth.getUser()
+        if (data?.user) useAuthStore.getState().setUser(data.user)
+        showToast({ type: 'success', title: `${modal.provider === 'google' ? 'Google' : 'Facebook'} account unlinked`, body: 'You can now sign in with your email and password.' })
+        sendLinkNotification({ email: user!.email!, first_name: displayNameFinal, provider: modal.provider, action: 'unlinked' }).catch(() => {})
+        setPasswordModal(null)
+      } catch {
+        showToast({ type: 'error', title: 'Unlink failed', body: 'An unexpected error occurred.' })
+      } finally {
+        setSettingPassword(false)
+      }
+      return
+    }
 
     if (newPassword.length < 6) {
       showToast({ type: 'error', title: 'Password too short', body: 'Password must be at least 6 characters.' })
@@ -178,19 +206,19 @@ export function SettingsPage() {
       useAuthStore.getState().setUser(refreshed.user)
 
       const identities = refreshed.user.identities ?? []
-      const identity = identities.find((i) => i.provider === modal.provider)
-      if (!identity) {
+      const refreshedIdentity = identities.find((i) => i.provider === modal.provider)
+      if (!refreshedIdentity) {
         showToast({ type: 'error', title: 'Identity not found', body: 'Could not find the linked account.' })
         return
       }
 
-      const { error: unlinkErr } = await supabase.auth.unlinkIdentity(identity)
+      const { error: unlinkErr } = await supabase.auth.unlinkIdentity(refreshedIdentity)
       if (unlinkErr) {
         showToast({ type: 'error', title: 'Unlink failed', body: unlinkErr.message })
         return
       }
 
-      showToast({ type: 'success', title: `${modal.provider === 'google' ? 'Google' : 'Facebook'} account unlinked`, body: 'You can now sign in with your password.' })
+      showToast({ type: 'success', title: `${modal.provider === 'google' ? 'Google' : 'Facebook'} account unlinked`, body: 'You can now sign in with your email and password.' })
       sendLinkNotification({ email: user!.email!, first_name: displayNameFinal, provider: modal.provider, action: 'unlinked' }).catch(() => {})
       setPasswordModal(null)
       setNewPassword('')
