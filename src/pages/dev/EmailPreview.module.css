@@ -99,3 +99,46 @@
   color: var(--color-text-muted);
   font-size: var(--text-sm);
 }
+
+@media (max-width: 640px) {
+  .header {
+    padding: var(--space-4);
+  }
+
+  .header h1 {
+    font-size: var(--text-xl);
+  }
+
+  .layout {
+    flex-direction: column;
+    height: auto;
+    min-height: calc(100vh - 100px);
+  }
+
+  .sidebar {
+    width: 100%;
+    flex-shrink: 0;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+    padding: var(--space-2);
+    flex-direction: row;
+    overflow-x: auto;
+    gap: var(--space-1);
+  }
+
+  .navBtn {
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-size: var(--text-xs);
+    padding: var(--space-1) var(--space-2);
+  }
+
+  .preview {
+    flex: 1;
+    min-height: 500px;
+  }
+
+  .iframe {
+    min-height: 500px;
+  }
+}

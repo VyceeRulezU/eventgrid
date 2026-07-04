@@ -3,6 +3,7 @@ import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
+import { FeatureTestimonial } from '@/components/shared/FeatureTestimonial'
 import Footer from '@/pages/landing/Footer'
 import { FileBarChart, PiggyBank, Smile, Download, FileSpreadsheet, BarChart3, Presentation } from 'lucide-react'
 import styles from './FeaturesLanding.module.css'
@@ -124,23 +125,7 @@ export function AftermathReportsLandingPage() {
                 The generated PDF features your event branding, professional typography, and data layouts. Share it immediately with no additional formatting.
               </p>
             </div>
-            <div className={styles.testimonialCard}>
-              <p className={styles.testimonialQuote}>
-                "Managing financials and tracking payments for corporate events used to be a nightmare. Now, it's fully automated."
-              </p>
-              <div className={styles.testimonialAuthor}>
-                <img
-                  className={styles.testimonialAvatar}
-                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face"
-                  alt="Chinedu"
-                  loading="lazy"
-                />
-                <div className={styles.testimonialMeta}>
-                  <span className={styles.testimonialName}>Chinedu</span>
-                  <span className={styles.testimonialRole}>Managing Director, Innovate Africa Events</span>
-                </div>
-              </div>
-            </div>
+            <FeatureTestimonial />
           </div>
         </div>
       </section>

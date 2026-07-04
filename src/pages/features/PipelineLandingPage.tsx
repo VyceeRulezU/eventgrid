@@ -3,6 +3,7 @@ import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
+import { FeatureTestimonial } from '@/components/shared/FeatureTestimonial'
 import Footer from '@/pages/landing/Footer'
 import { GitMerge, Layers, Clock, Settings, Route, CheckSquare, Eye } from 'lucide-react'
 import styles from './FeaturesLanding.module.css'
@@ -124,23 +125,7 @@ export function PipelineLandingPage() {
                 Planners get a bird's-eye view of every event's status. Spot bottlenecks before they become problems and keep clients informed with confidence.
               </p>
             </div>
-            <div className={styles.testimonialCard}>
-              <p className={styles.testimonialQuote}>
-                "NaliGrid has completely changed how we coordinate weddings in Lagos. Our clients love the live timeline tracker!"
-              </p>
-              <div className={styles.testimonialAuthor}>
-                <img
-                  className={styles.testimonialAvatar}
-                  src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&h=100&fit=crop&crop=face"
-                  alt="Tolu & Chioma"
-                  loading="lazy"
-                />
-                <div className={styles.testimonialMeta}>
-                  <span className={styles.testimonialName}>Tolu & Chioma</span>
-                  <span className={styles.testimonialRole}>Founders, Premium Nuptials</span>
-                </div>
-              </div>
-            </div>
+            <FeatureTestimonial />
           </div>
         </div>
       </section>

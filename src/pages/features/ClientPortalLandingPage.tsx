@@ -3,6 +3,7 @@ import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
+import { FeatureTestimonial } from '@/components/shared/FeatureTestimonial'
 import Footer from '@/pages/landing/Footer'
 import { Landmark, Compass, Eye, ShieldAlert, Link, LockKeyhole, ClipboardCheck } from 'lucide-react'
 import styles from './FeaturesLanding.module.css'
@@ -124,23 +125,7 @@ export function ClientPortalLandingPage() {
                 Clients can review and approve vendor deposit releases, menu selections, and budget adjustments directly from their portal — no back-and-forth.
               </p>
             </div>
-            <div className={styles.testimonialCard}>
-              <p className={styles.testimonialQuote}>
-                "My clients keep asking what software I'm using because the portal looks so professional. I'm not telling them. It's my competitive advantage."
-              </p>
-              <div className={styles.testimonialAuthor}>
-                <img
-                  className={styles.testimonialAvatar}
-                  src="https://images.unsplash.com/photo-1703544022909-6968d29d505e?w=120&q=80&auto=format&fit=crop&crop=faces"
-                  alt="Adunola Falade"
-                  loading="lazy"
-                />
-                <div className={styles.testimonialMeta}>
-                  <span className={styles.testimonialName}>Adunola Falade</span>
-                  <span className={styles.testimonialRole}>Corporate Event Planner, Lagos</span>
-                </div>
-              </div>
-            </div>
+            <FeatureTestimonial />
           </div>
         </div>
       </section>

@@ -3,6 +3,7 @@ import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
+import { FeatureTestimonial } from '@/components/shared/FeatureTestimonial'
 import Footer from '@/pages/landing/Footer'
 import { Radio, AlertCircle, Play, Users, Activity, Bell, Wifi } from 'lucide-react'
 import styles from './FeaturesLanding.module.css'
@@ -124,23 +125,7 @@ export function LiveBoardLandingPage() {
                 The Live Board is designed to be displayed on venue screens. Everyone — from stage manager to catering lead — stays in sync at a glance.
               </p>
             </div>
-            <div className={styles.testimonialCard}>
-              <p className={styles.testimonialQuote}>
-                "As a coordinator, the live board changed my event day. I stopped running around shouting into a walkie-talkie and started actually coordinating."
-              </p>
-              <div className={styles.testimonialAuthor}>
-                <img
-                  className={styles.testimonialAvatar}
-                  src="https://images.unsplash.com/photo-1661332186404-cfddad48db04?w=120&q=80&auto=format&fit=crop&crop=faces"
-                  alt="Blessing Nwosu"
-                  loading="lazy"
-                />
-                <div className={styles.testimonialMeta}>
-                  <span className={styles.testimonialName}>Blessing Nwosu</span>
-                  <span className={styles.testimonialRole}>Event Coordinator, Port Harcourt</span>
-                </div>
-              </div>
-            </div>
+            <FeatureTestimonial />
           </div>
         </div>
       </section>

@@ -70,7 +70,7 @@ function PhaseModule({ phase, index, sectionProgress }: { phase: typeof PHASES[0
       >
         <h3 className={styles.headline}>{phase.headline}</h3>
         <p className={styles.summary}>{phase.summary}</p>
-        <a href="#how-it-works" className={styles.ctaLink}>
+        <a href={phase.learnMoreUrl} className={styles.ctaLink}>
           Learn more <span aria-hidden>→</span>
         </a>
       </motion.div>
@@ -85,8 +85,9 @@ const PHASES = [
     headline: 'Plan',
     summary:
       'Map out every detail before a single naira is spent. Build proposals, set budgets, assign ownership — all in one place, long before the day arrives.',
-    image: 'https://i.ibb.co/7Jdx24qD/Gemini-Generated-Image-81e9sl81e9sl81e9.png',
+    image: 'https://i.ibb.co/pjtpBjb3/Gemini-Generated-Image-b6uql5b6uql5b6uq.png',
     imageAlt: 'Event planner reviewing notes and documents',
+    learnMoreUrl: '/features/pipeline',
   },
   {
     id: 'execute',
@@ -96,6 +97,7 @@ const PHASES = [
       'Run the day with real-time boards, vendor tracking, and live issue flags. Your entire team sees the same picture — no radio silence, no surprises.',
     image: 'https://images.pexels.com/photos/19870036/pexels-photo-19870036.jpeg?auto=compress&cs=tinysrgb&w=800&fit=crop',
     imageAlt: 'Nigerian wedding event coordination',
+    learnMoreUrl: '/features/live-board',
   },
   {
     id: 'celebrate',
@@ -103,8 +105,9 @@ const PHASES = [
     headline: 'Celebrate',
     summary:
       'When the lights go up, you take the bow. Aftermath reports, client reviews, and payment reconciliation done beautifully — so you can do it all again.',
-    image: 'https://i.ibb.co/chRKL8sb/Gemini-Generated-Image-pji6ejpji6ejpji6.png',
+    image: 'https://i.ibb.co/8LcDXhnp/Gemini-Generated-Image-7yqyvt7yqyvt7yqy.png',
     imageAlt: 'Guests celebrating at a Nigerian event',
+    learnMoreUrl: '/features/aftermath-reports',
   },
 ]
 

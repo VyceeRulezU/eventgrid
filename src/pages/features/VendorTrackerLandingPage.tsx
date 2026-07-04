@@ -3,6 +3,7 @@ import Navbar from '@/components/layout/Navbar'
 import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
+import { FeatureTestimonial } from '@/components/shared/FeatureTestimonial'
 import Footer from '@/pages/landing/Footer'
 import { Truck, Wallet, FileText, CheckSquare, Calendar, ShieldCheck, Bell } from 'lucide-react'
 import styles from './FeaturesLanding.module.css'
@@ -124,23 +125,7 @@ export function VendorTrackerLandingPage() {
                 Get notified when deposits are due, balances are pending, or final payouts need processing. Never miss a vendor payment deadline again.
               </p>
             </div>
-            <div className={styles.testimonialCard}>
-              <p className={styles.testimonialQuote}>
-                "The vendor directory and chat interface saved us days of calls for our Abuja conference."
-              </p>
-              <div className={styles.testimonialAuthor}>
-                <img
-                  className={styles.testimonialAvatar}
-                  src="https://images.unsplash.com/photo-1594744803329-e58b31de8bf5?w=100&h=100&fit=crop&crop=face"
-                  alt="Halima"
-                  loading="lazy"
-                />
-                <div className={styles.testimonialMeta}>
-                  <span className={styles.testimonialName}>Halima</span>
-                  <span className={styles.testimonialRole}>Lead Coordinator, Oasis Event Architects</span>
-                </div>
-              </div>
-            </div>
+            <FeatureTestimonial />
           </div>
         </div>
       </section>
