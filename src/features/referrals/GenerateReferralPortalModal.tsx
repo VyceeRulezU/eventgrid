@@ -7,13 +7,14 @@ import type { ReferralPartner, ReferralPortal } from '@/types'
 
 interface GenerateReferralPortalModalProps {
   partners: ReferralPartner[]
+  defaultPartnerId?: string | null
   onClose: () => void
   onChanged: () => void
 }
 
-export function GenerateReferralPortalModal({ partners, onClose, onChanged }: GenerateReferralPortalModalProps) {
+export function GenerateReferralPortalModal({ partners, defaultPartnerId, onClose, onChanged }: GenerateReferralPortalModalProps) {
   const showNotification = useUIStore((s) => s.showNotification)
-  const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null)
+  const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(defaultPartnerId || null)
   const [portal, setPortal] = useState<ReferralPortal | null>(null)
   const [checking, setChecking] = useState(true)
   const [saving, setSaving] = useState(false)

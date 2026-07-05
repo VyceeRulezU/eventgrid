@@ -39,13 +39,16 @@ export function AdminReferralsPage({ embedded, activeSubTab }: { embedded?: bool
   const [redemptions, setRedemptions] = useState<RedemptionWithUser[]>([])
   const [referredProfiles, setReferredProfiles] = useState<{ id: string; referred_by_code: string | null; display_name: string | null; email: string | null; org?: { name: string } | null }[]>([])
   const [, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'overview' | 'commissions' | 'codes'>(activeSubTab === 'commissions' ? 'commissions' : 'overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'commissions' | 'codes'>(
+    activeSubTab === 'codes' ? 'codes' : activeSubTab === 'commissions' ? 'overview' : 'overview'
+  )
   const [searchQuery, setSearchQuery] = useState('')
   const [commSearch, setCommSearch] = useState('')
   const [commStatusFilter, setCommStatusFilter] = useState<string>('all')
   const [codeFilter, setCodeFilter] = useState<string>('all')
   const [showForm, setShowForm] = useState(false)
   const [showPortalModal, setShowPortalModal] = useState(false)
+  const [selectedPortalPartnerId, setSelectedPortalPartnerId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({ name: '', email: '', phone: '', code: '' })
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
@@ -256,7 +259,7 @@ export function AdminReferralsPage({ embedded, activeSubTab }: { embedded?: bool
             { icon: Gift, value: `${totalCodes}`, label: 'Total Codes' },
             { icon: Users, value: `${totalSignups}`, label: 'Total Signups' },
             { icon: TrendingUp, value: `${totalTransactions}`, label: 'Total Activations' },
-            { icon: DollarSign, value: toNaira(totalCommissionEarned), label: 'Total Commissions' },
+            { icon: (props: any) => <span {...props} style={{ fontSize: 16, fontWeight: 700, fontFamily: 'system-ui', lineHeight: 1, ...props.style }}>₦</span>, value: toNaira(totalCommissionEarned), label: 'Total Commissions' },
           ].map((s) => (
             <div key={s.label} className={styles.statCard}>
               <div className={styles.statCardHeader}>
@@ -269,22 +272,26 @@ export function AdminReferralsPage({ embedded, activeSubTab }: { embedded?: bool
         </div>
 
         <div className={styles.tabsWrapper}>
-          {!activeSubTab && <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />}
-
-          {activeTab === 'codes' && (
-            <div className={styles.toolbar}>
-              {isAdmin && (
-                <Button variant="primary" size="sm" onClick={() => { resetForm(); setShowForm(true) }}>
-                  <Plus size={16} />
-                  Add Referral Code
-                </Button>
-              )}
-              <Button variant="secondary" size="sm" onClick={() => setShowPortalModal(true)}>
-                <Link2 size={16} />
-                Portal Link
-              </Button>
-            </div>
+          {activeSubTab !== 'codes' && (
+            <Tabs
+              tabs={tabs.filter((t) => activeSubTab === 'commissions' ? t.key !== 'codes' : true)}
+              activeTab={activeTab}
+              onChange={setActiveTab}
+            />
           )}
+
+          <div className={styles.toolbar}>
+            {activeTab === 'codes' && isAdmin && (
+              <Button variant="primary" size="sm" onClick={() => { resetForm(); setShowForm(true) }}>
+                <Plus size={16} />
+                Add Referral Code
+              </Button>
+            )}
+            <Button variant="secondary" size="sm" onClick={() => setShowPortalModal(true)}>
+              <Link2 size={16} />
+              Portal Link
+            </Button>
+          </div>
         </div>
 
         {/* Tab 1: Performance / Commissions Overview */}
@@ -517,7 +524,15 @@ export function AdminReferralsPage({ embedded, activeSubTab }: { embedded?: bool
                               {p.is_active ? 'Active' : 'Inactive'}
                             </span>
                           </div>
-                          <div>
+                          <div style={{ display: 'flex', gap: 'var(--space-2)', justifyContent: 'center' }}>
+                            <button
+                              onClick={() => setSelectedPortalPartnerId(p.id)}
+                              style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#3B82F6', border: 'none', borderRadius: 8, padding: '4px 8px', cursor: 'pointer', fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}
+                              title="Generate/View Portal Link"
+                            >
+                              <Link2 size={12} />
+                              Portal
+                            </button>
                             {isAdmin && (
                               <button
                                 onClick={() => handleDelete(p)}
@@ -540,10 +555,11 @@ export function AdminReferralsPage({ embedded, activeSubTab }: { embedded?: bool
       </div>
 
       {/* Portal Link Modal */}
-      {showPortalModal && (
+      {(showPortalModal || selectedPortalPartnerId) && (
         <GenerateReferralPortalModal
           partners={partners}
-          onClose={() => setShowPortalModal(false)}
+          defaultPartnerId={selectedPortalPartnerId}
+          onClose={() => { setShowPortalModal(false); setSelectedPortalPartnerId(null) }}
           onChanged={loadData}
         />
       )}
