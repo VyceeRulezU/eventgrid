@@ -1170,7 +1170,147 @@ const POST_CLIENT_COMMUNICATION: StaticPost = {
   ],
 }
 
+const POST_OPERATIONS_PLATFORM: StaticPost = {
+  _id: 'static-008',
+  title: "Nigerian Event Planners Don't Need Software. They Need an Operations Platform.",
+  metaTitle: 'Why Nigerian Event Planners Need an Operations Platform, Not Just Software | NaliGrid',
+  slug: { current: 'nigerian-event-operations-platform' },
+  excerpt: "There's a difference between event planning software and an event operations platform. Nigerian planners are running complex, multi-vendor, high-stakes events — they need the latter.",
+  category: 'Industry',
+  tags: ['Event Operations Platform', 'Nigerian Event Planners', 'Event Management Software', 'Operations Platform'],
+  publishedAt: '2026-07-05T12:00:00.000Z',
+  readTime: '5 min read',
+  featuredImage: {
+    placeholderUrl: 'https://i.ibb.co/pjtpBjb3/Gemini-Generated-Image-b6uql5b6uql5b6uq.png',
+    alt: 'Modern event operations and logistics control room setup representing professional coordination',
+  },
+  body: [
+    {
+      type: 'paragraph',
+      text: "There's a word that gets used too loosely in the events industry: software.",
+    },
+    {
+      type: 'paragraph',
+      text: '"Do you use event planning software?" The answer most Nigerian planners give is yes — and what they mean is a combination of WhatsApp, Google Sheets, maybe Canva for proposals, and a notes app for the things that don\'t fit anywhere else. That counts as software. It runs on a phone. It handles information.',
+    },
+    {
+      type: 'paragraph',
+      text: "But there's a meaningful difference between using software and operating a system. And the gap between those two things is where most event planning businesses in Nigeria are quietly losing time, money, and margin.",
+    },
+    {
+      type: 'heading',
+      level: 2,
+      text: 'What "Software" Gets Wrong About the Problem',
+    },
+    {
+      type: 'paragraph',
+      text: 'The event planning software category, as it exists globally, was largely built for Western markets with a specific mental model: a planner manages one event at a time, works primarily with a small number of vendors, and operates in a relatively predictable environment.',
+    },
+    {
+      type: 'paragraph',
+      text: "That's not Lagos. That's not Abuja. That's not Port Harcourt.",
+    },
+    {
+      type: 'paragraph',
+      text: "A mid-career Nigerian event planner might be managing three simultaneous events across different venues in different cities, with 15–25 vendors per event, a team of 6–10 people per event day, and client relationships that require active management across the full lifecycle — not just on execution day. They're tracking payments in multiple currencies of complexity (advances, balances, service charges, last-minute additions), coordinating people who are on their feet in loud venues without reliable internet, and delivering an experience that their clients will judge against the best events they've ever attended.",
+    },
+    {
+      type: 'paragraph',
+      text: "That's not a planning problem. That's an operations problem.",
+    },
+    {
+      type: 'sectionImage',
+      placeholderUrl: 'https://i.ibb.co/7Jdx24qD/Gemini-Generated-Image-81e9sl81e9sl81e9.png',
+      alt: 'Busy event execution team setting up lighting and sound at a large wedding venue in Lagos',
+      caption: 'Nigerian event operations are fast-moving, complex, and involve dozens of moving parts on site.',
+    },
+    {
+      type: 'heading',
+      level: 2,
+      text: 'The Distinction That Matters',
+    },
+    {
+      type: 'paragraph',
+      text: 'Planning software helps you organise information before an event. An operations platform helps you execute — before, during, and after — with full visibility across every layer of the event at every stage.',
+    },
+    {
+      type: 'paragraph',
+      text: 'The difference shows up in three specific ways:',
+    },
+    {
+      type: 'paragraph',
+      bold: 'Real-time execution support.',
+      text: 'A planning tool helps you build a vendor list. An operations platform shows you, in real time on event day, whether the photographer has arrived, whether the catering setup is done, whether there\'s a problem at the AV station — and lets your entire team update that information from wherever they are in the venue without a single phone call.',
+    },
+    {
+      type: 'paragraph',
+      bold: 'Financial integration.',
+      text: 'A planning tool might have a budget section. An operations platform connects your vendor payments to your client revenue to your actual margins, automatically, so you know at any point in the event lifecycle exactly where you stand financially without opening a separate spreadsheet.',
+    },
+    {
+      type: 'paragraph',
+      bold: 'Lifecycle continuity.',
+      text: 'A planning tool helps you plan. An operations platform follows the event from first client inquiry through to post-event analysis — with a record of everything that happened, what was spent, who delivered, what went wrong, and what to do differently next time.',
+    },
+    {
+      type: 'sectionImage',
+      placeholderUrl: 'https://i.ibb.co/SDmM22pY/Gemini-Generated-Image-2g9hx82g9hx82g9h.png',
+      alt: 'Event coordinators viewing event schedule on tablet',
+      caption: 'Having a shared, real-time operations view keeps the coordinator, planner, and vendor aligned.',
+    },
+    {
+      type: 'heading',
+      level: 2,
+      text: 'Why This Matters for Nigerian Planners Specifically',
+    },
+    {
+      type: 'paragraph',
+      text: 'The Nigerian events industry is scaling faster than the tools available to support it. Corporate events at Transcorp Hilton and Eko Hotel are measured against international standards. Wedding budgets in Lagos regularly exceed ₦10 million. The production quality expected at an owambe in Abuja in 2025 is simply not what it was in 2015.',
+    },
+    {
+      type: 'paragraph',
+      text: "The planners delivering at that level are doing so despite their tools, not because of them. They've developed extraordinary operational instincts — an ability to hold the entire event in their head, to anticipate problems before they surface, to manage 20 vendor relationships simultaneously through WhatsApp threads and memory. That instinct is the product of experience. But it's also a single point of failure.",
+    },
+    {
+      type: 'paragraph',
+      text: "When the planner is sick on event day, there's no system to fall back on. When a new team member joins, there's nothing to onboard them into except the planner's verbal briefing. When a client asks for a detailed breakdown of how the event performed against budget, it takes hours to reconstruct from scattered records.",
+    },
+    {
+      type: 'paragraph',
+      text: "An operations platform changes this by giving planners a system that holds what their memory currently holds — so the business can scale beyond what any one person can keep in their head.",
+    },
+    {
+      type: 'heading',
+      level: 2,
+      text: 'What an Operations Platform Looks Like in Practice',
+    },
+    {
+      type: 'paragraph',
+      text: "NaliGrid is built around this distinction. Not as a planning calendar or a CRM or a project management tool adapted for events — as a purpose-built operations platform for Nigerian event professionals.",
+    },
+    {
+      type: 'paragraph',
+      text: "Nine structured phases covering the full event lifecycle. A Naira-denominated financial module that calculates vendor balances, tracks client payments, and surfaces your gross margin automatically. A live event board that gives your entire team real-time situational awareness on event day — replacing walkie-talkies and coordination calls with a shared, live status view from everyone's phone. A client portal that keeps clients informed without exposing your operational details. A vendor directory covering 149 Nigerian vendors across every event category.",
+    },
+    {
+      type: 'paragraph',
+      text: "It's not a different kind of spreadsheet. It's a different category of tool entirely.",
+    },
+    {
+      type: 'paragraph',
+      text: "NaliGrid is Nigeria's event operations platform, built by NaliTech Consults Limited in Abuja. Beta is open — first event at ₦100.",
+    },
+    {
+      type: 'cta',
+      text: 'NaliGrid is built to help you run events, not spreadsheets. Create your first event today.',
+      buttonText: 'Start for FREE →',
+      buttonUrl: '/register',
+    },
+  ],
+}
+
 export const STATIC_POSTS: StaticPost[] = [
+  POST_OPERATIONS_PLATFORM,
   POST_CLIENT_COMMUNICATION,
   POST_EVENT_COORDINATOR,
   POST_VENDOR_MGMT,
@@ -1183,5 +1323,6 @@ export const STATIC_POSTS: StaticPost[] = [
 export function getStaticPost(slug: string): StaticPost | undefined {
   return STATIC_POSTS.find((p) => p.slug.current === slug)
 }
+
 
 

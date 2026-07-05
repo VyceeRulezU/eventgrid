@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { SEO } from '@/components/shared/SEO'
 import Navbar from '@/components/layout/Navbar'
@@ -5,6 +6,7 @@ import { LandingPageHero } from '@/components/shared/LandingPageHero'
 import { FaqSection } from '@/components/shared/FaqSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
 import Footer from '@/pages/landing/Footer'
+import { Pagination } from '@/components/shared/Pagination'
 import { STATIC_POSTS } from './blogPosts'
 import type { StaticPost } from './blogPosts'
 import styles from './InfoPages.module.css'
@@ -14,6 +16,14 @@ function getPostImage(post: StaticPost): string {
 }
 
 export function BlogPage() {
+  const [currentPage, setCurrentPage] = useState(1)
+  const postsPerPage = 6
+
+  const totalPages = Math.ceil(STATIC_POSTS.length / postsPerPage)
+  const indexOfLastPost = currentPage * postsPerPage
+  const indexOfFirstPost = indexOfLastPost - postsPerPage
+  const currentPosts = STATIC_POSTS.slice(indexOfFirstPost, indexOfLastPost)
+
   return (
     <div className={styles.pageWrapper}>
       <SEO
@@ -36,7 +46,7 @@ export function BlogPage() {
       <section className={styles.postsSection} aria-label="Blog posts list">
         <div className={styles.container}>
           <div className={styles.postsGrid}>
-            {STATIC_POSTS.map((post) => (
+            {currentPosts.map((post) => (
               <Link
                 key={post._id}
                 to={`/blog/${post.slug.current}`}
@@ -65,6 +75,12 @@ export function BlogPage() {
               </Link>
             ))}
           </div>
+
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </section>
 
