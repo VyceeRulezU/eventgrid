@@ -401,7 +401,7 @@ export function AdminReferralsPage({ embedded, activeSubTab }: { embedded?: bool
                               backgroundColor: (badgeStyles[r.status] || badgeStyles.pending).bg,
                               color: (badgeStyles[r.status] || badgeStyles.pending).color,
                             }}>
-                              {r.status === 'pending_activation' ? 'pending activation' : r.status === 'pending' ? 'pending payout' : r.status}
+                              {(r.status as string) === 'pending_activation' ? 'pending activation' : r.status === 'pending' ? 'pending payout' : r.status}
                             </span>
                           </div>
                           <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
