@@ -37,12 +37,13 @@ export function AdminReferralsPage({ embedded, activeSubTab }: { embedded?: bool
 
   const [partners, setPartners] = useState<ReferralPartner[]>([])
   const [redemptions, setRedemptions] = useState<RedemptionWithUser[]>([])
-  const [referredProfiles, setReferredProfiles] = useState<{ id: string; referred_by_code: string | null; display_name: string | null; email: string | null }[]>([])
+  const [referredProfiles, setReferredProfiles] = useState<{ id: string; referred_by_code: string | null; display_name: string | null; email: string | null; org?: { name: string } | null }[]>([])
   const [, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'commissions' | 'codes'>(activeSubTab || 'codes')
+  const [activeTab, setActiveTab] = useState<'overview' | 'commissions' | 'codes'>(activeSubTab === 'commissions' ? 'commissions' : 'overview')
   const [searchQuery, setSearchQuery] = useState('')
   const [commSearch, setCommSearch] = useState('')
   const [commStatusFilter, setCommStatusFilter] = useState<string>('all')
+  const [codeFilter, setCodeFilter] = useState<string>('all')
   const [showForm, setShowForm] = useState(false)
   const [showPortalModal, setShowPortalModal] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -57,11 +58,11 @@ export function AdminReferralsPage({ embedded, activeSubTab }: { embedded?: bool
     const [pRes, rRes, prRes] = await Promise.all([
       supabase.from('referral_partners').select('*').order('created_at', { ascending: false }).limit(200),
       supabase.from('referral_redemptions').select('*, referred_user:referred_user_id(display_name, email)').order('created_at', { ascending: false }).limit(200),
-      supabase.from('profiles').select('id, referred_by_code, display_name, email').not('referred_by_code', 'is', null),
+      supabase.from('profiles').select('id, referred_by_code, display_name, email, org:org_id(name)').not('referred_by_code', 'is', null),
     ])
     if (pRes.data) setPartners(pRes.data)
     if (rRes.data) setRedemptions(rRes.data as any)
-    if (prRes.data) setReferredProfiles(prRes.data)
+    if (prRes.data) setReferredProfiles(prRes.data as any)
     setLoading(false)
   }, [])
 
@@ -135,6 +136,12 @@ export function AdminReferralsPage({ embedded, activeSubTab }: { embedded?: bool
     if (commStatusFilter !== 'all') {
       list = list.filter((r) => r.status === commStatusFilter)
     }
+    if (codeFilter !== 'all') {
+      list = list.filter((r) => {
+        const partner = partners.find((p) => p.id === r.partner_id)
+        return partner?.code.toUpperCase() === codeFilter.toUpperCase()
+      })
+    }
     if (commSearch) {
       const q = commSearch.toLowerCase()
       list = list.filter((r) => {
@@ -146,7 +153,7 @@ export function AdminReferralsPage({ embedded, activeSubTab }: { embedded?: bool
       })
     }
     return list
-  }, [allRedemptions, commStatusFilter, commSearch, partners])
+  }, [allRedemptions, commStatusFilter, codeFilter, commSearch, partners])
 
 
 
@@ -203,9 +210,10 @@ export function AdminReferralsPage({ embedded, activeSubTab }: { embedded?: bool
     })
   }
 
-  const tabs: TabItem<'commissions' | 'codes'>[] = [
-    { key: 'commissions', label: 'Commissions', icon: <ListChecks size={16} /> },
-    { key: 'codes', label: 'Referral Codes', icon: <Hash size={16} /> },
+  const tabs: TabItem<'overview' | 'commissions' | 'codes'>[] = [
+    { key: 'overview', label: 'Performance', icon: <TrendingUp size={16} /> },
+    { key: 'commissions', label: 'Referred Accounts', icon: <ListChecks size={16} /> },
+    { key: 'codes', label: 'Referral Partners', icon: <Hash size={16} /> },
   ]
 
   const statusFilterOptions = [
@@ -215,6 +223,13 @@ export function AdminReferralsPage({ embedded, activeSubTab }: { embedded?: bool
     { label: 'Paid', value: 'paid' },
     { label: 'Cancelled', value: 'cancelled' },
   ]
+
+  const codeFilterOptions = useMemo(() => {
+    return [
+      { label: 'All codes', value: 'all' },
+      ...partners.map((p) => ({ label: p.code, value: p.code })),
+    ]
+  }, [partners])
 
   const commStatusTotal = useMemo(() => {
     if (commStatusFilter === 'all') return null
@@ -272,114 +287,50 @@ export function AdminReferralsPage({ embedded, activeSubTab }: { embedded?: bool
           )}
         </div>
 
-        {activeTab === 'codes' ? (
-          <>
-            {searchedPartners.length === 0 ? (
-            <div className={styles.sectionCard}>
-              <div className="empty-state" style={{ padding: 'var(--space-8)' }}>
-                <div className="empty-state__icon"><Gift size={24} /></div>
-                <div className="empty-state__title">{searchQuery ? 'No codes found' : 'No referral codes yet'}</div>
-                <div className="empty-state__description">
-                  {searchQuery ? `No codes match "${searchQuery}"` : 'Create your first referral code to get started.'}
+        {/* Tab 1: Performance / Commissions Overview */}
+        {activeTab === 'overview' && (
+          <div className={styles.sectionCard}>
+            <div className={styles.tableScroll}>
+              <div className={styles.table}>
+                <div className={`${styles.tableHead} ${styles.performanceHead}`}>
+                  <span>Code</span>
+                  <span>Sign Ups</span>
+                  <span>Activations</span>
+                  <span>Earned</span>
+                  <span>Outstanding</span>
                 </div>
-              </div>
-            </div>
-          ) : (
-            <div className={styles.sectionCard}>
-              {searchedPartners.length > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', padding: 'var(--space-3) var(--space-5)', borderBottom: '1px solid rgba(255,255,255,0.04)', flexWrap: 'wrap' }}>
-                  <SearchBar
-                    value={searchQuery}
-                    onChange={setSearchQuery}
-                    placeholder="Search by name or code..."
-                    containerStyle={{ maxWidth: 280 }}
-                  />
-                  <span style={{ marginLeft: 'auto', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
-                    {searchedPartners.length} code{searchedPartners.length !== 1 ? 's' : ''}
-                  </span>
+                <div className={styles.tableBody}>
+                  {summaries.length === 0 ? (
+                    <div className="empty-state" style={{ padding: 'var(--space-8)' }}>
+                      <div className="empty-state__icon"><TrendingUp size={24} /></div>
+                      <div className="empty-state__title">No performance records</div>
+                      <div className="empty-state__description">No referral partner performance stats available yet.</div>
+                    </div>
+                  ) : (
+                    summaries.map((s) => (
+                      <div key={s.partner.id} className={`${styles.tableRow} ${styles.performanceRow}`}>
+                        <div style={{ fontFamily: 'monospace', fontSize: 'var(--text-xs)', fontWeight: 600 }}>{s.partner.code}</div>
+                        <div>{s.signups}</div>
+                        <div>{s.activations}</div>
+                        <div style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: '#10B981' }}>{toNaira(s.commissionEarned)}</div>
+                        <div style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: s.commissionOutstanding > 0 ? '#F59E0B' : 'var(--color-text-muted)' }}>{toNaira(s.commissionOutstanding)}</div>
+                      </div>
+                    ))
+                  )}
                 </div>
-              )}
-              <div className={styles.tableScroll}>
-                <div className={styles.table}>
-                  <div className={`${styles.tableHead} ${styles.codesHead}`}>
-                    <span>Name</span>
-                    <span>Code</span>
-                    <span>Share Link</span>
-                    <span>Email</span>
-                    <span>Phone</span>
-                    <span>Signups</span>
-                    <span>Activations</span>
-                    <span>Earned</span>
-                    <span>Outstanding</span>
-                    <span>Status</span>
-                    <span />
-                  </div>
-                  <div className={styles.tableBody}>
-                    {searchedPartners.map((p) => {
-                      const s = summaries.find((sm) => sm.partner.id === p.id)
-                      return (
-                        <div key={p.id} className={`${styles.tableRow} ${styles.codesRow}`}>
-                          <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>{p.name}</div>
-                          <div style={{ fontFamily: 'monospace', fontSize: 'var(--text-xs)' }}>{p.code}</div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {shareUrl(p.code)}
-                            </span>
-                            <button
-                              onClick={() => {
-                                navigator.clipboard.writeText(shareUrl(p.code))
-                                setCopiedCode(p.id)
-                                setTimeout(() => setCopiedCode(null), 2000)
-                              }}
-                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-accent)', padding: 2 }}
-                              title="Copy share link"
-                            >
-                              {copiedCode === p.id ? <Check size={12} /> : <Copy size={12} />}
-                            </button>
-                          </div>
-                          <div style={{ fontSize: 'var(--text-xs)' }}>{p.email || '—'}</div>
-                          <div style={{ fontSize: 'var(--text-xs)' }}>{p.phone || '—'}</div>
-                          <div>{s?.signups || 0}</div>
-                          <div>{s?.activations || 0}</div>
-                          <div style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: '#10B981' }}>{toNaira(s?.commissionEarned || 0)}</div>
-                          <div style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: s && s.commissionOutstanding > 0 ? '#F59E0B' : 'var(--color-text-muted)' }}>{toNaira(s?.commissionOutstanding || 0)}</div>
-                          <div>
-                            <span style={{
-                              display: 'inline-block', padding: '2px 8px', borderRadius: 999, fontSize: 11, fontWeight: 600,
-                              backgroundColor: p.is_active ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-                              color: p.is_active ? '#10B981' : '#EF4444',
-                            }}>
-                              {p.is_active ? 'Active' : 'Inactive'}
-                            </span>
-                          </div>
-                          <div>
-                            {isAdmin && (
-                              <button
-                                onClick={() => handleDelete(p)}
-                                style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#EF4444', border: 'none', borderRadius: 8, padding: '4px 8px', cursor: 'pointer', fontSize: 11, fontWeight: 600 }}
-                                title="Delete this code"
-                              >
-                                <Trash2 size={12} />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
               </div>
             </div>
           </div>
-          )}
-          </>
-        ) : (
-          /* Commissions table — planner-style */
+        )}
+
+        {/* Tab 2: Referred Accounts / Individual Records */}
+        {activeTab === 'commissions' && (
           <div className={styles.sectionCard}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', padding: 'var(--space-3) var(--space-5)', borderBottom: '1px solid rgba(255,255,255,0.04)', flexWrap: 'wrap' }}>
               <SearchBar
                 value={commSearch}
                 onChange={setCommSearch}
-                placeholder="Search by partner or user..."
+                placeholder="Search by referred user..."
                 containerStyle={{ maxWidth: 280 }}
               />
               <DropdownMenu
@@ -387,54 +338,59 @@ export function AdminReferralsPage({ embedded, activeSubTab }: { embedded?: bool
                 items={statusFilterOptions.map((o) => ({ label: o.label, value: o.value }))}
                 onSelect={(item) => setCommStatusFilter(item.value)}
               />
-              {(commSearch || commStatusFilter !== 'all') && (
-                <button className="btn btn-ghost btn-sm" onClick={() => { setCommSearch(''); setCommStatusFilter('all') }}>
+              <DropdownMenu
+                trigger={<span>{codeFilterOptions.find((o) => o.value === codeFilter)?.label || 'Referral Code'}</span>}
+                items={codeFilterOptions.map((o) => ({ label: o.label, value: o.value }))}
+                onSelect={(item) => setCodeFilter(item.value)}
+              />
+              {(commSearch || commStatusFilter !== 'all' || codeFilter !== 'all') && (
+                <button className="btn btn-ghost btn-sm" onClick={() => { setCommSearch(''); setCommStatusFilter('all'); setCodeFilter('all') }}>
                   <X size={14} /> Clear filters
                 </button>
               )}
               <span style={{ marginLeft: 'auto', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
-                {filteredRedemptions.length} commission{filteredRedemptions.length !== 1 ? 's' : ''}
+                {filteredRedemptions.length} record{filteredRedemptions.length !== 1 ? 's' : ''}
                 {commStatusFilter !== 'all' && commStatusTotal != null && (
                   <> — total: <strong style={{ color: '#10B981' }}>{toNaira(commStatusTotal)}</strong></>
                 )}
               </span>
             </div>
+            
             {filteredRedemptions.length === 0 ? (
               <div className="empty-state" style={{ padding: 'var(--space-8)' }}>
                 <div className="empty-state__icon"><ListChecks size={24} /></div>
-                <div className="empty-state__title">No commissions yet</div>
+                <div className="empty-state__title">No referred signups found</div>
                 <div className="empty-state__description">
-                  {commSearch || commStatusFilter !== 'all' ? 'No commissions match your search or filter.' : 'No referral commissions recorded yet.'}
+                  {commSearch || commStatusFilter !== 'all' || codeFilter !== 'all' ? 'No referred accounts match your search or filters.' : 'No referral signups recorded yet.'}
                 </div>
               </div>
             ) : (
               <div className={styles.tableScroll}>
                 <div className={styles.table}>
-                  <div className={`${styles.tableHead} ${styles.commHead}`}>
-                    <span>Partner</span>
-                    <span>Referred User</span>
-                    <span>Event ID</span>
+                  <div className={`${styles.tableHead} ${styles.commAccountsHead}`}>
+                    <span>Account Name</span>
+                    <span>Organization</span>
+                    <span>Code Used</span>
                     <span>Commission</span>
                     <span>Status</span>
-                    <span>Activated</span>
-                    <span>Paid</span>
-                    <span />
+                    <span>Activated Date</span>
+                    <span>Paid Date</span>
+                    <span>Actions</span>
                   </div>
                   <div className={styles.tableBody}>
                     {filteredRedemptions.map((r) => {
                       const partner = partners.find((p) => p.id === r.partner_id)
+                      const profile = referredProfiles.find((pr) => pr.id === r.referred_user_id)
+                      const orgName = profile?.org?.name || '—'
+                      
                       return (
-                        <div key={r.id} className={`${styles.tableRow} ${styles.commRow}`}>
-                          <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>
-                            {partner?.name || <span style={{ color: 'var(--color-text-muted)' }}>{r.partner_id.slice(0, 8)}</span>}
-                          </div>
+                        <div key={r.id} className={`${styles.tableRow} ${styles.commAccountsRow}`}>
                           <div>
-                            <div style={{ fontSize: 'var(--text-sm)' }}>{(r as any).referred_user?.display_name || 'Unknown'}</div>
-                            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>{(r as any).referred_user?.email || ''}</div>
+                            <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>{r.referred_user?.display_name || 'Unknown'}</div>
+                            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>{r.referred_user?.email || ''}</div>
                           </div>
-                          <div style={{ fontFamily: 'monospace', fontSize: 'var(--text-xs)' }}>
-                            {r.event_id?.slice(0, 8) || '—'}
-                          </div>
+                          <div style={{ fontSize: 'var(--text-xs)' }}>{orgName}</div>
+                          <div style={{ fontFamily: 'monospace', fontSize: 'var(--text-xs)' }}>{partner?.code || '—'}</div>
                           <div style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
                             {toNaira(r.commission_amount)}
                           </div>
@@ -445,7 +401,7 @@ export function AdminReferralsPage({ embedded, activeSubTab }: { embedded?: bool
                               backgroundColor: (badgeStyles[r.status] || badgeStyles.pending).bg,
                               color: (badgeStyles[r.status] || badgeStyles.pending).color,
                             }}>
-                              {r.status}
+                              {r.status === 'pending_activation' ? 'pending activation' : r.status === 'pending' ? 'pending payout' : r.status}
                             </span>
                           </div>
                           <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
@@ -466,7 +422,7 @@ export function AdminReferralsPage({ embedded, activeSubTab }: { embedded?: bool
                                     loadData()
                                   }}
                                 >
-                                  Mark Paid
+                                  Pay
                                 </button>
                                 <button
                                   style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#EF4444', border: 'none', borderRadius: 8, padding: '4px 12px', cursor: 'pointer', fontSize: 11, fontWeight: 600 }}
@@ -490,6 +446,96 @@ export function AdminReferralsPage({ embedded, activeSubTab }: { embedded?: bool
               </div>
             )}
           </div>
+        )}
+
+        {/* Tab 3: Referral Partners / Codes */}
+        {activeTab === 'codes' && (
+          <>
+            {searchedPartners.length === 0 ? (
+              <div className={styles.sectionCard}>
+                <div className="empty-state" style={{ padding: 'var(--space-8)' }}>
+                  <div className="empty-state__icon"><Gift size={24} /></div>
+                  <div className="empty-state__title">{searchQuery ? 'No partners found' : 'No referral partners yet'}</div>
+                  <div className="empty-state__description">
+                    {searchQuery ? `No partners match "${searchQuery}"` : 'Create your first referral partner code to get started.'}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className={styles.sectionCard}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', padding: 'var(--space-3) var(--space-5)', borderBottom: '1px solid rgba(255,255,255,0.04)', flexWrap: 'wrap' }}>
+                  <SearchBar
+                    value={searchQuery}
+                    onChange={setSearchQuery}
+                    placeholder="Search by name or code..."
+                    containerStyle={{ maxWidth: 280 }}
+                  />
+                  <span style={{ marginLeft: 'auto', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                    {searchedPartners.length} partner{searchedPartners.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+                <div className={styles.tableScroll}>
+                  <div className={styles.table}>
+                    <div className={`${styles.tableHead} ${styles.partnersHead}`}>
+                      <span>Code</span>
+                      <span>Owner</span>
+                      <span>Share Link</span>
+                      <span>Email</span>
+                      <span>Phone</span>
+                      <span>Status</span>
+                      <span>Action</span>
+                    </div>
+                    <div className={styles.tableBody}>
+                      {searchedPartners.map((p) => (
+                        <div key={p.id} className={`${styles.tableRow} ${styles.partnersRow}`}>
+                          <div style={{ fontFamily: 'monospace', fontSize: 'var(--text-xs)', fontWeight: 600 }}>{p.code}</div>
+                          <div style={{ fontSize: 'var(--text-sm)' }}>{p.name}</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {shareUrl(p.code)}
+                            </span>
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(shareUrl(p.code))
+                                setCopiedCode(p.id)
+                                setTimeout(() => setCopiedCode(null), 2000)
+                              }}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-accent)', padding: 2 }}
+                              title="Copy share link"
+                            >
+                              {copiedCode === p.id ? <Check size={12} /> : <Copy size={12} />}
+                            </button>
+                          </div>
+                          <div style={{ fontSize: 'var(--text-xs)' }}>{p.email || '—'}</div>
+                          <div style={{ fontSize: 'var(--text-xs)' }}>{p.phone || '—'}</div>
+                          <div>
+                            <span style={{
+                              display: 'inline-block', padding: '2px 8px', borderRadius: 999, fontSize: 11, fontWeight: 600,
+                              backgroundColor: p.is_active ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                              color: p.is_active ? '#10B981' : '#EF4444',
+                            }}>
+                              {p.is_active ? 'Active' : 'Inactive'}
+                            </span>
+                          </div>
+                          <div>
+                            {isAdmin && (
+                              <button
+                                onClick={() => handleDelete(p)}
+                                style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#EF4444', border: 'none', borderRadius: 8, padding: '4px 8px', cursor: 'pointer', fontSize: 11, fontWeight: 600 }}
+                                title="Delete this partner"
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 

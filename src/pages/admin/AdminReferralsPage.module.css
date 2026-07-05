@@ -259,3 +259,60 @@
 .commRow > :nth-child(7) { flex: 0.8; }
 .commHead > :nth-child(8),
 .commRow > :nth-child(8) { flex: 0.5; text-align: center; }
+
+/* Referral Partners table (7 columns) */
+.partnersHead,
+.partnersRow {
+  display: flex;
+  width: 100%;
+}
+.partnersHead > *,
+.partnersRow > * {
+  min-width: 0;
+  padding: var(--space-3) var(--space-4);
+}
+.partnersHead > :nth-child(1), .partnersRow > :nth-child(1) { flex: 1.2; font-family: monospace; }
+.partnersHead > :nth-child(2), .partnersRow > :nth-child(2) { flex: 1.8; font-weight: 600; }
+.partnersHead > :nth-child(3), .partnersRow > :nth-child(3) { flex: 2.2; }
+.partnersHead > :nth-child(4), .partnersRow > :nth-child(4) { flex: 2.2; }
+.partnersHead > :nth-child(5), .partnersRow > :nth-child(5) { flex: 1.5; }
+.partnersHead > :nth-child(6), .partnersRow > :nth-child(6) { flex: 1.2; text-align: center; }
+.partnersHead > :nth-child(7), .partnersRow > :nth-child(7) { flex: 0.8; text-align: center; }
+
+/* Performance table (5 columns) */
+.performanceHead,
+.performanceRow {
+  display: flex;
+  width: 100%;
+}
+.performanceHead > *,
+.performanceRow > * {
+  min-width: 0;
+  padding: var(--space-3) var(--space-4);
+}
+.performanceHead > :nth-child(1), .performanceRow > :nth-child(1) { flex: 1.5; font-family: monospace; }
+.performanceHead > :nth-child(2), .performanceRow > :nth-child(2) { flex: 1.2; text-align: center; }
+.performanceHead > :nth-child(3), .performanceRow > :nth-child(3) { flex: 1.2; text-align: center; }
+.performanceHead > :nth-child(4), .performanceRow > :nth-child(4) { flex: 1.5; text-align: right; }
+.performanceHead > :nth-child(5), .performanceRow > :nth-child(5) { flex: 1.5; text-align: right; }
+
+/* Referred Accounts table (7 columns) */
+.commAccountsHead,
+.commAccountsRow {
+  display: flex;
+  width: 100%;
+}
+.commAccountsHead > *,
+.commAccountsRow > * {
+  min-width: 0;
+  padding: var(--space-3) var(--space-4);
+}
+.commAccountsHead > :nth-child(1), .commAccountsRow > :nth-child(1) { flex: 2; font-weight: 600; }
+.commAccountsHead > :nth-child(2), .commAccountsRow > :nth-child(2) { flex: 2; }
+.commAccountsHead > :nth-child(3), .commAccountsRow > :nth-child(3) { flex: 1.5; font-family: monospace; }
+.commAccountsHead > :nth-child(4), .commAccountsRow > :nth-child(4) { flex: 1.2; text-align: right; }
+.commAccountsHead > :nth-child(5), .commAccountsRow > :nth-child(5) { flex: 1.5; text-align: center; }
+.commAccountsHead > :nth-child(6), .commAccountsRow > :nth-child(6) { flex: 1.2; text-align: center; }
+.commAccountsHead > :nth-child(7), .commAccountsRow > :nth-child(7) { flex: 1.2; text-align: center; }
+.commAccountsHead > :nth-child(8), .commAccountsRow > :nth-child(8) { flex: 1.5; text-align: center; }
+
