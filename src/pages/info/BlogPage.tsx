@@ -54,7 +54,7 @@ export function BlogPage() {
                 style={{ textDecoration: 'none' }}
               >
                 <div className={styles.postImgWrap}>
-                  <img src={getPostImage(post)} alt="" className={styles.postImg} />
+                  <img src={getPostImage(post)} alt="" className={styles.postImg} onLoad={(e) => { e.currentTarget.dataset.loaded = 'true' }} />
                   <span className={styles.postCat}>{post.category}</span>
                 </div>
                 <div className={styles.postBody}>

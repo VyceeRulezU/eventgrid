@@ -29,7 +29,7 @@ function StaticBody({ body }: { body: StaticBlock[] }) {
           case 'sectionImage':
             return (
               <figure key={i} className={styles.sectionImageWrap}>
-                <img src={block.placeholderUrl} alt={block.alt} className={styles.sectionImage} loading="lazy" />
+                <img src={block.placeholderUrl} alt={block.alt} className={styles.sectionImage} loading="lazy" onLoad={(e) => { e.currentTarget.dataset.loaded = 'true' }} />
                 {block.caption && (
                   <figcaption className={styles.sectionImageCaption}>{block.caption}</figcaption>
                 )}
@@ -192,6 +192,7 @@ export function BlogPostPage() {
                   src={getFeaturedImageUrl(post)}
                   alt={post.featuredImage.alt || post.title}
                   className={styles.featuredImage}
+                  onLoad={(e) => { e.currentTarget.dataset.loaded = 'true' }}
                 />
               </div>
 
