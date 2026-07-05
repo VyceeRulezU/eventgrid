@@ -1,7 +1,9 @@
 import { useEffect } from 'react'
 import { lazy, Suspense } from 'react'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
+import { queryClient } from '@/lib/queryClient'
 import { Sentry } from '@/lib/sentry'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import type { User } from '@supabase/supabase-js'
@@ -59,6 +61,7 @@ import { CookiesPage } from '@/pages/info/CookiesPage'
 import { SecurityPage } from '@/pages/info/SecurityPage'
 import { DataDeletionPage } from '@/pages/info/DataDeletionPage'
 import { ScrollToTop } from '@/components/shared/ScrollToTop'
+import { SkipLink } from '@/components/shared/SkipLink'
 import { CookieNotice } from '@/components/CookieNotice'
 import { PushPermissionPrompt } from '@/components/PushPermissionPrompt'
 
@@ -571,9 +574,11 @@ export function App() {
 
   return (
     <Sentry.ErrorBoundary fallback={({ error }) => <ErrorFallback error={error} />}>
+      <QueryClientProvider client={queryClient}>
       <Analytics />
       <SpeedInsights />
       <BrowserRouter>
+        <SkipLink />
         <ScrollToTop />
         <Routes>
           <Route path="/" element={<AuthGate />} />
@@ -891,6 +896,7 @@ export function App() {
         <CookieNotice />
       </BrowserRouter>
       <PremiumModalContainer />
+      </QueryClientProvider>
     </Sentry.ErrorBoundary>
   )
 }

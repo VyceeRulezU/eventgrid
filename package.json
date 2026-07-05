@@ -16,6 +16,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "preview-emails": "tsx --tsconfig tsconfig.app.json scripts/preview-emails.tsx",
+    "analyze": "vite-bundle-visualizer",
     "sanity:dev": "echo Sanity studio has been removed",
     "sanity:build": "echo Sanity studio has been removed",
     "sanity:deploy": "echo Sanity studio has been removed"
@@ -28,6 +29,7 @@
     "@react-pdf/renderer": "^4.3.0",
     "@sentry/react": "^10.56.0",
     "@supabase/supabase-js": "^2.110.0",
+    "@tanstack/react-query": "^5.101.2",
     "@testing-library/dom": "^10.4.1",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
@@ -69,6 +71,7 @@
     "@vitejs/plugin-react": "^6.0.3",
     "dotenv": "^17.4.2",
     "eslint": "^10.6.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.6.0",
@@ -79,6 +82,7 @@
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.59.2",
     "vite": "^8.1.2",
+    "vite-bundle-visualizer": "^1.2.1",
     "vite-plugin-image-optimizer": "^2.0.3",
     "vitest": "^4.1.9"
   }
