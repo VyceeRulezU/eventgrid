@@ -25,6 +25,7 @@ function formatDate(dateStr: string | null): string {
 }
 
 const badgeStyles: Record<string, { bg: string; color: string }> = {
+  pending_activation: { bg: 'rgba(59, 130, 246, 0.15)', color: '#3B82F6' },
   pending: { bg: 'rgba(251, 191, 36, 0.15)', color: '#F59E0B' },
   paid: { bg: 'rgba(16, 185, 129, 0.15)', color: '#10B981' },
   cancelled: { bg: 'rgba(239, 68, 68, 0.15)', color: '#EF4444' },
@@ -36,6 +37,7 @@ export function AdminReferralsPage({ embedded, activeSubTab }: { embedded?: bool
 
   const [partners, setPartners] = useState<ReferralPartner[]>([])
   const [redemptions, setRedemptions] = useState<RedemptionWithUser[]>([])
+  const [referredProfiles, setReferredProfiles] = useState<{ id: string; referred_by_code: string | null; display_name: string | null; email: string | null }[]>([])
   const [, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'commissions' | 'codes'>(activeSubTab || 'codes')
   const [searchQuery, setSearchQuery] = useState('')
@@ -52,12 +54,14 @@ export function AdminReferralsPage({ embedded, activeSubTab }: { embedded?: bool
 
   const loadData = useCallback(async () => {
     setLoading(true)
-    const [pRes, rRes] = await Promise.all([
+    const [pRes, rRes, prRes] = await Promise.all([
       supabase.from('referral_partners').select('*').order('created_at', { ascending: false }).limit(200),
       supabase.from('referral_redemptions').select('*, referred_user:referred_user_id(display_name, email)').order('created_at', { ascending: false }).limit(200),
+      supabase.from('profiles').select('id, referred_by_code, display_name, email').not('referred_by_code', 'is', null),
     ])
     if (pRes.data) setPartners(pRes.data)
     if (rRes.data) setRedemptions(rRes.data as any)
+    if (prRes.data) setReferredProfiles(prRes.data)
     setLoading(false)
   }, [])
 
@@ -76,16 +80,17 @@ export function AdminReferralsPage({ embedded, activeSubTab }: { embedded?: bool
   const summaries = useMemo(() => {
     return partners.map((p) => {
       const partnerReds = redemptions.filter((r) => r.partner_id === p.id)
+      const partnerProfiles = referredProfiles.filter((pr) => pr.referred_by_code?.toUpperCase() === p.code.toUpperCase())
       return {
         partner: p,
-        signups: new Set(partnerReds.map((r) => r.referred_user_id)).size,
+        signups: partnerProfiles.length,
         activations: partnerReds.length,
         commissionEarned: partnerReds.reduce((sum, r) => sum + Number(r.commission_amount), 0),
         commissionPaid: partnerReds.filter((r) => r.status === 'paid').reduce((sum, r) => sum + Number(r.commission_amount), 0),
         commissionOutstanding: partnerReds.filter((r) => r.status === 'pending').reduce((sum, r) => sum + Number(r.commission_amount), 0),
       }
     })
-  }, [partners, redemptions])
+  }, [partners, redemptions, referredProfiles])
 
   // --- Overview stats ---
   const totalCodes = partners.length
@@ -93,9 +98,40 @@ export function AdminReferralsPage({ embedded, activeSubTab }: { embedded?: bool
   const totalCommissionEarned = summaries.reduce((sum, s) => sum + s.commissionEarned, 0)
   const totalSignups = summaries.reduce((sum, s) => sum + s.signups, 0)
 
+  // --- Virtual + Actual Redemptions Merge ---
+  const allRedemptions = useMemo(() => {
+    const list = [...redemptions]
+    
+    referredProfiles.forEach((pr) => {
+      const hasRedemption = redemptions.some((r) => r.referred_user_id === pr.id)
+      if (!hasRedemption) {
+        const partner = partners.find((p) => p.code.toUpperCase() === pr.referred_by_code?.toUpperCase())
+        if (partner) {
+          list.push({
+            id: `signup-${pr.id}`,
+            partner_id: partner.id,
+            referred_user_id: pr.id,
+            event_id: null,
+            commission_amount: 0,
+            status: 'pending_activation',
+            activated_at: null,
+            paid_at: null,
+            created_at: new Date().toISOString(),
+            referred_user: {
+              display_name: pr.display_name,
+              email: pr.email
+            }
+          } as any)
+        }
+      }
+    })
+    
+    return list
+  }, [redemptions, referredProfiles, partners])
+
   // --- Filtered redemptions (commissions tab) ---
   const filteredRedemptions = useMemo(() => {
-    let list = redemptions
+    let list = allRedemptions
     if (commStatusFilter !== 'all') {
       list = list.filter((r) => r.status === commStatusFilter)
     }
@@ -110,7 +146,7 @@ export function AdminReferralsPage({ embedded, activeSubTab }: { embedded?: bool
       })
     }
     return list
-  }, [redemptions, commStatusFilter, commSearch, partners])
+  }, [allRedemptions, commStatusFilter, commSearch, partners])
 
 
 
@@ -174,7 +210,8 @@ export function AdminReferralsPage({ embedded, activeSubTab }: { embedded?: bool
 
   const statusFilterOptions = [
     { label: 'All statuses', value: 'all' },
-    { label: 'Pending', value: 'pending' },
+    { label: 'Pending Activation', value: 'pending_activation' },
+    { label: 'Pending Payout', value: 'pending' },
     { label: 'Paid', value: 'paid' },
     { label: 'Cancelled', value: 'cancelled' },
   ]

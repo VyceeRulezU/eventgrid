@@ -52,7 +52,7 @@ export function VerifyEmailPage() {
     if (code.length !== 6 || verifying || !email) return
     setVerifying(true)
     try {
-      const { data, error } = await supabase.auth.verifyOtp({
+      const { error } = await supabase.auth.verifyOtp({
         email,
         token: code,
         type: 'signup'
