@@ -259,33 +259,39 @@ export default function Navbar({ landing }: NavbarProps) {
                     {/* Platform Features column */}
                     <div className={styles.megaMenuCol}>
                       <div className={styles.megaMenuColTitle}>Platform Features</div>
-                      {PLATFORM_FEATURES.map((item) => (
-                        <button
-                          key={item.key}
-                          className={styles.megaMenuItem}
-                          onMouseEnter={() => setHoveredFeature(item)}
-                          onClick={() => handleMegaLinkClick(item.href)}
-                        >
-                          <div className={styles.megaMenuItemTitle}>{item.title}</div>
-                          <div className={styles.megaMenuItemDesc}>{item.desc}</div>
-                        </button>
-                      ))}
+                      {PLATFORM_FEATURES.map((item) => {
+                        const mmActive = location.pathname === item.href
+                        return (
+                          <button
+                            key={item.key}
+                            className={`${styles.megaMenuItem} ${mmActive ? styles.megaMenuItemActive : ''}`}
+                            onMouseEnter={() => setHoveredFeature(item)}
+                            onClick={() => handleMegaLinkClick(item.href)}
+                          >
+                            <div className={styles.megaMenuItemTitle}>{item.title}</div>
+                            <div className={styles.megaMenuItemDesc}>{item.desc}</div>
+                          </button>
+                        )
+                      })}
                     </div>
 
                     {/* Company column */}
                     <div className={styles.megaMenuCol}>
                       <div className={styles.megaMenuColTitle}>Company</div>
-                      {COMPANY_LINKS.map((item) => (
-                        <button
-                          key={item.key}
-                          className={styles.megaMenuItem}
-                          onMouseEnter={() => setHoveredFeature(item)}
-                          onClick={() => handleMegaLinkClick(item.href)}
-                        >
-                          <div className={styles.megaMenuItemTitle}>{item.title}</div>
-                          <div className={styles.megaMenuItemDesc}>{item.desc}</div>
-                        </button>
-                      ))}
+                      {COMPANY_LINKS.map((item) => {
+                        const mmActive = location.pathname === item.href
+                        return (
+                          <button
+                            key={item.key}
+                            className={`${styles.megaMenuItem} ${mmActive ? styles.megaMenuItemActive : ''}`}
+                            onMouseEnter={() => setHoveredFeature(item)}
+                            onClick={() => handleMegaLinkClick(item.href)}
+                          >
+                            <div className={styles.megaMenuItemTitle}>{item.title}</div>
+                            <div className={styles.megaMenuItemDesc}>{item.desc}</div>
+                          </button>
+                        )
+                      })}
 
                       {/* Register for Free button */}
                       <Link to="/register" className={styles.megaMenuCtaBtn} onClick={() => setShowMega(false)}>
@@ -354,26 +360,32 @@ export default function Navbar({ landing }: NavbarProps) {
               })}
 
               <div className={styles.mobileNavHeader} style={{ marginTop: 'var(--space-4)' }}>Platform Features</div>
-              {PLATFORM_FEATURES.map((item) => (
-                <button
-                  key={item.key}
-                  className={styles.mobileNavLink}
-                  onClick={() => handleMegaLinkClick(item.href)}
-                >
-                  {item.title}
-                </button>
-              ))}
+              {PLATFORM_FEATURES.map((item) => {
+                const isActive = location.pathname === item.href
+                return (
+                  <button
+                    key={item.key}
+                    className={`${styles.mobileNavLink} ${isActive ? styles.mobileNavLinkActive : ''}`}
+                    onClick={() => handleMegaLinkClick(item.href)}
+                  >
+                    {item.title}
+                  </button>
+                )
+              })}
 
               <div className={styles.mobileNavHeader} style={{ marginTop: 'var(--space-4)' }}>Company</div>
-              {COMPANY_LINKS.map((item) => (
-                <button
-                  key={item.key}
-                  className={styles.mobileNavLink}
-                  onClick={() => handleMegaLinkClick(item.href)}
-                >
-                  {item.title}
-                </button>
-              ))}
+              {COMPANY_LINKS.map((item) => {
+                const isActive = location.pathname === item.href
+                return (
+                  <button
+                    key={item.key}
+                    className={`${styles.mobileNavLink} ${isActive ? styles.mobileNavLinkActive : ''}`}
+                    onClick={() => handleMegaLinkClick(item.href)}
+                  >
+                    {item.title}
+                  </button>
+                )
+              })}
             </nav>
           </div>
           

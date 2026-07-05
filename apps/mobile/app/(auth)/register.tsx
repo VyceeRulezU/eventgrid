@@ -455,6 +455,10 @@ export default function RegisterScreen() {
               {error ? <Text style={styles.errorText}>{error}</Text> : null}
               {success ? <Text style={styles.successText}>{success}</Text> : null}
 
+              <Text style={styles.tosText}>
+                By registering, you accept our Terms of Service and Privacy Policy.
+              </Text>
+
               {/* Submit Action */}
               <TouchableOpacity
                 style={[styles.submitButton, loading && styles.submitButtonDisabled]}
@@ -639,6 +643,13 @@ const styles = StyleSheet.create({
   },
   pwCheckLabelPassed: {
     color: '#FFFFFF',
+  },
+  tosText: {
+    fontSize: 12,
+    color: '#9ca3af',
+    textAlign: 'center',
+    marginVertical: 12,
+    lineHeight: 18,
   },
   submitButton: {
     height: 48,

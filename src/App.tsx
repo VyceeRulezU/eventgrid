@@ -432,6 +432,28 @@ export function App() {
         if (!isMounted) return
 
         if (session?.user) {
+          // Verify user still exists on the server (catches deleted accounts).
+          // Cached in sessionStorage — fires once per browser tab session.
+          const verifiedKey = 'naligrid_user_verified'
+          let verified = typeof sessionStorage !== 'undefined' && sessionStorage.getItem(verifiedKey) === '1'
+          if (!verified) {
+            const { data: { user: verifiedUser }, error: verifyError } = await withTimeout(
+              supabase.auth.getUser(),
+              8000,
+              'User verification timed out.'
+            )
+            if (!isMounted) return
+
+            if (verifyError || !verifiedUser) {
+              await supabase.auth.signOut()
+              setUser(null)
+              setProfile(null)
+              setOrg(null)
+              if (typeof sessionStorage !== 'undefined') sessionStorage.removeItem(verifiedKey)
+              return
+            }
+            if (typeof sessionStorage !== 'undefined') sessionStorage.setItem(verifiedKey, '1')
+          }
           setUser(session.user)
           await loadProfile(session.user.id, session.user)
         } else {

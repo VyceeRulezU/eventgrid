@@ -189,8 +189,8 @@ export function CoordinatorOnboarding() {
 
         <div className={styles.leftFooter}>
           <div className={styles.footerLinks}>
-            <a href="#" className={styles.footerLink}>Terms</a>
-            <a href="#" className={styles.footerLink}>Privacy Policy</a>
+            <Link to="/terms" className={styles.footerLink}>Terms</Link>
+            <Link to="/privacy" className={styles.footerLink}>Privacy Policy</Link>
           </div>
           <button onClick={handleLogout} className={styles.logoutBtn}>
             <LogOut size={12} /> Log Out

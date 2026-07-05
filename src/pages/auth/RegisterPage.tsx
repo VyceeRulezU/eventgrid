@@ -365,6 +365,12 @@ export function RegisterPage() {
                 </div>
 
                 <CaptchaField onToken={setCaptchaToken} />
+                <p style={{ fontSize: '0.75rem', color: '#9ca3af', textAlign: 'center', margin: '0 0 12px', lineHeight: 1.5 }}>
+                  By registering, you accept our{' '}
+                  <Link to="/terms" style={{ color: '#d4a017', textDecoration: 'underline' }}>Terms of Service</Link>{' '}
+                  and{' '}
+                  <Link to="/privacy" style={{ color: '#d4a017', textDecoration: 'underline' }}>Privacy Policy</Link>.
+                </p>
                 <button
                   type="submit"
                   className={styles.submitBtn}

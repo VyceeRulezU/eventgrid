@@ -456,6 +456,14 @@
   background-color: rgba(255, 255, 255, 0.05);
 }
 
+.megaMenuItemActive {
+  background-color: rgba(212, 160, 23, 0.08);
+}
+
+.megaMenuItemActive .megaMenuItemTitle {
+  color: var(--color-accent);
+}
+
 .megaMenuItemTitle {
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);

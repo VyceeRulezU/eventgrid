@@ -171,6 +171,7 @@
     padding: 70px 0;
   }
   
+  .benefitsGrid,
   .cardsGrid {
     grid-template-columns: 1fr;
     gap: 20px;

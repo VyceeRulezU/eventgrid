@@ -93,7 +93,6 @@ export function SettingsPage() {
             const { data } = await supabase.auth.getUser()
             if (data?.user) useAuthStore.getState().setUser(data.user)
             showToast({ type: 'success', title: 'Google account unlinked' })
-            sendLinkNotification({ email: user!.email!, first_name: displayNameFinal, provider: 'google', action: 'unlinked' }).catch(() => {})
             return
           }
           setPasswordModal({ provider: 'google' })
@@ -104,7 +103,6 @@ export function SettingsPage() {
         const { data } = await supabase.auth.getUser()
         if (data?.user) useAuthStore.getState().setUser(data.user)
         showToast({ type: 'success', title: 'Google account unlinked' })
-        sendLinkNotification({ email: user!.email!, first_name: displayNameFinal, provider: 'google', action: 'unlinked' }).catch(() => {})
       }
     } catch {
       showToast({ type: 'error', title: 'Unlink failed', body: 'An unexpected error occurred.' })
@@ -146,7 +144,6 @@ export function SettingsPage() {
             const { data } = await supabase.auth.getUser()
             if (data?.user) useAuthStore.getState().setUser(data.user)
             showToast({ type: 'success', title: 'Facebook account unlinked' })
-            sendLinkNotification({ email: user!.email!, first_name: displayNameFinal, provider: 'facebook', action: 'unlinked' }).catch(() => {})
             return
           }
           setPasswordModal({ provider: 'facebook' })
@@ -157,7 +154,6 @@ export function SettingsPage() {
         const { data } = await supabase.auth.getUser()
         if (data?.user) useAuthStore.getState().setUser(data.user)
         showToast({ type: 'success', title: 'Facebook account unlinked' })
-        sendLinkNotification({ email: user!.email!, first_name: displayNameFinal, provider: 'facebook', action: 'unlinked' }).catch(() => {})
       }
     } catch {
       showToast({ type: 'error', title: 'Unlink failed', body: 'An unexpected error occurred.' })
@@ -201,7 +197,6 @@ export function SettingsPage() {
       }
 
       showToast({ type: 'success', title: `${modal.provider === 'google' ? 'Google' : 'Facebook'} account unlinked`, body: 'You can now sign in with your email and password.' })
-      sendLinkNotification({ email: user!.email!, first_name: displayNameFinal, provider: modal.provider, action: 'unlinked' }).catch(() => {})
       setPasswordModal(null)
       setNewPassword('')
       setConfirmPassword('')
