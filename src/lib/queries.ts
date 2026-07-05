@@ -1,5 +1,4 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
 import type { PostgrestError } from '@supabase/supabase-js'
 
 type QueryFn<T> = () => Promise<{ data: T | null; error: PostgrestError | null }>
