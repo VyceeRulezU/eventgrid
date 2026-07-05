@@ -133,7 +133,7 @@ export function RegisterPage() {
       if (error) throw error
 
       sendWelcomeEmail({ email: email.trim(), first_name: name, role }).catch(() => {})
-      navigate('/verify-email')
+      navigate(`/verify-email?email=${encodeURIComponent(email)}`)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unable to register. Please try again.'
       showToast({ type: 'error', title: 'Registration failed', body: message })
