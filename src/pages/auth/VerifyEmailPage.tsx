@@ -39,7 +39,7 @@ export function VerifyEmailPage() {
         email,
       })
       if (error) throw error
-      showToast({ type: 'success', title: 'Verification code sent', body: 'Check your inbox for a new 6-digit code.' })
+      showToast({ type: 'success', title: 'Verification code sent', body: 'Check your inbox for your verification code.' })
     } catch (err) {
       showToast({ type: 'error', title: 'Failed to resend', body: err instanceof Error ? err.message : 'Please try again.' })
     } finally {
@@ -49,7 +49,8 @@ export function VerifyEmailPage() {
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (code.length !== 6 || verifying || !email) return
+    const isCodeValid = code.length === 6 || code.length === 8
+    if (!isCodeValid || verifying || !email) return
     setVerifying(true)
     try {
       const { error } = await supabase.auth.verifyOtp({
@@ -101,7 +102,7 @@ export function VerifyEmailPage() {
           <div className={styles.formHeader}>
             <h1 style={{ fontSize: 'var(--text-title-lg)', fontWeight: 'var(--weight-extrabold)', marginBottom: 'var(--space-2)' }}>Check your email</h1>
             <p className={styles.formSubtitle}>
-              We sent a 6-digit verification code to <strong style={{ color: 'var(--color-text)' }}>{email || 'your email'}</strong>. Enter the code below to activate your account.
+              We sent a verification code to <strong style={{ color: 'var(--color-text)' }}>{email || 'your email'}</strong>. Enter the code below to activate your account.
             </p>
           </div>
 
@@ -113,9 +114,9 @@ export function VerifyEmailPage() {
                 type="text"
                 className={styles.inputField}
                 value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                placeholder="123456"
-                maxLength={6}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                placeholder="12345678"
+                maxLength={8}
                 required
                 style={{
                   textAlign: 'center',
@@ -123,7 +124,7 @@ export function VerifyEmailPage() {
                   fontSize: 'var(--text-lg)',
                   fontWeight: 'bold',
                   color: 'var(--color-accent)',
-                  borderColor: code.length === 6 ? 'var(--color-accent)' : undefined
+                  borderColor: (code.length === 6 || code.length === 8) ? 'var(--color-accent)' : undefined
                 }}
               />
             </div>
@@ -131,7 +132,7 @@ export function VerifyEmailPage() {
             <button
               type="submit"
               className={styles.submitBtn}
-              disabled={verifying || code.length !== 6 || !email}
+              disabled={verifying || !(code.length === 6 || code.length === 8) || !email}
               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)' }}
             >
               {verifying ? <Loader2 size={16} className="spin" /> : <CheckCircle size={16} />}
