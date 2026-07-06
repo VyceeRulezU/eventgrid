@@ -1,12 +1,22 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
-import { Gift, Users, TrendingUp, DollarSign, AlertTriangle } from 'lucide-react'
+import { Gift, Users, TrendingUp, AlertTriangle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { SEO } from '@/components/shared/SEO'
-import type { ReferralPortal, ReferralPartner, ReferralRedemption, Profile } from '@/types'
+import type { ReferralPartner, ReferralPortal } from '@/types'
 import styles from './ReferralPortalPage.module.css'
 
-type RedemptionWithUser = ReferralRedemption & { referred_user?: Pick<Profile, 'display_name' | 'email'> }
+type ReferralData = {
+  id: string
+  display_name: string
+  email: string
+  org_name: string
+  status: string
+  commission_amount: number
+  activated_at: string | null
+  paid_at: string | null
+  created_at: string
+}
 
 function toNaira(kobo: number): string {
   return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0 }).format(kobo / 100)
@@ -18,6 +28,7 @@ function formatDate(dateStr: string | null): string {
 }
 
 const badgeStyles: Record<string, { bg: string; color: string }> = {
+  pending_activation: { bg: 'rgba(59, 130, 246, 0.15)', color: '#3B82F6' },
   pending: { bg: 'rgba(251, 191, 36, 0.15)', color: '#F59E0B' },
   paid: { bg: 'rgba(16, 185, 129, 0.15)', color: '#10B981' },
   cancelled: { bg: 'rgba(239, 68, 68, 0.15)', color: '#EF4444' },
@@ -25,9 +36,8 @@ const badgeStyles: Record<string, { bg: string; color: string }> = {
 
 export function ReferralPortalPage() {
   const { token } = useParams<{ token: string }>()
-  const [, setPortal] = useState<ReferralPortal | null>(null)
   const [partner, setPartner] = useState<ReferralPartner | null>(null)
-  const [redemptions, setRedemptions] = useState<RedemptionWithUser[]>([])
+  const [redemptions, setRedemptions] = useState<ReferralData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -35,46 +45,68 @@ export function ReferralPortalPage() {
     if (!token) { setError('Invalid portal link.'); setLoading(false); return }
 
     ;(async () => {
-      const { data: portalData, error: portalErr } = await supabase
-        .from('referral_portals')
+      let partnerData = null
+
+      // 1. Try lookup by referral code (token = code)
+      const { data: pByCode } = await supabase
+        .from('referral_partners')
         .select('*')
-        .eq('token', token)
+        .eq('code', token.toUpperCase())
         .eq('is_active', true)
         .maybeSingle()
 
-      if (portalErr || !portalData) {
+      if (pByCode) {
+        partnerData = pByCode
+      } else {
+        // 2. Fallback: try lookup by UUID token
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+        if (uuidRegex.test(token)) {
+          const { data: portalData } = await supabase
+            .from('referral_portals')
+            .select('*')
+            .eq('token', token)
+            .eq('is_active', true)
+            .maybeSingle()
+
+          if (portalData) {
+            const { data: pById } = await supabase
+              .from('referral_partners')
+              .select('*')
+              .eq('id', portalData.partner_id)
+              .single()
+            if (pById) partnerData = pById
+          }
+        }
+      }
+
+      if (!partnerData) {
         setError('This portal link is invalid or has been revoked.')
         setLoading(false)
         return
       }
 
-      setPortal(portalData)
+      setPartner(partnerData)
 
-      const { data: partnerData } = await supabase
-        .from('referral_partners')
-        .select('*')
-        .eq('id', portalData.partner_id)
-        .single()
+      // 3. Fetch unified referrals and redemptions using the RPC function
+      const { data: referralData, error: rpcErr } = await supabase
+        .rpc('get_portal_referral_data', { portal_identifier: token })
 
-      if (partnerData) setPartner(partnerData)
-
-      const { data: redData } = await supabase
-        .from('referral_redemptions')
-        .select('*, referred_user:referred_user_id(display_name, email)')
-        .eq('partner_id', portalData.partner_id)
-        .order('created_at', { ascending: false })
-
-      if (redData) setRedemptions(redData as any)
+      if (rpcErr) {
+        setError(rpcErr.message)
+      } else if (referralData) {
+        setRedemptions(referralData as any)
+      }
 
       setLoading(false)
     })()
   }, [token])
 
-  const totalSignups = useMemo(() =>
-    new Set(redemptions.map((r) => r.referred_user_id)).size,
+  const totalSignups = redemptions.length
+  
+  const totalActivations = useMemo(() =>
+    redemptions.filter((r) => r.status !== 'pending_activation').length,
     [redemptions]
   )
-  const totalActivations = redemptions.length
   const totalEarned = useMemo(() =>
     redemptions.reduce((s, r) => s + Number(r.commission_amount), 0),
     [redemptions]
@@ -158,7 +190,7 @@ export function ReferralPortalPage() {
             { icon: Gift, value: `${totalActivations}`, label: 'Total Activations' },
             { icon: Users, value: `${totalSignups}`, label: 'Total Signups' },
             { icon: TrendingUp, value: `${totalPaid ? toNaira(totalPaid) : toNaira(0)}`, label: 'Paid Out' },
-            { icon: DollarSign, value: toNaira(totalEarned), label: 'Total Commissions' },
+            { icon: (props: any) => <span {...props} style={{ fontSize: 16, fontWeight: 700, fontFamily: 'system-ui', lineHeight: 1, ...props.style }}>₦</span>, value: toNaira(totalEarned), label: 'Total Commissions' },
           ].map((s) => (
             <div key={s.label} className={styles.statCard}>
               <div className={styles.statCardHeader}>
@@ -175,7 +207,7 @@ export function ReferralPortalPage() {
             <div className={styles.table}>
               <div className={`${styles.tableHead} ${styles.portalHead}`}>
                 <span>Referred User</span>
-                <span>Event ID</span>
+                <span>Organization</span>
                 <span>Commission</span>
                 <span>Status</span>
                 <span>Activated</span>
@@ -185,22 +217,22 @@ export function ReferralPortalPage() {
                 {redemptions.length === 0 ? (
                   <div className="empty-state" style={{ padding: 'var(--space-8)' }}>
                     <div className="empty-state__icon"><Gift size={24} /></div>
-                    <div className="empty-state__title">No commissions yet</div>
-                    <div className="empty-state__description">You haven't earned any referral commissions yet.</div>
+                    <div className="empty-state__title">No referrals yet</div>
+                    <div className="empty-state__description">No signups registered with your referral code yet.</div>
                   </div>
                 ) : (
                   redemptions.map((r) => (
                     <div key={r.id} className={`${styles.tableRow} ${styles.portalRow}`}>
                       <div>
                         <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>
-                          {(r as any).referred_user?.display_name || 'Unknown'}
+                          {r.display_name}
                         </div>
                         <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
-                          {(r as any).referred_user?.email || ''}
+                          {r.email}
                         </div>
                       </div>
-                      <div style={{ fontFamily: 'monospace', fontSize: 'var(--text-xs)' }}>
-                        {r.event_id?.slice(0, 8) || '—'}
+                      <div style={{ fontSize: 'var(--text-xs)' }}>
+                        {r.org_name}
                       </div>
                       <div style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
                         {toNaira(r.commission_amount)}
@@ -212,7 +244,7 @@ export function ReferralPortalPage() {
                           backgroundColor: (badgeStyles[r.status] || badgeStyles.pending).bg,
                           color: (badgeStyles[r.status] || badgeStyles.pending).color,
                         }}>
-                          {r.status}
+                          {r.status === 'pending_activation' ? 'pending activation' : r.status === 'pending' ? 'pending payout' : r.status}
                         </span>
                       </div>
                       <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>

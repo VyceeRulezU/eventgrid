@@ -41,7 +41,11 @@ export function GenerateReferralPortalModal({ partners, defaultPartnerId, onClos
       })
   }, [selectedPartnerId])
 
-  const portalLink = portal?.token ? `${window.location.origin}/portal/referral/${portal.token}` : ''
+  const portalLink = selectedPartner?.code
+    ? `${window.location.origin}/portal/referral/${selectedPartner.code.toUpperCase()}`
+    : portal?.token
+      ? `${window.location.origin}/portal/referral/${portal.token}`
+      : ''
 
   const handleGenerate = async () => {
     if (!selectedPartnerId) return

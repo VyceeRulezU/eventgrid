@@ -382,14 +382,17 @@
 }
 
 .portalHead > :nth-child(1),
-.portalRow > :nth-child(1) { flex: 2.5; }
+.portalRow > :nth-child(1) { flex: 2; }
 .portalHead > :nth-child(2),
-.portalRow > :nth-child(2) { flex: 1; }
+.portalRow > :nth-child(2) { flex: 2; }
 .portalHead > :nth-child(3),
-.portalRow > :nth-child(3) { flex: 0.8; text-align: right; }
+.portalRow > :nth-child(3) { flex: 1.2; }
 .portalHead > :nth-child(4),
-.portalRow > :nth-child(4) { flex: 0.6; text-align: center; }
+.portalRow > :nth-child(4) { flex: 1.2; text-align: right; }
 .portalHead > :nth-child(5),
-.portalRow > :nth-child(5) { flex: 0.8; }
+.portalRow > :nth-child(5) { flex: 1.5; text-align: center; }
 .portalHead > :nth-child(6),
-.portalRow > :nth-child(6) { flex: 0.8; }
+.portalRow > :nth-child(6) { flex: 1.2; }
+.portalHead > :nth-child(7),
+.portalRow > :nth-child(7) { flex: 1.2; }
+
