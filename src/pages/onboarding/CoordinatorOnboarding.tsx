@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { Info, Sparkles, ChevronRight, LogOut, ArrowLeft } from 'lucide-react'
+import { Info, Sparkles, ChevronRight, LogOut, ArrowLeft, Check } from 'lucide-react'
 import { OnboardingTestimonials } from '@/components/onboarding/OnboardingTestimonials'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth.store'
@@ -15,7 +15,7 @@ export function CoordinatorOnboarding() {
 
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
-  const [specialization, setSpecialization] = useState('logistics')
+  const [specialization, setSpecialization] = useState<string[]>(['logistics'])
 
   const [loading, setLoading] = useState(false)
   const user = useAuthStore((s) => s.user)
@@ -269,7 +269,7 @@ export function CoordinatorOnboarding() {
                 </p>
               </div>
 
-              <h2 className={styles.question}>Select your primary coordination specialization</h2>
+              <h2 className={styles.question}>Select your coordination specializations</h2>
 
               <div className={styles.optionList}>
                 {[
@@ -277,21 +277,37 @@ export function CoordinatorOnboarding() {
                   { id: 'guest_services', title: 'Guest Services & Seating', desc: 'Overseeing registrations, usher protocols, seating, and VIP security' },
                   { id: 'stage_management', title: 'Stage Management & Show Control', desc: 'Timing MC cues, audiovisual setups, speaker lineups, and live schedule' },
                   { id: 'general_operations', title: 'All-Round Event Coordinator', desc: 'Managing any checklist item required to run a successful event day' },
-                ].map((opt) => (
-                  <button
-                    key={opt.id}
-                    className={`${styles.optionCard} ${specialization === opt.id ? styles.optionCardActive : ''}`}
-                    onClick={() => setSpecialization(opt.id)}
-                  >
-                    <div className={styles.optionDetails}>
-                      <span className={styles.optionTitle}>{opt.title}</span>
-                      <span className={styles.optionDesc}>{opt.desc}</span>
-                    </div>
-                    <div className={styles.radioIndicator}>
-                      <div className={styles.radioIndicatorInner} />
-                    </div>
-                  </button>
-                ))}
+                ].map((opt) => {
+                  const isSelected = specialization.includes(opt.id)
+                  return (
+                    <button
+                      key={opt.id}
+                      className={`${styles.optionCard} ${isSelected ? styles.optionCardActive : ''}`}
+                      onClick={() => {
+                        setSpecialization((prev) =>
+                          prev.includes(opt.id)
+                            ? prev.filter((id) => id !== opt.id)
+                            : [...prev, opt.id]
+                        )
+                      }}
+                    >
+                      <div className={styles.optionDetails}>
+                        <span className={styles.optionTitle}>{opt.title}</span>
+                        <span className={styles.optionDesc}>{opt.desc}</span>
+                      </div>
+                      <div 
+                        className={styles.checkboxIndicator}
+                        style={{
+                          borderColor: isSelected ? 'var(--color-accent)' : 'rgba(255, 255, 255, 0.6)',
+                          backgroundColor: isSelected ? 'var(--color-accent)' : 'rgba(0, 0, 0, 0.3)',
+                          flexShrink: 0
+                        }}
+                      >
+                        {isSelected && <Check size={12} style={{ color: '#fff' }} />}
+                      </div>
+                    </button>
+                  )
+                })}
               </div>
             </div>
           )}

@@ -115,8 +115,8 @@ export function VerifyEmailPage() {
                 className={styles.inputField}
                 value={code}
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
-                placeholder="12345678"
-                maxLength={8}
+                placeholder="123456"
+                maxLength={6}
                 required
                 style={{
                   textAlign: 'center',
