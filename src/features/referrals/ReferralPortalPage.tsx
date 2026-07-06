@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import { Gift, Users, TrendingUp, AlertTriangle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { SEO } from '@/components/shared/SEO'
-import type { ReferralPartner, ReferralPortal } from '@/types'
+import type { ReferralPartner } from '@/types'
 import styles from './ReferralPortalPage.module.css'
 
 type ReferralData = {
