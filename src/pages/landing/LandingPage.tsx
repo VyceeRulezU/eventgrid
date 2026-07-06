@@ -16,7 +16,6 @@ import { FaqSection } from '@/components/shared/FaqSection'
 import TestimonialsSection from '@/pages/landing/TestimonialsSection'
 import { LandingCTA } from '@/components/shared/LandingCTA'
 import Footer from '@/pages/landing/Footer'
-import BackToTop from '@/components/shared/BackToTop'
 import styles from './LandingPage.module.css'
 
 export function LandingPage() {
@@ -114,8 +113,6 @@ export function LandingPage() {
           <Footer />
         </div>
       </main>
-
-      <BackToTop />
     </div>
   )
 }

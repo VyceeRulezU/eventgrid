@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-
+import BackToTop from '@/components/shared/BackToTop'
 import styles from './Footer.module.css'
 
 function TikTokIcon({ size = 17 }: { size?: number }) {
@@ -166,6 +166,7 @@ export default function Footer() {
         </div>
       </div>
 
+      <BackToTop />
     </footer>
   )
 }
