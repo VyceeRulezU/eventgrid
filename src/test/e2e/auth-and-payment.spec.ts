@@ -1,7 +1,11 @@
 import { test, expect, type Page } from '@playwright/test'
 
+const hasSupabase = Boolean(process.env.VITE_SUPABASE_URL && process.env.VITE_SUPABASE_ANON_KEY)
+test.skip(!hasSupabase, 'Supabase credentials not configured — skipping E2E tests')
+
 const ADMIN_LOGIN_PATH = process.env.VITE_ADMIN_LOGIN_PATH || '/admin/login'
 const TEST_PASSWORD = process.env.E2E_TEST_PASSWORD || 'placeholder-set-E2E_TEST_PASSWORD'
+
 
 async function hasTurnstile(page: Page) {
   try {

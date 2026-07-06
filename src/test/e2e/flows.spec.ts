@@ -1,8 +1,12 @@
 import { test, expect } from '@playwright/test'
 
+const hasSupabase = Boolean(process.env.VITE_SUPABASE_URL && process.env.VITE_SUPABASE_ANON_KEY)
+test.skip(!hasSupabase, 'Supabase credentials not configured — skipping E2E tests')
+
 const EMAIL = process.env.E2E_TEST_EMAIL
 const PASSWORD = process.env.E2E_TEST_PASSWORD
 const hasAuth = Boolean(EMAIL && PASSWORD)
+
 
 test.describe('public pages', () => {
   test.use({ storageState: { cookies: [], origins: [] } })
